@@ -18,13 +18,21 @@ void showTaskCardContextMenu(BuildContext context, Task task, Offset localPositi
     items.add(
       PopupMenuItem(
         onTap: () => provider.updateTaskStatus(task, TaskStatus.inProgress),
-        child: const ListTile(leading: Icon(Icons.play_arrow), title: Text('Start (In Progress)'), dense: true),
+        child: const ListTile(
+          leading: Icon(Icons.play_arrow, color: AppColors.success),
+          title: Text('Start (In Progress)', style: TextStyle(color: AppColors.success)),
+          dense: true,
+        ),
       ),
     );
     items.add(
       PopupMenuItem(
         onTap: () => provider.updateTaskStatus(task, TaskStatus.done),
-        child: const ListTile(leading: Icon(Icons.check_circle_outline), title: Text('Mark as Done'), dense: true),
+        child: const ListTile(
+          leading: Icon(Icons.check_circle_outline, color: AppColors.success),
+          title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
+          dense: true,
+        ),
       ),
     );
   }
@@ -39,7 +47,11 @@ void showTaskCardContextMenu(BuildContext context, Task task, Offset localPositi
     items.add(
       PopupMenuItem(
         onTap: () => provider.updateTaskStatus(task, TaskStatus.done),
-        child: const ListTile(leading: Icon(Icons.check_circle_outline), title: Text('Mark as Done'), dense: true),
+        child: const ListTile(
+          leading: Icon(Icons.check_circle_outline, color: AppColors.success),
+          title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
+          dense: true,
+        ),
       ),
     );
   }
@@ -63,8 +75,8 @@ void showTaskCardContextMenu(BuildContext context, Task task, Offset localPositi
     PopupMenuItem(
       onTap: () => provider.scheduleTasksForTomorrow([task.id]),
       child: const ListTile(
-        leading: Icon(Icons.next_plan_outlined),
-        title: Text('Reschedule for Tomorrow'),
+        leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
+        title: Text('Reschedule for Tomorrow', style: TextStyle(color: AppColors.info)),
         dense: true,
       ),
     ),

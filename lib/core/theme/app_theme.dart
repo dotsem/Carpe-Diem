@@ -11,6 +11,7 @@ class AppColors {
   static const accentLight = Color(0xFFFF9F40);
   static const error = Color.fromARGB(255, 238, 70, 101);
   static const success = Color(0xFF4CAF50);
+  static const info = Color(0xFF2196F3);
 
   static const priorityUrgent = Color(0xFF8800FF);
   static const priorityHigh = Color(0xFFE53935);
@@ -22,7 +23,9 @@ class AppColors {
 class AppTheme {
   static ThemeData get dark {
     final base = ThemeData.dark();
-    final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(bodyColor: AppColors.text, displayColor: AppColors.text);
+    final textTheme = GoogleFonts.interTextTheme(
+      base.textTheme,
+    ).apply(bodyColor: AppColors.text, displayColor: AppColors.text);
 
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.background,
@@ -48,7 +51,10 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(backgroundColor: AppColors.accent, foregroundColor: AppColors.text),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.accent,
+        foregroundColor: AppColors.text,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceLight,
