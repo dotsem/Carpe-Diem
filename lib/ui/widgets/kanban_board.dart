@@ -208,14 +208,7 @@ class _KanbanCard extends StatelessWidget {
         opacity: 0.3,
         child: _buildTaskCard(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
       ),
-      child: GestureDetector(
-        onSecondaryTapDown: (details) {
-          final box = context.findRenderObject() as RenderBox;
-          onContextMenu(task, details.localPosition, box);
-        },
-        onTap: () => onEdit(task),
-        child: _buildTaskCard(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
-      ),
+      child: _buildTaskCard(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
     );
   }
 
@@ -233,7 +226,7 @@ class _KanbanCard extends StatelessWidget {
       isOverdue: isOverdue,
       useTimer: false,
       onToggle: () => provider.toggleComplete(task),
-      onTap: () {},
+      onTap: () => onEdit(task),
       onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(context, task, localPosition, renderBox),
     );
   }
