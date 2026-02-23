@@ -18,7 +18,10 @@ void showBacklogContextMenu(BuildContext context, Task task, Offset localPositio
   if (task.status.isTodo) {
     items.add(
       PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.inProgress),
+        onTap: () {
+          provider.updateTaskStatus(task, TaskStatus.inProgress);
+          provider.scheduleTasksForToday([task.id]);
+        },
         child: const ListTile(
           leading: Icon(Icons.play_arrow, color: AppColors.success),
           title: Text('Start (In Progress)', style: TextStyle(color: AppColors.success)),
@@ -28,7 +31,10 @@ void showBacklogContextMenu(BuildContext context, Task task, Offset localPositio
     );
     items.add(
       PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.done),
+        onTap: () {
+          provider.updateTaskStatus(task, TaskStatus.done);
+          provider.scheduleTasksForToday([task.id]);
+        },
         child: const ListTile(
           leading: Icon(Icons.check_circle_outline, color: AppColors.success),
           title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
