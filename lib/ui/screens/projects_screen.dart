@@ -5,6 +5,7 @@ import 'package:carpe_diem/ui/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/ui/widgets/filter_bar.dart';
 import 'package:carpe_diem/ui/widgets/project_card.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
@@ -95,7 +96,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
           child: Wrap(
             spacing: 16,
             runSpacing: 16,
-            children: projects.map((p) => ProjectCard(project: p, onTap: () => _showEditProject(context, p))).toList(),
+            children: projects
+                .map((p) => ProjectCard(project: p, onTap: () => context.go('/projects/${p.id}')))
+                .toList(),
           ),
         );
       },
