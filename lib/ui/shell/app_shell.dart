@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 import 'package:provider/provider.dart';
 import 'package:carpe_diem/data/models/priority.dart';
 import 'package:carpe_diem/data/models/project.dart';
@@ -14,12 +15,14 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          _SideNav(currentPath: GoRouterState.of(context).uri.toString()),
-          const VerticalDivider(width: 1),
-          Expanded(child: child),
-        ],
+      body: GlobalShortcuts(
+        child: Row(
+          children: [
+            _SideNav(currentPath: GoRouterState.of(context).uri.toString()),
+            const VerticalDivider(width: 1),
+            Expanded(child: child),
+          ],
+        ),
       ),
     );
   }
@@ -56,18 +59,21 @@ class _SideNav extends StatelessWidget {
           _NavItem(
             icon: Icons.today_rounded,
             label: 'Today',
+            shortcutHint: 'T',
             isSelected: currentPath == '/',
             onTap: () => context.go('/'),
           ),
           _NavItem(
             icon: Icons.inbox_rounded,
             label: 'Backlog',
+            shortcutHint: 'B',
             isSelected: currentPath == '/tasks',
             onTap: () => context.go('/tasks'),
           ),
           _NavItem(
             icon: Icons.folder_rounded,
             label: 'All Projects',
+            shortcutHint: 'P',
             isSelected: currentPath == '/projects',
             onTap: () => context.go('/projects'),
           ),
@@ -164,6 +170,7 @@ class _NavItem extends StatelessWidget {
   final Color? iconColor;
   final double iconSize;
   final EdgeInsets? outerPadding;
+  final String? shortcutHint;
 
   const _NavItem({
     required this.icon,
@@ -173,6 +180,7 @@ class _NavItem extends StatelessWidget {
     this.iconColor,
     this.iconSize = 20,
     this.outerPadding,
+    this.shortcutHint,
   });
 
   @override
@@ -205,6 +213,23 @@ class _NavItem extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (shortcutHint != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceLight.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      shortcutHint!,
+
+                      style: TextStyle(
+                        color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

@@ -20,6 +20,7 @@ class TaskCard extends StatefulWidget {
   final bool isSelected;
   final bool useTimer;
   final bool showScheduleDate;
+  final bool autofocus;
   final void Function(Offset localPosition, RenderBox renderBox)? onContextMenu;
 
   const TaskCard({
@@ -34,6 +35,7 @@ class TaskCard extends StatefulWidget {
     this.isSelected = false,
     this.useTimer = true,
     this.showScheduleDate = false,
+    this.autofocus = false,
     this.onContextMenu,
   });
 
@@ -44,6 +46,7 @@ class TaskCard extends StatefulWidget {
 class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isPending = false;
+  bool _isFocused = false;
 
   @override
   void initState() {
@@ -117,7 +120,9 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 4),
         child: InkWell(
+          autofocus: widget.autofocus,
           onTap: widget.onTap,
+          onFocusChange: (focused) => setState(() => _isFocused = focused),
           onSecondaryTapDown: widget.onContextMenu != null
               ? (details) => widget.onContextMenu!(details.localPosition, context.findRenderObject() as RenderBox)
               : null,
@@ -125,6 +130,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
+              border: _isFocused ? Border.all(color: AppColors.accent, width: 2) : null,
               gradient: widget.project?.color != null
                   ? LinearGradient(
                       colors: [AppColors.surface, widget.project!.color],

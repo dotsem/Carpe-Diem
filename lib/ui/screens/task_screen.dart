@@ -13,6 +13,16 @@ import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/ui/widgets/task_card.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/ui/widgets/fuzzy_search_bar.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
+import 'package:flutter/services.dart';
+
+class _FocusSearchIntent extends Intent {
+  const _FocusSearchIntent();
+}
+
+class _UnfocusSearchIntent extends Intent {
+  const _UnfocusSearchIntent();
+}
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
@@ -44,28 +54,54 @@ class _TaskScreenState extends State<TaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _header(context),
-        FilterBar(
-          filter: _filter,
-          onFilterTap: () => _showFilterDialog(context),
-          onClearFilter: () => setState(() => _filter = const TaskFilter()),
-        ),
-        const Divider(height: 1),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-          child: FuzzySearchBar(
-            controller: _searchController,
-            focusNode: _searchFocusNode,
-            hintText: 'Search backlog tasks...',
-            onChanged: (value) => setState(() => _searchQuery = value),
+    return Shortcuts(
+      shortcuts: {
+        const CharacterActivator('s'): const _FocusSearchIntent(),
+        const CharacterActivator('/'): const _FocusSearchIntent(),
+        const CharacterActivator('S'): const _FocusSearchIntent(),
+        const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+      },
+      child: Actions(
+        actions: {
+          _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
+            _searchFocusNode.requestFocus();
+          }),
+          _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
+            onInvoke: (_) {
+              if (_searchFocusNode.hasFocus) {
+                _searchFocusNode.unfocus();
+              }
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _header(context),
+              FilterBar(
+                filter: _filter,
+                onFilterTap: () => _showFilterDialog(context),
+                onClearFilter: () => setState(() => _filter = const TaskFilter()),
+              ),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                child: FuzzySearchBar(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  hintText: 'Search backlog tasks... (Press s or / to focus)',
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(child: _taskList()),
+            ],
           ),
         ),
-        const Divider(height: 1),
-        Expanded(child: _taskList()),
-      ],
+      ),
     );
   }
 
@@ -138,15 +174,16 @@ class _TaskScreenState extends State<TaskScreen> {
         return ListView(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
           children: [
-            ...activeTasks.map(
-              (task) => TaskCard(
-                task: task,
-                project: task.projectId != null ? projectProvider.getById(task.projectId!) : null,
-                onToggle: () => provider.toggleComplete(task),
+            ...activeTasks.asMap().entries.map(
+              (entry) => TaskCard(
+                autofocus: entry.key == 0,
+                task: entry.value,
+                project: entry.value.projectId != null ? projectProvider.getById(entry.value.projectId!) : null,
+                onToggle: () => provider.toggleComplete(entry.value),
                 onTap: () {},
                 onContextMenu: (localPosition, renderBox) =>
-                    showBacklogContextMenu(context, task, localPosition, renderBox),
-                trailing: _taskTrailing(context, task),
+                    showBacklogContextMenu(context, entry.value, localPosition, renderBox),
+                trailing: _taskTrailing(context, entry.value),
               ),
             ),
             if (completedTasks.isNotEmpty) ...[

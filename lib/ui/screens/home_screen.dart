@@ -16,6 +16,27 @@ import 'package:carpe_diem/providers/task_provider.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/ui/widgets/task_list_view.dart';
 import 'package:carpe_diem/ui/dialogs/add_task_dialog.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
+
+class _PrevDayIntent extends Intent {
+  const _PrevDayIntent();
+}
+
+class _NextDayIntent extends Intent {
+  const _NextDayIntent();
+}
+
+class _NewTaskIntent extends Intent {
+  const _NewTaskIntent();
+}
+
+class _ToggleLayoutIntent extends Intent {
+  const _ToggleLayoutIntent();
+}
+
+class _FilterIntent extends Intent {
+  const _FilterIntent();
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -53,19 +74,56 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _header(context),
-        _daySelector(),
-        FilterBar(
-          filter: _filter,
-          onFilterTap: () => _showFilterDialog(context),
-          onClearFilter: () => setState(() => _filter = const TaskFilter()),
+    return Shortcuts(
+      shortcuts: {
+        const CharacterActivator('h'): const _PrevDayIntent(),
+        const CharacterActivator('l'): const _NextDayIntent(),
+        const CharacterActivator('n'): const _NewTaskIntent(),
+        const CharacterActivator('v'): const _ToggleLayoutIntent(),
+        const CharacterActivator('f'): const _FilterIntent(),
+        const CharacterActivator('H'): const _PrevDayIntent(),
+        const CharacterActivator('L'): const _NextDayIntent(),
+        const CharacterActivator('N'): const _NewTaskIntent(),
+        const CharacterActivator('V'): const _ToggleLayoutIntent(),
+        const CharacterActivator('F'): const _FilterIntent(),
+      },
+      child: Actions(
+        actions: {
+          _PrevDayIntent: NonTypingAction<_PrevDayIntent>((_) {
+            _changeDay(-1);
+          }),
+          _NextDayIntent: NonTypingAction<_NextDayIntent>((_) {
+            _changeDay(1);
+          }),
+          _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
+            _showAddTask(context);
+          }),
+          _ToggleLayoutIntent: NonTypingAction<_ToggleLayoutIntent>((_) {
+            context.read<TaskProvider>().toggleLayoutMode();
+          }),
+          _FilterIntent: NonTypingAction<_FilterIntent>((_) {
+            _showFilterDialog(context);
+          }),
+        },
+        child: Focus(
+          autofocus: true,
+          debugLabel: 'HomeScreenFocus',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _header(context),
+              _daySelector(),
+              FilterBar(
+                filter: _filter,
+                onFilterTap: () => _showFilterDialog(context),
+                onClearFilter: () => setState(() => _filter = const TaskFilter()),
+              ),
+              const Divider(height: 1),
+              Expanded(child: _body()),
+            ],
+          ),
         ),
-        const Divider(height: 1),
-        Expanded(child: _body()),
-      ],
+      ),
     );
   }
 
@@ -112,6 +170,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  void _changeDay(int delta) {
+    final days = _days;
+    final currentIndex = days.indexWhere((d) => d == _normalizedSelected);
+    final nextIndex = currentIndex + delta;
+    if (nextIndex >= 0 && nextIndex < days.length) {
+      setState(() => _selectedDate = days[nextIndex]);
+      context.read<TaskProvider>().loadTasksForDate(days[nextIndex]);
+    }
   }
 
   Widget _daySelector() {

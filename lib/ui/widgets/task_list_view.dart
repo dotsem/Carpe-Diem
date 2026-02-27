@@ -68,39 +68,38 @@ class TaskListView extends StatelessWidget {
       return _buildEmptyState(context);
     }
 
+    bool isFirstTask = true;
+    Widget buildCard(Task task, bool taskIsOverdue) {
+      final autofocus = isFirstTask;
+      isFirstTask = false;
+      return _buildTaskCard(context, task, projectProvider, taskProvider, taskIsOverdue, showScheduleDate, autofocus);
+    }
+
     return ListView(
       padding: padding,
       children: [
         if (inProgressCategory.isNotEmpty) ...[
           _buildHeader(context, 'In Progress', color: AppColors.accent, amount: inProgressCategory.length),
           const SizedBox(height: 8),
-          ...inProgressCategory.map(
-            (task) => _buildTaskCard(context, task, projectProvider, taskProvider, isOverdue(task), showScheduleDate),
-          ),
+          ...inProgressCategory.map((task) => buildCard(task, isOverdue(task))),
           const SizedBox(height: 20),
         ],
         if (overdueCategory.isNotEmpty) ...[
           _buildHeader(context, 'Overdue', color: AppColors.error, amount: overdueCategory.length),
           const SizedBox(height: 8),
-          ...overdueCategory.map(
-            (task) => _buildTaskCard(context, task, projectProvider, taskProvider, true, showScheduleDate),
-          ),
+          ...overdueCategory.map((task) => buildCard(task, true)),
           const SizedBox(height: 20),
         ],
         if (todoCategory.isNotEmpty) ...[
           _buildHeader(context, 'Todo', amount: todoCategory.length, color: AppColors.textSecondary),
           const SizedBox(height: 8),
-          ...todoCategory.map(
-            (task) => _buildTaskCard(context, task, projectProvider, taskProvider, false, showScheduleDate),
-          ),
+          ...todoCategory.map((task) => buildCard(task, false)),
         ],
         if (doneCategory.isNotEmpty) ...[
           const SizedBox(height: 20),
           _buildHeader(context, 'Done', color: AppColors.textSecondary, amount: doneCategory.length),
           const SizedBox(height: 8),
-          ...doneCategory.map(
-            (task) => _buildTaskCard(context, task, projectProvider, taskProvider, false, showScheduleDate),
-          ),
+          ...doneCategory.map((task) => buildCard(task, false)),
         ],
       ],
     );
@@ -133,12 +132,14 @@ class TaskListView extends StatelessWidget {
     TaskProvider taskProvider,
     bool taskIsOverdue,
     bool showScheduleDate,
+    bool autofocus,
   ) {
     return TaskCard(
       key: ValueKey(task.id),
       task: task,
       project: task.projectId != null ? projectProvider.getById(task.projectId!) : null,
       isOverdue: taskIsOverdue,
+      autofocus: autofocus,
       onToggle: () => taskProvider.toggleComplete(task),
       onTap: () {},
       showScheduleDate: showScheduleDate,
