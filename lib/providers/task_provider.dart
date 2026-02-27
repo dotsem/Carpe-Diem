@@ -104,13 +104,28 @@ class TaskProvider extends ChangeNotifier {
     await _refreshAll();
   }
 
+  Future<void> startTask(Task task) async {
+    final updated = task.copyWith(status: TaskStatus.inProgress, scheduledDate: _normalizeDate(DateTime.now()));
+    await _repo.update(updated);
+    await _refreshAll();
+  }
+
+  Future<void> completeTask(Task task) async {
+    final updated = task.copyWith(
+      status: TaskStatus.done,
+      scheduledDate: task.scheduledDate ?? _normalizeDate(DateTime.now()),
+    );
+    await _repo.update(updated);
+    await _refreshAll();
+  }
+
   Future<void> toggleComplete(Task task) async {
     switch (task.status) {
       case TaskStatus.todo:
-        await updateTaskStatus(task, TaskStatus.inProgress);
+        await startTask(task);
         break;
       case TaskStatus.inProgress:
-        await updateTaskStatus(task, TaskStatus.done);
+        await completeTask(task);
         break;
       case TaskStatus.done:
         await updateTaskStatus(task, TaskStatus.todo);
@@ -176,11 +191,11 @@ class TaskProvider extends ChangeNotifier {
   }
 
   Future<void> scheduleTasksForToday(List<String> taskIds) async {
-    scheduleTasksForDate(taskIds, DateTime.now());
+    await scheduleTasksForDate(taskIds, DateTime.now());
   }
 
   Future<void> scheduleTasksForTomorrow(List<String> taskIds) async {
-    scheduleTasksForDate(taskIds, DateTime.now().add(const Duration(days: 1)));
+    await scheduleTasksForDate(taskIds, DateTime.now().add(const Duration(days: 1)));
   }
 
   Future<void> importTasksFromMarkdown(String markdown, String? projectId) async {

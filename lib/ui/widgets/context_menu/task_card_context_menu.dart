@@ -17,7 +17,7 @@ void showTaskCardContextMenu(BuildContext context, Task task, Offset localPositi
   if (task.status.isTodo) {
     items.add(
       PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.inProgress),
+        onTap: () => provider.startTask(task),
         child: const ListTile(
           leading: Icon(Icons.play_arrow, color: AppColors.success),
           title: Text('Start (In Progress)', style: TextStyle(color: AppColors.success)),
@@ -27,7 +27,7 @@ void showTaskCardContextMenu(BuildContext context, Task task, Offset localPositi
     );
     items.add(
       PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.done),
+        onTap: () => provider.completeTask(task),
         child: const ListTile(
           leading: Icon(Icons.check_circle_outline, color: AppColors.success),
           title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
@@ -46,7 +46,7 @@ void showTaskCardContextMenu(BuildContext context, Task task, Offset localPositi
     );
     items.add(
       PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.done),
+        onTap: () => provider.completeTask(task),
         child: const ListTile(
           leading: Icon(Icons.check_circle_outline, color: AppColors.success),
           title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
