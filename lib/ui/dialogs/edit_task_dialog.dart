@@ -2,10 +2,12 @@ import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/data/models/priority.dart';
 import 'package:carpe_diem/data/models/task.dart';
+import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
 import 'package:carpe_diem/ui/dialogs/common/delete_dialog.dart';
 import 'package:carpe_diem/ui/widgets/priority_picker.dart';
 import 'package:carpe_diem/ui/dialogs/common/sized_dialog.dart';
+import 'package:carpe_diem/ui/widgets/project_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/ui/widgets/date_picker_button.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +26,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
   late Priority _priority;
   DateTime? _scheduledDate;
   DateTime? _deadline;
+  String? _selectedProjectId;
 
   @override
   void initState() {
@@ -33,12 +36,15 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
     _priority = widget.task.priority;
     _scheduledDate = widget.task.scheduledDate;
     _deadline = widget.task.deadline;
+    _selectedProjectId = widget.task.projectId;
   }
 
   DateTime get _maxDate => DateTime.now().add(const Duration(days: AppConstants.maxPlanningDaysAhead));
 
   @override
   Widget build(BuildContext context) {
+    final projects = context.read<ProjectProvider>().projects;
+
     return SizedDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -64,11 +70,25 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
           const SizedBox(height: 8),
           PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
           const SizedBox(height: 16),
-          DatePickerButton(
-            label: 'Schedule Date',
-            date: _scheduledDate,
-            onChanged: (d) => setState(() => _scheduledDate = d),
-            lastDate: _maxDate,
+          Row(
+            children: [
+              Expanded(
+                child: DatePickerButton(
+                  label: 'Schedule Date',
+                  date: _scheduledDate,
+                  onChanged: (d) => setState(() => _scheduledDate = d),
+                  lastDate: _maxDate,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ProjectPicker(
+                  projects: projects,
+                  selectedProjectId: _selectedProjectId,
+                  onChanged: (id) => setState(() => _selectedProjectId = id),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           DatePickerButton(
