@@ -1,6 +1,7 @@
 import 'package:carpe_diem/providers/task_provider.dart';
 import 'package:carpe_diem/ui/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/ui/widgets/context_menu/task_card_context_menu.dart';
+import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/ui/widgets/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
@@ -148,16 +149,21 @@ class _KanbanColumn extends StatelessWidget {
                             ),
                           ),
                         )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(8),
-                          itemCount: tasks.length,
-                          itemBuilder: (context, index) => _KanbanCard(
-                            key: ValueKey(tasks[index].id),
-                            task: tasks[index],
-                            project: projectProvider,
-                            onContextMenu: onContextMenu,
-                            onEdit: onEdit,
-                          ),
+                      : Builder(
+                          builder: (context) {
+                            final hierarchical = TaskHierarchyUtils.buildHierarchy(tasks);
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(8),
+                              itemCount: hierarchical.length,
+                              itemBuilder: (context, index) => _KanbanCard(
+                                key: ValueKey(hierarchical[index].task.id),
+                                taskWithDepth: hierarchical[index],
+                                project: projectProvider,
+                                onContextMenu: onContextMenu,
+                                onEdit: onEdit,
+                              ),
+                            );
+                          },
                         ),
                 ),
               ],
@@ -170,18 +176,21 @@ class _KanbanColumn extends StatelessWidget {
 }
 
 class _KanbanCard extends StatelessWidget {
-  final Task task;
+  final TaskWithDepth taskWithDepth;
   final ProjectProvider project;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
 
   const _KanbanCard({
     super.key,
-    required this.task,
+    required this.taskWithDepth,
     required this.project,
     required this.onContextMenu,
     required this.onEdit,
   });
+
+  Task get task => taskWithDepth.task;
+  int get depth => taskWithDepth.depth;
 
   bool get isOverdue {
     if (task.scheduledDate == null) return false;
@@ -206,9 +215,32 @@ class _KanbanCard extends StatelessWidget {
       ),
       childWhenDragging: Opacity(
         opacity: 0.3,
-        child: _buildTaskCard(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
+        child: _wrapHierarchy(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
       ),
-      child: _buildTaskCard(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
+      child: _wrapHierarchy(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
+    );
+  }
+
+  Widget _wrapHierarchy(
+    BuildContext context,
+    Task task,
+    ProjectProvider projectProvider,
+    TaskProvider provider, {
+    bool isOverdue = false,
+  }) {
+    final card = _buildTaskCard(context, task, projectProvider, provider, isOverdue: isOverdue);
+    if (depth == 0) return card;
+
+    return Padding(
+      padding: EdgeInsets.only(left: depth * 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.subdirectory_arrow_right, size: 16, color: AppColors.textSecondary.withAlpha(100)),
+          const SizedBox(width: 4),
+          Expanded(child: card),
+        ],
+      ),
     );
   }
 

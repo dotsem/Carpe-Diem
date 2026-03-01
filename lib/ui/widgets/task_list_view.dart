@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
 import 'package:carpe_diem/ui/widgets/chip/small_chip.dart';
@@ -84,33 +85,8 @@ class TaskListView extends StatelessWidget {
     }
 
     List<Widget> buildHierarchy(List<Task> categoryTasks, bool Function(Task) overdueFn) {
-      final idSet = categoryTasks.map((t) => t.id).toSet();
-      final childrenMap = <String, List<Task>>{};
-      final roots = <Task>[];
-
-      for (final task in categoryTasks) {
-        if (task.blockedById != null && idSet.contains(task.blockedById)) {
-          childrenMap.putIfAbsent(task.blockedById!, () => []).add(task);
-        } else {
-          roots.add(task);
-        }
-      }
-
-      final widgets = <Widget>[];
-      void addTree(Task task, int depth) {
-        widgets.add(buildCard(task, overdueFn(task), depth: depth));
-        final children = childrenMap[task.id];
-        if (children != null) {
-          for (final child in children) {
-            addTree(child, depth + 1);
-          }
-        }
-      }
-
-      for (final root in roots) {
-        addTree(root, 0);
-      }
-      return widgets;
+      final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks);
+      return flattened.map((t) => buildCard(t.task, overdueFn(t.task), depth: t.depth)).toList();
     }
 
     return ListView(
@@ -189,7 +165,7 @@ class TaskListView extends StatelessWidget {
     if (depth == 0) return card;
 
     return Padding(
-      padding: EdgeInsets.only(left: depth * 0),
+      padding: EdgeInsets.only(left: depth * 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
