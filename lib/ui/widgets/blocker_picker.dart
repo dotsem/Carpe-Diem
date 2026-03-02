@@ -212,7 +212,7 @@ class _BlockerPickerState extends State<BlockerPicker> {
             Icon(
               task == null ? Icons.block : Icons.task_alt,
               size: 14,
-              color: isHighlighted ? AppColors.accent : AppColors.textSecondary,
+              color: task?.priority.color ?? AppColors.textSecondary,
             ),
             const SizedBox(width: 8),
             Expanded(
