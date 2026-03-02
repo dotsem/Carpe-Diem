@@ -30,6 +30,7 @@ class _BlockerPickerState extends State<BlockerPicker> {
 
   List<Task?> get _selectableItems {
     final filtered = widget.availableTasks
+        .where((t) => !t.isCompleted)
         .where((t) => t.id != widget.currentTaskId)
         .where((t) => !_wouldCreateCycle(t.id))
         .toList();
