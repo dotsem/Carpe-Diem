@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
@@ -18,6 +19,7 @@ class TaskListView extends StatelessWidget {
   final bool showDateGroupHeaders;
   final Widget? emptyPlaceholder;
   final bool showScheduleDate;
+  final String? searchQuery;
 
   const TaskListView({
     super.key,
@@ -29,6 +31,7 @@ class TaskListView extends StatelessWidget {
     this.showDateGroupHeaders = true,
     this.emptyPlaceholder,
     this.showScheduleDate = false,
+    this.searchQuery,
   });
 
   @override
@@ -49,16 +52,24 @@ class TaskListView extends StatelessWidget {
       allTasksMap[t.id] = t;
     }
 
-    final allTasks = allTasksMap.values.toList();
-    allTasks.sort((a, b) {
-      if (a.priority != b.priority) return b.priority.index.compareTo(a.priority.index);
-      if (a.deadline != b.deadline) {
-        if (a.deadline == null) return 1;
-        if (b.deadline == null) return -1;
-        return a.deadline!.compareTo(b.deadline!);
-      }
-      return b.createdAt.compareTo(a.createdAt);
-    });
+    var allTasks = allTasksMap.values.toList();
+    if (searchQuery != null && searchQuery!.isNotEmpty) {
+      allTasks = FuzzySearchUtils.search<Task>(
+        query: searchQuery!,
+        items: allTasks,
+        itemToString: (t) => '${t.title} ${t.description ?? ''}',
+      );
+    } else {
+      allTasks.sort((a, b) {
+        if (a.priority != b.priority) return b.priority.index.compareTo(a.priority.index);
+        if (a.deadline != b.deadline) {
+          if (a.deadline == null) return 1;
+          if (b.deadline == null) return -1;
+          return a.deadline!.compareTo(b.deadline!);
+        }
+        return b.createdAt.compareTo(a.createdAt);
+      });
+    }
 
     final inProgressCategory = allTasks.where((t) => t.status.isInProgress).toList();
     final overdueCategory = allTasks.where((t) => t.status.isTodo && isOverdue(t)).toList();
@@ -86,6 +97,9 @@ class TaskListView extends StatelessWidget {
     }
 
     List<Widget> buildHierarchy(List<Task> categoryTasks, bool Function(Task) overdueFn) {
+      if (searchQuery != null && searchQuery!.isNotEmpty) {
+        return categoryTasks.map((t) => buildCard(t, overdueFn(t))).toList();
+      }
       final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks);
       return flattened.map((t) => buildCard(t.task, overdueFn(t.task), depth: t.depth)).toList();
     }
@@ -132,7 +146,7 @@ class TaskListView extends StatelessWidget {
           color: color?.withValues(alpha: 0.15) ?? Colors.transparent,
           borderRadius: 10,
           child: Text(
-            '${tasks.length}',
+            '${amount ?? tasks.length}',
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
           ),
         ),

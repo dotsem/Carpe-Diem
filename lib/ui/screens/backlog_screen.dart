@@ -60,10 +60,10 @@ class _BacklogScreenState extends State<BacklogScreen> {
   Widget build(BuildContext context) {
     return Shortcuts(
       shortcuts: {
-        const CharacterActivator('s'): const _FocusSearchIntent(),
-        const CharacterActivator('/'): const _FocusSearchIntent(),
-        const CharacterActivator('S'): const _FocusSearchIntent(),
-        const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+        // const CharacterActivator('s'): const _FocusSearchIntent(),
+        // const CharacterActivator('/'): const _FocusSearchIntent(),
+        // const CharacterActivator('S'): const _FocusSearchIntent(),
+        // const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
       },
       child: Actions(
         actions: {

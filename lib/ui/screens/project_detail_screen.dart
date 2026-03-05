@@ -3,6 +3,7 @@ import 'package:carpe_diem/providers/label_provider.dart';
 import 'package:carpe_diem/ui/widgets/chip/chip.dart';
 import 'package:carpe_diem/ui/widgets/chip/label_chip.dart';
 import 'package:carpe_diem/ui/widgets/context_menu/backlog_context_menu.dart';
+import 'package:carpe_diem/ui/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/ui/widgets/priority_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +27,9 @@ class ProjectDetailScreen extends StatefulWidget {
 }
 
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _searchQuery = '';
   bool _isLoading = true;
   List<Task> _tasks = [];
   late TaskProvider _taskProvider;
@@ -97,6 +101,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             children: [
               _buildHeader(project),
               const Divider(color: AppColors.surfaceLight, height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                child: FuzzySearchBar(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  hintText: 'Search backlog tasks... (Press s or / to focus)',
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                ),
+              ),
+              const Divider(color: AppColors.surfaceLight, height: 1),
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -108,6 +122,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         emptyPlaceholder: const Center(
                           child: Text("No tasks in this project", style: TextStyle(color: AppColors.textSecondary)),
                         ),
+                        searchQuery: _searchQuery,
                         showScheduleDate: true,
                       ),
               ),
