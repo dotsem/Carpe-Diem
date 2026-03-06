@@ -226,8 +226,17 @@ class _BacklogScreenState extends State<BacklogScreen> {
               }
             },
             onTap: () {},
-            onContextMenu: (localPosition, renderBox) =>
-                showBacklogContextMenu(context, t.task, localPosition, renderBox),
+            onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
+              context,
+              t.task,
+              localPosition,
+              renderBox,
+              onAction: () {
+                if (_selectedTaskIds.contains(t.task.id)) {
+                  setState(() => _selectedTaskIds.remove(t.task.id));
+                }
+              },
+            ),
             trailing: _taskTrailing(context, t.task),
           );
 
@@ -256,8 +265,17 @@ class _BacklogScreenState extends State<BacklogScreen> {
                   project: t.task.projectId != null ? projectProvider.getById(t.task.projectId!) : null,
                   onToggle: (_) {},
                   onTap: () {},
-                  onContextMenu: (localPosition, renderBox) =>
-                      showBacklogContextMenu(context, t.task, localPosition, renderBox),
+                  onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
+                    context,
+                    t.task,
+                    localPosition,
+                    renderBox,
+                    onAction: () {
+                      if (_selectedTaskIds.contains(t.task.id)) {
+                        setState(() => _selectedTaskIds.remove(t.task.id));
+                      }
+                    },
+                  ),
                   trailing: _taskTrailing(context, t.task),
                 );
 
@@ -282,7 +300,17 @@ class _BacklogScreenState extends State<BacklogScreen> {
               onPressed: () {
                 final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
                 const localPosition = Offset.zero;
-                showBacklogContextMenu(context, task, localPosition, renderBox);
+                showBacklogContextMenu(
+                  context,
+                  task,
+                  localPosition,
+                  renderBox,
+                  onAction: () {
+                    if (_selectedTaskIds.contains(task.id)) {
+                      setState(() => _selectedTaskIds.remove(task.id));
+                    }
+                  },
+                );
               },
             );
           },

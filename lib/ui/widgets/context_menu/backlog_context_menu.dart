@@ -7,7 +7,13 @@ import 'package:provider/provider.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
 import 'package:carpe_diem/data/models/task.dart';
 
-void showBacklogContextMenu(BuildContext context, Task task, Offset localPosition, RenderBox renderBox) {
+void showBacklogContextMenu(
+  BuildContext context,
+  Task task,
+  Offset localPosition,
+  RenderBox renderBox, {
+  VoidCallback? onAction,
+}) {
   final provider = context.read<TaskProvider>();
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
 
@@ -18,7 +24,10 @@ void showBacklogContextMenu(BuildContext context, Task task, Offset localPositio
   if (task.status.isTodo) {
     items.add(
       PopupMenuItem(
-        onTap: () => provider.startTask(task),
+        onTap: () {
+          provider.startTask(task);
+          onAction?.call();
+        },
         child: const ListTile(
           leading: Icon(Icons.play_arrow, color: AppColors.success),
           title: Text('Start (In Progress)', style: TextStyle(color: AppColors.success)),
@@ -28,7 +37,10 @@ void showBacklogContextMenu(BuildContext context, Task task, Offset localPositio
     );
     items.add(
       PopupMenuItem(
-        onTap: () => provider.completeTask(task),
+        onTap: () {
+          provider.completeTask(task);
+          onAction?.call();
+        },
         child: const ListTile(
           leading: Icon(Icons.check_circle_outline, color: AppColors.success),
           title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
@@ -47,7 +59,10 @@ void showBacklogContextMenu(BuildContext context, Task task, Offset localPositio
     );
     items.add(
       PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.done),
+        onTap: () {
+          provider.updateTaskStatus(task, TaskStatus.done);
+          onAction?.call();
+        },
         child: const ListTile(
           leading: Icon(Icons.check_circle_outline, color: AppColors.success),
           title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
@@ -74,7 +89,10 @@ void showBacklogContextMenu(BuildContext context, Task task, Offset localPositio
 
   items.addAll([
     PopupMenuItem(
-      onTap: () => provider.scheduleTasksForToday([task.id]),
+      onTap: () {
+        provider.scheduleTasksForToday([task.id]);
+        onAction?.call();
+      },
       child: const ListTile(
         leading: Icon(Icons.today, color: AppColors.info),
         title: Text('Schedule for Today', style: TextStyle(color: AppColors.info)),
@@ -82,7 +100,10 @@ void showBacklogContextMenu(BuildContext context, Task task, Offset localPositio
       ),
     ),
     PopupMenuItem(
-      onTap: () => provider.scheduleTasksForTomorrow([task.id]),
+      onTap: () {
+        provider.scheduleTasksForTomorrow([task.id]);
+        onAction?.call();
+      },
       child: const ListTile(
         leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
         title: Text('Schedule for Tomorrow', style: TextStyle(color: AppColors.info)),
@@ -94,7 +115,10 @@ void showBacklogContextMenu(BuildContext context, Task task, Offset localPositio
       child: const ListTile(leading: Icon(Icons.edit), title: Text('Edit'), dense: true),
     ),
     PopupMenuItem(
-      onTap: () => provider.deleteTask(task),
+      onTap: () {
+        provider.deleteTask(task);
+        onAction?.call();
+      },
       child: const ListTile(
         leading: Icon(Icons.delete, color: AppColors.error),
         title: Text('Delete', style: TextStyle(color: AppColors.error)),
