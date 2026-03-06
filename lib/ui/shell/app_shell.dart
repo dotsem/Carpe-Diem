@@ -7,10 +7,33 @@ import 'package:carpe_diem/data/models/priority.dart';
 import 'package:carpe_diem/data/models/project.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
 
-class AppShell extends StatelessWidget {
+import 'package:carpe_diem/routes/keys.dart';
+
+class AppShell extends StatefulWidget {
   final Widget child;
 
   const AppShell({super.key, required this.child});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  @override
+  void didUpdateWidget(AppShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.child != oldWidget.child) {
+      _dismissPopups();
+    }
+  }
+
+  void _dismissPopups() {
+    final state = shellNavigatorKey.currentState;
+    if (state != null) {
+      // Use popUntil to clear all dialogues/menus and return to the base route
+      state.popUntil((route) => route.isFirst);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +43,7 @@ class AppShell extends StatelessWidget {
           children: [
             _SideNav(currentPath: GoRouterState.of(context).uri.toString()),
             const VerticalDivider(width: 1),
-            Expanded(child: child),
+            Expanded(child: widget.child),
           ],
         ),
       ),
