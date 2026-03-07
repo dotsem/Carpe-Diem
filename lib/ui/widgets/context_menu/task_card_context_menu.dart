@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/data/models/task.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
@@ -80,6 +81,16 @@ void showTaskCardContextMenu(BuildContext context, Task task, Offset localPositi
         dense: true,
       ),
     ),
+    if (todayIsEndOfWorkWeek()) ...[
+      PopupMenuItem(
+        onTap: () => provider.scheduleTasksForNextWorkDay([task.id]),
+        child: const ListTile(
+          leading: Icon(Icons.work_history_outlined, color: AppColors.info),
+          title: Text('Reschedule for Next Week', style: TextStyle(color: AppColors.info)),
+          dense: true,
+        ),
+      ),
+    ],
     PopupMenuItem(
       onTap: () => _showEditTask(context, task),
       child: const ListTile(leading: Icon(Icons.edit), title: Text('Edit'), dense: true),

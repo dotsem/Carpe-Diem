@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/data/models/task_layout.dart';
 import 'package:carpe_diem/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
@@ -256,6 +257,11 @@ class TaskProvider extends ChangeNotifier {
 
   Future<void> scheduleTasksForTomorrow(List<String> taskIds) async {
     await scheduleTasksForDate(taskIds, DateTime.now().add(const Duration(days: 1)));
+  }
+
+  Future<void> scheduleTasksForNextWorkDay(List<String> taskIds) async {
+    DateTime nextMonday = DateTime.now().next(DateTime.monday);
+    await scheduleTasksForDate(taskIds, nextMonday);
   }
 
   Future<void> importTasksFromMarkdown(String markdown, String? projectId) async {
