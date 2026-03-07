@@ -9,9 +9,10 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/data/models/task.dart';
 import 'package:carpe_diem/data/models/task_status.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 
-class KanbanBoard extends StatelessWidget {
+class KanbanBoard extends StatefulWidget {
   final List<Task> tasks;
   final ProjectProvider projectProvider;
   final void Function(Task task, TaskStatus status) onStatusChange;
@@ -28,50 +29,122 @@ class KanbanBoard extends StatelessWidget {
   });
 
   @override
+  State<KanbanBoard> createState() => _KanbanBoardState();
+}
+
+class _KanbanBoardState extends State<KanbanBoard> {
+  bool _forceExpanded = false;
+  bool _isDraggingOver = false;
+  bool _isTransitioning = false;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final tasks = widget.tasks;
     final todo = tasks.where((t) => t.status.isTodo).toList();
     final inProgress = tasks.where((t) => t.status.isInProgress).toList();
     final done = tasks.where((t) => t.status.isDone).toList();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _KanbanColumn(
-            title: 'Todo',
-            titleColor: AppColors.text,
-            tasks: todo,
-            acceptedStatus: TaskStatus.todo,
-            projectProvider: projectProvider,
-            onStatusChange: onStatusChange,
-            onContextMenu: onContextMenu,
-            onEdit: onEdit,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 800;
+        final isExpanded = !isNarrow || _forceExpanded || _isDraggingOver;
+
+        final narrowColumnWidth = (constraints.maxWidth - 64 - 32) / 2 - 12;
+        final standardColumnWidth = (constraints.maxWidth - 64 - 32) / 3;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: isNarrow ? narrowColumnWidth : standardColumnWidth,
+                  child: _KanbanColumn(
+                    title: 'Todo',
+                    titleColor: AppColors.text,
+                    tasks: todo,
+                    acceptedStatus: TaskStatus.todo,
+                    projectProvider: widget.projectProvider,
+                    onStatusChange: widget.onStatusChange,
+                    onContextMenu: widget.onContextMenu,
+                    onEdit: widget.onEdit,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                SizedBox(
+                  width: isNarrow ? narrowColumnWidth : standardColumnWidth,
+                  child: _KanbanColumn(
+                    title: 'In Progress',
+                    titleColor: AppColors.accent,
+                    tasks: inProgress,
+                    acceptedStatus: TaskStatus.inProgress,
+                    projectProvider: widget.projectProvider,
+                    onStatusChange: widget.onStatusChange,
+                    onContextMenu: widget.onContextMenu,
+                    onEdit: widget.onEdit,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                TweenAnimationBuilder<double>(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  tween: Tween<double>(end: isExpanded ? (isNarrow ? narrowColumnWidth : standardColumnWidth) : 24),
+                  onEnd: () {
+                    if (mounted) setState(() => _isTransitioning = false);
+                  },
+                  builder: (context, width, child) {
+                    if (_isTransitioning && _scrollController.hasClients && isExpanded) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients && _isTransitioning) {
+                          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                        }
+                      });
+                    }
+
+                    return SizedBox(
+                      width: width,
+                      child: _KanbanColumn(
+                        title: 'Done',
+                        titleColor: AppColors.success,
+                        tasks: done,
+                        isNarrow: isNarrow,
+                        acceptedStatus: TaskStatus.done,
+                        projectProvider: widget.projectProvider,
+                        onStatusChange: widget.onStatusChange,
+                        onContextMenu: widget.onContextMenu,
+                        onEdit: widget.onEdit,
+                        isCollapsed: !isExpanded,
+                        onToggle: () {
+                          setState(() {
+                            _forceExpanded = !_forceExpanded;
+                            _isTransitioning = true;
+                          });
+                        },
+                        onDragEntering: () {
+                          setState(() {
+                            _isDraggingOver = true;
+                            _isTransitioning = true;
+                          });
+                        },
+                        onDragExiting: () => setState(() => _isDraggingOver = false),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 16),
-          _KanbanColumn(
-            title: 'In Progress',
-            titleColor: AppColors.accent,
-            tasks: inProgress,
-            acceptedStatus: TaskStatus.inProgress,
-            projectProvider: projectProvider,
-            onStatusChange: onStatusChange,
-            onContextMenu: onContextMenu,
-            onEdit: onEdit,
-          ),
-          const SizedBox(width: 16),
-          _KanbanColumn(
-            title: 'Done',
-            titleColor: AppColors.success,
-            tasks: done,
-            acceptedStatus: TaskStatus.done,
-            projectProvider: projectProvider,
-            onStatusChange: onStatusChange,
-            onContextMenu: onContextMenu,
-            onEdit: onEdit,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -85,6 +158,11 @@ class _KanbanColumn extends StatelessWidget {
   final void Function(Task task, TaskStatus status) onStatusChange;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
+  final bool isCollapsed;
+  final bool isNarrow;
+  final VoidCallback? onToggle;
+  final VoidCallback? onDragEntering;
+  final VoidCallback? onDragExiting;
 
   const _KanbanColumn({
     required this.title,
@@ -95,82 +173,157 @@ class _KanbanColumn extends StatelessWidget {
     required this.onStatusChange,
     required this.onContextMenu,
     required this.onEdit,
+    this.isNarrow = false,
+    this.isCollapsed = false,
+    this.onToggle,
+    this.onDragEntering,
+    this.onDragExiting,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: DragTarget<Task>(
-        onWillAcceptWithDetails: (details) => details.data.status != acceptedStatus,
-        onAcceptWithDetails: (details) => onStatusChange(details.data, acceptedStatus),
-        builder: (context, candidateData, rejectedData) {
-          final isHighlighted = candidateData.isNotEmpty;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              color: isHighlighted ? titleColor.withValues(alpha: 0.1) : AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isHighlighted ? titleColor.withValues(alpha: 0.4) : AppColors.surfaceLight,
-                width: isHighlighted ? 2 : 1,
+    return DragTarget<Task>(
+      onWillAcceptWithDetails: (details) {
+        if (details.data.status != acceptedStatus) {
+          onDragEntering?.call();
+          return true;
+        }
+        return false;
+      },
+      onLeave: (details) => onDragExiting?.call(),
+      onAcceptWithDetails: (details) {
+        onDragExiting?.call();
+        onStatusChange(details.data, acceptedStatus);
+      },
+      builder: (context, candidateData, rejectedData) {
+        if (isCollapsed) {
+          return _buildCollapsed(context);
+        }
+        return _buildFull(context, candidateData.isNotEmpty);
+      },
+    );
+  }
+
+  Widget _buildCollapsed(BuildContext context) {
+    return GestureDetector(
+      onTap: onToggle,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          width: 24,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.surfaceLight),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              SmallChip(
+                padding: EdgeInsets.all(2.0),
+                borderRadius: 10,
+                color: titleColor.withValues(alpha: 0.15),
+                child: Text(
+                  '${tasks.length}',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: titleColor),
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Row(
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: titleColor),
-                      ),
-                      const SizedBox(width: 8),
-                      SmallChip(
-                        borderRadius: 10,
-                        color: titleColor.withValues(alpha: 0.15),
-                        child: Text(
-                          '${tasks.length}',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: titleColor),
-                        ),
-                      ),
-                    ],
+              const SizedBox(height: 12),
+
+              RotatedBox(
+                quarterTurns: 1,
+                child: Text(
+                  title.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: titleColor.withValues(alpha: 0.7),
                   ),
                 ),
-                const Divider(height: 1),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFull(BuildContext context, bool isHighlighted) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: isHighlighted ? titleColor.withValues(alpha: 0.1) : AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isHighlighted ? titleColor.withValues(alpha: 0.4) : AppColors.surfaceLight,
+          width: isHighlighted ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Row(
+              children: [
                 Expanded(
-                  child: tasks.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(
-                              'Drop tasks here',
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                            ),
-                          ),
-                        )
-                      : Builder(
-                          builder: (context) {
-                            final hierarchical = TaskHierarchyUtils.buildHierarchy(tasks);
-                            return ListView.builder(
-                              padding: const EdgeInsets.all(8),
-                              itemCount: hierarchical.length,
-                              itemBuilder: (context, index) => _KanbanCard(
-                                key: ValueKey(hierarchical[index].task.id),
-                                taskWithDepth: hierarchical[index],
-                                project: projectProvider,
-                                onContextMenu: onContextMenu,
-                                onEdit: onEdit,
-                              ),
-                            );
-                          },
-                        ),
+                  child: Text(
+                    title,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: titleColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8),
+                SmallChip(
+                  borderRadius: 10,
+                  color: titleColor.withValues(alpha: 0.15),
+                  child: Text(
+                    '${tasks.length}',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: titleColor),
+                  ),
+                ),
+                if (onToggle != null && isNarrow) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right, size: 16),
+                    onPressed: onToggle,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
               ],
             ),
-          );
-        },
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: tasks.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text('Drop tasks here', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    ),
+                  )
+                : Builder(
+                    builder: (context) {
+                      final hierarchical = TaskHierarchyUtils.buildHierarchy(tasks);
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: hierarchical.length,
+                        itemBuilder: (context, index) => _KanbanCard(
+                          key: ValueKey(hierarchical[index].task.id),
+                          taskWithDepth: hierarchical[index],
+                          project: projectProvider,
+                          onContextMenu: onContextMenu,
+                          onEdit: onEdit,
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
