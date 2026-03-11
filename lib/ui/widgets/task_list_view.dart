@@ -42,7 +42,12 @@ class TaskListView extends StatelessWidget {
     final projectProvider = context.read<ProjectProvider>();
     final taskProvider = context.read<TaskProvider>();
 
-    bool isOverdue(Task t) => t.scheduledDate != null && t.scheduledDate!.isBefore(today) && !t.isCompleted;
+    bool isOverdue(Task t) {
+      if (t.deadline != null) {
+        return t.deadline!.isBefore(today) && !t.isCompleted;
+      }
+      return t.scheduledDate != null && t.scheduledDate!.isBefore(today) && !t.isCompleted;
+    }
 
     final allTasksMap = <String, Task>{};
     for (final t in tasks) {

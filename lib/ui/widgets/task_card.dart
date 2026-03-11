@@ -108,6 +108,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
     final bool showDone = widget.isChecked == null && (widget.task.isCompleted || _isPending);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final isOverdue = widget.task.deadline != null ? widget.task.deadline!.isBefore(today) : widget.isOverdue;
 
     return AnimatedBuilder(
       animation: _controller,
@@ -176,7 +177,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                                   ),
                                 ),
                               if (widget.project != null ||
-                                  widget.isOverdue ||
+                                  isOverdue ||
                                   widget.task.status.isInProgress ||
                                   widget.task.deadline != null ||
                                   widget.task.labelIds.isNotEmpty ||
@@ -186,7 +187,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                                   spacing: 4,
                                   runSpacing: 4,
                                   children: [
-                                    if (widget.isOverdue && !widget.task.isCompleted && !_isPending) OverdueChip(),
+                                    if (isOverdue && !widget.task.isCompleted && !_isPending) OverdueChip(),
                                     if (widget.task.status.isInProgress && !_isPending) StatusChip(),
                                     if (widget.task.deadline != null) DeadlineChip(deadline: widget.task.deadline!),
                                     if (widget.showScheduleDate &&
