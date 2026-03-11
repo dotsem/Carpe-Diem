@@ -43,6 +43,8 @@ class _BacklogScreenState extends State<BacklogScreen> {
 
   final List<String> _selectedTaskIds = [];
 
+  bool isFiltering() => _searchQuery != "" || !_filter.isEmpty;
+
   @override
   void initState() {
     super.initState();
@@ -199,16 +201,34 @@ class _BacklogScreenState extends State<BacklogScreen> {
 
         if (activeTasks.isEmpty && completedTasks.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.inbox_rounded, size: 64, color: AppColors.textSecondary),
-                const SizedBox(height: 16),
-                const Text('No backlog tasks', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-                const SizedBox(height: 8),
-                TextButton(onPressed: () => _showAddTask(context), child: const Text('Add a task')),
-              ],
-            ),
+            child: isFiltering()
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.filter_list_alt, size: 64, color: AppColors.textSecondary),
+                      const SizedBox(height: 16),
+                      const Text('No items found'),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _searchQuery = "";
+                          _searchController.text = "";
+                          _filter = const TaskFilter();
+                        }),
+                        child: const Text('Remove Filters'),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.inbox_rounded, size: 64, color: AppColors.textSecondary),
+                      const SizedBox(height: 16),
+                      const Text('No backlog tasks', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      TextButton(onPressed: () => _showAddTask(context), child: const Text('Add a task')),
+                    ],
+                  ),
           );
         }
 
