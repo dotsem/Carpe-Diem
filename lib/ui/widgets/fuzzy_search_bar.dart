@@ -29,6 +29,10 @@ class FuzzySearchBar extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         fillColor: AppColors.surface,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.accent),
+        ),
       ),
       onChanged: onChanged,
       onSubmitted: onSubmitted,

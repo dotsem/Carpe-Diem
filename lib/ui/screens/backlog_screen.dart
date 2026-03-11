@@ -7,6 +7,7 @@ import 'package:carpe_diem/ui/dialogs/bulk_edit_tasks_dialog.dart';
 import 'package:carpe_diem/ui/widgets/context_menu/backlog_context_menu.dart';
 import 'package:carpe_diem/ui/widgets/filter_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
@@ -37,6 +38,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
   TaskFilter _filter = const TaskFilter();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _mainFocusNode = FocusNode();
   String _searchQuery = '';
 
   final List<String> _selectedTaskIds = [];
@@ -53,6 +55,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _mainFocusNode.dispose();
     super.dispose();
   }
 
@@ -60,10 +63,8 @@ class _BacklogScreenState extends State<BacklogScreen> {
   Widget build(BuildContext context) {
     return Shortcuts(
       shortcuts: {
-        // const CharacterActivator('s'): const _FocusSearchIntent(),
-        // const CharacterActivator('/'): const _FocusSearchIntent(),
-        // const CharacterActivator('S'): const _FocusSearchIntent(),
-        // const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+        const CharacterActivator('/'): const _FocusSearchIntent(),
+        const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
       },
       child: Actions(
         actions: {
@@ -71,16 +72,20 @@ class _BacklogScreenState extends State<BacklogScreen> {
             _searchFocusNode.requestFocus();
           }),
           _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
-            onInvoke: (_) {
+            onInvoke: (intent) {
               if (_searchFocusNode.hasFocus) {
                 _searchFocusNode.unfocus();
+                // Re-focus the main node so shortcuts still work
+                _mainFocusNode.requestFocus();
               }
               return null;
             },
           ),
         },
         child: Focus(
+          focusNode: _mainFocusNode,
           autofocus: true,
+          debugLabel: 'BacklogScreenMainFocus',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,7 +101,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
                 child: FuzzySearchBar(
                   controller: _searchController,
                   focusNode: _searchFocusNode,
-                  hintText: 'Search backlog tasks... (Press s or / to focus)',
+                  hintText: 'Search backlog tasks... (Press / to focus)',
                   onChanged: (value) => setState(() => _searchQuery = value),
                 ),
               ),
