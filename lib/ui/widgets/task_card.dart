@@ -179,6 +179,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                                   widget.isOverdue ||
                                   widget.task.status.isInProgress ||
                                   widget.task.deadline != null ||
+                                  widget.task.labelIds.isNotEmpty ||
                                   (widget.showScheduleDate && widget.task.scheduledDate != null)) ...[
                                 const SizedBox(height: 4),
                                 Wrap(
