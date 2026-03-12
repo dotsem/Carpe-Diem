@@ -75,6 +75,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
     final projects = context.read<ProjectProvider>().projects;
 
     return SizedDialog(
+      onSubmit: _submit,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

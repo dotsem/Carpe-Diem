@@ -17,6 +17,20 @@ import 'package:carpe_diem/ui/widgets/task_list_view.dart';
 import 'package:carpe_diem/ui/dialogs/edit_project_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/common/delete_dialog.dart';
+import 'package:flutter/services.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
+
+class _NewTaskIntent extends Intent {
+  const _NewTaskIntent();
+}
+
+class _FocusSearchIntent extends Intent {
+  const _FocusSearchIntent();
+}
+
+class _UnfocusSearchIntent extends Intent {
+  const _UnfocusSearchIntent();
+}
 
 class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
@@ -30,6 +44,7 @@ class ProjectDetailScreen extends StatefulWidget {
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _mainFocusNode = FocusNode();
   String _searchQuery = '';
   bool _isLoading = true;
   List<Task> _tasks = [];
@@ -53,6 +68,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   @override
   void dispose() {
     _taskProvider.removeListener(_onTasksChanged);
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _mainFocusNode.dispose();
     super.dispose();
   }
 
@@ -95,57 +113,95 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           );
         }
 
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(project),
-              const Divider(color: AppColors.surfaceLight, height: 1),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-                child: FuzzySearchBar(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  hintText: 'Search backlog tasks... (Press s or / to focus)',
-                  onChanged: (value) => setState(() => _searchQuery = value),
+        return Shortcuts(
+          shortcuts: {
+            const CharacterActivator('/'): const _FocusSearchIntent(),
+            const CharacterActivator('s'): const _FocusSearchIntent(),
+            const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+            const CharacterActivator('n'): const _NewTaskIntent(),
+            const CharacterActivator('N'): const _NewTaskIntent(),
+          },
+          child: Actions(
+            actions: {
+              _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
+                _searchFocusNode.requestFocus();
+              }),
+              _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
+                onInvoke: (intent) {
+                  if (_searchFocusNode.hasFocus) {
+                    _searchFocusNode.unfocus();
+                    _mainFocusNode.requestFocus();
+                  }
+                  return null;
+                },
+              ),
+              _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
+                _showAddTask(context);
+              }),
+            },
+            child: Focus(
+              focusNode: _mainFocusNode,
+              autofocus: true,
+              debugLabel: 'ProjectDetailScreenMainFocus',
+              child: Scaffold(
+                backgroundColor: AppColors.background,
+                body: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(project),
+                    const Divider(color: AppColors.surfaceLight, height: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                      child: FuzzySearchBar(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        hintText: 'Search backlog tasks... (Press s or / to focus)',
+                        onChanged: (value) => setState(() => _searchQuery = value),
+                      ),
+                    ),
+                    const Divider(color: AppColors.surfaceLight, height: 1),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : TaskListView(
+                              tasks: _tasks,
+                              padding: const EdgeInsets.all(24),
+                              onContextMenu: (ctx, task, pos, box) {
+                                if (task.scheduledDate != null) {
+                                  showTaskCardContextMenu(ctx, task, pos, box);
+                                } else {
+                                  showBacklogContextMenu(ctx, task, pos, box);
+                                }
+                              },
+                              trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+                              emptyPlaceholder: const Center(
+                                child: Text(
+                                  "No tasks in this project",
+                                  style: TextStyle(color: AppColors.textSecondary),
+                                ),
+                              ),
+                              searchQuery: _searchQuery,
+                              showScheduleDate: true,
+                            ),
+                    ),
+                  ],
+                ),
+                floatingActionButton: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black, blurRadius: 15, spreadRadius: 2, offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: FloatingActionButton(
+                    onPressed: () => _showAddTask(context),
+                    backgroundColor: project.color,
+                    elevation: 0,
+                    highlightElevation: 0,
+                    child: const Icon(Icons.add, color: Colors.white),
+                  ),
                 ),
               ),
-              const Divider(color: AppColors.surfaceLight, height: 1),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : TaskListView(
-                        tasks: _tasks,
-                        padding: const EdgeInsets.all(24),
-                        onContextMenu: (ctx, task, pos, box) {
-                          if (task.scheduledDate != null) {
-                            showTaskCardContextMenu(ctx, task, pos, box);
-                          } else {
-                            showBacklogContextMenu(ctx, task, pos, box);
-                          }
-                        },
-                        trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
-                        emptyPlaceholder: const Center(
-                          child: Text("No tasks in this project", style: TextStyle(color: AppColors.textSecondary)),
-                        ),
-                        searchQuery: _searchQuery,
-                        showScheduleDate: true,
-                      ),
-              ),
-            ],
-          ),
-          floatingActionButton: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: Colors.black, blurRadius: 15, spreadRadius: 2, offset: const Offset(0, 4))],
-            ),
-            child: FloatingActionButton(
-              onPressed: () => _showAddTask(context),
-              backgroundColor: project.color,
-              elevation: 0,
-              highlightElevation: 0,
-              child: const Icon(Icons.add, color: Colors.white),
             ),
           ),
         );

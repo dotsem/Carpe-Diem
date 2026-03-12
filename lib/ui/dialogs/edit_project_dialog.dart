@@ -48,6 +48,7 @@ class _EditProjectDialogState extends State<EditProjectDialog> {
   @override
   Widget build(BuildContext context) {
     return SizedDialog(
+      onSubmit: _submit,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -11,6 +11,10 @@ class DeleteDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedDialog(
+      onSubmit: () {
+        Navigator.of(context).pop();
+        onConfirm();
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

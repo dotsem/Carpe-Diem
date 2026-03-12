@@ -7,6 +7,7 @@ import 'package:carpe_diem/ui/dialogs/bulk_edit_tasks_dialog.dart';
 import 'package:carpe_diem/ui/widgets/context_menu/backlog_context_menu.dart';
 import 'package:carpe_diem/ui/widgets/filter_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
@@ -26,6 +27,10 @@ class _UnfocusSearchIntent extends Intent {
   const _UnfocusSearchIntent();
 }
 
+class _NewTaskIntent extends Intent {
+  const _NewTaskIntent();
+}
+
 class BacklogScreen extends StatefulWidget {
   const BacklogScreen({super.key});
 
@@ -37,9 +42,12 @@ class _BacklogScreenState extends State<BacklogScreen> {
   TaskFilter _filter = const TaskFilter();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _mainFocusNode = FocusNode();
   String _searchQuery = '';
 
   final List<String> _selectedTaskIds = [];
+
+  bool isFiltering() => _searchQuery != "" || !_filter.isEmpty;
 
   @override
   void initState() {
@@ -53,6 +61,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _mainFocusNode.dispose();
     super.dispose();
   }
 
@@ -60,10 +69,10 @@ class _BacklogScreenState extends State<BacklogScreen> {
   Widget build(BuildContext context) {
     return Shortcuts(
       shortcuts: {
-        // const CharacterActivator('s'): const _FocusSearchIntent(),
-        // const CharacterActivator('/'): const _FocusSearchIntent(),
-        // const CharacterActivator('S'): const _FocusSearchIntent(),
-        // const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+        const CharacterActivator('/'): const _FocusSearchIntent(),
+        const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+        const CharacterActivator('n'): const _NewTaskIntent(),
+        const CharacterActivator('N'): const _NewTaskIntent(),
       },
       child: Actions(
         actions: {
@@ -71,16 +80,23 @@ class _BacklogScreenState extends State<BacklogScreen> {
             _searchFocusNode.requestFocus();
           }),
           _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
-            onInvoke: (_) {
+            onInvoke: (intent) {
               if (_searchFocusNode.hasFocus) {
                 _searchFocusNode.unfocus();
+                // Re-focus the main node so shortcuts still work
+                _mainFocusNode.requestFocus();
               }
               return null;
             },
           ),
+          _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
+            _showAddTask(context);
+          }),
         },
         child: Focus(
+          focusNode: _mainFocusNode,
           autofocus: true,
+          debugLabel: 'BacklogScreenMainFocus',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,7 +112,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
                 child: FuzzySearchBar(
                   controller: _searchController,
                   focusNode: _searchFocusNode,
-                  hintText: 'Search backlog tasks... (Press s or / to focus)',
+                  hintText: 'Search backlog tasks... (Press / to focus)',
                   onChanged: (value) => setState(() => _searchQuery = value),
                 ),
               ),
@@ -194,16 +210,34 @@ class _BacklogScreenState extends State<BacklogScreen> {
 
         if (activeTasks.isEmpty && completedTasks.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.inbox_rounded, size: 64, color: AppColors.textSecondary),
-                const SizedBox(height: 16),
-                const Text('No backlog tasks', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-                const SizedBox(height: 8),
-                TextButton(onPressed: () => _showAddTask(context), child: const Text('Add a task')),
-              ],
-            ),
+            child: isFiltering()
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.filter_list_alt, size: 64, color: AppColors.textSecondary),
+                      const SizedBox(height: 16),
+                      const Text('No items found'),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _searchQuery = "";
+                          _searchController.text = "";
+                          _filter = const TaskFilter();
+                        }),
+                        child: const Text('Remove Filters'),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.inbox_rounded, size: 64, color: AppColors.textSecondary),
+                      const SizedBox(height: 16),
+                      const Text('No backlog tasks', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      TextButton(onPressed: () => _showAddTask(context), child: const Text('Add a task')),
+                    ],
+                  ),
           );
         }
 

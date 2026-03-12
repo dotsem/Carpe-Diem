@@ -22,6 +22,7 @@ class _ImportFromMDDialogState extends State<ImportFromMDDialog> {
 
     return SizedDialog(
       maxWidth: 800,
+      onSubmit: _submit,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,17 +49,16 @@ class _ImportFromMDDialogState extends State<ImportFromMDDialog> {
             children: [
               TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
               const SizedBox(width: 8),
-              FilledButton(
-                onPressed: () {
-                  context.read<TaskProvider>().importTasksFromMarkdown(_controller.text, _selectedProjectId);
-                  Navigator.pop(context);
-                },
-                child: const Text('Import'),
-              ),
+              FilledButton(onPressed: _submit, child: const Text('Import')),
             ],
           ),
         ],
       ),
     );
+  }
+
+  void _submit() {
+    context.read<TaskProvider>().importTasksFromMarkdown(_controller.text, _selectedProjectId);
+    Navigator.pop(context);
   }
 }

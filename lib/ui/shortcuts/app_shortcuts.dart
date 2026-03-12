@@ -73,8 +73,25 @@ List<ShortcutEntry> get allShortcutEntries => [
 ];
 bool isTypingInTextField() {
   final focus = FocusManager.instance.primaryFocus;
-  if (focus == null) return false;
-  return focus.context?.widget is EditableText;
+  final context = focus?.context;
+  if (context == null) return false;
+
+  final widget = context.widget;
+  if (widget is EditableText || widget is TextField || widget is TextFormField) {
+    return true;
+  }
+
+  bool isTextInput = false;
+  context.visitAncestorElements((element) {
+    final ancestorWidget = element.widget;
+    if (ancestorWidget is EditableText || ancestorWidget is TextField || ancestorWidget is TextFormField) {
+      isTextInput = true;
+      return false;
+    }
+    return true;
+  });
+
+  return isTextInput;
 }
 
 class NonTypingAction<T extends Intent> extends Action<T> {

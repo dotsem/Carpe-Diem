@@ -125,6 +125,7 @@ class _BulkEditTasksDialogState extends State<BulkEditTasksDialog> {
     final projects = context.read<ProjectProvider>().projects;
 
     return SizedDialog(
+      onSubmit: _submit,
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
