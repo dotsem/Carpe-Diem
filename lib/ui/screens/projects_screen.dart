@@ -46,7 +46,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
   Widget _header(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 28, 32, 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         children: [
           Text('Projects', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
@@ -90,7 +90,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         }
 
         return Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.symmetric(vertical: 32),
           child: Wrap(
             spacing: 16,
             runSpacing: 16,

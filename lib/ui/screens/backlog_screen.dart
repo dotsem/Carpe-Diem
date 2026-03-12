@@ -108,7 +108,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
               ),
               const Divider(height: 1),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: FuzzySearchBar(
                   controller: _searchController,
                   focusNode: _searchFocusNode,
@@ -127,7 +127,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
 
   Widget _header(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 28, 32, 16),
+      padding: const EdgeInsets.fromLTRB(0, 28, 0, 16),
       child: Row(
         children: [
           Column(
@@ -280,10 +280,10 @@ class _BacklogScreenState extends State<BacklogScreen> {
         final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks);
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           children: [
             ...activeHierarchical.asMap().entries.map((entry) => buildCard(entry.value, autofocus: entry.key == 0)),
-            if (completedTasks.isNotEmpty) ...[
+            if (completedHierarchical.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text(
                 'Completed',
@@ -292,28 +292,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 8),
-              ...completedHierarchical.map((t) {
-                final card = TaskCard(
-                  task: t.task,
-                  project: t.task.projectId != null ? projectProvider.getById(t.task.projectId!) : null,
-                  onToggle: (_) {},
-                  onTap: () {},
-                  onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
-                    context,
-                    t.task,
-                    localPosition,
-                    renderBox,
-                    onAction: () {
-                      if (_selectedTaskIds.contains(t.task.id)) {
-                        setState(() => _selectedTaskIds.remove(t.task.id));
-                      }
-                    },
-                  ),
-                  trailing: _taskTrailing(context, t.task),
-                );
-
-                return TaskHierarchyIndicator(depth: t.depth, child: card);
-              }),
+              ...completedHierarchical.map((t) => buildCard(t)),
             ],
           ],
         );

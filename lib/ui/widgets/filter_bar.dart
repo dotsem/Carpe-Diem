@@ -17,7 +17,7 @@ class FilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     if (filter.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             ActionChip(

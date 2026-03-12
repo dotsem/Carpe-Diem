@@ -37,13 +37,51 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final isMobile = width < 900;
+    final currentPath = GoRouterState.of(context).uri.toString();
+
     return Scaffold(
+      drawer: isMobile
+          ? Drawer(
+              width: 280,
+              backgroundColor: AppColors.background,
+              child: _SideNav(currentPath: currentPath, isMobile: true),
+            )
+          : null,
       body: GlobalShortcuts(
         child: Row(
           children: [
-            _SideNav(currentPath: GoRouterState.of(context).uri.toString()),
-            const VerticalDivider(width: 1),
-            Expanded(child: widget.child),
+            if (!isMobile) ...[
+              SizedBox(width: 220, child: _SideNav(currentPath: currentPath, isMobile: false)),
+              const VerticalDivider(width: 1),
+            ],
+            Expanded(
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32),
+                    child: widget.child,
+                  ),
+                  if (isMobile)
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: Builder(
+                        builder: (context) => IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.surface.withValues(alpha: 0.8),
+                            foregroundColor: AppColors.text,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -53,13 +91,20 @@ class _AppShellState extends State<AppShell> {
 
 class _SideNav extends StatelessWidget {
   final String currentPath;
+  final bool isMobile;
 
-  const _SideNav({required this.currentPath});
+  const _SideNav({required this.currentPath, required this.isMobile});
+
+  void _navigateTo(BuildContext context, String path) {
+    context.go(path);
+    if (isMobile) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
       color: AppColors.background,
       child: Column(
         children: [
@@ -84,21 +129,21 @@ class _SideNav extends StatelessWidget {
             label: 'Today',
             shortcutHint: 'T',
             isSelected: currentPath == '/',
-            onTap: () => context.go('/'),
+            onTap: () => _navigateTo(context, '/'),
           ),
           _NavItem(
             icon: Icons.inbox_rounded,
             label: 'Backlog',
             shortcutHint: 'B',
             isSelected: currentPath == '/tasks',
-            onTap: () => context.go('/tasks'),
+            onTap: () => _navigateTo(context, '/tasks'),
           ),
           _NavItem(
             icon: Icons.folder_rounded,
             label: 'All Projects',
             shortcutHint: 'P',
             isSelected: currentPath == '/projects',
-            onTap: () => context.go('/projects'),
+            onTap: () => _navigateTo(context, '/projects'),
           ),
           const SizedBox(height: 16),
           const Padding(
@@ -156,7 +201,7 @@ class _SideNav extends StatelessWidget {
                                   iconSize: 12,
                                   label: project.name,
                                   isSelected: isSelected,
-                                  onTap: () => context.go('/projects/${project.id}'),
+                                  onTap: () => _navigateTo(context, '/projects/${project.id}'),
                                   outerPadding: const EdgeInsets.only(right: 12, top: 2, bottom: 2),
                                 );
                               }).toList(),

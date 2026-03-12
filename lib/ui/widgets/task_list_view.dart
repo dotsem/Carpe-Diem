@@ -27,12 +27,12 @@ class TaskListView extends StatelessWidget {
     this.overdueTasks = const [],
     this.trailingBuilder,
     this.onContextMenu,
-    this.padding = const EdgeInsets.fromLTRB(32, 16, 32, 32),
+    EdgeInsets? padding,
     this.showDateGroupHeaders = true,
     this.emptyPlaceholder,
     this.showScheduleDate = false,
     this.searchQuery,
-  });
+  }) : padding = padding ?? const EdgeInsets.symmetric(vertical: 16);
 
   @override
   Widget build(BuildContext context) {

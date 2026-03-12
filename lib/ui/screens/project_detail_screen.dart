@@ -148,10 +148,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(project),
+                    _header(context, project),
                     const Divider(color: AppColors.surfaceLight, height: 1),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       child: FuzzySearchBar(
                         controller: _searchController,
                         focusNode: _searchFocusNode,
@@ -165,7 +165,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           ? const Center(child: CircularProgressIndicator())
                           : TaskListView(
                               tasks: _tasks,
-                              padding: const EdgeInsets.all(24),
+                              padding: const EdgeInsets.symmetric(vertical: 24),
                               onContextMenu: (ctx, task, pos, box) {
                                 if (task.scheduledDate != null) {
                                   showTaskCardContextMenu(ctx, task, pos, box);
@@ -209,9 +209,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
   }
 
-  Widget _buildHeader(Project project) {
+  Widget _header(BuildContext context, Project project) {
     return Padding(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.fromLTRB(0, 28, 0, 16),
       child: Stack(
         children: [
           Positioned(left: 0, top: 0, bottom: 0, child: PriorityIndicator(priority: project.priority)),

@@ -129,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _header(BuildContext context) {
     final provider = context.watch<TaskProvider>();
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 28, 32, 0),
+      padding: const EdgeInsets.only(top: 28),
       child: Row(
         children: [
           Column(
@@ -177,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _daySelector() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 16, 32, 12),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: SizedBox(
         height: 60,
         child: ListView.separated(

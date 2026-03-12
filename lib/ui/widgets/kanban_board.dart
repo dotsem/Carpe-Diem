@@ -56,10 +56,10 @@ class _KanbanBoardState extends State<KanbanBoard> {
         final isNarrow = constraints.maxWidth < 800;
         final isExpanded = !isNarrow || _forceExpanded || _isDraggingOver;
 
-        final narrowColumnWidth = (constraints.maxWidth - 64 - 32) / 2 - 12;
-        final standardColumnWidth = (constraints.maxWidth - 64 - 32) / 3;
+        final standardColumnWidth = (constraints.maxWidth - 32) / 3;
+        final responsiveColumnWidth = isNarrow ? (constraints.maxWidth - 16) / 2 - 20 : standardColumnWidth;
         return Padding(
-          padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
           child: SingleChildScrollView(
             controller: _scrollController,
             scrollDirection: Axis.horizontal,
@@ -67,7 +67,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: isNarrow ? narrowColumnWidth : standardColumnWidth,
+                  width: responsiveColumnWidth,
                   child: _KanbanColumn(
                     title: 'Todo',
                     titleColor: AppColors.text,
@@ -81,7 +81,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                 ),
                 const SizedBox(width: 16),
                 SizedBox(
-                  width: isNarrow ? narrowColumnWidth : standardColumnWidth,
+                  width: responsiveColumnWidth,
                   child: _KanbanColumn(
                     title: 'In Progress',
                     titleColor: AppColors.accent,
@@ -97,7 +97,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                 TweenAnimationBuilder<double>(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOutCubic,
-                  tween: Tween<double>(end: isExpanded ? (isNarrow ? narrowColumnWidth : standardColumnWidth) : 24),
+                  tween: Tween<double>(end: isExpanded ? responsiveColumnWidth : 24),
                   onEnd: () {
                     if (mounted) setState(() => _isTransitioning = false);
                   },
