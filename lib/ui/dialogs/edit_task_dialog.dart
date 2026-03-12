@@ -181,7 +181,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
     context.read<TaskProvider>().updateTask(
       widget.task.copyWith(
         title: _nameController.text.trim(),
-        description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+        description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),
         priority: _priority,
         scheduledDate: _scheduledDate,
         clearScheduledDate: _scheduledDate == null,
