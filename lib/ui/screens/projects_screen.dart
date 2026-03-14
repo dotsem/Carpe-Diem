@@ -91,12 +91,17 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
-          child: Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            children: projects
-                .map((p) => ProjectCard(project: p, onTap: () => context.go('/projects/${p.id}')))
-                .toList(),
+          child: ListView(
+            scrollDirection: Axis.vertical,
+            children: [
+              Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: projects
+                    .map((p) => ProjectCard(project: p, onTap: () => context.go('/projects/${p.id}')))
+                    .toList(),
+              ),
+            ],
           ),
         );
       },
