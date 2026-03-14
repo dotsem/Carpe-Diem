@@ -26,9 +26,9 @@ enum Priority {
 
   IconData get icon => switch (this) {
     Priority.none => Icons.not_interested_outlined,
-    Priority.low => Icons.signal_cellular_alt_1_bar_rounded,
-    Priority.medium => Icons.signal_cellular_alt_2_bar_rounded,
-    Priority.high => Icons.signal_cellular_alt_rounded,
+    Priority.low => Icons.low_priority,
+    Priority.medium => Icons.drag_handle,
+    Priority.high => Icons.priority_high,
     Priority.urgent => Icons.warning,
   };
 }
