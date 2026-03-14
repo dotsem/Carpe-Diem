@@ -151,35 +151,119 @@ class _BacklogScreenState extends State<BacklogScreen> {
               icon: const Icon(Icons.calendar_today_rounded),
             ),
             const SizedBox(width: 8),
-            // TODO: hide behind context menu
-            FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.info, foregroundColor: AppColors.text),
-              onPressed: () => _showBulkEdit(context),
-              label: const Text('Bulk Edit'),
-              icon: const Icon(Icons.edit_rounded),
-            ),
-            const SizedBox(width: 8),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: AppColors.text),
-              onPressed: () => _showBulkDeleteConfirm(context),
-              label: const Text('Bulk Delete'),
-              icon: const Icon(Icons.delete_rounded),
-            ),
-            const SizedBox(width: 8),
           ],
-          FilledButton.icon(
-            onPressed: () => _showImportFromMD(context),
-            label: const Text('Import from MD'),
-            icon: const Icon(Icons.download_rounded),
-          ),
-          const SizedBox(width: 8),
           FilledButton.icon(
             onPressed: () => _showAddTask(context),
             icon: const Icon(Icons.add),
             label: const Text('Add Task'),
           ),
+          const SizedBox(width: 8),
+          _buildHeaderActions(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeaderActions(BuildContext context) {
+    final bool hasMultiple = _selectedTaskIds.length >= 2;
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        tooltipTheme: TooltipThemeData(
+          decoration: BoxDecoration(color: AppColors.surfaceLight, borderRadius: BorderRadius.circular(4)),
+          textStyle: const TextStyle(color: AppColors.text),
+        ),
+      ),
+      child: Builder(
+        builder: (context) {
+          return IconButton(
+            icon: Icon(Icons.more_horiz, color: hasMultiple ? AppColors.accent : AppColors.text),
+            tooltip: 'More actions',
+            style: IconButton.styleFrom(
+              side: hasMultiple ? const BorderSide(color: AppColors.accent, width: 1.5) : BorderSide.none,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              final RenderBox button = context.findRenderObject() as RenderBox;
+              final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+              final RelativeRect position = RelativeRect.fromRect(
+                Rect.fromPoints(
+                  button.localToGlobal(Offset.zero, ancestor: overlay),
+                  button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+                ),
+                Offset.zero & overlay.size,
+              );
+
+              showMenu<String>(
+                context: context,
+                position: position,
+                color: AppColors.surface,
+                elevation: 8,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                items: [
+                  _buildPopupMenuItem(
+                    value: 'import',
+                    icon: Icons.download_rounded,
+                    label: 'Import from MD',
+                    enabled: true,
+                  ),
+                  _buildPopupMenuItem(
+                    value: 'edit',
+                    icon: Icons.edit_rounded,
+                    label: 'Bulk Edit',
+                    enabled: hasMultiple,
+                  ),
+                  _buildPopupMenuItem(
+                    value: 'delete',
+                    icon: Icons.delete_rounded,
+                    label: 'Bulk Delete',
+                    enabled: hasMultiple,
+                    isDestructive: true,
+                  ),
+                ],
+              ).then((value) {
+                if (value == null || !context.mounted) return;
+                switch (value) {
+                  case 'import':
+                    _showImportFromMD(context);
+                    break;
+                  case 'edit':
+                    _showBulkEdit(context);
+                    break;
+                  case 'delete':
+                    _showBulkDeleteConfirm(context);
+                    break;
+                }
+              });
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildPopupMenuItem({
+    required String value,
+    required IconData icon,
+    required String label,
+    required bool enabled,
+    bool isDestructive = false,
+  }) {
+    final content = Row(
+      children: [
+        Icon(icon, size: 20, color: enabled ? (isDestructive ? AppColors.error : null) : AppColors.textSecondary),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: TextStyle(color: enabled ? (isDestructive ? AppColors.error : null) : AppColors.textSecondary),
+        ),
+      ],
+    );
+
+    return PopupMenuItem<String>(
+      value: value,
+      enabled: enabled,
+      child: enabled ? content : Tooltip(message: 'select multiple tasks', child: content),
     );
   }
 
