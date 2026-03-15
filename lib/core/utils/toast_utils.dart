@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
 class ToastUtils {
-  static void showSuccess(String message) {
+  static void showSuccess(String message, {BuildContext? context}) {
     toastification.show(
+      context: context,
       title: Text(message),
       autoCloseDuration: const Duration(seconds: 3),
       type: ToastificationType.success,
@@ -19,8 +20,9 @@ class ToastUtils {
     );
   }
 
-  static void showInfo(String message) {
+  static void showInfo(String message, {BuildContext? context}) {
     toastification.show(
+      context: context,
       title: Text(message),
       autoCloseDuration: const Duration(seconds: 3),
       type: ToastificationType.info,
@@ -35,8 +37,9 @@ class ToastUtils {
     );
   }
 
-  static void showWarning(String message) {
+  static void showWarning(String message, {BuildContext? context}) {
     toastification.show(
+      context: context,
       title: Text(message),
       autoCloseDuration: const Duration(seconds: 3),
       type: ToastificationType.warning,

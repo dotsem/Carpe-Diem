@@ -9,6 +9,7 @@ import 'package:carpe_diem/ui/widgets/priority_picker.dart';
 import 'package:carpe_diem/ui/widgets/label_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/ui/widgets/date_picker_button.dart';
+import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:provider/provider.dart';
 
 class EditProjectDialog extends StatefulWidget {
@@ -100,9 +101,13 @@ class _EditProjectDialogState extends State<EditProjectDialog> {
                   builder: (context) => DeleteDialog(
                     title: 'Delete Project',
                     message: 'Are you sure you want to delete this project?',
-                    onConfirm: () {
-                      Navigator.of(context).pop();
-                      context.read<ProjectProvider>().deleteProject(widget.project);
+                    onConfirm: () async {
+                      final provider = context.read<ProjectProvider>();
+                      await provider.deleteProject(widget.project);
+                      if (context.mounted) {
+                        Navigator.of(context).pop(); // Pop from edit dialog
+                        ToastUtils.showSuccess('Project "${widget.project.name}" deleted', context: context);
+                      }
                     },
                   ),
                 ),

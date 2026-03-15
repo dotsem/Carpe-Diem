@@ -2,6 +2,7 @@ import 'package:carpe_diem/data/models/label.dart';
 import 'package:carpe_diem/providers/label_provider.dart';
 import 'package:carpe_diem/ui/widgets/chip/chip.dart';
 import 'package:carpe_diem/ui/widgets/chip/label_chip.dart';
+import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/ui/widgets/context_menu/backlog_context_menu.dart';
 import 'package:carpe_diem/ui/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/ui/widgets/fuzzy_search_bar.dart';
@@ -19,6 +20,7 @@ import 'package:carpe_diem/ui/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/common/delete_dialog.dart';
 import 'package:flutter/services.dart';
 import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
+import 'package:carpe_diem/core/utils/toast_utils.dart';
 
 class _NewTaskIntent extends Intent {
   const _NewTaskIntent();
@@ -323,9 +325,15 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         title: 'Delete Project',
         message:
             'Are you sure you want to delete "${project.name}"? This will not delete the tasks, but they will no longer be associated with this project.',
-        onConfirm: () {
-          context.read<ProjectProvider>().deleteProject(project);
-          Navigator.of(context).pop(); // Pop from detail screen
+        onConfirm: () async {
+          final provider = context.read<ProjectProvider>();
+
+          await provider.deleteProject(project);
+
+          if (context.mounted) {
+            GoRouter.of(context).go('/projects');
+            ToastUtils.showSuccess('Project "${project.name}" deleted', context: context);
+          }
         },
       ),
     );

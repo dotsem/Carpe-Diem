@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 import 'package:carpe_diem/data/models/project.dart';
 import 'package:carpe_diem/data/models/priority.dart';
 import 'package:carpe_diem/data/repositories/project_repository.dart';
-import 'package:carpe_diem/core/utils/toast_utils.dart';
 
 class ProjectProvider extends ChangeNotifier {
   final ProjectRepository _repo = ProjectRepository();
@@ -46,19 +45,16 @@ class ProjectProvider extends ChangeNotifier {
     );
     await _repo.insert(project);
     await loadProjects();
-    ToastUtils.showSuccess('Project "$name" created');
   }
 
   Future<void> updateProject(Project project) async {
     await _repo.update(project);
     await loadProjects();
-    ToastUtils.showSuccess('Project "${project.name}" updated');
   }
 
   Future<void> deleteProject(Project project) async {
     await _repo.delete(project.id);
     await loadProjects();
-    ToastUtils.showSuccess('Project "${project.name}" deleted');
   }
 
   Project? getById(String id) {
