@@ -70,6 +70,7 @@ A task can be blocked by another task. When a task is blocked, it is expected to
 ### Tools at hand
 
 Managing tasks has been made easy. Use bulk edit to edit multiple tasks in the backlog at once. Easily plan tasks for today, tomorrow or for next workday (on fridays).
+Import tasks from markdown files and automatically assign them to a project.
 
 
 ## First release
@@ -78,6 +79,11 @@ When will the first release be?
 
 The first release is planned soon.
 I'm currently working on some small tweaks and improvements to finalize the app for the first release.
+
+## More features?
+
+I'm always open to suggestions for new features. If you have any ideas, please feel free to share them with me.
+I'm currently adding features that I think are useful.
 
 ## Contributing
 
