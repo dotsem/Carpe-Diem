@@ -254,18 +254,19 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.text),
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, color: AppColors.textSecondary),
-                        onPressed: () => _showEditProject(context, project),
-                        tooltip: 'Edit Project',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                        onPressed: () => _showDeleteProject(context, project),
-                        tooltip: 'Delete Project',
-                      ),
-                      const SizedBox(width: 8),
-                      if (_selectedTaskIds.isNotEmpty) ...[
+                      if (_selectedTaskIds.isEmpty) ...[
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, color: AppColors.textSecondary),
+                          onPressed: () => _showEditProject(context, project),
+                          tooltip: 'Edit Project',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                          onPressed: () => _showDeleteProject(context, project),
+                          tooltip: 'Delete Project',
+                        ),
+                        const SizedBox(width: 8),
+                      ] else ...[
                         FilledButton.icon(
                           style: FilledButton.styleFrom(
                             backgroundColor: AppColors.success,
