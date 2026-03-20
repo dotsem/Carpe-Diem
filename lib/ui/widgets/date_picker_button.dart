@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:carpe_diem/ui/dialogs/common/custom_date_picker_dialog.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:flutter/material.dart';
 
 class DatePickerButton extends StatelessWidget {
   final String label;
@@ -32,12 +33,13 @@ class DatePickerButton extends StatelessWidget {
           initialDate = effectiveLastDate;
         }
 
-        final picked = await showDatePicker(
+        final picked = await showDialog<DateTime>(
           context: context,
-          initialDate: initialDate,
-          firstDate: effectiveFirstDate,
-          lastDate: effectiveLastDate,
-          locale: const Locale('en', 'GB'),
+          builder: (context) => CustomDatePickerDialog(
+            initialDate: initialDate,
+            firstDate: effectiveFirstDate,
+            lastDate: effectiveLastDate,
+          ),
         );
         if (picked != null) onChanged(picked);
       },
