@@ -227,18 +227,10 @@ extension TaskListViewPrivate on TaskListView {
       project: task.projectId != null ? projectProvider.getById(task.projectId!) : null,
       isOverdue: taskIsOverdue,
       autofocus: autofocus,
-      onToggle: this.selectionMode
-          ? (value) => this.onSelectedChanged?.call(task)
-          : (_) => taskProvider.toggleComplete(task),
-      isChecked: this.selectionMode ? this.selectedTaskIds.contains(task.id) : null,
-      selectionMode: this.selectionMode,
-      onTap: () {
-        if (this.selectionMode) {
-          this.onSelectedChanged?.call(task);
-        } else {
-          this.onEdit?.call(task);
-        }
-      },
+      onToggle: selectionMode ? (value) => onSelectedChanged?.call(task) : (_) => taskProvider.toggleComplete(task),
+      isChecked: selectionMode ? selectedTaskIds.contains(task.id) : null,
+      selectionMode: selectionMode,
+      onTap: () => onEdit?.call(task),
       showScheduleDate: showScheduleDate,
       onContextMenu: onContextMenu != null ? (pos, box) => onContextMenu!(context, task, pos, box) : null,
       trailing: trailingBuilder?.call(context, task),
