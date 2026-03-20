@@ -1,0 +1,69 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    build:
+        name: Build ${{ matrix.target }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                target: [linux, macos, windows]
+                include:
+                    - target: linux
+                      os: ubuntu-latest
+                      build-cmd: flutter build linux --release
+                      artifact-path: build/linux/x64/release/bundle
+                      artifact-name: carpe_diem-linux.tar.gz
+                    - target: macos
+                      os: macos-latest
+                      build-cmd: flutter build macos --release
+                      artifact-path: build/macos/Build/Products/Release/carpe_diem.app
+                      artifact-name: carpe_diem-macos.zip
+                    - target: windows
+                      os: windows-latest
+                      build-cmd: flutter build windows --release
+                      artifact-path: build/windows/runner/Release
+                      artifact-name: carpe_diem-windows.zip
+
+        steps:
+            - uses: actions/checkout@v4
+            - uses: subosito/flutter-action@v2
+              with:
+                  channel: "stable"
+                  cache: true
+
+            - name: Install Linux dependencies
+              if: matrix.target == 'linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libgtk-3-dev libblkid-dev liblzma-dev libglib2.0-dev
+
+            - run: flutter pub get
+
+            - name: Build
+              run: ${{ matrix.build-cmd }}
+
+            - name: Package Linux
+              if: matrix.target == 'linux'
+              run: tar -czf ${{ matrix.artifact-name }} -C ${{ matrix.artifact-path }} .
+
+            - name: Package macOS
+              if: matrix.target == 'macos'
+              run: zip -r ${{ matrix.artifact-name }} ${{ matrix.artifact-path }}
+
+            - name: Package Windows
+              if: matrix.target == 'windows'
+              run: Compress-Archive -Path "${{ matrix.artifact-path }}\*" -DestinationPath ${{ matrix.artifact-name }}
+
+            - name: Upload binaries to release
+              uses: svenstaro/upload-release-action@v2
+              with:
+                  repo_token: ${{ secrets.GITHUB_TOKEN }}
+                  file: ${{ matrix.artifact-name }}
+                  asset_name: ${{ matrix.artifact-name }}
+                  tag: ${{ github.ref }}
+                  overwrite: true
