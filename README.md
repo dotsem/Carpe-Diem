@@ -73,10 +73,11 @@ Managing tasks has been made easy. Use bulk edit to edit multiple tasks in the b
 Import tasks from markdown files and automatically assign them to a project.
 
 
-## First release
+## Releases
 
 First release is out (v0.1.0)
-New changes will be released soon!
+
+Follow the [ROADMAP.md](./ROADMAP.md) to follow the development of the app.
 
 ## More features?
 
