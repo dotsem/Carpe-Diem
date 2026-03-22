@@ -43,6 +43,13 @@ Complete or reschedule todays tasks
 - ✏️ Bulk edit tasks
 - 🚫 Add blockers to tasks
 
+## Platforms
+
+The app is currently only available for desktop but will be available on mobile in the future!
+
+>[!IMPORTANT]
+>The app is currently tested on Linux and Windows, but because of Flutters nature it should also work on MacOS
+
 ## Possibilities
 
 ### 🗂️ Projects
