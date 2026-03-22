@@ -1,4 +1,4 @@
-package com.example.carpe_diem
+package com.dotsem.carpe_diem
 
 import io.flutter.embedding.android.FlutterActivity
 
