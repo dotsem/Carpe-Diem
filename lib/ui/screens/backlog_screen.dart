@@ -47,8 +47,11 @@ class _BacklogScreenState extends State<BacklogScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _mainFocusNode = FocusNode();
-  String _searchQuery = '';
 
+  final Map<String, FocusNode> _itemFocusNodes = {};
+  final List<String> _orderedItemIds = [];
+
+  String _searchQuery = '';
   final List<String> _selectedTaskIds = [];
 
   bool isFiltering() => _searchQuery != "" || !_filter.isEmpty;
@@ -59,6 +62,19 @@ class _BacklogScreenState extends State<BacklogScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TaskProvider>().loadUnscheduledTasks();
     });
+
+    _searchFocusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.arrowDown || event.logicalKey == LogicalKeyboardKey.enter) {
+          if (_orderedItemIds.isNotEmpty) {
+            final firstNode = _itemFocusNodes[_orderedItemIds.first];
+            firstNode?.requestFocus();
+            return KeyEventResult.handled;
+          }
+        }
+      }
+      return KeyEventResult.ignored;
+    };
   }
 
   @override
@@ -66,7 +82,35 @@ class _BacklogScreenState extends State<BacklogScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mainFocusNode.dispose();
+    for (final node in _itemFocusNodes.values) {
+      node.dispose();
+    }
     super.dispose();
+  }
+
+  void _moveFocus(int delta) {
+    if (_orderedItemIds.isEmpty) return;
+
+    int currentIndex = -1;
+    for (int i = 0; i < _orderedItemIds.length; i++) {
+      final node = _itemFocusNodes[_orderedItemIds[i]];
+      if (node?.hasFocus ?? false) {
+        currentIndex = i;
+        break;
+      }
+    }
+
+    if (currentIndex == -1) {
+      final targetIndex = delta > 0 ? 0 : _orderedItemIds.length - 1;
+      final id = _orderedItemIds[targetIndex];
+      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'BacklogTask_$id'));
+      node.requestFocus();
+    } else {
+      final nextIndex = (currentIndex + delta).clamp(0, _orderedItemIds.length - 1);
+      final id = _orderedItemIds[nextIndex];
+      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'BacklogTask_$id'));
+      node.requestFocus();
+    }
   }
 
   @override
@@ -77,9 +121,17 @@ class _BacklogScreenState extends State<BacklogScreen> {
         const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
         const CharacterActivator('n'): const _NewTaskIntent(),
         const CharacterActivator('N'): const _NewTaskIntent(),
+        const CharacterActivator('j'): const MoveNextIntent(),
+        const CharacterActivator('k'): const MovePrevIntent(),
       },
       child: Actions(
         actions: {
+          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+            _moveFocus(1);
+          }),
+          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+            _moveFocus(-1);
+          }),
           _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
             _searchFocusNode.requestFocus();
           }),
@@ -87,8 +139,11 @@ class _BacklogScreenState extends State<BacklogScreen> {
             onInvoke: (intent) {
               if (_searchFocusNode.hasFocus) {
                 _searchFocusNode.unfocus();
-                // Re-focus the main node so shortcuts still work
-                _mainFocusNode.requestFocus();
+                if (_orderedItemIds.isNotEmpty) {
+                  _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                } else {
+                  _mainFocusNode.requestFocus();
+                }
               }
               return null;
             },
@@ -117,7 +172,14 @@ class _BacklogScreenState extends State<BacklogScreen> {
                   controller: _searchController,
                   focusNode: _searchFocusNode,
                   hintText: 'Search backlog tasks... (Press / to focus)',
-                  onChanged: (value) => setState(() => _searchQuery = value),
+                  onChanged: (value) => setState(() {
+                    _searchQuery = value;
+                  }),
+                  onSubmitted: (_) {
+                    if (_orderedItemIds.isNotEmpty) {
+                      _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                    }
+                  },
                 ),
               ),
               const Divider(height: 1),
@@ -228,6 +290,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
         final completedTasks = allTasks.where((t) => t.isCompleted).toList();
 
         if (activeTasks.isEmpty && completedTasks.isEmpty) {
+          _orderedItemIds.clear();
           return Center(
             child: isFiltering()
                 ? Column(
@@ -260,15 +323,38 @@ class _BacklogScreenState extends State<BacklogScreen> {
           );
         }
 
-        Widget buildNode(TaskHierarchyNode n, {bool autofocus = false}) {
+        final allAvailableTasks = {for (var t in provider.tasks) t.id: t}
+          ..addAll({for (var t in provider.overdueTasks) t.id: t})
+          ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
+
+        final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
+        final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks, allTasks: allAvailableTasks);
+
+        // Build the ordered list of IDs explicitly for traversal
+        _orderedItemIds.clear();
+        for (final n in activeHierarchical) {
+          if (n is TaskNode) {
+            _orderedItemIds.add(n.task.id);
+          }
+        }
+        for (final n in completedHierarchical) {
+          if (n is TaskNode) {
+            _orderedItemIds.add(n.task.id);
+          }
+        }
+
+        Widget buildNode(TaskHierarchyNode n) {
           Widget child;
           if (n is TaskNode) {
+            final focusNode = _itemFocusNodes.putIfAbsent(n.task.id, () => FocusNode(debugLabel: 'Task_${n.task.id}'));
+
             child = TaskCard(
-              autofocus: autofocus,
+              key: ValueKey(n.task.id),
               task: n.task,
               project: n.task.projectId != null ? projectProvider.getById(n.task.projectId!) : null,
               isChecked: _selectedTaskIds.contains(n.task.id),
               selectionMode: true,
+              focusNode: focusNode,
               onToggle: (value) {
                 if (value != null) {
                   setState(() {
@@ -307,19 +393,10 @@ class _BacklogScreenState extends State<BacklogScreen> {
           return TaskHierarchyIndicator(depth: n.depth, child: child);
         }
 
-        final allAvailableTasks = {for (var t in provider.tasks) t.id: t}
-          ..addAll({for (var t in provider.overdueTasks) t.id: t})
-          ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
-
-        final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
-        final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks, allTasks: allAvailableTasks);
-
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 16),
           children: [
-            ...activeHierarchical.asMap().entries.map(
-              (entry) => buildNode(entry.value, autofocus: entry.key == 0 && entry.value is TaskNode),
-            ),
+            ...activeHierarchical.map((n) => buildNode(n)),
             if (completedHierarchical.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text(

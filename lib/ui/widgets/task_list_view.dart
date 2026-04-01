@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:carpe_diem/data/models/task.dart';
 import 'package:carpe_diem/ui/widgets/task_hierarchy_indicator.dart';
 import 'package:provider/provider.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 
 class TaskListView extends StatefulWidget {
   final List<Task> tasks;
@@ -22,6 +23,15 @@ class TaskListView extends StatefulWidget {
   final Widget? emptyPlaceholder;
   final bool showScheduleDate;
   final String? searchQuery;
+  final Set<String> selectedTaskIds;
+  final bool selectionMode;
+  final ValueChanged<Task>? onSelectedChanged;
+  final ValueChanged<Task>? onEdit;
+  final bool initialDoneExpanded;
+  final bool isReadOnly;
+  final FocusNode? firstNode;
+  final Map<String, FocusNode>? itemFocusNodes;
+  final ValueChanged<List<String>>? onOrderedIdsChanged;
 
   const TaskListView({
     super.key,
@@ -40,14 +50,10 @@ class TaskListView extends StatefulWidget {
     this.onEdit,
     this.initialDoneExpanded = false,
     this.isReadOnly = false,
+    this.firstNode,
+    this.itemFocusNodes,
+    this.onOrderedIdsChanged,
   }) : padding = padding ?? const EdgeInsets.symmetric(vertical: 16);
-
-  final Set<String> selectedTaskIds;
-  final bool selectionMode;
-  final ValueChanged<Task>? onSelectedChanged;
-  final ValueChanged<Task>? onEdit;
-  final bool initialDoneExpanded;
-  final bool isReadOnly;
 
   @override
   State<TaskListView> createState() => _TaskListViewState();
@@ -55,11 +61,56 @@ class TaskListView extends StatefulWidget {
 
 class _TaskListViewState extends State<TaskListView> {
   late bool _isDoneExpanded;
+  final Map<String, FocusNode> _localItemFocusNodes = {};
+  Map<String, FocusNode> get _itemFocusNodes => widget.itemFocusNodes ?? _localItemFocusNodes;
+  final List<String> _orderedItemIds = [];
 
   @override
   void initState() {
     super.initState();
     _isDoneExpanded = widget.initialDoneExpanded;
+  }
+
+  @override
+  void dispose() {
+    for (final node in _localItemFocusNodes.values) {
+      if (node != widget.firstNode) {
+        node.dispose();
+      }
+    }
+    super.dispose();
+  }
+
+  void _moveFocus(int delta) {
+    if (_orderedItemIds.isEmpty) return;
+
+    int currentIndex = -1;
+    for (int i = 0; i < _orderedItemIds.length; i++) {
+      FocusNode? node;
+      if (i == 0 && widget.firstNode != null) {
+        node = widget.firstNode;
+      } else {
+        node = _itemFocusNodes[_orderedItemIds[i]];
+      }
+      if (node?.hasFocus ?? false) {
+        currentIndex = i;
+        break;
+      }
+    }
+
+    if (currentIndex == -1) {
+      final targetIndex = delta > 0 ? 0 : _orderedItemIds.length - 1;
+      FocusNode? targetNode = (targetIndex == 0 && widget.firstNode != null)
+          ? widget.firstNode
+          : _itemFocusNodes[_orderedItemIds[targetIndex]];
+      targetNode?.requestFocus();
+    } else {
+      final nextIndex = (currentIndex + delta).clamp(0, _orderedItemIds.length - 1);
+      FocusNode? targetNode = (nextIndex == 0 && widget.firstNode != null)
+          ? widget.firstNode
+          : _itemFocusNodes[_orderedItemIds[nextIndex]];
+      targetNode?.requestFocus();
+    }
   }
 
   @override
@@ -113,11 +164,53 @@ class _TaskListViewState extends State<TaskListView> {
       return widget._buildEmptyState(context);
     }
 
-    bool isFirstTask = true;
+    _orderedItemIds.clear();
+
+    void addTasksToOrder(List<Task> categoryTasks) {
+      if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
+        for (final t in categoryTasks) {
+          _orderedItemIds.add(t.id);
+        }
+      } else {
+        final allAvailableTasks = {for (var t in taskProvider.tasks) t.id: t}
+          ..addAll({for (var t in taskProvider.overdueTasks) t.id: t})
+          ..addAll({for (var t in taskProvider.unscheduledTasks) t.id: t});
+        final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
+        for (final n in flattened) {
+          if (n is TaskNode) {
+            _orderedItemIds.add(n.task.id);
+          }
+        }
+      }
+    }
+
+    addTasksToOrder(inProgressCategory);
+    addTasksToOrder(overdueCategory);
+    addTasksToOrder(todoCategory);
+    if (_isDoneExpanded) {
+      addTasksToOrder(doneCategory);
+    }
+
+    if (widget.onOrderedIdsChanged != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onOrderedIdsChanged!(List.from(_orderedItemIds));
+      });
+    }
+
+    int nodeIndex = 0;
     Widget buildNode(TaskHierarchyNode node, bool Function(Task) overdueFn) {
       if (node is TaskNode) {
-        final autofocus = isFirstTask;
-        isFirstTask = false;
+        final autofocus = nodeIndex == 0 && widget.searchQuery == null && widget.firstNode == null;
+        final isFirst = nodeIndex == 0;
+        final focusNode = (isFirst && widget.firstNode != null)
+            ? widget.firstNode!
+            : _itemFocusNodes.putIfAbsent(node.task.id, () => FocusNode(debugLabel: 'Task_${node.task.id}'));
+
+        if (isFirst && widget.firstNode != null) {
+          _itemFocusNodes[node.task.id] = widget.firstNode!;
+        }
+
+        nodeIndex++;
         return widget._buildHierarchyNode(
           context,
           node,
@@ -126,9 +219,10 @@ class _TaskListViewState extends State<TaskListView> {
           overdueFn(node.task),
           widget.showScheduleDate,
           autofocus,
+          focusNode,
         );
       } else if (node is BlockerIndicatorNode) {
-        return widget._buildHierarchyNode(context, node, projectProvider, taskProvider, false, false, false);
+        return widget._buildHierarchyNode(context, node, projectProvider, taskProvider, false, false, false, null);
       }
       return const SizedBox.shrink();
     }
@@ -145,50 +239,60 @@ class _TaskListViewState extends State<TaskListView> {
       return flattened.map((n) => buildNode(n, overdueFn)).toList();
     }
 
-    return ListView(
-      padding: widget.padding,
-      children: [
-        if (inProgressCategory.isNotEmpty) ...[
-          widget._buildHeader(context, 'In Progress', color: AppColors.accent, amount: inProgressCategory.length),
-          const SizedBox(height: 8),
-          ...buildHierarchy(inProgressCategory, isOverdue),
-          const SizedBox(height: 20),
-        ],
-        if (overdueCategory.isNotEmpty) ...[
-          widget._buildHeader(context, 'Overdue', color: AppColors.error, amount: overdueCategory.length),
-          const SizedBox(height: 8),
-          ...buildHierarchy(overdueCategory, (_) => true),
-          const SizedBox(height: 20),
-        ],
-        if (todoCategory.isNotEmpty) ...[
-          widget._buildHeader(context, 'Todo', amount: todoCategory.length, color: AppColors.textSecondary),
-          const SizedBox(height: 8),
-          ...buildHierarchy(todoCategory, (_) => false),
-        ],
-        if (doneCategory.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          widget._buildHeader(
-            context,
-            'Done',
-            color: AppColors.textSecondary,
-            amount: doneCategory.length,
-            onTap: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
-            trailing: AnimatedRotation(
-              duration: const Duration(milliseconds: 200),
-              turns: _isDoneExpanded ? 0.5 : 0,
-              child: const Icon(Icons.expand_more, color: AppColors.textSecondary, size: 20),
+    return Actions(
+      actions: {
+        MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+          _moveFocus(1);
+        }),
+        MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+          _moveFocus(-1);
+        }),
+      },
+      child: ListView(
+        padding: widget.padding,
+        children: [
+          if (inProgressCategory.isNotEmpty) ...[
+            widget._buildHeader(context, 'In Progress', color: AppColors.accent, amount: inProgressCategory.length),
+            const SizedBox(height: 8),
+            ...buildHierarchy(inProgressCategory, isOverdue),
+            const SizedBox(height: 20),
+          ],
+          if (overdueCategory.isNotEmpty) ...[
+            widget._buildHeader(context, 'Overdue', color: AppColors.error, amount: overdueCategory.length),
+            const SizedBox(height: 8),
+            ...buildHierarchy(overdueCategory, (_) => true),
+            const SizedBox(height: 20),
+          ],
+          if (todoCategory.isNotEmpty) ...[
+            widget._buildHeader(context, 'Todo', amount: todoCategory.length, color: AppColors.textSecondary),
+            const SizedBox(height: 8),
+            ...buildHierarchy(todoCategory, (_) => false),
+          ],
+          if (doneCategory.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            widget._buildHeader(
+              context,
+              'Done',
+              color: AppColors.textSecondary,
+              amount: doneCategory.length,
+              onTap: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
+              trailing: AnimatedRotation(
+                duration: const Duration(milliseconds: 200),
+                turns: _isDoneExpanded ? 0.5 : 0,
+                child: const Icon(Icons.expand_more, color: AppColors.textSecondary, size: 20),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            child: _isDoneExpanded
-                ? Column(children: buildHierarchy(doneCategory, (_) => false))
-                : const SizedBox(width: double.infinity),
-          ),
+            const SizedBox(height: 8),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              child: _isDoneExpanded
+                  ? Column(children: buildHierarchy(doneCategory, (_) => false))
+                  : const SizedBox(width: double.infinity),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -239,6 +343,7 @@ extension TaskListViewPrivate on TaskListView {
     bool taskIsOverdue,
     bool showScheduleDate,
     bool autofocus,
+    FocusNode? focusNode,
   ) {
     Widget child;
     if (node is TaskNode) {
@@ -248,6 +353,7 @@ extension TaskListViewPrivate on TaskListView {
         project: node.task.projectId != null ? projectProvider.getById(node.task.projectId!) : null,
         isOverdue: taskIsOverdue,
         autofocus: autofocus,
+        focusNode: focusNode,
         onToggle: isReadOnly
             ? (_) {}
             : selectionMode

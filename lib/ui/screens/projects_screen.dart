@@ -31,6 +31,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _mainFocusNode = FocusNode();
+
+  final Map<String, FocusNode> _itemFocusNodes = {};
+  final List<String> _orderedItemIds = [];
+
   String _searchQuery = '';
   TaskFilter _filter = const TaskFilter();
 
@@ -40,6 +44,19 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProjectProvider>().loadProjects();
     });
+
+    _searchFocusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.arrowDown || event.logicalKey == LogicalKeyboardKey.enter) {
+          if (_orderedItemIds.isNotEmpty) {
+            final firstNode = _itemFocusNodes[_orderedItemIds.first];
+            firstNode?.requestFocus();
+            return KeyEventResult.handled;
+          }
+        }
+      }
+      return KeyEventResult.ignored;
+    };
   }
 
   @override
@@ -47,7 +64,35 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mainFocusNode.dispose();
+    for (final node in _itemFocusNodes.values) {
+      node.dispose();
+    }
     super.dispose();
+  }
+
+  void _moveFocus(int delta) {
+    if (_orderedItemIds.isEmpty) return;
+
+    int currentIndex = -1;
+    for (int i = 0; i < _orderedItemIds.length; i++) {
+      final node = _itemFocusNodes[_orderedItemIds[i]];
+      if (node?.hasFocus ?? false) {
+        currentIndex = i;
+        break;
+      }
+    }
+
+    if (currentIndex == -1) {
+      final targetIndex = delta > 0 ? 0 : _orderedItemIds.length - 1;
+      final id = _orderedItemIds[targetIndex];
+      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'Project_$id'));
+      node.requestFocus();
+    } else {
+      final nextIndex = (currentIndex + delta).clamp(0, _orderedItemIds.length - 1);
+      final id = _orderedItemIds[nextIndex];
+      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'Project_$id'));
+      node.requestFocus();
+    }
   }
 
   @override
@@ -56,9 +101,17 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       shortcuts: {
         const CharacterActivator('/'): const _FocusSearchIntent(),
         const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+        const CharacterActivator('j'): const MoveNextIntent(),
+        const CharacterActivator('k'): const MovePrevIntent(),
       },
       child: Actions(
         actions: {
+          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+            _moveFocus(1);
+          }),
+          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+            _moveFocus(-1);
+          }),
           _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
             _searchFocusNode.requestFocus();
           }),
@@ -66,7 +119,11 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
             onInvoke: (intent) {
               if (_searchFocusNode.hasFocus) {
                 _searchFocusNode.unfocus();
-                _mainFocusNode.requestFocus();
+                if (_orderedItemIds.isNotEmpty) {
+                  _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                } else {
+                  _mainFocusNode.requestFocus();
+                }
               }
               return null;
             },
@@ -86,7 +143,14 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                   controller: _searchController,
                   focusNode: _searchFocusNode,
                   hintText: 'Search projects... (Press / to focus)',
-                  onChanged: (value) => setState(() => _searchQuery = value),
+                  onChanged: (value) => setState(() {
+                    _searchQuery = value;
+                  }),
+                  onSubmitted: (_) {
+                    if (_orderedItemIds.isNotEmpty) {
+                      _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                    }
+                  },
                 ),
               ),
               FilterBar(
@@ -138,6 +202,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         final inactiveProjects = filteredProjects.where((p) => !p.isActive).toList();
 
         if (filteredProjects.isEmpty) {
+          _orderedItemIds.clear();
           return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -156,6 +221,15 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
           );
         }
 
+        // Build ordered IDs list explicitly
+        _orderedItemIds.clear();
+        for (final p in activeProjects) {
+          _orderedItemIds.add(p.id);
+        }
+        for (final p in inactiveProjects) {
+          _orderedItemIds.add(p.id);
+        }
+
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
           child: ListView(
@@ -165,9 +239,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 Wrap(
                   spacing: 16,
                   runSpacing: 16,
-                  children: activeProjects
-                      .map((p) => ProjectCard(project: p, onTap: () => context.go('/projects/${p.id}')))
-                      .toList(),
+                  children: activeProjects.map((p) {
+                    final focusNode = _itemFocusNodes.putIfAbsent(p.id, () => FocusNode(debugLabel: 'Project_${p.id}'));
+                    return ProjectCard(project: p, focusNode: focusNode, onTap: () => context.go('/projects/${p.id}'));
+                  }).toList(),
                 ),
               if (inactiveProjects.isNotEmpty) ...[
                 const SizedBox(height: 48),
@@ -184,9 +259,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 Wrap(
                   spacing: 16,
                   runSpacing: 16,
-                  children: inactiveProjects
-                      .map((p) => ProjectCard(project: p, onTap: () => context.go('/projects/${p.id}')))
-                      .toList(),
+                  children: inactiveProjects.map((p) {
+                    final focusNode = _itemFocusNodes.putIfAbsent(p.id, () => FocusNode(debugLabel: 'Project_${p.id}'));
+                    return ProjectCard(project: p, focusNode: focusNode, onTap: () => context.go('/projects/${p.id}'));
+                  }).toList(),
                 ),
               ],
             ],

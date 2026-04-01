@@ -22,8 +22,8 @@ import 'package:carpe_diem/ui/dialogs/edit_project_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/common/delete_dialog.dart';
 import 'package:flutter/services.dart';
-import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 
 class _NewTaskIntent extends Intent {
   const _NewTaskIntent();
@@ -55,12 +55,27 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   List<Task> _tasks = [];
   late TaskProvider _taskProvider;
   final List<String> _selectedTaskIds = [];
+  final FocusNode _firstItemFocusNode = FocusNode(debugLabel: 'ProjectDetailFirstItem');
+  final List<String> _orderedItemIds = [];
+  final Map<String, FocusNode> _itemFocusNodes = {};
 
   @override
   void initState() {
     super.initState();
     _taskProvider = context.read<TaskProvider>();
     _loadTasks();
+
+    _searchFocusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.arrowDown || event.logicalKey == LogicalKeyboardKey.enter) {
+          if (_tasks.isNotEmpty) {
+            _firstItemFocusNode.requestFocus();
+            return KeyEventResult.handled;
+          }
+        }
+      }
+      return KeyEventResult.ignored;
+    };
   }
 
   @override
@@ -77,6 +92,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mainFocusNode.dispose();
+
+    final uniqueNodes = {..._itemFocusNodes.values, _firstItemFocusNode};
+    for (final node in uniqueNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -107,6 +127,34 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     }
   }
 
+  void _moveFocus(int delta) {
+    if (_orderedItemIds.isEmpty) return;
+
+    int currentIndex = -1;
+    for (int j = 0; j < _orderedItemIds.length; j++) {
+      final node = (j == 0) ? _firstItemFocusNode : _itemFocusNodes[_orderedItemIds[j]];
+      if (node?.hasFocus ?? false) {
+        currentIndex = j;
+        break;
+      }
+    }
+
+    if (currentIndex == -1) {
+      final targetIndex = delta > 0 ? 0 : _orderedItemIds.length - 1;
+      final id = _orderedItemIds[targetIndex];
+      final node = _itemFocusNodes.putIfAbsent(
+        id,
+        () => (id == _orderedItemIds[0]) ? _firstItemFocusNode : FocusNode(debugLabel: 'ProjectTask_$id'),
+      );
+      node.requestFocus();
+    } else {
+      final nextIndex = (currentIndex + delta).clamp(0, _orderedItemIds.length - 1);
+      final id = _orderedItemIds[nextIndex];
+      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'ProjectTask_$id'));
+      node.requestFocus();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ProjectProvider>(
@@ -125,9 +173,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
             if (project.isActive) const CharacterActivator('n'): const _NewTaskIntent(),
             if (project.isActive) const CharacterActivator('N'): const _NewTaskIntent(),
+            const CharacterActivator('j'): const MoveNextIntent(),
+            const CharacterActivator('k'): const MovePrevIntent(),
           },
           child: Actions(
             actions: {
+              MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+                _moveFocus(1);
+              }),
+              MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+                _moveFocus(-1);
+              }),
               _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
                 _searchFocusNode.requestFocus();
               }),
@@ -135,7 +191,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 onInvoke: (intent) {
                   if (_searchFocusNode.hasFocus) {
                     _searchFocusNode.unfocus();
-                    _mainFocusNode.requestFocus();
+                    if (_tasks.isNotEmpty) {
+                      _firstItemFocusNode.requestFocus();
+                    } else {
+                      _mainFocusNode.requestFocus();
+                    }
                   }
                   return null;
                 },
@@ -162,7 +222,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         controller: _searchController,
                         focusNode: _searchFocusNode,
                         hintText: 'Search backlog tasks... (Press / to focus)',
-                        onChanged: (value) => setState(() => _searchQuery = value),
+                        onChanged: (value) => setState(() {
+                          _searchQuery = value;
+                        }),
+                        onSubmitted: (_) {
+                          if (_tasks.isNotEmpty) {
+                            _firstItemFocusNode.requestFocus();
+                          }
+                        },
                       ),
                     ),
                     const Divider(color: AppColors.surfaceLight, height: 1),
@@ -186,7 +253,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   style: TextStyle(color: AppColors.textSecondary),
                                 ),
                               ),
+                              onOrderedIdsChanged: (ids) {
+                                _orderedItemIds.clear();
+                                _orderedItemIds.addAll(ids);
+                              },
+                              itemFocusNodes: _itemFocusNodes,
                               searchQuery: _searchQuery,
+                              firstNode: _firstItemFocusNode,
                               showScheduleDate: true,
                               selectionMode: true,
                               selectedTaskIds: _selectedTaskIds.toSet(),

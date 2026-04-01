@@ -76,15 +76,22 @@ bool isTypingInTextField() {
   final context = focus?.context;
   if (context == null) return false;
 
+  bool isTextInput = false;
+
+  // Check if the focused widget itself is a text input
   final widget = context.widget;
   if (widget is EditableText || widget is TextField || widget is TextFormField) {
     return true;
   }
 
-  bool isTextInput = false;
+  // Visit ancestors to find if we're inside a text input widget
   context.visitAncestorElements((element) {
     final ancestorWidget = element.widget;
     if (ancestorWidget is EditableText || ancestorWidget is TextField || ancestorWidget is TextFormField) {
+      isTextInput = true;
+      return false;
+    }
+    if (element is StatefulElement && element.state is EditableTextState) {
       isTextInput = true;
       return false;
     }
@@ -105,7 +112,7 @@ class NonTypingAction<T extends Intent> extends Action<T> {
   @override
   Object? invoke(T intent) {
     onInvokeCallback(intent);
-    return null;
+    return intent;
   }
 }
 
@@ -174,16 +181,20 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
           const CharacterActivator('p'): const NavigateToProjectsIntent(),
           const CharacterActivator('?'): const ToggleHelpIntent(),
           const SingleActivator(LogicalKeyboardKey.escape): const CloseHelpIntent(),
-          const CharacterActivator('j'): const DirectionalFocusIntent(TraversalDirection.down),
-          const CharacterActivator('k'): const DirectionalFocusIntent(TraversalDirection.up),
-          const CharacterActivator('J'): const DirectionalFocusIntent(TraversalDirection.down),
-          const CharacterActivator('K'): const DirectionalFocusIntent(TraversalDirection.up),
+          const CharacterActivator('j'): const MoveNextIntent(),
+          const CharacterActivator('k'): const MovePrevIntent(),
+          const CharacterActivator('J'): const MoveNextIntent(),
+          const CharacterActivator('K'): const MovePrevIntent(),
         },
         child: Actions(
           actions: {
-            DirectionalFocusIntent: NonTypingAction<DirectionalFocusIntent>((intent) {
-              debugPrint('Shortcut: DirectionalFocus ${intent.direction}');
-              FocusManager.instance.primaryFocus?.focusInDirection(intent.direction);
+            MoveNextIntent: NonTypingAction<MoveNextIntent>((intent) {
+              debugPrint('Shortcut: MoveNext');
+              FocusManager.instance.primaryFocus?.focusInDirection(TraversalDirection.down);
+            }),
+            MovePrevIntent: NonTypingAction<MovePrevIntent>((intent) {
+              debugPrint('Shortcut: MovePrev');
+              FocusManager.instance.primaryFocus?.focusInDirection(TraversalDirection.up);
             }),
             NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((intent) {
               debugPrint('Shortcut: NavigateToToday');

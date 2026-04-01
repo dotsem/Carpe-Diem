@@ -51,6 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
   TaskFilter _filter = const TaskFilter();
   late Timer timer;
   final _dateFormat = DateFormat('EEEE, MMMM d');
+  final List<String> _orderedItemIds = [];
+  final Map<String, FocusNode> _itemFocusNodes = {};
 
   @override
   void initState() {
@@ -77,6 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     timer.cancel();
+    for (final node in _itemFocusNodes.values) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -93,6 +98,31 @@ class _HomeScreenState extends State<HomeScreen> {
     return List.generate(AppConstants.maxPlanningDaysAhead + 1, (i) => today.add(Duration(days: i)));
   }
 
+  void _moveFocus(int delta) {
+    if (_orderedItemIds.isEmpty) return;
+
+    int currentIndex = -1;
+    for (int i = 0; i < _orderedItemIds.length; i++) {
+      final node = _itemFocusNodes[_orderedItemIds[i]];
+      if (node?.hasFocus ?? false) {
+        currentIndex = i;
+        break;
+      }
+    }
+
+    if (currentIndex == -1) {
+      final targetIndex = delta > 0 ? 0 : _orderedItemIds.length - 1;
+      final id = _orderedItemIds[targetIndex];
+      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'HomeTask_$id'));
+      node.requestFocus();
+    } else {
+      final nextIndex = (currentIndex + delta).clamp(0, _orderedItemIds.length - 1);
+      final id = _orderedItemIds[nextIndex];
+      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'HomeTask_$id'));
+      node.requestFocus();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Shortcuts(
@@ -107,6 +137,8 @@ class _HomeScreenState extends State<HomeScreen> {
         const CharacterActivator('N'): const _NewTaskIntent(),
         const CharacterActivator('V'): const _ToggleLayoutIntent(),
         const CharacterActivator('F'): const _FilterIntent(),
+        const CharacterActivator('j'): const MoveNextIntent(),
+        const CharacterActivator('k'): const MovePrevIntent(),
       },
       child: Actions(
         actions: {
@@ -124,6 +156,12 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
           _FilterIntent: NonTypingAction<_FilterIntent>((_) {
             _showFilterDialog(context);
+          }),
+          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+            _moveFocus(1);
+          }),
+          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+            _moveFocus(-1);
           }),
         },
         child: Focus(
@@ -274,6 +312,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onStatusChange: (task, status) => provider.updateTaskStatus(task, status),
             onContextMenu: (task, pos, box) => showTaskCardContextMenu(context, task, pos, box),
             onEdit: (task) => _showEditTask(context, task),
+            itemFocusNodes: _itemFocusNodes,
+            onOrderedIdsChanged: (ids) {
+              _orderedItemIds.clear();
+              _orderedItemIds.addAll(ids);
+            },
           );
         }
 
@@ -282,6 +325,11 @@ class _HomeScreenState extends State<HomeScreen> {
           overdueTasks: _isToday ? overdue : [],
           onContextMenu: (ctx, task, pos, box) => showTaskCardContextMenu(ctx, task, pos, box),
           trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+          onOrderedIdsChanged: (ids) {
+            _orderedItemIds.clear();
+            _orderedItemIds.addAll(ids);
+          },
+          itemFocusNodes: _itemFocusNodes,
           onEdit: (task) => _showEditTask(context, task),
           emptyPlaceholder: _buildEmptyState(),
         );

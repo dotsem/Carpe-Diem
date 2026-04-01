@@ -19,6 +19,8 @@ class KanbanBoard extends StatefulWidget {
   final void Function(Task task, TaskStatus status) onStatusChange;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
+  final Map<String, FocusNode>? itemFocusNodes;
+  final ValueChanged<List<String>>? onOrderedIdsChanged;
 
   const KanbanBoard({
     super.key,
@@ -27,6 +29,8 @@ class KanbanBoard extends StatefulWidget {
     required this.onStatusChange,
     required this.onContextMenu,
     required this.onEdit,
+    this.itemFocusNodes,
+    this.onOrderedIdsChanged,
   });
 
   @override
@@ -51,6 +55,24 @@ class _KanbanBoardState extends State<KanbanBoard> {
     final todo = tasks.where((t) => t.status.isTodo).toList();
     final inProgress = tasks.where((t) => t.status.isInProgress).toList();
     final done = tasks.where((t) => t.status.isDone).toList();
+
+    if (widget.onOrderedIdsChanged != null) {
+      final taskProvider = context.read<TaskProvider>();
+      final allAvailableTasks = {for (var t in taskProvider.tasks) t.id: t}
+        ..addAll({for (var t in taskProvider.overdueTasks) t.id: t})
+        ..addAll({for (var t in taskProvider.unscheduledTasks) t.id: t});
+
+      List<String> getFlatIds(List<Task> categoryTasks) {
+        final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
+        return flattened.whereType<TaskNode>().map((n) => n.task.id).toList();
+      }
+
+      // Exclude 'done' column from sequential navigation as requested
+      final orderedIds = [...getFlatIds(todo), ...getFlatIds(inProgress)];
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onOrderedIdsChanged!(orderedIds);
+      });
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -123,6 +145,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                         onStatusChange: widget.onStatusChange,
                         onContextMenu: widget.onContextMenu,
                         onEdit: widget.onEdit,
+                        itemFocusNodes: widget.itemFocusNodes,
                         isCollapsed: !isExpanded,
                         onToggle: () {
                           setState(() {
@@ -164,6 +187,7 @@ class _KanbanColumn extends StatelessWidget {
   final VoidCallback? onToggle;
   final VoidCallback? onDragEntering;
   final VoidCallback? onDragExiting;
+  final Map<String, FocusNode>? itemFocusNodes;
 
   const _KanbanColumn({
     required this.title,
@@ -179,6 +203,7 @@ class _KanbanColumn extends StatelessWidget {
     this.onToggle,
     this.onDragEntering,
     this.onDragExiting,
+    this.itemFocusNodes,
   });
 
   @override
@@ -321,12 +346,19 @@ class _KanbanColumn extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final node = hierarchical[index];
                           if (node is TaskNode) {
+                            final task = node.task;
+                            // Critical: Registration in shared map allows parent screen to track current focus
+                            final focusNode = itemFocusNodes?.putIfAbsent(
+                              task.id,
+                              () => FocusNode(debugLabel: 'KanbanTask_${task.id}'),
+                            );
                             return _KanbanCard(
-                              key: ValueKey(node.task.id),
+                              key: ValueKey(task.id),
                               node: node,
                               project: projectProvider,
                               onContextMenu: onContextMenu,
                               onEdit: onEdit,
+                              focusNode: focusNode,
                             );
                           } else if (node is BlockerIndicatorNode) {
                             return TaskHierarchyIndicator(
@@ -355,6 +387,7 @@ class _KanbanCard extends StatelessWidget {
   final ProjectProvider project;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
+  final FocusNode? focusNode;
 
   const _KanbanCard({
     super.key,
@@ -362,6 +395,7 @@ class _KanbanCard extends StatelessWidget {
     required this.project,
     required this.onContextMenu,
     required this.onEdit,
+    this.focusNode,
   });
 
   Task get task => node.task;
@@ -422,6 +456,7 @@ class _KanbanCard extends StatelessWidget {
       isOverdue: isOverdue,
       useTimer: false,
       leading: Container(),
+      focusNode: focusNode,
       onToggle: (_) => provider.toggleComplete(task),
       onTap: () => onEdit(task),
       onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(context, task, localPosition, renderBox),

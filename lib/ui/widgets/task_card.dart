@@ -23,6 +23,7 @@ class TaskCard extends StatefulWidget {
   final bool useTimer;
   final bool showScheduleDate;
   final bool autofocus;
+  final FocusNode? focusNode;
   final Widget? leading;
   final void Function(Offset localPosition, RenderBox renderBox)? onContextMenu;
 
@@ -39,6 +40,7 @@ class TaskCard extends StatefulWidget {
     this.useTimer = true,
     this.showScheduleDate = false,
     this.autofocus = false,
+    this.focusNode,
     this.leading,
     this.onContextMenu,
   });
@@ -136,9 +138,15 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 4),
         child: InkWell(
+          focusNode: widget.focusNode,
           autofocus: widget.autofocus,
           onTap: widget.onTap,
-          onFocusChange: (focused) => setState(() => _isFocused = focused),
+          onFocusChange: (focused) {
+            if (focused && mounted) {
+              Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 200), alignment: 0.5);
+            }
+            setState(() => _isFocused = focused);
+          },
           onSecondaryTapDown: widget.onContextMenu != null
               ? (details) => widget.onContextMenu!(details.localPosition, context.findRenderObject() as RenderBox)
               : null,
