@@ -1,9 +1,9 @@
-import 'package:carpe_diem/data/models/task.dart';
-import 'package:carpe_diem/data/models/task_filter.dart';
+import 'package:carpe_diem/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/ui/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/import_from_md_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/bulk_edit_tasks_dialog.dart';
+import 'package:carpe_diem/ui/widgets/blocker_indicator.dart';
 import 'package:carpe_diem/ui/widgets/context_menu/backlog_context_menu.dart';
 import 'package:carpe_diem/ui/widgets/filter_bar.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +20,8 @@ import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/ui/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
+import 'package:carpe_diem/data/models/task.dart';
+import 'package:carpe_diem/data/models/task_filter.dart';
 
 class _FocusSearchIntent extends Intent {
   const _FocusSearchIntent();
@@ -258,49 +260,66 @@ class _BacklogScreenState extends State<BacklogScreen> {
           );
         }
 
-        Widget buildCard(TaskWithDepth t, {bool autofocus = false}) {
-          final card = TaskCard(
-            autofocus: autofocus,
-            task: t.task,
-            project: t.task.projectId != null ? projectProvider.getById(t.task.projectId!) : null,
-            isChecked: _selectedTaskIds.contains(t.task.id),
-            selectionMode: true,
-            onToggle: (value) {
-              if (value != null) {
-                setState(() {
-                  if (value) {
-                    _selectedTaskIds.add(t.task.id);
-                  } else {
-                    _selectedTaskIds.remove(t.task.id);
-                  }
-                });
-              }
-            },
-            onTap: () => _showEditTask(context, t.task),
-            onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
-              context,
-              t.task,
-              localPosition,
-              renderBox,
-              onAction: () {
-                if (_selectedTaskIds.contains(t.task.id)) {
-                  setState(() => _selectedTaskIds.remove(t.task.id));
+        Widget buildNode(TaskHierarchyNode n, {bool autofocus = false}) {
+          Widget child;
+          if (n is TaskNode) {
+            child = TaskCard(
+              autofocus: autofocus,
+              task: n.task,
+              project: n.task.projectId != null ? projectProvider.getById(n.task.projectId!) : null,
+              isChecked: _selectedTaskIds.contains(n.task.id),
+              selectionMode: true,
+              onToggle: (value) {
+                if (value != null) {
+                  setState(() {
+                    if (value) {
+                      _selectedTaskIds.add(n.task.id);
+                    } else {
+                      _selectedTaskIds.remove(n.task.id);
+                    }
+                  });
                 }
               },
-            ),
-            trailing: _taskTrailing(context, t.task),
-          );
+              onTap: () => _showEditTask(context, n.task),
+              onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
+                context,
+                n.task,
+                localPosition,
+                renderBox,
+                onAction: () {
+                  if (_selectedTaskIds.contains(n.task.id)) {
+                    setState(() => _selectedTaskIds.remove(n.task.id));
+                  }
+                },
+              ),
+              trailing: _taskTrailing(context, n.task),
+            );
+          } else if (n is BlockerIndicatorNode) {
+            child = BlockerIndicator(
+              blockerId: n.blockerId,
+              blockerTitle: n.blockerTitle,
+              blockedTaskId: n.blockedTaskId,
+            );
+          } else {
+            return const SizedBox.shrink();
+          }
 
-          return TaskHierarchyIndicator(depth: t.depth, child: card);
+          return TaskHierarchyIndicator(depth: n.depth, child: child);
         }
 
-        final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks);
-        final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks);
+        final allAvailableTasks = {for (var t in provider.tasks) t.id: t}
+          ..addAll({for (var t in provider.overdueTasks) t.id: t})
+          ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
+
+        final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
+        final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks, allTasks: allAvailableTasks);
 
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 16),
           children: [
-            ...activeHierarchical.asMap().entries.map((entry) => buildCard(entry.value, autofocus: entry.key == 0)),
+            ...activeHierarchical.asMap().entries.map(
+              (entry) => buildNode(entry.value, autofocus: entry.key == 0 && entry.value is TaskNode),
+            ),
             if (completedHierarchical.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text(
@@ -310,7 +329,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 8),
-              ...completedHierarchical.map((t) => buildCard(t)),
+              ...completedHierarchical.map((n) => buildNode(n)),
             ],
           ],
         );

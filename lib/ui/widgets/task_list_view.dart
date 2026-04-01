@@ -1,8 +1,10 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
+import 'package:carpe_diem/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
+import 'package:carpe_diem/ui/widgets/blocker_indicator.dart';
 import 'package:carpe_diem/ui/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/ui/widgets/task_card.dart';
 import 'package:flutter/material.dart';
@@ -112,27 +114,35 @@ class _TaskListViewState extends State<TaskListView> {
     }
 
     bool isFirstTask = true;
-    Widget buildCard(Task task, bool taskIsOverdue, {int depth = 0}) {
-      final autofocus = isFirstTask;
-      isFirstTask = false;
-      return widget._buildTaskCard(
-        context,
-        task,
-        projectProvider,
-        taskProvider,
-        taskIsOverdue,
-        widget.showScheduleDate,
-        autofocus,
-        depth: depth,
-      );
+    Widget buildNode(TaskHierarchyNode node, bool Function(Task) overdueFn) {
+      if (node is TaskNode) {
+        final autofocus = isFirstTask;
+        isFirstTask = false;
+        return widget._buildHierarchyNode(
+          context,
+          node,
+          projectProvider,
+          taskProvider,
+          overdueFn(node.task),
+          widget.showScheduleDate,
+          autofocus,
+        );
+      } else if (node is BlockerIndicatorNode) {
+        return widget._buildHierarchyNode(context, node, projectProvider, taskProvider, false, false, false);
+      }
+      return const SizedBox.shrink();
     }
 
     List<Widget> buildHierarchy(List<Task> categoryTasks, bool Function(Task) overdueFn) {
       if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
-        return categoryTasks.map((t) => buildCard(t, overdueFn(t))).toList();
+        return categoryTasks.map((t) => buildNode(TaskNode(t, 0), overdueFn)).toList();
       }
-      final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks);
-      return flattened.map((t) => buildCard(t.task, overdueFn(t.task), depth: t.depth)).toList();
+      final allAvailableTasks = {for (var t in taskProvider.tasks) t.id: t}
+        ..addAll({for (var t in taskProvider.overdueTasks) t.id: t})
+        ..addAll({for (var t in taskProvider.unscheduledTasks) t.id: t});
+
+      final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
+      return flattened.map((n) => buildNode(n, overdueFn)).toList();
     }
 
     return ListView(
@@ -221,41 +231,51 @@ extension TaskListViewPrivate on TaskListView {
     return content;
   }
 
-  Widget _buildTaskCard(
+  Widget _buildHierarchyNode(
     BuildContext context,
-    Task task,
+    TaskHierarchyNode node,
     ProjectProvider projectProvider,
     TaskProvider taskProvider,
     bool taskIsOverdue,
     bool showScheduleDate,
-    bool autofocus, {
-    int depth = 0,
-  }) {
-    final card = TaskCard(
-      key: ValueKey(task.id),
-      task: task,
-      project: task.projectId != null ? projectProvider.getById(task.projectId!) : null,
-      isOverdue: taskIsOverdue,
-      autofocus: autofocus,
-      onToggle: isReadOnly
-          ? (_) {}
-          : selectionMode
-          ? (value) => onSelectedChanged?.call(task)
-          : (_) => taskProvider.toggleComplete(task),
-      isChecked: selectionMode ? selectedTaskIds.contains(task.id) : null,
-      selectionMode: selectionMode,
-      onTap: isReadOnly ? () {} : () => onEdit?.call(task),
-      showScheduleDate: showScheduleDate,
-      onContextMenu: isReadOnly
-          ? null
-          : onContextMenu != null
-          ? (pos, box) => onContextMenu!(context, task, pos, box)
-          : null,
-      leading: isReadOnly ? const SizedBox.shrink() : null,
-      trailing: isReadOnly ? const SizedBox.shrink() : trailingBuilder?.call(context, task),
-    );
+    bool autofocus,
+  ) {
+    Widget child;
+    if (node is TaskNode) {
+      child = TaskCard(
+        key: ValueKey(node.task.id),
+        task: node.task,
+        project: node.task.projectId != null ? projectProvider.getById(node.task.projectId!) : null,
+        isOverdue: taskIsOverdue,
+        autofocus: autofocus,
+        onToggle: isReadOnly
+            ? (_) {}
+            : selectionMode
+            ? (value) => onSelectedChanged?.call(node.task)
+            : (_) => taskProvider.toggleComplete(node.task),
+        isChecked: selectionMode ? selectedTaskIds.contains(node.task.id) : null,
+        selectionMode: selectionMode,
+        onTap: isReadOnly ? () {} : () => onEdit?.call(node.task),
+        showScheduleDate: showScheduleDate,
+        onContextMenu: isReadOnly
+            ? null
+            : onContextMenu != null
+            ? (pos, box) => onContextMenu!(context, node.task, pos, box)
+            : null,
+        leading: isReadOnly ? const SizedBox.shrink() : null,
+        trailing: isReadOnly ? const SizedBox.shrink() : trailingBuilder?.call(context, node.task),
+      );
+    } else if (node is BlockerIndicatorNode) {
+      child = BlockerIndicator(
+        blockerId: node.blockerId,
+        blockerTitle: node.blockerTitle,
+        blockedTaskId: node.blockedTaskId,
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
 
-    return TaskHierarchyIndicator(depth: depth, child: card);
+    return TaskHierarchyIndicator(depth: node.depth, child: child);
   }
 
   Widget _buildEmptyState(BuildContext context) {

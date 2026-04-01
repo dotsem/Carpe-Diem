@@ -1,4 +1,6 @@
+import 'package:carpe_diem/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
+import 'package:carpe_diem/ui/widgets/blocker_indicator.dart';
 import 'package:carpe_diem/ui/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/ui/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
@@ -9,7 +11,6 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/data/models/task.dart';
 import 'package:carpe_diem/data/models/task_status.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 
 class KanbanBoard extends StatefulWidget {
@@ -308,17 +309,37 @@ class _KanbanColumn extends StatelessWidget {
                   )
                 : Builder(
                     builder: (context) {
-                      final hierarchical = TaskHierarchyUtils.buildHierarchy(tasks);
+                      final taskProvider = context.read<TaskProvider>();
+                      final allAvailableTasks = {for (var t in taskProvider.tasks) t.id: t}
+                        ..addAll({for (var t in taskProvider.overdueTasks) t.id: t})
+                        ..addAll({for (var t in taskProvider.unscheduledTasks) t.id: t});
+
+                      final hierarchical = TaskHierarchyUtils.buildHierarchy(tasks, allTasks: allAvailableTasks);
                       return ListView.builder(
                         padding: const EdgeInsets.all(8),
                         itemCount: hierarchical.length,
-                        itemBuilder: (context, index) => _KanbanCard(
-                          key: ValueKey(hierarchical[index].task.id),
-                          taskWithDepth: hierarchical[index],
-                          project: projectProvider,
-                          onContextMenu: onContextMenu,
-                          onEdit: onEdit,
-                        ),
+                        itemBuilder: (context, index) {
+                          final node = hierarchical[index];
+                          if (node is TaskNode) {
+                            return _KanbanCard(
+                              key: ValueKey(node.task.id),
+                              node: node,
+                              project: projectProvider,
+                              onContextMenu: onContextMenu,
+                              onEdit: onEdit,
+                            );
+                          } else if (node is BlockerIndicatorNode) {
+                            return TaskHierarchyIndicator(
+                              depth: node.depth,
+                              child: BlockerIndicator(
+                                blockerId: node.blockerId,
+                                blockerTitle: node.blockerTitle,
+                                blockedTaskId: node.blockedTaskId,
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
                       );
                     },
                   ),
@@ -330,21 +351,21 @@ class _KanbanColumn extends StatelessWidget {
 }
 
 class _KanbanCard extends StatelessWidget {
-  final TaskWithDepth taskWithDepth;
+  final TaskNode node;
   final ProjectProvider project;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
 
   const _KanbanCard({
     super.key,
-    required this.taskWithDepth,
+    required this.node,
     required this.project,
     required this.onContextMenu,
     required this.onEdit,
   });
 
-  Task get task => taskWithDepth.task;
-  int get depth => taskWithDepth.depth;
+  Task get task => node.task;
+  int get depth => node.depth;
 
   bool get isOverdue {
     if (task.scheduledDate == null) return false;
