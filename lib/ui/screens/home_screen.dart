@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:carpe_diem/data/models/task.dart';
 import 'package:carpe_diem/data/models/task_layout.dart';
 import 'package:carpe_diem/data/models/task_filter.dart';
@@ -47,15 +49,35 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late DateTime _selectedDate;
   TaskFilter _filter = const TaskFilter();
+  late Timer timer;
   final _dateFormat = DateFormat('EEEE, MMMM d');
 
   @override
   void initState() {
     super.initState();
+
+    timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (!mounted) return;
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = today.subtract(const Duration(days: 1));
+
+      if (_normalizedSelected == yesterday) {
+        setState(() => _selectedDate = now);
+        context.read<TaskProvider>().loadTasksForDate(_selectedDate);
+      }
+    });
     _selectedDate = _today;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TaskProvider>().loadTasksForDate(_selectedDate);
     });
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
   }
 
   DateTime get _today => DateTime.now();
