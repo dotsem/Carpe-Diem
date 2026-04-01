@@ -7,7 +7,18 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
+import 'package:carpe_diem/ui/widgets/fuzzy_search_bar.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
+import 'package:flutter/services.dart';
 import 'package:carpe_diem/ui/dialogs/add_project_dialog.dart';
+
+class _FocusSearchIntent extends Intent {
+  const _FocusSearchIntent();
+}
+
+class _UnfocusSearchIntent extends Intent {
+  const _UnfocusSearchIntent();
+}
 
 class ProjectsScreen extends StatefulWidget {
   const ProjectsScreen({super.key});
@@ -17,6 +28,10 @@ class ProjectsScreen extends StatefulWidget {
 }
 
 class _ProjectsScreenState extends State<ProjectsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _mainFocusNode = FocusNode();
+  String _searchQuery = '';
   TaskFilter _filter = const TaskFilter();
 
   @override
@@ -28,19 +43,63 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _mainFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _header(context),
-        FilterBar(
-          filter: _filter,
-          onFilterTap: () => _showFilterDialog(context),
-          onClearFilter: () => setState(() => _filter = const TaskFilter()),
+    return Shortcuts(
+      shortcuts: {
+        const CharacterActivator('/'): const _FocusSearchIntent(),
+        const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+      },
+      child: Actions(
+        actions: {
+          _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
+            _searchFocusNode.requestFocus();
+          }),
+          _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
+            onInvoke: (intent) {
+              if (_searchFocusNode.hasFocus) {
+                _searchFocusNode.unfocus();
+                _mainFocusNode.requestFocus();
+              }
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          focusNode: _mainFocusNode,
+          autofocus: true,
+          debugLabel: 'ProjectsScreenMainFocus',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _header(context),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: FuzzySearchBar(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  hintText: 'Search projects... (Press / to focus)',
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                ),
+              ),
+              FilterBar(
+                filter: _filter,
+                onFilterTap: () => _showFilterDialog(context),
+                onClearFilter: () => setState(() => _filter = const TaskFilter()),
+              ),
+              const Divider(height: 1),
+              Expanded(child: _projectGrid()),
+            ],
+          ),
         ),
-        const Divider(height: 1),
-        Expanded(child: _projectGrid()),
-      ],
+      ),
     );
   }
 
@@ -68,7 +127,13 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final filteredProjects = provider.projects.where((p) => _filter.applyToProject(p)).toList();
+        final filteredBySearch = provider.projects.where((p) {
+          if (_searchQuery.isEmpty) return true;
+          final query = _searchQuery.toLowerCase();
+          return p.name.toLowerCase().contains(query) || (p.description?.toLowerCase().contains(query) ?? false);
+        }).toList();
+
+        final filteredProjects = filteredBySearch.where((p) => _filter.applyToProject(p)).toList();
         final activeProjects = filteredProjects.where((p) => p.isActive).toList();
         final inactiveProjects = filteredProjects.where((p) => !p.isActive).toList();
 

@@ -122,7 +122,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         return Shortcuts(
           shortcuts: {
             const CharacterActivator('/'): const _FocusSearchIntent(),
-            const CharacterActivator('s'): const _FocusSearchIntent(),
             const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
             if (project.isActive) const CharacterActivator('n'): const _NewTaskIntent(),
             if (project.isActive) const CharacterActivator('N'): const _NewTaskIntent(),
@@ -162,7 +161,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       child: FuzzySearchBar(
                         controller: _searchController,
                         focusNode: _searchFocusNode,
-                        hintText: 'Search backlog tasks... (Press s or / to focus)',
+                        hintText: 'Search backlog tasks... (Press / to focus)',
                         onChanged: (value) => setState(() => _searchQuery = value),
                       ),
                     ),
