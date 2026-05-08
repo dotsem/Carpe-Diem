@@ -116,6 +116,13 @@ class SettingsScreen extends StatelessWidget {
                           if (value != null) settings.setFirstDayOfWeek(value);
                         },
                       ),
+                      SettingsSwitchTile(
+                        icon: Icons.casino_rounded,
+                        title: 'Pick Random Task',
+                        subtitle: 'Enable a button to pick a random task from backlog',
+                        value: settings.enableRandomTask,
+                        onChanged: (value) => settings.setEnableRandomTask(value),
+                      ),
                     ],
                   ),
                   SettingsSection(
