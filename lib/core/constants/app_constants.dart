@@ -17,6 +17,7 @@ class AppConstants {
   static const int defaultHistoryRetention = 0; // 0 = forever
   static const String defaultStatsPeriod = 'weekly';
   static const bool defaultShowActiveProjectsOnly = false;
+  static const bool defaultEnableRandomTask = false;
 
   // Setting keys
   static const String keyMaxPlanningDays = 'max_planning_days';
@@ -35,4 +36,5 @@ class AppConstants {
   static const String keyDefaultStatsPeriod = 'default_stats_period';
   static const String keyShowActiveProjectsOnly = 'show_active_projects_only';
   static const String keyShowCompletedTasks = 'show_completed_tasks';
+  static const String keyEnableRandomTask = 'enable_random_task';
 }

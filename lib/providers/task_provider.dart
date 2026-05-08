@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/data/models/task_filter.dart';
 import 'package:carpe_diem/data/models/history_overview.dart';
@@ -355,6 +356,15 @@ class TaskProvider extends ChangeNotifier {
     DateTime nextStartOfWeek = DateTime.now().next(_settingsProvider.firstDayOfWeek);
     await _scheduleTasksForDate(taskIds, nextStartOfWeek);
     ToastUtils.showSuccess('Tasks scheduled for next week');
+  }
+
+  Future<Task?> pickAndScheduleRandomTask(List<Task> availableTasks) async {
+    final unblockedTasks = availableTasks.where((t) => t.blockedById == null && !t.isCompleted).toList();
+    if (unblockedTasks.isEmpty) return null;
+
+    final randomTask = unblockedTasks[Random().nextInt(unblockedTasks.length)];
+    await scheduleTasksForToday([randomTask.id]);
+    return randomTask;
   }
 
   Future<List<Task>> getCompletedTasks(

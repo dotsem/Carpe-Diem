@@ -1,5 +1,6 @@
 import 'package:carpe_diem/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/ui/dialogs/add_task_dialog.dart';
+import 'package:carpe_diem/ui/dialogs/common/sized_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/import_from_md_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/bulk_edit_tasks_dialog.dart';
@@ -10,9 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
 import 'package:carpe_diem/providers/filter_provider.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
+import 'package:carpe_diem/providers/settings_provider.dart';
 import 'package:carpe_diem/ui/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/ui/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/ui/widgets/task_card.dart';
@@ -116,6 +119,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
     return Shortcuts(
       shortcuts: {
         const CharacterActivator('/'): const _FocusSearchIntent(),
@@ -185,6 +189,14 @@ class _BacklogScreenState extends State<BacklogScreen> {
                     ),
                     const SizedBox(width: 8),
                   ],
+                  if (settings.enableRandomTask) ...[
+                    IconButton(
+                      onPressed: () => _pickRandomTask(context),
+                      icon: Icon(Icons.casino_rounded),
+                      tooltip: 'Give me a random task!',
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   FilledButton.icon(
                     onPressed: () => _showAddTask(context),
                     icon: Icon(Icons.add),
@@ -226,7 +238,6 @@ class _BacklogScreenState extends State<BacklogScreen> {
       ),
     );
   }
-
 
   Widget _buildHeaderActions(BuildContext context) {
     return BulkActionMenu(
@@ -316,7 +327,10 @@ class _BacklogScreenState extends State<BacklogScreen> {
                     children: [
                       Icon(Icons.inbox_rounded, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       SizedBox(height: 16),
-                      Text('No backlog tasks', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16)),
+                      Text(
+                        'No backlog tasks',
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
+                      ),
                       SizedBox(height: 8),
                       TextButton(onPressed: () => _showAddTask(context), child: Text('Add a task')),
                     ],
@@ -402,9 +416,10 @@ class _BacklogScreenState extends State<BacklogScreen> {
               SizedBox(height: 20),
               Text(
                 'Completed',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               SizedBox(height: 8),
               ...completedHierarchical.map((n) => buildNode(n)),
@@ -536,7 +551,10 @@ class _BacklogScreenState extends State<BacklogScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text('Cancel')),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Theme.of(context).colorScheme.onSurface),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+            ),
             onPressed: () async {
               await context.read<TaskProvider>().bulkDeleteTasks(_selectedTaskIds);
               if (!mounted) return;
@@ -548,6 +566,58 @@ class _BacklogScreenState extends State<BacklogScreen> {
             child: Text('Delete'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _pickRandomTask(BuildContext context) async {
+    final taskProvider = context.read<TaskProvider>();
+    final projectProvider = context.read<ProjectProvider>();
+    final filter = context.read<FilterProvider>().filter;
+
+    // Filter tasks based on current filters (same logic as in _taskList)
+    var availableTasks = taskProvider.unscheduledTasks.where((t) {
+      final project = t.projectId != null ? projectProvider.getById(t.projectId!) : null;
+      return filter.applyToTask(t, project?.labelIds ?? []);
+    }).toList();
+
+    if (_searchQuery.isNotEmpty) {
+      availableTasks = FuzzySearchUtils.search<Task>(
+        query: _searchQuery,
+        items: availableTasks,
+        itemToString: (t) => '${t.title} ${t.description ?? ''}',
+        threshold: 0.3,
+      );
+    }
+
+    final randomTask = await taskProvider.pickAndScheduleRandomTask(availableTasks);
+
+    if (randomTask == null) {
+      ToastUtils.showInfo('No available tasks to pick from');
+      return;
+    }
+
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => SizedDialog(
+        title: 'We\'ve picked this task for you:',
+        showDefaultActions: false,
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Great!'))],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TaskCard(
+              task: randomTask,
+              project: randomTask.projectId != null ? projectProvider.getById(randomTask.projectId!) : null,
+              onToggle: (_) {}, // Read-only for history
+              onTap: () {},
+              leading: const SizedBox.shrink(),
+              showStrikeThroughOnCompleted: false,
+            ),
+          ],
+        ),
       ),
     );
   }

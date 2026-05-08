@@ -116,4 +116,9 @@ class SettingsProvider extends ChangeNotifier {
   bool get showActiveProjectsOnly =>
       _get(AppConstants.keyShowActiveProjectsOnly, AppConstants.defaultShowActiveProjectsOnly.toString()) == 'true';
   Future<void> setShowActiveProjectsOnly(bool value) => _set(AppConstants.keyShowActiveProjectsOnly, value.toString());
+
+  // Enable Random Task Picker
+  bool get enableRandomTask =>
+      _get(AppConstants.keyEnableRandomTask, AppConstants.defaultEnableRandomTask.toString()) == 'true';
+  Future<void> setEnableRandomTask(bool value) => _set(AppConstants.keyEnableRandomTask, value.toString());
 }

@@ -21,6 +21,7 @@ class SizedDialog extends StatefulWidget {
   final Widget child;
   final String? title;
   final List<Widget>? actions;
+  final bool showDefaultActions;
   final VoidCallback? onSubmit;
   final VoidCallback? onCancel;
   final String submitText;
@@ -41,6 +42,7 @@ class SizedDialog extends StatefulWidget {
     this.padding = const EdgeInsets.all(24),
     this.maxWidth = 640,
     this.minWidth,
+    this.showDefaultActions = true,
   });
 
   @override
@@ -79,16 +81,22 @@ class _SizedDialogState extends State<SizedDialog> {
               Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (widget.actions != null) ...widget.actions!,
-                    const Spacer(),
-                    TextButton(onPressed: widget.onCancel ?? () => Navigator.pop(context), child: const Text('Cancel')),
-                    const SizedBox(width: 12),
-                    FilledButton(
-                      onPressed: widget.onSubmit ?? () => Navigator.pop(context),
-                      style: widget.submitStyle,
-                      child: Text(widget.submitText),
-                    ),
+                    if (widget.showDefaultActions) ...[
+                      const Spacer(),
+                      TextButton(
+                        onPressed: widget.onCancel ?? () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 12),
+                      FilledButton(
+                        onPressed: widget.onSubmit ?? () => Navigator.pop(context),
+                        style: widget.submitStyle,
+                        child: Text(widget.submitText),
+                      ),
+                    ],
                   ],
                 ),
               ),
