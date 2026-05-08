@@ -131,6 +131,23 @@ class AppTheme {
         backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.1),
       ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          minimumSize: const Size(40, 40),
+          iconSize: 24,
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          minimumSize: const Size(40, 40),
+          fixedSize: const Size.fromHeight(40),
+          iconSize: 24,
+        ),
+      ),
     );
   }
 }
