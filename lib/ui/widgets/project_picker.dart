@@ -9,15 +9,23 @@ class ProjectPicker extends StatefulWidget {
   final List<Project> projects;
   final Function(String?) onChanged;
   final String? selectedProjectId;
+  final MenuController? menuController;
 
-  const ProjectPicker({super.key, this.selectedProjectId, required this.onChanged, required this.projects});
+  const ProjectPicker({
+    super.key,
+    this.selectedProjectId,
+    required this.onChanged,
+    required this.projects,
+    this.menuController,
+  });
 
   @override
   State<ProjectPicker> createState() => _ProjectPickerState();
 }
 
 class _ProjectPickerState extends State<ProjectPicker> {
-  final MenuController _menuController = MenuController();
+  final MenuController _localMenuController = MenuController();
+  MenuController get _menuController => widget.menuController ?? _localMenuController;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -122,7 +130,10 @@ class _ProjectPickerState extends State<ProjectPicker> {
                               Padding(
                                 padding: EdgeInsets.symmetric(vertical: 32),
                                 child: Center(
-                                  child: Text('No results found', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                  child: Text(
+                                    'No results found',
+                                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                  ),
                                 ),
                               ),
                             ]
