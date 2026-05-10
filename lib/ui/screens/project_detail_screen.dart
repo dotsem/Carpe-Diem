@@ -1,5 +1,6 @@
 import 'package:carpe_diem/data/models/label.dart';
 import 'package:carpe_diem/providers/label_provider.dart';
+import 'package:carpe_diem/ui/dialogs/import_from_md_dialog.dart';
 import 'package:carpe_diem/ui/widgets/chip/chip.dart';
 import 'package:carpe_diem/ui/widgets/chip/label_chip.dart';
 import 'package:go_router/go_router.dart';
@@ -357,7 +358,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       Expanded(
                         child: Text(
                           project.name,
-                          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                       ),
                       if (_selectedTaskIds.isEmpty) ...[
@@ -391,6 +396,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       BulkActionMenu(
                         options: [
                           BulkActionOption(
+                            value: 'import',
+                            icon: Icons.download,
+                            label: 'Import from Markdown',
+                            enabled: true,
+                          ),
+                          BulkActionOption(
                             value: 'edit',
                             icon: Icons.edit_rounded,
                             label: 'Bulk Edit',
@@ -409,6 +420,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             _showBulkEdit(context);
                           } else if (value == 'delete') {
                             _showBulkDeleteConfirm(context);
+                          } else if (value == 'import') {
+                            showDialog(
+                              context: context,
+                              builder: (_) => ImportFromMDDialog(project: project),
+                            ).then((_) => setState(() {}));
                           }
                         },
                       ),
@@ -530,7 +546,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text('Cancel')),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Theme.of(context).colorScheme.onSurface),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+            ),
             onPressed: () async {
               await context.read<TaskProvider>().bulkDeleteTasks(_selectedTaskIds);
               if (!mounted) return;
