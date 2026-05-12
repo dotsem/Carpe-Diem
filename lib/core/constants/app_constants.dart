@@ -8,6 +8,7 @@ class AppConstants {
   static const int taskCompletionDelaySeconds = 5;
   static const bool inheritParentDeadline = true;
   static const bool prioritizeDeadlines = true;
+  static const bool prioritizeOverdue = true;
   static const bool inheritProjectDeadline = false;
   static const double defaultTaskGradientWidth = 0.5;
   static const bool defaultCompactMode = false;
@@ -25,6 +26,7 @@ class AppConstants {
   static const String keyTaskDelay = 'task_delay';
   static const String keyInheritParentDeadline = 'inherit_parent_deadline';
   static const String keyPrioritizeDeadlines = 'prioritize_deadlines';
+  static const String keyPrioritizeOverdue = 'prioritize_overdue';
   static const String keyInheritProjectDeadline = 'inherit_project_deadline';
   static const String keyThemeMode = 'theme_mode';
   static const String keyTaskGradientWidth = 'task_gradient_width';

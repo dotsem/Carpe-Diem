@@ -62,6 +62,11 @@ class SettingsProvider extends ChangeNotifier {
       _get(AppConstants.keyPrioritizeDeadlines, AppConstants.prioritizeDeadlines.toString()) == 'true';
   Future<void> setPrioritizeDeadlines(bool value) => _set(AppConstants.keyPrioritizeDeadlines, value.toString());
 
+  // Prioritize Overdue
+  bool get prioritizeOverdue =>
+      _get(AppConstants.keyPrioritizeOverdue, AppConstants.prioritizeOverdue.toString()) == 'true';
+  Future<void> setPrioritizeOverdue(bool value) => _set(AppConstants.keyPrioritizeOverdue, value.toString());
+
   // Inherit Project Deadline
   bool get inheritProjectDeadline =>
       _get(AppConstants.keyInheritProjectDeadline, AppConstants.inheritProjectDeadline.toString()) == 'true';
