@@ -9,8 +9,15 @@ class FilterBar extends StatelessWidget {
   final TaskFilter filter;
   final VoidCallback onFilterTap;
   final VoidCallback onClearFilter;
+  final bool ignoreProjects;
 
-  const FilterBar({super.key, required this.filter, required this.onFilterTap, required this.onClearFilter});
+  const FilterBar({
+    super.key,
+    required this.filter,
+    required this.onFilterTap,
+    required this.onClearFilter,
+    this.ignoreProjects = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +62,13 @@ class FilterBar extends StatelessWidget {
                   children: filter.projectIds.map((id) {
                     final project = provider.getById(id);
                     if (project == null) return const SizedBox.shrink();
-                    return _buildChip(context, project.name, project.color);
+                    return _buildChip(
+                      context,
+                      project.name,
+                      project.color,
+                      isIgnored: ignoreProjects,
+                      tooltip: ignoreProjects ? 'Project filters are ignored in this screen' : null,
+                    );
                   }).toList(),
                 );
               },
@@ -85,16 +98,28 @@ class FilterBar extends StatelessWidget {
     );
   }
 
-  Widget _buildChip(BuildContext context, String label, Color color) {
-    return Padding(
+  Widget _buildChip(BuildContext context, String label, Color color, {bool isIgnored = false, String? tooltip}) {
+    final chip = Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Chip(
-        label: Text(label, style: const TextStyle(fontSize: 12)),
-        avatar: CircleAvatar(backgroundColor: color, radius: 4),
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            decoration: isIgnored ? TextDecoration.lineThrough : null,
+            color: isIgnored ? Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150) : null,
+          ),
+        ),
+        avatar: CircleAvatar(backgroundColor: isIgnored ? color.withAlpha(128) : color, radius: 4),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         side: BorderSide.none,
         visualDensity: VisualDensity.compact,
       ),
     );
+
+    if (tooltip != null) {
+      return Tooltip(message: tooltip, child: chip);
+    }
+    return chip;
   }
 }

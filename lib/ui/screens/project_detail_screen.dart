@@ -249,7 +249,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     ),
                     Consumer<FilterProvider>(
                       builder: (context, filterProvider, _) => FilterBar(
-                        filter: filterProvider.filter.limitTo(projects: false),
+                        filter: filterProvider.filter,
+                        ignoreProjects: true,
                         onFilterTap: () => _showFilterDialog(context),
                         onClearFilter: () => filterProvider.clearFilter(),
                       ),
