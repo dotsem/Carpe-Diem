@@ -10,7 +10,12 @@ class TaskRepository {
 
   Future<List<Task>> getAll({bool prioritizeDeadlines = true}) async {
     final db = await _db;
-    final maps = await db.query('tasks', orderBy: _getOrderBy(prioritizeDeadlines: prioritizeDeadlines));
+    final maps = await db.rawQuery('''
+      SELECT DISTINCT t.* FROM tasks t
+      LEFT JOIN projects p ON t.projectId = p.id
+      WHERE p.isActive IS NULL OR p.isActive = 1
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
+    ''');
 
     List<Task> tasks = [];
     for (final map in maps) {
@@ -48,12 +53,13 @@ class TaskRepository {
     final endOfDay = startOfDay.add(const Duration(days: 1));
     final scheduledDateStr = startOfDay.toIso8601String();
 
-    final maps = await db.query(
-      'tasks',
-      where: '(scheduledDate = ?) OR (completedAt >= ? AND completedAt < ?)',
-      whereArgs: [scheduledDateStr, startOfDay.toIso8601String(), endOfDay.toIso8601String()],
-      orderBy: _getOrderBy(prioritizeDeadlines: prioritizeDeadlines),
-    );
+    final maps = await db.rawQuery('''
+      SELECT DISTINCT t.* FROM tasks t
+      LEFT JOIN projects p ON t.projectId = p.id
+      WHERE ((t.scheduledDate = ?) OR (t.completedAt >= ? AND t.completedAt < ?))
+      AND (p.isActive IS NULL OR p.isActive = 1)
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
+    ''', [scheduledDateStr, startOfDay.toIso8601String(), endOfDay.toIso8601String()]);
 
     List<Task> tasks = [];
     for (final map in maps) {
@@ -67,12 +73,13 @@ class TaskRepository {
   Future<List<Task>> getOverdue(DateTime today) async {
     final db = await _db;
     final dateStr = DateTime(today.year, today.month, today.day).toIso8601String();
-    final maps = await db.query(
-      'tasks',
-      where: 'scheduledDate IS NOT NULL AND scheduledDate < ? AND status != ?',
-      whereArgs: [dateStr, TaskStatus.done.index],
-      orderBy: 'priority DESC, scheduledDate ASC',
-    );
+    final maps = await db.rawQuery('''
+      SELECT DISTINCT t.* FROM tasks t
+      LEFT JOIN projects p ON t.projectId = p.id
+      WHERE (t.scheduledDate IS NOT NULL AND t.scheduledDate < ? AND t.status != ?)
+      AND (p.isActive IS NULL OR p.isActive = 1)
+      ORDER BY t.priority DESC, t.scheduledDate ASC
+    ''', [dateStr, TaskStatus.done.index]);
 
     List<Task> tasks = [];
     for (final map in maps) {
@@ -85,11 +92,13 @@ class TaskRepository {
 
   Future<List<Task>> getUnscheduled({bool prioritizeDeadlines = true}) async {
     final db = await _db;
-    final maps = await db.query(
-      'tasks',
-      where: 'scheduledDate IS NULL',
-      orderBy: _getOrderBy(prioritizeDeadlines: prioritizeDeadlines),
-    );
+    final maps = await db.rawQuery('''
+      SELECT DISTINCT t.* FROM tasks t
+      LEFT JOIN projects p ON t.projectId = p.id
+      WHERE t.scheduledDate IS NULL
+      AND (p.isActive IS NULL OR p.isActive = 1)
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
+    ''');
 
     List<Task> tasks = [];
     for (final map in maps) {
@@ -123,9 +132,11 @@ class TaskRepository {
     final maps = await db.rawQuery(
       '''
       SELECT DISTINCT t.* FROM tasks t
+      LEFT JOIN projects p ON t.projectId = p.id
       LEFT JOIN project_labels pl ON t.projectId = pl.projectId
       LEFT JOIN task_labels tl ON t.id = tl.taskId
-      WHERE pl.labelId = ? OR tl.labelId = ?
+      WHERE (pl.labelId = ? OR tl.labelId = ?)
+      AND (p.isActive IS NULL OR p.isActive = 1)
       ORDER BY ${_getOrderBy(useScheduledDate: true, tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
     ''',
       [labelId, labelId],
