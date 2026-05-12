@@ -160,6 +160,13 @@ class SettingsScreen extends StatelessWidget {
                         value: settings.prioritizeDeadlines,
                         onChanged: (value) => settings.setPrioritizeDeadlines(value),
                       ),
+                      SettingsSwitchTile(
+                        icon: Icons.event_busy_outlined,
+                        title: 'Prioritize Overdue',
+                        subtitle: 'Show overdue tasks at the top of lists in kanban view',
+                        value: settings.prioritizeOverdue,
+                        onChanged: (value) => settings.setPrioritizeOverdue(value),
+                      ),
                     ],
                   ),
                   SettingsSection(

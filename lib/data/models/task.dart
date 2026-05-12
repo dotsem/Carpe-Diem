@@ -17,6 +17,17 @@ class Task {
 
   bool get isCompleted => status.isDone;
 
+  bool get isOverdue {
+    if (isCompleted) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    bool scheduledOverdue = scheduledDate != null && scheduledDate!.isBefore(today);
+    bool deadlineOverdue = deadline != null && deadline!.isBefore(today);
+
+    return scheduledOverdue || deadlineOverdue;
+  }
+
   const Task({
     required this.id,
     required this.title,

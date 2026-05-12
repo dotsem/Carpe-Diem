@@ -127,7 +127,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final isOverdue = widget.task.deadline != null ? widget.task.deadline!.isBefore(today) : widget.isOverdue;
+    final isOverdue = widget.task.isOverdue;
 
     final settings = context.watch<SettingsProvider>();
     final isCompact = settings.compactMode;
@@ -205,10 +205,14 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                                   decoration: (!widget.selectionMode && showDone && widget.showStrikeThroughOnCompleted)
                                       ? TextDecoration.lineThrough
                                       : null,
-                                  color: (showDone && !widget.selectionMode) ? Theme.of(context).colorScheme.onSurfaceVariant : Theme.of(context).colorScheme.onSurface,
+                                  color: (showDone && !widget.selectionMode)
+                                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                                      : Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
-                              if (showDescription && widget.task.description != null && widget.task.description!.isNotEmpty)
+                              if (showDescription &&
+                                  widget.task.description != null &&
+                                  widget.task.description!.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 1),
                                   child: Text(

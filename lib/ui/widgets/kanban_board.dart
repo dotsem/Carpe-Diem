@@ -54,6 +54,13 @@ class _KanbanBoardState extends State<KanbanBoard> {
   Widget build(BuildContext context) {
     final tasks = List<Task>.from(widget.tasks);
     tasks.sort((a, b) {
+      final settings = context.read<SettingsProvider>();
+
+      if (settings.prioritizeOverdue) {
+        if (a.isOverdue && !b.isOverdue) return -1;
+        if (!a.isOverdue && b.isOverdue) return 1;
+      }
+
       final deadlineComp = () {
         if (a.deadline == b.deadline) return 0;
         if (a.deadline == null) return 1;
@@ -62,7 +69,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
       }();
 
       final priorityComp = b.priority.index.compareTo(a.priority.index);
-      final settings = context.read<SettingsProvider>();
 
       if (settings.prioritizeDeadlines) {
         if (deadlineComp != 0) return deadlineComp;
@@ -423,12 +429,7 @@ class _KanbanCard extends StatelessWidget {
   Task get task => node.task;
   int get depth => node.depth;
 
-  bool get isOverdue {
-    if (task.scheduledDate == null) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return task.scheduledDate!.isBefore(today);
-  }
+  bool get isOverdue => task.isOverdue;
 
   @override
   Widget build(BuildContext context) {

@@ -116,18 +116,10 @@ class _TaskListViewState extends State<TaskListView> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
     final projectProvider = context.read<ProjectProvider>();
     final taskProvider = context.read<TaskProvider>();
 
-    bool isOverdue(Task t) {
-      if (t.deadline != null) {
-        return t.deadline!.isBefore(today) && !t.isCompleted;
-      }
-      return t.scheduledDate != null && t.scheduledDate!.isBefore(today) && !t.isCompleted;
-    }
+    bool isOverdue(Task t) => t.isOverdue;
 
     final allTasksMap = <String, Task>{};
     for (final t in widget.tasks) {
@@ -146,6 +138,13 @@ class _TaskListViewState extends State<TaskListView> {
       );
     } else {
       allTasks.sort((a, b) {
+        final settings = context.read<SettingsProvider>();
+
+        if (settings.prioritizeOverdue) {
+          if (a.isOverdue && !b.isOverdue) return -1;
+          if (!a.isOverdue && b.isOverdue) return 1;
+        }
+
         final deadlineComp = () {
           if (a.deadline == b.deadline) return 0;
           if (a.deadline == null) return 1;
@@ -154,7 +153,6 @@ class _TaskListViewState extends State<TaskListView> {
         }();
 
         final priorityComp = b.priority.index.compareTo(a.priority.index);
-        final settings = context.read<SettingsProvider>();
 
         if (settings.prioritizeDeadlines) {
           if (deadlineComp != 0) return deadlineComp;
@@ -276,7 +274,12 @@ class _TaskListViewState extends State<TaskListView> {
             const SizedBox(height: 20),
           ],
           if (todoCategory.isNotEmpty) ...[
-            widget._buildHeader(context, 'Todo', amount: todoCategory.length, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            widget._buildHeader(
+              context,
+              'Todo',
+              amount: todoCategory.length,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             const SizedBox(height: 8),
             ...buildHierarchy(todoCategory, (_) => false),
           ],
