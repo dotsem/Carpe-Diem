@@ -13,6 +13,7 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
   bool _visible = false;
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  final FocusNode _focusNode = FocusNode(debugLabel: 'ShortcutsHelpOverlay');
 
   @override
   void initState() {
@@ -24,17 +25,28 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
+  FocusNode? _previousFocus;
+
   void show() {
+    if (_visible) return;
+    _previousFocus = FocusManager.instance.primaryFocus;
     setState(() => _visible = true);
     _controller.forward();
+    _focusNode.requestFocus();
   }
 
   void hide() {
+    if (!_visible) return;
     _controller.reverse().then((_) {
-      if (mounted) setState(() => _visible = false);
+      if (mounted) {
+        setState(() => _visible = false);
+        _previousFocus?.requestFocus();
+        _previousFocus = null;
+      }
     });
   }
 
@@ -42,13 +54,16 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
   Widget build(BuildContext context) {
     if (!_visible) return const SizedBox.shrink();
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: GestureDetector(
-        onTap: () => GlobalShortcuts.of(context).toggleHelp(),
-        child: Container(
-          color: Colors.black.withValues(alpha: 0.7),
-          child: Center(child: _buildContent()),
+    return Focus(
+      focusNode: _focusNode,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: GestureDetector(
+          onTap: () => GlobalShortcuts.of(context).toggleHelp(),
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.7),
+            child: Center(child: _buildContent()),
+          ),
         ),
       ),
     );
