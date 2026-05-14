@@ -101,6 +101,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
     final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day, 23, 59, 59);
+    if (!mounted) return;
     final filter = context.read<FilterProvider>().activeFilter;
 
     final tasksFuture = taskProvider.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
