@@ -132,6 +132,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
           const CharacterActivator('k'): const MovePrevIntent(),
           const CharacterActivator('f'): const FilterIntent(),
           const CharacterActivator('F'): const FilterIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyT, control: true): const PlanTaskIntent(),
         },
         child: Actions(
           actions: {
@@ -162,6 +163,12 @@ class _BacklogScreenState extends State<BacklogScreen> {
             ),
             _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
               _showAddTask(context);
+            }),
+            PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
+              final taskId = _getFocusedTaskId();
+              if (taskId != null) {
+                context.read<TaskProvider>().scheduleTasksForToday([taskId]);
+              }
             }),
           },
           child: Focus(
@@ -240,6 +247,17 @@ class _BacklogScreenState extends State<BacklogScreen> {
         ),
       ),
     );
+  }
+
+  String? _getFocusedTaskId() {
+    if (_orderedItemIds.isEmpty) return null;
+    for (int i = 0; i < _orderedItemIds.length; i++) {
+      final node = _itemFocusNodes[_orderedItemIds[i]];
+      if (node?.hasFocus ?? false) {
+        return _orderedItemIds[i];
+      }
+    }
+    return null;
   }
 
   Widget _buildHeaderActions(BuildContext context) {

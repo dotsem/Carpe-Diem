@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
+import 'package:carpe_diem/routes/app_router.dart';
 import 'package:carpe_diem/ui/shortcuts/shortcuts_help_overlay.dart';
 
 class NavigateToTodayIntent extends Intent {
@@ -47,6 +47,10 @@ class FilterIntent extends Intent {
   const FilterIntent();
 }
 
+class PlanTaskIntent extends Intent {
+  const PlanTaskIntent();
+}
+
 class ShortcutEntry {
   final String key;
   final String description;
@@ -79,6 +83,7 @@ const taskCardShortcutEntries = [
   ShortcutEntry(key: 'Enter', description: 'Toggle completion', category: 'Focused Task'),
   ShortcutEntry(key: 'e', description: 'Edit task', category: 'Focused Task'),
   ShortcutEntry(key: 'd', description: 'Delete task', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
 ];
 
 const projectShortcutEntries = [
@@ -105,6 +110,7 @@ const backlogShortcutEntries = [
   ShortcutEntry(key: 'n', description: 'Add new task', category: 'Backlog'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Backlog'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Backlog'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
 ];
 
 const projectDetailShortcutEntries = [
@@ -112,6 +118,7 @@ const projectDetailShortcutEntries = [
   ShortcutEntry(key: 'n', description: 'Add new task', category: 'Project Detail'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Project Detail'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Project Detail'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
 ];
 
 bool isTypingInTextField() {
@@ -267,19 +274,19 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
             }),
             NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((intent) {
               debugPrint('Shortcut: NavigateToToday');
-              context.go('/');
+              appRouter.go('/');
             }),
             NavigateToBacklogIntent: NonTypingAction<NavigateToBacklogIntent>((intent) {
               debugPrint('Shortcut: NavigateToBacklog');
-              context.go('/tasks');
+              appRouter.go('/tasks');
             }),
             NavigateToProjectsIntent: NonTypingAction<NavigateToProjectsIntent>((intent) {
               debugPrint('Shortcut: NavigateToProjects');
-              context.go('/projects');
+              appRouter.go('/projects');
             }),
             NavigateToHistoryIntent: NonTypingAction<NavigateToHistoryIntent>((intent) {
               debugPrint('Shortcut: NavigateToHistory');
-              context.go('/history');
+              appRouter.go('/history');
             }),
             ToggleHelpIntent: NonTypingAction<ToggleHelpIntent>((intent) {
               debugPrint('Shortcut: ToggleHelp');

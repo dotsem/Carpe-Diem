@@ -11,6 +11,7 @@ import 'package:carpe_diem/ui/widgets/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/data/models/task.dart';
 import 'package:carpe_diem/ui/widgets/task_hierarchy_indicator.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 
@@ -33,6 +34,7 @@ class TaskListView extends StatefulWidget {
   final FocusNode? firstNode;
   final Map<String, FocusNode>? itemFocusNodes;
   final ValueChanged<List<String>>? onOrderedIdsChanged;
+  final bool enablePlanShortcut;
 
   const TaskListView({
     super.key,
@@ -54,6 +56,7 @@ class TaskListView extends StatefulWidget {
     this.firstNode,
     this.itemFocusNodes,
     this.onOrderedIdsChanged,
+    this.enablePlanShortcut = false,
   }) : padding = padding ?? const EdgeInsets.symmetric(vertical: 16);
 
   @override
@@ -249,66 +252,94 @@ class _TaskListViewState extends State<TaskListView> {
       return flattened.map((n) => buildNode(n, overdueFn)).toList();
     }
 
-    return Actions(
-      actions: {
-        MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-          _moveFocus(1);
-        }),
-        MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-          _moveFocus(-1);
-        }),
+    return Shortcuts(
+      shortcuts: {
+        if (widget.enablePlanShortcut)
+          const SingleActivator(LogicalKeyboardKey.keyT, control: true): const PlanTaskIntent(),
       },
-      child: ListView(
-        padding: widget.padding,
-        children: [
-          if (inProgressCategory.isNotEmpty) ...[
-            widget._buildHeader(context, 'In Progress', color: AppColors.accent, amount: inProgressCategory.length),
-            const SizedBox(height: 8),
-            ...buildHierarchy(inProgressCategory, isOverdue),
-            const SizedBox(height: 20),
-          ],
-          if (overdueCategory.isNotEmpty) ...[
-            widget._buildHeader(context, 'Overdue', color: AppColors.error, amount: overdueCategory.length),
-            const SizedBox(height: 8),
-            ...buildHierarchy(overdueCategory, (_) => true),
-            const SizedBox(height: 20),
-          ],
-          if (todoCategory.isNotEmpty) ...[
-            widget._buildHeader(
-              context,
-              'Todo',
-              amount: todoCategory.length,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 8),
-            ...buildHierarchy(todoCategory, (_) => false),
-          ],
-          if (doneCategory.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            widget._buildHeader(
-              context,
-              'Done',
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              amount: doneCategory.length,
-              onTap: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
-              trailing: AnimatedRotation(
-                duration: const Duration(milliseconds: 200),
-                turns: _isDoneExpanded ? 0.5 : 0,
-                child: Icon(Icons.expand_more, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 20),
+      child: Actions(
+        actions: {
+          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+            _moveFocus(1);
+          }),
+          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+            _moveFocus(-1);
+          }),
+          PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
+            final taskId = _getFocusedTaskId();
+            if (taskId != null) {
+              taskProvider.scheduleTasksForToday([taskId]);
+            }
+          }),
+        },
+        child: ListView(
+          padding: widget.padding,
+          children: [
+            if (inProgressCategory.isNotEmpty) ...[
+              widget._buildHeader(context, 'In Progress', color: AppColors.accent, amount: inProgressCategory.length),
+              const SizedBox(height: 8),
+              ...buildHierarchy(inProgressCategory, isOverdue),
+              const SizedBox(height: 20),
+            ],
+            if (overdueCategory.isNotEmpty) ...[
+              widget._buildHeader(context, 'Overdue', color: AppColors.error, amount: overdueCategory.length),
+              const SizedBox(height: 8),
+              ...buildHierarchy(overdueCategory, (_) => true),
+              const SizedBox(height: 20),
+            ],
+            if (todoCategory.isNotEmpty) ...[
+              widget._buildHeader(
+                context,
+                'Todo',
+                amount: todoCategory.length,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            ),
-            const SizedBox(height: 8),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              child: _isDoneExpanded
-                  ? Column(children: buildHierarchy(doneCategory, (_) => false))
-                  : const SizedBox(width: double.infinity),
-            ),
+              const SizedBox(height: 8),
+              ...buildHierarchy(todoCategory, (_) => false),
+            ],
+            if (doneCategory.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              widget._buildHeader(
+                context,
+                'Done',
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                amount: doneCategory.length,
+                onTap: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
+                trailing: AnimatedRotation(
+                  duration: const Duration(milliseconds: 200),
+                  turns: _isDoneExpanded ? 0.5 : 0,
+                  child: Icon(Icons.expand_more, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 20),
+                ),
+              ),
+              const SizedBox(height: 8),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                child: _isDoneExpanded
+                    ? Column(children: buildHierarchy(doneCategory, (_) => false))
+                    : const SizedBox(width: double.infinity),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
+  }
+
+  String? _getFocusedTaskId() {
+    if (_orderedItemIds.isEmpty) return null;
+    for (int i = 0; i < _orderedItemIds.length; i++) {
+      FocusNode? node;
+      if (i == 0 && widget.firstNode != null) {
+        node = widget.firstNode;
+      } else {
+        node = _itemFocusNodes[_orderedItemIds[i]];
+      }
+      if (node?.hasFocus ?? false) {
+        return _orderedItemIds[i];
+      }
+    }
+    return null;
   }
 }
 

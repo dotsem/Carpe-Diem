@@ -290,6 +290,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   },
                                   itemFocusNodes: _itemFocusNodes,
                                   searchQuery: _searchQuery,
+                                  enablePlanShortcut: true,
                                   firstNode: _firstItemFocusNode,
                                   showScheduleDate: true,
                                   selectionMode: true,
