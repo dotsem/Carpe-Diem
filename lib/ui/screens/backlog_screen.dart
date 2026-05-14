@@ -120,123 +120,144 @@ class _BacklogScreenState extends State<BacklogScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
-    return Shortcuts(
-      shortcuts: {
-        const CharacterActivator('/'): const _FocusSearchIntent(),
-        const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-        const CharacterActivator('n'): const _NewTaskIntent(),
-        const CharacterActivator('N'): const _NewTaskIntent(),
-        const CharacterActivator('j'): const MoveNextIntent(),
-        const CharacterActivator('k'): const MovePrevIntent(),
-        const CharacterActivator('f'): const FilterIntent(),
-        const CharacterActivator('F'): const FilterIntent(),
-      },
-      child: Actions(
-        actions: {
-          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-            _moveFocus(1);
-          }),
-          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-            _moveFocus(-1);
-          }),
-          FilterIntent: NonTypingAction<FilterIntent>((_) {
-            _showFilterDialog(context);
-          }),
-          _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
-            _searchFocusNode.requestFocus();
-          }),
-          _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
-            onInvoke: (intent) {
-              if (_searchFocusNode.hasFocus) {
-                _searchFocusNode.unfocus();
-                if (_orderedItemIds.isNotEmpty) {
-                  _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-                } else {
-                  _mainFocusNode.requestFocus();
-                }
-              }
-              return null;
-            },
-          ),
-          _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
-            _showAddTask(context);
-          }),
+    return AppShortcutRegistrar(
+      shortcuts: backlogShortcutEntries,
+      child: Shortcuts(
+        shortcuts: {
+          const CharacterActivator('/'): const _FocusSearchIntent(),
+          const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+          const CharacterActivator('n'): const _NewTaskIntent(),
+          const CharacterActivator('N'): const _NewTaskIntent(),
+          const CharacterActivator('j'): const MoveNextIntent(),
+          const CharacterActivator('k'): const MovePrevIntent(),
+          const CharacterActivator('f'): const FilterIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyT, control: true): const PlanTaskIntent(),
         },
-        child: Focus(
-          focusNode: _mainFocusNode,
-          autofocus: true,
-          debugLabel: 'BacklogScreenMainFocus',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ScreenHeader(
-                title: 'Backlog',
-                subtitle: 'Tasks without a scheduled date',
-                actions: [
-                  if (_selectedTaskIds.isNotEmpty) ...[
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        child: Actions(
+          actions: {
+            MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+              _moveFocus(1);
+            }),
+            MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+              _moveFocus(-1);
+            }),
+            FilterIntent: NonTypingAction<FilterIntent>((_) {
+              _showFilterDialog(context);
+            }),
+            _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
+              _searchFocusNode.requestFocus();
+            }),
+            _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
+              onInvoke: (intent) {
+                if (_searchFocusNode.hasFocus) {
+                  _searchFocusNode.unfocus();
+                  if (_orderedItemIds.isNotEmpty) {
+                    _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                  } else {
+                    _mainFocusNode.requestFocus();
+                  }
+                }
+                return null;
+              },
+            ),
+            _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
+              _showAddTask(context);
+            }),
+            PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
+              final taskId = _getFocusedTaskId();
+              if (taskId != null) {
+                context.read<TaskProvider>().scheduleTasksForToday([taskId]);
+              }
+            }),
+          },
+          child: Focus(
+            focusNode: _mainFocusNode,
+            autofocus: true,
+            debugLabel: 'BacklogScreenMainFocus',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ScreenHeader(
+                  title: 'Backlog',
+                  subtitle: 'Tasks without a scheduled date',
+                  actions: [
+                    if (_selectedTaskIds.isNotEmpty) ...[
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.success,
+                          foregroundColor: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        onPressed: () {
+                          context.read<TaskProvider>().scheduleTasksForToday(_selectedTaskIds).then((_) {
+                            setState(() => _selectedTaskIds.clear());
+                          });
+                        },
+                        label: Text('Plan tasks for today'),
+                        icon: Icon(Icons.calendar_today_rounded),
                       ),
-                      onPressed: () {
-                        context.read<TaskProvider>().scheduleTasksForToday(_selectedTaskIds).then((_) {
-                          setState(() => _selectedTaskIds.clear());
-                        });
-                      },
-                      label: Text('Plan tasks for today'),
-                      icon: Icon(Icons.calendar_today_rounded),
+                      const SizedBox(width: 8),
+                    ],
+                    if (settings.enableRandomTask) ...[
+                      IconButton(
+                        onPressed: () => _pickRandomTask(context),
+                        icon: Icon(Icons.casino_rounded),
+                        tooltip: 'Give me a random task!',
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    FilledButton.icon(
+                      onPressed: () => _showAddTask(context),
+                      icon: Icon(Icons.add),
+                      label: Text('Add Task'),
                     ),
                     const SizedBox(width: 8),
+                    _buildHeaderActions(context),
                   ],
-                  if (settings.enableRandomTask) ...[
-                    IconButton(
-                      onPressed: () => _pickRandomTask(context),
-                      icon: Icon(Icons.casino_rounded),
-                      tooltip: 'Give me a random task!',
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  FilledButton.icon(
-                    onPressed: () => _showAddTask(context),
-                    icon: Icon(Icons.add),
-                    label: Text('Add Task'),
+                ),
+                Consumer<FilterProvider>(
+                  builder: (context, filterProvider, _) => FilterBar(
+                    filter: filterProvider.filter,
+                    isBypassed: filterProvider.isBypassed,
+                    onFilterTap: () => _showFilterDialog(context),
+                    onClearFilter: () => filterProvider.clearFilter(),
                   ),
-                  const SizedBox(width: 8),
-                  _buildHeaderActions(context),
-                ],
-              ),
-              Consumer<FilterProvider>(
-                builder: (context, filterProvider, _) => FilterBar(
-                  filter: filterProvider.filter,
-                  onFilterTap: () => _showFilterDialog(context),
-                  onClearFilter: () => filterProvider.clearFilter(),
                 ),
-              ),
-              Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: FuzzySearchBar(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  hintText: 'Search backlog tasks... (Press / to focus)',
-                  onChanged: (value) => setState(() {
-                    _searchQuery = value;
-                  }),
-                  onSubmitted: (_) {
-                    if (_orderedItemIds.isNotEmpty) {
-                      _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-                    }
-                  },
+                Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: FuzzySearchBar(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    hintText: 'Search backlog tasks... (Press / to focus)',
+                    onChanged: (value) => setState(() {
+                      _searchQuery = value;
+                    }),
+                    onSubmitted: (_) {
+                      if (_orderedItemIds.isNotEmpty) {
+                        _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                      }
+                    },
+                  ),
                 ),
-              ),
-              Divider(height: 1),
-              Expanded(child: _taskList()),
-            ],
+                Divider(height: 1),
+                Expanded(child: _taskList()),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  String? _getFocusedTaskId() {
+    if (_orderedItemIds.isEmpty) return null;
+    for (int i = 0; i < _orderedItemIds.length; i++) {
+      final node = _itemFocusNodes[_orderedItemIds[i]];
+      if (node?.hasFocus ?? false) {
+        return _orderedItemIds[i];
+      }
+    }
+    return null;
   }
 
   Widget _buildHeaderActions(BuildContext context) {
@@ -281,7 +302,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
         }
 
         final projectProvider = context.read<ProjectProvider>();
-        final filter = context.watch<FilterProvider>().filter;
+        final filter = context.watch<FilterProvider>().activeFilter;
         var allTasks = provider.unscheduledTasks.where((t) {
           final project = t.projectId != null ? projectProvider.getById(t.projectId!) : null;
           return filter.applyToTask(t, project?.labelIds ?? []);
@@ -573,7 +594,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
   void _pickRandomTask(BuildContext context) async {
     final taskProvider = context.read<TaskProvider>();
     final projectProvider = context.read<ProjectProvider>();
-    final filter = context.read<FilterProvider>().filter;
+    final filter = context.read<FilterProvider>().activeFilter;
 
     // Filter tasks based on current filters (same logic as in _taskList)
     var availableTasks = taskProvider.unscheduledTasks.where((t) {

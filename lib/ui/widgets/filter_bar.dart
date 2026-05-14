@@ -10,6 +10,7 @@ class FilterBar extends StatelessWidget {
   final VoidCallback onFilterTap;
   final VoidCallback onClearFilter;
   final bool ignoreProjects;
+  final bool isBypassed;
 
   const FilterBar({
     super.key,
@@ -17,6 +18,7 @@ class FilterBar extends StatelessWidget {
     required this.onFilterTap,
     required this.onClearFilter,
     this.ignoreProjects = false,
+    this.isBypassed = false,
   });
 
   @override
@@ -27,9 +29,19 @@ class FilterBar extends StatelessWidget {
         child: Row(
           children: [
             ActionChip(
-              avatar: const Icon(Icons.filter_list, size: 16),
-              label: const Text('Filter'),
-              onPressed: onFilterTap,
+              avatar: Icon(
+                isBypassed ? Icons.filter_list_off : Icons.filter_list,
+                size: 16,
+                color: isBypassed ? Theme.of(context).colorScheme.error.withValues(alpha: 0.5) : null,
+              ),
+              label: Text(
+                isBypassed ? 'Filters Disabled' : 'Filter',
+                style: TextStyle(
+                  color: isBypassed ? Theme.of(context).colorScheme.error.withValues(alpha: 0.5) : null,
+                  decoration: isBypassed ? TextDecoration.lineThrough : null,
+                ),
+              ),
+              onPressed: isBypassed ? null : onFilterTap,
               backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
               side: BorderSide.none,
             ),
@@ -44,17 +56,25 @@ class FilterBar extends StatelessWidget {
       child: Row(
         children: [
           ActionChip(
-            avatar: const Icon(Icons.filter_list, size: 16, color: AppColors.accent),
-            label: const Text(
-              'Filter',
-              style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+            avatar: Icon(
+              isBypassed ? Icons.filter_list_off : Icons.filter_list,
+              size: 16,
+              color: isBypassed ? Theme.of(context).colorScheme.error.withValues(alpha: 0.9) : AppColors.accent,
             ),
-            onPressed: onFilterTap,
-            backgroundColor: AppColors.accent.withAlpha(25),
-            side: BorderSide(color: AppColors.accent.withAlpha(50)),
+            label: Text(
+              isBypassed ? 'Filters Disabled' : 'Filter',
+              style: TextStyle(
+                color: isBypassed ? Theme.of(context).colorScheme.error.withValues(alpha: 0.9) : AppColors.accent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onPressed: isBypassed ? null : onFilterTap,
+            backgroundColor: isBypassed ? Theme.of(context).colorScheme.errorContainer : AppColors.accent.withAlpha(50),
+            side: BorderSide(color: isBypassed ? Colors.red : AppColors.accent.withAlpha(50)),
           ),
           const SizedBox(width: 8),
-          if (filter.hasPriorityFilter) ...filter.priorities.map((p) => _buildChip(context, p.label, p.color)),
+          if (filter.hasPriorityFilter)
+            ...filter.priorities.map((p) => _buildChip(context, p.label, p.color, isBypassed: isBypassed)),
           if (filter.hasProjectFilter)
             Consumer<ProjectProvider>(
               builder: (context, provider, _) {
@@ -66,8 +86,11 @@ class FilterBar extends StatelessWidget {
                       context,
                       project.name,
                       project.color,
-                      isIgnored: ignoreProjects,
-                      tooltip: ignoreProjects ? 'Project filters are ignored in this screen' : null,
+                      isIgnored: ignoreProjects || isBypassed,
+                      isBypassed: isBypassed,
+                      tooltip: isBypassed
+                          ? 'Filters are temporarily bypassed (Shift+F)'
+                          : (ignoreProjects ? 'Project filters are ignored in this screen' : null),
                     );
                   }).toList(),
                 );
@@ -82,7 +105,7 @@ class FilterBar extends StatelessWidget {
                       (l) => l.id == id,
                       orElse: () => throw Exception('Label not found'),
                     );
-                    return _buildChip(context, label.name, label.color);
+                    return _buildChip(context, label.name, label.color, isBypassed: isBypassed);
                   }).toList(),
                 );
               },
@@ -98,7 +121,14 @@ class FilterBar extends StatelessWidget {
     );
   }
 
-  Widget _buildChip(BuildContext context, String label, Color color, {bool isIgnored = false, String? tooltip}) {
+  Widget _buildChip(
+    BuildContext context,
+    String label,
+    Color color, {
+    bool isIgnored = false,
+    bool isBypassed = false,
+    String? tooltip,
+  }) {
     final chip = Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Chip(
@@ -106,11 +136,11 @@ class FilterBar extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            decoration: isIgnored ? TextDecoration.lineThrough : null,
-            color: isIgnored ? Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150) : null,
+            decoration: (isIgnored || isBypassed) ? TextDecoration.lineThrough : null,
+            color: (isIgnored || isBypassed) ? Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150) : null,
           ),
         ),
-        avatar: CircleAvatar(backgroundColor: isIgnored ? color.withAlpha(128) : color, radius: 4),
+        avatar: CircleAvatar(backgroundColor: (isIgnored || isBypassed) ? color.withAlpha(128) : color, radius: 4),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         side: BorderSide.none,
         visualDensity: VisualDensity.compact,

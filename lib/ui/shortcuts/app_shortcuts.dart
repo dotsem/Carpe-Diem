@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
+import 'package:carpe_diem/routes/app_router.dart';
+import 'package:carpe_diem/providers/filter_provider.dart';
 import 'package:carpe_diem/ui/shortcuts/shortcuts_help_overlay.dart';
+import 'package:provider/provider.dart';
 
 class NavigateToTodayIntent extends Intent {
   const NavigateToTodayIntent();
@@ -47,6 +49,14 @@ class FilterIntent extends Intent {
   const FilterIntent();
 }
 
+class ToggleFilterBypassIntent extends Intent {
+  const ToggleFilterBypassIntent();
+}
+
+class PlanTaskIntent extends Intent {
+  const PlanTaskIntent();
+}
+
 class ShortcutEntry {
   final String key;
   final String description;
@@ -67,35 +77,60 @@ const globalShortcutEntries = [
 ];
 
 const homeShortcutEntries = [
-  ShortcutEntry(key: 'h', description: 'Previous day', category: 'Today'),
-  ShortcutEntry(key: 'l', description: 'Next day', category: 'Today'),
-  ShortcutEntry(key: 'j', description: 'Focus next task', category: 'Today'),
-  ShortcutEntry(key: 'k', description: 'Focus previous task', category: 'Today'),
-  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Today'),
-  ShortcutEntry(key: 'v', description: 'Toggle layout', category: 'Today'),
-  ShortcutEntry(key: 'f', description: 'Open filter', category: 'Today'),
+  ShortcutEntry(key: 'h / l', description: 'Prev / Next day', category: 'Today View'),
+  ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Today View'),
+  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Today View'),
+  ShortcutEntry(key: 'v', description: 'Toggle layout', category: 'Today View'),
+  ShortcutEntry(key: 'f', description: 'Open filter', category: 'Today View'),
+  ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Today View'),
 ];
 
 const taskCardShortcutEntries = [
-  ShortcutEntry(key: 'Space', description: 'Toggle completion', category: 'Task (focused)'),
-  ShortcutEntry(key: 'Enter', description: 'Toggle completion', category: 'Task (focused)'),
-  ShortcutEntry(key: 'e', description: 'Edit task', category: 'Task (focused)'),
-  ShortcutEntry(key: 'd', description: 'Delete task', category: 'Task (focused)'),
+  ShortcutEntry(key: 'Space', description: 'Toggle completion', category: 'Focused Task'),
+  ShortcutEntry(key: 'Enter', description: 'Toggle completion', category: 'Focused Task'),
+  ShortcutEntry(key: 'e', description: 'Edit task', category: 'Focused Task'),
+  ShortcutEntry(key: 'd', description: 'Delete task', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
 ];
 
 const projectShortcutEntries = [
-  ShortcutEntry(key: 'h', description: 'Focus Left', category: 'Projects'),
-  ShortcutEntry(key: 'j', description: 'Focus Down', category: 'Projects'),
-  ShortcutEntry(key: 'k', description: 'Focus Up', category: 'Projects'),
-  ShortcutEntry(key: 'l', description: 'Focus Right', category: 'Projects'),
+  ShortcutEntry(key: 'h / j / k / l', description: 'Move focus', category: 'Projects View'),
+  ShortcutEntry(key: '/', description: 'Focus search', category: 'Projects View'),
+  ShortcutEntry(key: 'f', description: 'Open filter', category: 'Projects View'),
+  ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Projects View'),
 ];
 
-List<ShortcutEntry> get allShortcutEntries => [
-  ...globalShortcutEntries,
-  ...homeShortcutEntries,
-  ...taskCardShortcutEntries,
-  ...projectShortcutEntries,
+const taskDialogShortcutEntries = [
+  ShortcutEntry(key: 'Ctrl + 1..5', description: 'Set priority', category: 'Task Editor'),
+  ShortcutEntry(key: 'Ctrl + P', description: 'Open project menu', category: 'Task Editor'),
+  ShortcutEntry(key: 'Ctrl + Enter', description: 'Save changes', category: 'Task Editor'),
+  ShortcutEntry(key: 'Esc', description: 'Cancel / Close', category: 'Task Editor'),
 ];
+
+const projectDialogShortcutEntries = [
+  ShortcutEntry(key: 'Ctrl + 1..5', description: 'Set priority', category: 'Project Editor'),
+  ShortcutEntry(key: 'Ctrl + Enter', description: 'Save changes', category: 'Project Editor'),
+  ShortcutEntry(key: 'Esc', description: 'Cancel / Close', category: 'Project Editor'),
+];
+
+const backlogShortcutEntries = [
+  ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Backlog'),
+  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Backlog'),
+  ShortcutEntry(key: '/', description: 'Focus search', category: 'Backlog'),
+  ShortcutEntry(key: 'f', description: 'Open filter', category: 'Backlog'),
+  ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Backlog'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
+];
+
+const projectDetailShortcutEntries = [
+  ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Project Detail'),
+  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Project Detail'),
+  ShortcutEntry(key: '/', description: 'Focus search', category: 'Project Detail'),
+  ShortcutEntry(key: 'f', description: 'Open filter', category: 'Project Detail'),
+  ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Project Detail'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
+];
+
 bool isTypingInTextField() {
   final focus = FocusManager.instance.primaryFocus;
   final context = focus?.context;
@@ -149,8 +184,19 @@ class GlobalShortcuts extends StatefulWidget {
   @override
   State<GlobalShortcuts> createState() => GlobalShortcutsState();
 
+  static GlobalShortcutsState? maybeOf(BuildContext context) {
+    return context.findAncestorStateOfType<GlobalShortcutsState>();
+  }
+
   static GlobalShortcutsState of(BuildContext context) {
-    return context.findAncestorStateOfType<GlobalShortcutsState>()!;
+    final state = maybeOf(context);
+    if (state == null) {
+      throw FlutterError(
+        'GlobalShortcuts.of() called with a context that does not contain a GlobalShortcuts.\n'
+        'The context used was: $context',
+      );
+    }
+    return state;
   }
 }
 
@@ -158,6 +204,19 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
   final _overlayKey = GlobalKey<ShortcutsHelpOverlayState>();
   bool _helpVisible = false;
   bool _isAltPressed = false;
+  final Map<Object, List<ShortcutEntry>> _contextualShortcuts = {};
+
+  void register(Object key, List<ShortcutEntry> shortcuts) {
+    _contextualShortcuts[key] = shortcuts;
+    if (_helpVisible) _overlayKey.currentState?.updateContent();
+  }
+
+  void unregister(Object key) {
+    _contextualShortcuts.remove(key);
+    if (_helpVisible) _overlayKey.currentState?.updateContent();
+  }
+
+  List<ShortcutEntry> get contextualShortcuts => _contextualShortcuts.values.expand((e) => e).toList();
 
   void toggleHelp() {
     setState(() => _helpVisible = !_helpVisible);
@@ -207,6 +266,7 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
           const CharacterActivator('p'): const NavigateToProjectsIntent(),
           const CharacterActivator('y'): const NavigateToHistoryIntent(),
           const CharacterActivator('?'): const ToggleHelpIntent(),
+          const CharacterActivator('F'): const ToggleFilterBypassIntent(),
           const SingleActivator(LogicalKeyboardKey.escape): const CloseHelpIntent(),
           const CharacterActivator('j'): const MoveNextIntent(),
           const CharacterActivator('k'): const MovePrevIntent(),
@@ -225,19 +285,19 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
             }),
             NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((intent) {
               debugPrint('Shortcut: NavigateToToday');
-              context.go('/');
+              appRouter.go('/');
             }),
             NavigateToBacklogIntent: NonTypingAction<NavigateToBacklogIntent>((intent) {
               debugPrint('Shortcut: NavigateToBacklog');
-              context.go('/tasks');
+              appRouter.go('/tasks');
             }),
             NavigateToProjectsIntent: NonTypingAction<NavigateToProjectsIntent>((intent) {
               debugPrint('Shortcut: NavigateToProjects');
-              context.go('/projects');
+              appRouter.go('/projects');
             }),
             NavigateToHistoryIntent: NonTypingAction<NavigateToHistoryIntent>((intent) {
               debugPrint('Shortcut: NavigateToHistory');
-              context.go('/history');
+              appRouter.go('/history');
             }),
             ToggleHelpIntent: NonTypingAction<ToggleHelpIntent>((intent) {
               debugPrint('Shortcut: ToggleHelp');
@@ -250,6 +310,11 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
                 return null;
               },
             ),
+            ToggleFilterBypassIntent: NonTypingAction<ToggleFilterBypassIntent>((intent) {
+              debugPrint('Shortcut: ToggleFilterBypass');
+              final provider = context.read<FilterProvider>();
+              provider.toggleBypass();
+            }),
           },
           child: Focus(
             autofocus: true,
@@ -265,4 +330,43 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
       ),
     );
   }
+}
+
+class AppShortcutRegistrar extends StatefulWidget {
+  final List<ShortcutEntry> shortcuts;
+  final Widget child;
+
+  const AppShortcutRegistrar({super.key, required this.shortcuts, required this.child});
+
+  @override
+  State<AppShortcutRegistrar> createState() => _AppShortcutRegistrarState();
+}
+
+class _AppShortcutRegistrarState extends State<AppShortcutRegistrar> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        GlobalShortcuts.of(context).register(this, widget.shortcuts);
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _state = GlobalShortcuts.maybeOf(context);
+  }
+
+  GlobalShortcutsState? _state;
+
+  @override
+  void deactivate() {
+    _state?.unregister(this);
+    super.deactivate();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

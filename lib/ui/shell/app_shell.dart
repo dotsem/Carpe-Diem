@@ -3,7 +3,6 @@ import 'package:carpe_diem/ui/dialogs/add_project_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 import 'package:provider/provider.dart';
 import 'package:carpe_diem/data/models/priority.dart';
 import 'package:carpe_diem/data/models/project.dart';
@@ -74,41 +73,39 @@ class _AppShellState extends State<AppShell> {
               child: _SideNav(currentPath: currentPath, isMobile: true),
             )
           : null,
-      body: GlobalShortcuts(
-        child: Row(
-          children: [
-            if (!isMobile) ...[
-              SizedBox(width: 220, child: _SideNav(currentPath: currentPath, isMobile: false)),
-              VerticalDivider(width: 1),
-            ],
-            Expanded(
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32),
-                    child: widget.child,
-                  ),
-                  if (isMobile)
-                    Positioned(
-                      top: 12,
-                      left: 12,
-                      child: Builder(
-                        builder: (context) => IconButton(
-                          icon: Icon(Icons.menu),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-                            foregroundColor: Theme.of(context).colorScheme.onSurface,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
+      body: Row(
+        children: [
+          if (!isMobile) ...[
+            SizedBox(width: 220, child: _SideNav(currentPath: currentPath, isMobile: false)),
+            VerticalDivider(width: 1),
+          ],
+          Expanded(
+            child: Stack(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32),
+                  child: widget.child,
+                ),
+                if (isMobile)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Builder(
+                      builder: (context) => IconButton(
+                        icon: Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                          foregroundColor: Theme.of(context).colorScheme.onSurface,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/data/models/history_overview.dart';
 import 'package:carpe_diem/data/models/task_filter.dart';
+import 'package:carpe_diem/providers/filter_provider.dart';
 import 'package:carpe_diem/providers/settings_provider.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
 import 'package:carpe_diem/ui/dialogs/filter_dialog.dart';
@@ -27,7 +28,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     start: DateTime.now().subtract(const Duration(days: 6)),
     end: DateTime.now(),
   );
-  TaskFilter _filter = const TaskFilter();
   bool _isLoading = false;
   bool _isLoadingMore = false;
   List<Task> _completedTasks = [];
@@ -68,6 +68,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _loadData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final filterProvider = context.read<FilterProvider>();
+    filterProvider.removeListener(_onFilterChanged);
+    filterProvider.addListener(_onFilterChanged);
+  }
+
+  @override
+  void dispose() {
+    context.read<FilterProvider>().removeListener(_onFilterChanged);
+    super.dispose();
+  }
+
+  void _onFilterChanged() {
+    if (mounted) {
+      _loadData();
+    }
+  }
+
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
@@ -81,9 +101,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
     final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day, 23, 59, 59);
+    if (!mounted) return;
+    final filter = context.read<FilterProvider>().activeFilter;
 
-    final tasksFuture = taskProvider.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: _filter);
-    final overviewFuture = taskProvider.getHistoryOverview(start, end, filter: _filter);
+    final tasksFuture = taskProvider.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
+    final overviewFuture = taskProvider.getHistoryOverview(start, end, filter: filter);
 
     final results = await Future.wait([tasksFuture, overviewFuture]);
     final tasks = results[0] as List<Task>;
@@ -107,8 +129,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
     final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day, 23, 59, 59);
+    final filter = context.read<FilterProvider>().activeFilter;
 
-    final tasks = await taskProvider.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: _filter);
+    final tasks = await taskProvider.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
 
     if (mounted) {
       setState(() {
@@ -138,19 +161,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _showFilterDialog() async {
+    final filterProvider = context.read<FilterProvider>();
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (context) => FilterDialog(initialFilter: _filter),
+      builder: (context) => FilterDialog(initialFilter: filterProvider.filter),
     );
 
     if (result != null) {
-      setState(() => _filter = result);
+      filterProvider.setFilter(result);
       _loadData();
     }
   }
 
   void _clearFilter() {
-    setState(() => _filter = const TaskFilter());
+    context.read<FilterProvider>().clearFilter();
     _loadData();
   }
 
@@ -164,7 +188,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ScreenHeader(title: 'History', actions: [_buildDateRangeButton()]),
-            FilterBar(filter: _filter, onFilterTap: _showFilterDialog, onClearFilter: _clearFilter),
+            Consumer<FilterProvider>(
+              builder: (context, filterProvider, _) => FilterBar(
+                filter: filterProvider.filter,
+                isBypassed: filterProvider.isBypassed,
+                onFilterTap: _showFilterDialog,
+                onClearFilter: _clearFilter,
+              ),
+            ),
 
             TabBar(
               tabs: [

@@ -177,8 +177,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           context.read<WindowTitleProvider>().updateTitle(subtitle: 'Project: ${project.name}');
         });
 
-        return Shortcuts(
-          shortcuts: {
+        return AppShortcutRegistrar(
+          shortcuts: projectDetailShortcutEntries,
+          child: Shortcuts(
+            shortcuts: {
             const CharacterActivator('/'): const _FocusSearchIntent(),
             const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
             if (project.isActive) const CharacterActivator('n'): const _NewTaskIntent(),
@@ -186,7 +188,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             const CharacterActivator('j'): const MoveNextIntent(),
             const CharacterActivator('k'): const MovePrevIntent(),
             const CharacterActivator('f'): const FilterIntent(),
-            const CharacterActivator('F'): const FilterIntent(),
           },
           child: Actions(
             actions: {
@@ -250,6 +251,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     Consumer<FilterProvider>(
                       builder: (context, filterProvider, _) => FilterBar(
                         filter: filterProvider.filter,
+                        isBypassed: filterProvider.isBypassed,
                         ignoreProjects: true,
                         onFilterTap: () => _showFilterDialog(context),
                         onClearFilter: () => filterProvider.clearFilter(),
@@ -261,7 +263,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           ? Center(child: CircularProgressIndicator())
                           : Builder(
                               builder: (context) {
-                                final filter = context.watch<FilterProvider>().filter.limitTo(projects: false);
+                                final filter = context.watch<FilterProvider>().activeFilter.limitTo(projects: false);
                                 final filteredTasks = _tasks
                                     .where((t) => filter.applyToTask(t, project.labelIds))
                                     .toList();
@@ -288,6 +290,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   },
                                   itemFocusNodes: _itemFocusNodes,
                                   searchQuery: _searchQuery,
+                                  enablePlanShortcut: true,
                                   firstNode: _firstItemFocusNode,
                                   showScheduleDate: true,
                                   selectionMode: true,
@@ -323,15 +326,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           backgroundColor: project.color,
                           elevation: 0,
                           highlightElevation: 0,
-                          child: Icon(Icons.add, color: Colors.white),
+                          child: const Icon(Icons.add, color: Colors.white),
                         ),
                       )
                     : null,
               ),
             ),
           ),
-        );
-      },
+        ),
+      );
+    },
     );
   }
 
