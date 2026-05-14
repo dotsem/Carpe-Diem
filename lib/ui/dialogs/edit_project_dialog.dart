@@ -4,6 +4,7 @@ import 'package:carpe_diem/data/models/project.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/ui/dialogs/common/sized_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/common/delete_dialog.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/ui/widgets/color_picker.dart';
 import 'package:carpe_diem/ui/widgets/priority_picker.dart';
 import 'package:carpe_diem/ui/widgets/label_picker.dart';
@@ -51,82 +52,90 @@ class _EditProjectDialogState extends State<EditProjectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedDialog(
-      title: 'Edit Project',
-      onSubmit: _submit,
-      submitText: 'Save Changes',
-      actions: [
-        TextButton.icon(
-          onPressed: () => showDialog(
-            context: context,
-            builder: (context) => DeleteDialog(
-              title: 'Delete Project',
-              message: 'Are you sure you want to delete this project?',
-              onConfirm: () async {
-                final provider = context.read<ProjectProvider>();
-                await provider.deleteProject(widget.project);
-                if (context.mounted) {
-                  Navigator.of(context).pop(); // Pop from edit dialog
-                  ToastUtils.showSuccess('Project "${widget.project.name}" deleted', context: context);
-                }
-              },
+    return AppShortcutRegistrar(
+      shortcuts: projectDialogShortcutEntries,
+      child: SizedDialog(
+        title: 'Edit Project',
+        onSubmit: _submit,
+        submitText: 'Save Changes',
+        actions: [
+          TextButton.icon(
+            onPressed: () => showDialog(
+              context: context,
+              builder: (context) => DeleteDialog(
+                title: 'Delete Project',
+                message: 'Are you sure you want to delete this project?',
+                onConfirm: () async {
+                  final provider = context.read<ProjectProvider>();
+                  await provider.deleteProject(widget.project);
+                  if (context.mounted) {
+                    Navigator.of(context).pop(); // Pop from edit dialog
+                    ToastUtils.showSuccess('Project "${widget.project.name}" deleted', context: context);
+                  }
+                },
+              ),
             ),
+            icon: const Icon(Icons.delete),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            label: const Text("Delete"),
           ),
-          icon: const Icon(Icons.delete),
-          style: TextButton.styleFrom(foregroundColor: AppColors.error),
-          label: const Text("Delete"),
-        ),
-      ],
-      child: CallbackShortcuts(
-        bindings: {
-          const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => setState(() => _priority = Priority.none),
-          const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => setState(() => _priority = Priority.low),
-          const SingleActivator(LogicalKeyboardKey.digit3, control: true): () => setState(() => _priority = Priority.medium),
-          const SingleActivator(LogicalKeyboardKey.digit4, control: true): () => setState(() => _priority = Priority.high),
-          const SingleActivator(LogicalKeyboardKey.digit5, control: true): () => setState(() => _priority = Priority.urgent),
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _nameController,
-              autofocus: true,
-              decoration: const InputDecoration(hintText: 'Project name'),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _descController,
-              decoration: const InputDecoration(hintText: 'Description (optional)'),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            Text('Color', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            ProjectColorPicker(selected: _selectedColor, onChanged: (c) => setState(() => _selectedColor = c)),
-            const SizedBox(height: 16),
-            Text('Priority', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
-            const SizedBox(height: 16),
-            Text('Labels', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            LabelPicker(
-              selectedLabelIds: _selectedLabelIds,
-              onSelected: (ids) => setState(() => _selectedLabelIds = ids),
-            ),
-            const SizedBox(height: 16),
-            DatePickerButton(
-              label: 'Deadline',
-              date: _deadline,
-              onChanged: (d) => setState(() => _deadline = d),
-              firstDate: widget.project.createdAt,
-            ),
-            const SizedBox(height: 16),
-            _ActiveToggle(isActive: _isActive, onChanged: (v) => setState(() => _isActive = v)),
-          ],
+        ],
+        child: CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () =>
+                setState(() => _priority = Priority.none),
+            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () =>
+                setState(() => _priority = Priority.low),
+            const SingleActivator(LogicalKeyboardKey.digit3, control: true): () =>
+                setState(() => _priority = Priority.medium),
+            const SingleActivator(LogicalKeyboardKey.digit4, control: true): () =>
+                setState(() => _priority = Priority.high),
+            const SingleActivator(LogicalKeyboardKey.digit5, control: true): () =>
+                setState(() => _priority = Priority.urgent),
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _nameController,
+                autofocus: true,
+                decoration: const InputDecoration(hintText: 'Project name'),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _descController,
+                decoration: const InputDecoration(hintText: 'Description (optional)'),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 16),
+              Text('Color', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              ProjectColorPicker(selected: _selectedColor, onChanged: (c) => setState(() => _selectedColor = c)),
+              const SizedBox(height: 16),
+              Text('Priority', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
+              const SizedBox(height: 16),
+              Text('Labels', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              LabelPicker(
+                selectedLabelIds: _selectedLabelIds,
+                onSelected: (ids) => setState(() => _selectedLabelIds = ids),
+              ),
+              const SizedBox(height: 16),
+              DatePickerButton(
+                label: 'Deadline',
+                date: _deadline,
+                onChanged: (d) => setState(() => _deadline = d),
+                firstDate: widget.project.createdAt,
+              ),
+              const SizedBox(height: 16),
+              _ActiveToggle(isActive: _isActive, onChanged: (v) => setState(() => _isActive = v)),
+            ],
+          ),
         ),
       ),
     );

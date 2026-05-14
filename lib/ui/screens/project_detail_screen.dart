@@ -177,8 +177,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           context.read<WindowTitleProvider>().updateTitle(subtitle: 'Project: ${project.name}');
         });
 
-        return Shortcuts(
-          shortcuts: {
+        return AppShortcutRegistrar(
+          shortcuts: projectDetailShortcutEntries,
+          child: Shortcuts(
+            shortcuts: {
             const CharacterActivator('/'): const _FocusSearchIntent(),
             const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
             if (project.isActive) const CharacterActivator('n'): const _NewTaskIntent(),
@@ -323,15 +325,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           backgroundColor: project.color,
                           elevation: 0,
                           highlightElevation: 0,
-                          child: Icon(Icons.add, color: Colors.white),
+                          child: const Icon(Icons.add, color: Colors.white),
                         ),
                       )
                     : null,
               ),
             ),
           ),
-        );
-      },
+        ),
+      );
+    },
     );
   }
 

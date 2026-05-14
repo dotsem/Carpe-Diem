@@ -140,95 +140,98 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Shortcuts(
-      shortcuts: {
-        const CharacterActivator('/'): const _FocusSearchIntent(),
-        const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-        const CharacterActivator('j'): const MoveNextIntent(),
-        const CharacterActivator('k'): const MovePrevIntent(),
-        const CharacterActivator('h'): const MoveLeftIntent(),
-        const CharacterActivator('l'): const MoveRightIntent(),
-        const CharacterActivator('f'): const FilterIntent(),
-        const CharacterActivator('F'): const FilterIntent(),
-      },
-      child: Actions(
-        actions: {
-          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-            _moveFocus(0, 1);
-          }),
-          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-            _moveFocus(0, -1);
-          }),
-          MoveLeftIntent: NonTypingAction<MoveLeftIntent>((_) {
-            _moveFocus(-1, 0);
-          }),
-          MoveRightIntent: NonTypingAction<MoveRightIntent>((_) {
-            _moveFocus(1, 0);
-          }),
-          FilterIntent: NonTypingAction<FilterIntent>((_) {
-            _showFilterDialog(context);
-          }),
-          _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
-            _searchFocusNode.requestFocus();
-          }),
-          _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
-            onInvoke: (intent) {
-              if (_searchFocusNode.hasFocus) {
-                _searchFocusNode.unfocus();
-                if (_orderedItemIds.isNotEmpty) {
-                  _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-                } else {
-                  _mainFocusNode.requestFocus();
-                }
-              }
-              return null;
-            },
-          ),
+    return AppShortcutRegistrar(
+      shortcuts: projectShortcutEntries,
+      child: Shortcuts(
+        shortcuts: {
+          const CharacterActivator('/'): const _FocusSearchIntent(),
+          const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+          const CharacterActivator('j'): const MoveNextIntent(),
+          const CharacterActivator('k'): const MovePrevIntent(),
+          const CharacterActivator('h'): const MoveLeftIntent(),
+          const CharacterActivator('l'): const MoveRightIntent(),
+          const CharacterActivator('f'): const FilterIntent(),
+          const CharacterActivator('F'): const FilterIntent(),
         },
-        child: Focus(
-          focusNode: _mainFocusNode,
-          autofocus: true,
-          debugLabel: 'ProjectsScreenMainFocus',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ScreenHeader(
-                title: 'Projects',
-                actions: [
-                  FilledButton.icon(
-                    onPressed: () => _showAddProject(context),
-                    icon: Icon(Icons.add),
-                    label: Text('New Project'),
+        child: Actions(
+          actions: {
+            MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+              _moveFocus(0, 1);
+            }),
+            MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+              _moveFocus(0, -1);
+            }),
+            MoveLeftIntent: NonTypingAction<MoveLeftIntent>((_) {
+              _moveFocus(-1, 0);
+            }),
+            MoveRightIntent: NonTypingAction<MoveRightIntent>((_) {
+              _moveFocus(1, 0);
+            }),
+            FilterIntent: NonTypingAction<FilterIntent>((_) {
+              _showFilterDialog(context);
+            }),
+            _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
+              _searchFocusNode.requestFocus();
+            }),
+            _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
+              onInvoke: (intent) {
+                if (_searchFocusNode.hasFocus) {
+                  _searchFocusNode.unfocus();
+                  if (_orderedItemIds.isNotEmpty) {
+                    _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                  } else {
+                    _mainFocusNode.requestFocus();
+                  }
+                }
+                return null;
+              },
+            ),
+          },
+          child: Focus(
+            focusNode: _mainFocusNode,
+            autofocus: true,
+            debugLabel: 'ProjectsScreenMainFocus',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ScreenHeader(
+                  title: 'Projects',
+                  actions: [
+                    FilledButton.icon(
+                      onPressed: () => _showAddProject(context),
+                      icon: Icon(Icons.add),
+                      label: Text('New Project'),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: FuzzySearchBar(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    hintText: 'Search projects... (Press / to focus)',
+                    onChanged: (value) => setState(() {
+                      _searchQuery = value;
+                    }),
+                    onSubmitted: (_) {
+                      if (_orderedItemIds.isNotEmpty) {
+                        _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                      }
+                    },
                   ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: FuzzySearchBar(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  hintText: 'Search projects... (Press / to focus)',
-                  onChanged: (value) => setState(() {
-                    _searchQuery = value;
-                  }),
-                  onSubmitted: (_) {
-                    if (_orderedItemIds.isNotEmpty) {
-                      _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-                    }
-                  },
                 ),
-              ),
-              Consumer<FilterProvider>(
-                builder: (context, filterProvider, _) => FilterBar(
-                  filter: filterProvider.filter,
-                  ignoreProjects: true,
-                  onFilterTap: () => _showFilterDialog(context),
-                  onClearFilter: () => filterProvider.clearFilter(),
+                Consumer<FilterProvider>(
+                  builder: (context, filterProvider, _) => FilterBar(
+                    filter: filterProvider.filter,
+                    ignoreProjects: true,
+                    onFilterTap: () => _showFilterDialog(context),
+                    onClearFilter: () => filterProvider.clearFilter(),
+                  ),
                 ),
-              ),
-              Divider(height: 1),
-              Expanded(child: _projectGrid()),
-            ],
+                Divider(height: 1),
+                Expanded(child: _projectGrid()),
+              ],
+            ),
           ),
         ),
       ),

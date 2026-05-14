@@ -11,6 +11,7 @@ import 'package:carpe_diem/providers/filter_provider.dart';
 import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/routes/app_router.dart';
 import 'package:carpe_diem/providers/window_title_provider.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 import 'package:toastification/toastification.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -60,6 +61,9 @@ class CarpeDiemApp extends StatelessWidget {
               localizationsDelegates: GlobalMaterialLocalizations.delegates,
               supportedLocales: const [Locale('en', 'US'), Locale('en', 'GB')],
               locale: settings.firstDayOfWeek == DateTime.monday ? const Locale('en', 'GB') : const Locale('en', 'US'),
+              builder: (context, child) {
+                return GlobalShortcuts(child: child!);
+              },
             ),
           );
         },

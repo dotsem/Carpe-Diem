@@ -5,6 +5,7 @@ import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/providers/settings_provider.dart';
 import 'package:carpe_diem/providers/task_provider.dart';
 import 'package:carpe_diem/ui/dialogs/common/delete_dialog.dart';
+import 'package:carpe_diem/ui/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/ui/widgets/blocker_picker.dart';
 import 'package:carpe_diem/ui/widgets/priority_picker.dart';
 import 'package:carpe_diem/ui/widgets/label_picker.dart';
@@ -91,112 +92,120 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
   Widget build(BuildContext context) {
     final projects = context.read<ProjectProvider>().projects;
 
-    return SizedDialog(
-      title: 'Edit Task',
-      onSubmit: _submit,
-      submitText: 'Save Changes',
-      actions: [
-        TextButton.icon(
-          onPressed: () => showDialog(
-            context: context,
-            builder: (context) => DeleteDialog(
-              title: 'Delete Task',
-              message: 'Are you sure you want to delete this task?',
-              onConfirm: () {
-                Navigator.of(context).pop();
-                context.read<TaskProvider>().deleteTask(widget.task);
-              },
-            ),
-          ),
-          icon: const Icon(Icons.delete),
-          style: TextButton.styleFrom(foregroundColor: AppColors.error),
-          label: const Text("Delete"),
-        ),
-      ],
-      child: CallbackShortcuts(
-        bindings: {
-          const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => setState(() => _priority = Priority.none),
-          const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => setState(() => _priority = Priority.low),
-          const SingleActivator(LogicalKeyboardKey.digit3, control: true): () => setState(() => _priority = Priority.medium),
-          const SingleActivator(LogicalKeyboardKey.digit4, control: true): () => setState(() => _priority = Priority.high),
-          const SingleActivator(LogicalKeyboardKey.digit5, control: true): () => setState(() => _priority = Priority.urgent),
-          const SingleActivator(LogicalKeyboardKey.keyP, control: true): () => _projectMenuController.open(),
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _nameController,
-              autofocus: true,
-              decoration: const InputDecoration(hintText: 'Task name'),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _descController,
-              decoration: const InputDecoration(hintText: 'Description (optional)'),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            Text('Priority', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: DatePickerButton(
-                    label: 'Schedule Date',
-                    date: _scheduledDate,
-                    onChanged: (d) => setState(() => _scheduledDate = d),
-                    lastDate: _maxDate,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ProjectPicker(
-                    projects: projects,
-                    selectedProjectId: _selectedProjectId,
-                    menuController: _projectMenuController,
-                    onChanged: (id) {
-                      setState(() => _selectedProjectId = id);
-                      _loadProjectDetails(overwriteDeadline: true);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            if (_selectedProjectId != null) ...[
-              const SizedBox(height: 12),
-              BlockerPicker(
-                availableTasks: _projectTasks,
-                selectedBlockerId: _blockedById,
-                currentTaskId: widget.task.id,
-                onChanged: (id) {
-                  setState(() {
-                    _blockedById = id;
-                  });
+    return AppShortcutRegistrar(
+      shortcuts: taskDialogShortcutEntries,
+      child: SizedDialog(
+        title: 'Edit Task',
+        onSubmit: _submit,
+        submitText: 'Save Changes',
+        actions: [
+          TextButton.icon(
+            onPressed: () => showDialog(
+              context: context,
+              builder: (context) => DeleteDialog(
+                title: 'Delete Task',
+                message: 'Are you sure you want to delete this task?',
+                onConfirm: () {
+                  Navigator.of(context).pop();
+                  context.read<TaskProvider>().deleteTask(widget.task);
                 },
               ),
+            ),
+            icon: const Icon(Icons.delete),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            label: const Text("Delete"),
+          ),
+        ],
+        child: CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () =>
+                setState(() => _priority = Priority.none),
+            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () =>
+                setState(() => _priority = Priority.low),
+            const SingleActivator(LogicalKeyboardKey.digit3, control: true): () =>
+                setState(() => _priority = Priority.medium),
+            const SingleActivator(LogicalKeyboardKey.digit4, control: true): () =>
+                setState(() => _priority = Priority.high),
+            const SingleActivator(LogicalKeyboardKey.digit5, control: true): () =>
+                setState(() => _priority = Priority.urgent),
+            const SingleActivator(LogicalKeyboardKey.keyP, control: true): () => _projectMenuController.open(),
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _nameController,
+                autofocus: true,
+                decoration: const InputDecoration(hintText: 'Task name'),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _descController,
+                decoration: const InputDecoration(hintText: 'Description (optional)'),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 16),
+              Text('Priority', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: DatePickerButton(
+                      label: 'Schedule Date',
+                      date: _scheduledDate,
+                      onChanged: (d) => setState(() => _scheduledDate = d),
+                      lastDate: _maxDate,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ProjectPicker(
+                      projects: projects,
+                      selectedProjectId: _selectedProjectId,
+                      menuController: _projectMenuController,
+                      onChanged: (id) {
+                        setState(() => _selectedProjectId = id);
+                        _loadProjectDetails(overwriteDeadline: true);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              if (_selectedProjectId != null) ...[
+                const SizedBox(height: 12),
+                BlockerPicker(
+                  availableTasks: _projectTasks,
+                  selectedBlockerId: _blockedById,
+                  currentTaskId: widget.task.id,
+                  onChanged: (id) {
+                    setState(() {
+                      _blockedById = id;
+                    });
+                  },
+                ),
+              ],
+              const SizedBox(height: 16),
+              Text('Labels', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              LabelPicker(
+                selectedLabelIds: _selectedLabelIds,
+                inheritedLabelIds: _inheritedLabelIds,
+                onSelected: (ids) => setState(() => _selectedLabelIds = ids),
+              ),
+              const SizedBox(height: 12),
+              DatePickerButton(
+                label: 'Deadline (Optional)',
+                date: _deadline,
+                onChanged: (d) => setState(() => _deadline = d),
+                firstDate: widget.task.createdAt,
+              ),
             ],
-            const SizedBox(height: 16),
-            Text('Labels', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            LabelPicker(
-              selectedLabelIds: _selectedLabelIds,
-              inheritedLabelIds: _inheritedLabelIds,
-              onSelected: (ids) => setState(() => _selectedLabelIds = ids),
-            ),
-            const SizedBox(height: 12),
-            DatePickerButton(
-              label: 'Deadline (Optional)',
-              date: _deadline,
-              onChanged: (d) => setState(() => _deadline = d),
-              firstDate: widget.task.createdAt,
-            ),
-          ],
+          ),
         ),
       ),
     );
