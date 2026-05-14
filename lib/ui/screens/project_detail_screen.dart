@@ -188,7 +188,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             const CharacterActivator('j'): const MoveNextIntent(),
             const CharacterActivator('k'): const MovePrevIntent(),
             const CharacterActivator('f'): const FilterIntent(),
-            const CharacterActivator('F'): const FilterIntent(),
           },
           child: Actions(
             actions: {
@@ -252,6 +251,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     Consumer<FilterProvider>(
                       builder: (context, filterProvider, _) => FilterBar(
                         filter: filterProvider.filter,
+                        isBypassed: filterProvider.isBypassed,
                         ignoreProjects: true,
                         onFilterTap: () => _showFilterDialog(context),
                         onClearFilter: () => filterProvider.clearFilter(),
@@ -263,7 +263,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           ? Center(child: CircularProgressIndicator())
                           : Builder(
                               builder: (context) {
-                                final filter = context.watch<FilterProvider>().filter.limitTo(projects: false);
+                                final filter = context.watch<FilterProvider>().activeFilter.limitTo(projects: false);
                                 final filteredTasks = _tasks
                                     .where((t) => filter.applyToTask(t, project.labelIds))
                                     .toList();

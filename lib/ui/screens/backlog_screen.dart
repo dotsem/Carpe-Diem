@@ -131,7 +131,6 @@ class _BacklogScreenState extends State<BacklogScreen> {
           const CharacterActivator('j'): const MoveNextIntent(),
           const CharacterActivator('k'): const MovePrevIntent(),
           const CharacterActivator('f'): const FilterIntent(),
-          const CharacterActivator('F'): const FilterIntent(),
           const SingleActivator(LogicalKeyboardKey.keyT, control: true): const PlanTaskIntent(),
         },
         child: Actions(
@@ -218,6 +217,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
                 Consumer<FilterProvider>(
                   builder: (context, filterProvider, _) => FilterBar(
                     filter: filterProvider.filter,
+                    isBypassed: filterProvider.isBypassed,
                     onFilterTap: () => _showFilterDialog(context),
                     onClearFilter: () => filterProvider.clearFilter(),
                   ),
@@ -302,7 +302,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
         }
 
         final projectProvider = context.read<ProjectProvider>();
-        final filter = context.watch<FilterProvider>().filter;
+        final filter = context.watch<FilterProvider>().activeFilter;
         var allTasks = provider.unscheduledTasks.where((t) {
           final project = t.projectId != null ? projectProvider.getById(t.projectId!) : null;
           return filter.applyToTask(t, project?.labelIds ?? []);
@@ -594,7 +594,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
   void _pickRandomTask(BuildContext context) async {
     final taskProvider = context.read<TaskProvider>();
     final projectProvider = context.read<ProjectProvider>();
-    final filter = context.read<FilterProvider>().filter;
+    final filter = context.read<FilterProvider>().activeFilter;
 
     // Filter tasks based on current filters (same logic as in _taskList)
     var availableTasks = taskProvider.unscheduledTasks.where((t) {

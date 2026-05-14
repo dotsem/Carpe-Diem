@@ -151,7 +151,6 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
           const CharacterActivator('h'): const MoveLeftIntent(),
           const CharacterActivator('l'): const MoveRightIntent(),
           const CharacterActivator('f'): const FilterIntent(),
-          const CharacterActivator('F'): const FilterIntent(),
         },
         child: Actions(
           actions: {
@@ -223,6 +222,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                 Consumer<FilterProvider>(
                   builder: (context, filterProvider, _) => FilterBar(
                     filter: filterProvider.filter,
+                    isBypassed: filterProvider.isBypassed,
                     ignoreProjects: true,
                     onFilterTap: () => _showFilterDialog(context),
                     onClearFilter: () => filterProvider.clearFilter(),
@@ -251,7 +251,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
           return p.name.toLowerCase().contains(query) || (p.description?.toLowerCase().contains(query) ?? false);
         }).toList();
 
-        final filter = context.watch<FilterProvider>().filter.limitTo(projects: false);
+        final filter = context.watch<FilterProvider>().activeFilter.limitTo(projects: false);
         final filteredProjects = filteredBySearch.where((p) => filter.applyToProject(p)).toList();
         final activeProjects = filteredProjects.where((p) => p.isActive).toList();
         final inactiveProjects = filteredProjects.where((p) => !p.isActive).toList();

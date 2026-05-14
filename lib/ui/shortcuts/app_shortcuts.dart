@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:carpe_diem/routes/app_router.dart';
+import 'package:carpe_diem/providers/filter_provider.dart';
 import 'package:carpe_diem/ui/shortcuts/shortcuts_help_overlay.dart';
+import 'package:provider/provider.dart';
 
 class NavigateToTodayIntent extends Intent {
   const NavigateToTodayIntent();
@@ -47,6 +49,10 @@ class FilterIntent extends Intent {
   const FilterIntent();
 }
 
+class ToggleFilterBypassIntent extends Intent {
+  const ToggleFilterBypassIntent();
+}
+
 class PlanTaskIntent extends Intent {
   const PlanTaskIntent();
 }
@@ -76,6 +82,7 @@ const homeShortcutEntries = [
   ShortcutEntry(key: 'n', description: 'Add new task', category: 'Today View'),
   ShortcutEntry(key: 'v', description: 'Toggle layout', category: 'Today View'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Today View'),
+  ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Today View'),
 ];
 
 const taskCardShortcutEntries = [
@@ -90,6 +97,7 @@ const projectShortcutEntries = [
   ShortcutEntry(key: 'h / j / k / l', description: 'Move focus', category: 'Projects View'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Projects View'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Projects View'),
+  ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Projects View'),
 ];
 
 const taskDialogShortcutEntries = [
@@ -110,6 +118,7 @@ const backlogShortcutEntries = [
   ShortcutEntry(key: 'n', description: 'Add new task', category: 'Backlog'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Backlog'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Backlog'),
+  ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Backlog'),
   ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
 ];
 
@@ -118,6 +127,7 @@ const projectDetailShortcutEntries = [
   ShortcutEntry(key: 'n', description: 'Add new task', category: 'Project Detail'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Project Detail'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Project Detail'),
+  ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Project Detail'),
   ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
 ];
 
@@ -256,6 +266,7 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
           const CharacterActivator('p'): const NavigateToProjectsIntent(),
           const CharacterActivator('y'): const NavigateToHistoryIntent(),
           const CharacterActivator('?'): const ToggleHelpIntent(),
+          const CharacterActivator('F'): const ToggleFilterBypassIntent(),
           const SingleActivator(LogicalKeyboardKey.escape): const CloseHelpIntent(),
           const CharacterActivator('j'): const MoveNextIntent(),
           const CharacterActivator('k'): const MovePrevIntent(),
@@ -299,6 +310,11 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
                 return null;
               },
             ),
+            ToggleFilterBypassIntent: NonTypingAction<ToggleFilterBypassIntent>((intent) {
+              debugPrint('Shortcut: ToggleFilterBypass');
+              final provider = context.read<FilterProvider>();
+              provider.toggleBypass();
+            }),
           },
           child: Focus(
             autofocus: true,

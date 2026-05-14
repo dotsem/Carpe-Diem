@@ -136,7 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
           const CharacterActivator('L'): _NextDayIntent(),
           const CharacterActivator('N'): _NewTaskIntent(),
           const CharacterActivator('V'): _ToggleLayoutIntent(),
-          const CharacterActivator('F'): FilterIntent(),
           const CharacterActivator('j'): MoveNextIntent(),
           const CharacterActivator('k'): MovePrevIntent(),
         },
@@ -195,6 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Consumer<FilterProvider>(
                   builder: (context, filterProvider, _) => FilterBar(
                     filter: filterProvider.filter,
+                    isBypassed: filterProvider.isBypassed,
                     onFilterTap: () => _showFilterDialog(context),
                     onClearFilter: () => filterProvider.clearFilter(),
                   ),
@@ -281,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         final projectProvider = context.read<ProjectProvider>();
-        final filter = context.watch<FilterProvider>().filter;
+        final filter = context.watch<FilterProvider>().activeFilter;
         final settings = context.watch<SettingsProvider>();
         final showActiveOnly = settings.showActiveProjectsOnly;
 
