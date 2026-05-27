@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 class BulkPlanningBar extends StatelessWidget {
   final int selectedCount;
+  final bool disableScheduling;
   final VoidCallback onClearSelection;
   final VoidCallback onScheduleToday;
   final VoidCallback onScheduleTomorrow;
@@ -13,6 +14,7 @@ class BulkPlanningBar extends StatelessWidget {
   const BulkPlanningBar({
     super.key,
     required this.selectedCount,
+    this.disableScheduling = false,
     required this.onClearSelection,
     required this.onScheduleToday,
     required this.onScheduleTomorrow,
@@ -70,6 +72,7 @@ class BulkPlanningBar extends StatelessWidget {
                     tooltip: 'Schedule for today',
                     color: AppColors.info,
                     onPressed: onScheduleToday,
+                    disabled: disableScheduling,
                   ),
                   const SizedBox(width: 8),
                   _ActionButton(
@@ -78,6 +81,7 @@ class BulkPlanningBar extends StatelessWidget {
                     tooltip: 'Schedule for tomorrow',
                     color: AppColors.info,
                     onPressed: onScheduleTomorrow,
+                    disabled: disableScheduling,
                   ),
                   const SizedBox(width: 8),
                   _ActionButton(
@@ -111,6 +115,7 @@ class _ActionButton extends StatelessWidget {
   final String tooltip;
   final Color color;
   final VoidCallback? onPressed;
+  final bool disabled;
 
   const _ActionButton({
     required this.icon,
@@ -118,22 +123,21 @@ class _ActionButton extends StatelessWidget {
     required this.tooltip,
     required this.color,
     required this.onPressed,
+    this.disabled = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final enabled = onPressed != null;
-
     return Tooltip(
-      message: tooltip,
+      message: disabled ? "" : tooltip,
       child: TextButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20, color: enabled ? color : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+        onPressed: disabled ? null : onPressed,
+        icon: Icon(icon, size: 20, color: disabled ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4) : color),
         label: Text(
           label,
           style: TextStyle(
-            color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            color: disabled ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4) : theme.colorScheme.onSurface,
             fontWeight: FontWeight.w500,
             fontSize: 13,
           ),
