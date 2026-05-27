@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
@@ -8,11 +9,11 @@ import 'package:carpe_diem/features/common/presentation/widgets/priority_indicat
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 
-class TaskCard extends StatefulWidget {
+class TaskCard extends ConsumerStatefulWidget {
   final Task task;
   final Project? project;
   final ValueChanged<bool?> onToggle;
@@ -49,17 +50,17 @@ class TaskCard extends StatefulWidget {
   });
 
   @override
-  State<TaskCard> createState() => _TaskCardState();
+  ConsumerState<TaskCard> createState() => _TaskCardState();
 }
 
-class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin {
+class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isFocused = false;
 
   @override
   void initState() {
     super.initState();
-    final settings = context.read<SettingsProvider>();
+    final settings = ref.read(settingsProvider);
     _controller = AnimationController(
       vsync: this,
       duration: Duration(seconds: settings.taskCompletionDelay),
@@ -68,9 +69,10 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
   }
 
   void _checkPending() {
-    final provider = context.read<TaskProvider>();
-    if (provider.isTaskPending(widget.task.id)) {
-      final progress = provider.getPendingProgress(widget.task.id);
+    final timerNotifier = ref.read(taskTimerProvider.notifier);
+    final settings = ref.read(settingsProvider);
+    if (timerNotifier.isTaskPending(widget.task.id)) {
+      final progress = timerNotifier.getPendingProgress(widget.task.id, settings.taskCompletionDelay);
       if (progress < 1.0) {
         _controller.value = progress;
         _controller.forward();
@@ -90,13 +92,14 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
       return;
     }
 
-    final provider = context.read<TaskProvider>();
+    final taskNotifier = ref.read(taskProvider.notifier);
+    final timerNotifier = ref.read(taskTimerProvider.notifier);
 
     if (widget.task.status.isDone) {
       widget.onToggle(value);
     } else if (widget.task.status.isInProgress) {
-      final isNowPending = !provider.isTaskPending(widget.task.id);
-      provider.toggleComplete(widget.task, useTimer: widget.useTimer);
+      final isNowPending = !timerNotifier.isTaskPending(widget.task.id);
+      taskNotifier.toggleComplete(widget.task, useTimer: widget.useTimer);
 
       if (isNowPending && widget.useTimer) {
         _controller.value = 0;
@@ -112,13 +115,14 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<TaskProvider>();
-    final isPending = provider.isTaskPending(widget.task.id);
+    final timerState = ref.watch(taskTimerProvider);
+    final isPending = timerState.pendingCompletions.containsKey(widget.task.id);
     final bool showDone = widget.isChecked == null && (widget.task.isCompleted || isPending);
+    final settings = ref.watch(settingsProvider);
 
     // Sync animation if needed (e.g. after page swap)
     if (isPending && !_controller.isAnimating && _controller.value < 1.0) {
-      final progress = provider.getPendingProgress(widget.task.id);
+      final progress = ref.read(taskTimerProvider.notifier).getPendingProgress(widget.task.id, settings.taskCompletionDelay);
       _controller.value = progress;
       _controller.forward();
     } else if (!isPending && (_controller.isAnimating || _controller.value > 0)) {
@@ -129,7 +133,6 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
     final today = DateTime(now.year, now.month, now.day);
     final isOverdue = widget.task.isOverdue;
 
-    final settings = context.watch<SettingsProvider>();
     final isCompact = settings.compactMode;
     final showDescription = settings.showDescriptionOnCard;
 
@@ -174,7 +177,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
             onTap: widget.onTap,
             onFocusChange: (focused) {
               if (focused && mounted) {
-                Scrollable.ensureVisible(context, duration: Duration(milliseconds: 200), alignment: 0.5);
+                Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 200), alignment: 0.5);
               }
               setState(() => _isFocused = focused);
             },
@@ -277,8 +280,8 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
       );
     }
 
-    final provider = context.read<TaskProvider>();
-    final isPending = provider.isTaskPending(widget.task.id);
+    final timerNotifier = ref.read(taskTimerProvider.notifier);
+    final isPending = timerNotifier.isTaskPending(widget.task.id);
 
     if (widget.task.status.isInProgress) {
       return GestureDetector(
@@ -291,7 +294,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
             color: isPending ? AppColors.accent.withValues(alpha: 0.5) : AppColors.accent.withValues(alpha: 0.3),
             border: Border.all(color: AppColors.accent, width: 2),
           ),
-          child: isPending ? Icon(Icons.close, size: 14, color: AppColors.accent) : null,
+          child: isPending ? const Icon(Icons.close, size: 14, color: AppColors.accent) : null,
         ),
       );
     }
@@ -307,7 +310,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
             color: AppColors.success.withValues(alpha: 0.1),
             border: Border.all(color: AppColors.success, width: 2),
           ),
-          child: Icon(Icons.play_arrow_rounded, size: 16, color: AppColors.success),
+          child: const Icon(Icons.play_arrow_rounded, size: 16, color: AppColors.success),
         ),
       );
     }
@@ -321,13 +324,14 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
   }
 
   List<Widget> _getLabels(BuildContext context) {
-    final labelProvider = context.watch<LabelProvider>();
+    ref.watch(labelProvider);
+    final labelNotifier = ref.read(labelProvider.notifier);
     final Set<String> allLabelIds = {...widget.task.labelIds};
     if (widget.project != null) {
       allLabelIds.addAll(widget.project!.labelIds);
     }
 
-    final labels = allLabelIds.map((id) => labelProvider.getById(id)).whereType<Label>().toList();
+    final labels = allLabelIds.map((id) => labelNotifier.getById(id)).whereType<Label>().toList();
 
     return labels.map((label) => LabelChip(label: label, verticalPadding: 1)).toList();
   }

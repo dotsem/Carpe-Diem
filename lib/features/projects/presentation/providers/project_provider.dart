@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:flutter/material.dart';
@@ -5,26 +6,44 @@ import 'package:uuid/uuid.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 
-class ProjectProvider extends ChangeNotifier {
-  final IProjectRepository _repo;
+class ProjectState {
+  final List<Project> projects;
+  final bool isLoading;
+
+  const ProjectState({this.projects = const [], this.isLoading = false});
+
+  ProjectState copyWith({List<Project>? projects, bool? isLoading}) {
+    return ProjectState(
+      projects: projects ?? this.projects,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+
+  Project? getById(String id) {
+    try {
+      return projects.firstWhere((p) => p.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+class ProjectNotifier extends Notifier<ProjectState> {
+  late final IProjectRepository _repo;
   final _uuid = const Uuid();
 
-  ProjectProvider(this._repo);
-
-  List<Project> _projects = [];
-  bool _isLoading = false;
-
-  List<Project> get projects => _projects;
-  bool get isLoading => _isLoading;
+  @override
+  ProjectState build() {
+    _repo = ref.watch(projectRepositoryProvider);
+    return const ProjectState();
+  }
 
   Future<void> loadProjects() async {
-    _isLoading = true;
-    notifyListeners();
-
-    _projects = await _repo.getAll();
-    _isLoading = false;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
+    final projects = await _repo.getAll();
+    state = ProjectState(projects: projects, isLoading: false);
   }
 
   Future<void> addProject({
@@ -66,13 +85,26 @@ class ProjectProvider extends ChangeNotifier {
 
   Project? getById(String id) {
     try {
-      return _projects.firstWhere((p) => p.id == id);
+      return state.projects.firstWhere((p) => p.id == id);
     } catch (_) {
       return null;
     }
   }
 
-  List<Label> getLabels(Project project, LabelProvider labelProvider) {
-    return project.labelIds.map((id) => labelProvider.getById(id)).whereType<Label>().toList();
+  List<Label> getLabels(Project project, LabelState labelState) {
+    return project.labelIds
+        .map((id) {
+          try {
+            return labelState.labels.firstWhere((l) => l.id == id);
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<Label>()
+        .toList();
   }
 }
+
+final projectProvider = NotifierProvider<ProjectNotifier, ProjectState>(() {
+  return ProjectNotifier();
+});

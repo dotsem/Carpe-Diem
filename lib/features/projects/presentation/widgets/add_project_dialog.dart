@@ -2,7 +2,7 @@ import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.
 import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -11,14 +11,14 @@ import 'package:carpe_diem/features/common/presentation/widgets/color_picker.dar
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 
-class AddProjectDialog extends StatefulWidget {
+class AddProjectDialog extends ConsumerStatefulWidget {
   const AddProjectDialog({super.key});
 
   @override
-  State<AddProjectDialog> createState() => _AddProjectDialogState();
+  ConsumerState<AddProjectDialog> createState() => _AddProjectDialogState();
 }
 
-class _AddProjectDialogState extends State<AddProjectDialog> {
+class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   Color _selectedColor = AppColors.accent;
@@ -99,7 +99,7 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
 
-    context.read<ProjectProvider>().addProject(
+    ref.read(projectProvider.notifier).addProject(
       name: name,
       description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
       color: _selectedColor,

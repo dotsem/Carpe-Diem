@@ -41,13 +41,13 @@ Restructure the app to enforce cohesive feature separation and strict boundaries
 
 ### Phase 3: Riverpod Migration & Decoupling Providers (Under 300 Lines)
 Replace Provider/ChangeNotifier with highly decoupled, specialized Riverpod providers.
-- [ ] **Step 3.1: Package dependency swap**
+- [x] **Step 3.1: Package dependency swap**
   Remove `provider` from `pubspec.yaml` and add `flutter_riverpod`.
-- [ ] **Step 3.2: Settings Provider Migration**
+- [x] **Step 3.2: Settings Provider Migration**
   Refactor settings into a Riverpod `Notifier`.
-- [ ] **Step 3.3: Project & Label Provider Migration**
+- [x] **Step 3.3: Project & Label Provider Migration**
   Convert to AsyncNotifiers and decouple labels logic.
-- [ ] **Step 3.4: Decouple Task Provider (< 300 lines)**
+- [x] **Step 3.4: Decouple Task Provider (< 300 lines)**
   Split `TaskProvider` (currently 470+ lines) into granular units:
   - `TaskNotifier` (for task CRUD and state)
   - `TaskTimerNotifier` (timer-based completion logic)

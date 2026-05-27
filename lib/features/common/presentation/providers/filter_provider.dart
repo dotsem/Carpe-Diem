@@ -1,32 +1,43 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/data/models/task_filter.dart';
-import 'package:flutter/foundation.dart';
 
-class FilterProvider extends ChangeNotifier {
-  TaskFilter _filter = const TaskFilter();
-  bool _isBypassed = false;
+class FilterState {
+  final TaskFilter filter;
+  final bool isBypassed;
 
-  TaskFilter get filter => _filter;
-  bool get isBypassed => _isBypassed;
+  const FilterState({this.filter = const TaskFilter(), this.isBypassed = false});
 
-  /// Returns the filter that should be applied to data.
-  /// If bypassed, it returns an empty filter.
-  TaskFilter get activeFilter => _isBypassed ? const TaskFilter() : _filter;
+  TaskFilter get activeFilter => isBypassed ? const TaskFilter() : filter;
+
+  FilterState copyWith({TaskFilter? filter, bool? isBypassed}) {
+    return FilterState(
+      filter: filter ?? this.filter,
+      isBypassed: isBypassed ?? this.isBypassed,
+    );
+  }
+}
+
+class FilterNotifier extends Notifier<FilterState> {
+  @override
+  FilterState build() {
+    return const FilterState();
+  }
 
   void setFilter(TaskFilter filter) {
-    if (_filter == filter) return;
-    _filter = filter;
-    notifyListeners();
+    if (state.filter == filter) return;
+    state = state.copyWith(filter: filter);
   }
 
   void toggleBypass() {
-    _isBypassed = !_isBypassed;
-    notifyListeners();
+    state = state.copyWith(isBypassed: !state.isBypassed);
   }
 
   void clearFilter() {
-    if (_filter.isEmpty) return;
-    _filter = const TaskFilter();
-    _isBypassed = false;
-    notifyListeners();
+    if (state.filter.isEmpty) return;
+    state = const FilterState(filter: TaskFilter(), isBypassed: false);
   }
 }
+
+final filterProvider = NotifierProvider<FilterNotifier, FilterState>(() {
+  return FilterNotifier();
+});

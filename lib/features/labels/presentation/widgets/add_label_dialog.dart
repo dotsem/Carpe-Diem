@@ -3,16 +3,16 @@ import 'package:carpe_diem/features/labels/presentation/providers/label_provider
 import 'package:carpe_diem/features/common/presentation/widgets/color_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AddLabelDialog extends StatefulWidget {
+class AddLabelDialog extends ConsumerStatefulWidget {
   const AddLabelDialog({super.key});
 
   @override
-  State<AddLabelDialog> createState() => _AddLabelDialogState();
+  ConsumerState<AddLabelDialog> createState() => _AddLabelDialogState();
 }
 
-class _AddLabelDialogState extends State<AddLabelDialog> {
+class _AddLabelDialogState extends ConsumerState<AddLabelDialog> {
   final nameController = TextEditingController();
   Color selectedColor = AppColors.accent;
   @override
@@ -23,7 +23,7 @@ class _AddLabelDialogState extends State<AddLabelDialog> {
       onSubmit: () {
         final name = nameController.text.trim();
         if (name.isNotEmpty) {
-          context.read<LabelProvider>().addLabel(name: name, color: selectedColor);
+          ref.read(labelProvider.notifier).addLabel(name: name, color: selectedColor);
           Navigator.pop(context);
         }
       },

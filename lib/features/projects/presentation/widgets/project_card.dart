@@ -6,9 +6,9 @@ import 'package:carpe_diem/features/labels/presentation/providers/label_provider
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProjectCard extends StatefulWidget {
+class ProjectCard extends ConsumerStatefulWidget {
   final Project project;
   final VoidCallback? onTap;
   final FocusNode? focusNode;
@@ -16,14 +16,14 @@ class ProjectCard extends StatefulWidget {
   const ProjectCard({super.key, required this.project, this.onTap, this.focusNode});
 
   @override
-  State<ProjectCard> createState() => _ProjectCardState();
+  ConsumerState<ProjectCard> createState() => _ProjectCardState();
 }
 
-class _ProjectCardState extends State<ProjectCard> {
+class _ProjectCardState extends ConsumerState<ProjectCard> {
   bool _isFocused = false;
 
   void _showContextMenu(BuildContext context, Offset globalPosition) {
-    final projectProvider = context.read<ProjectProvider>();
+    final projectNotifier = ref.read(projectProvider.notifier);
     final isActive = widget.project.isActive;
     final RenderBox navigatorBox = Navigator.of(context).context.findRenderObject() as RenderBox;
     final Offset navigatorOffset = navigatorBox.localToGlobal(Offset.zero);
@@ -42,7 +42,7 @@ class _ProjectCardState extends State<ProjectCard> {
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
           ),
-          onTap: () => projectProvider.toggleProjectActive(widget.project),
+          onTap: () => projectNotifier.toggleProjectActive(widget.project),
         ),
       ],
     );
@@ -138,23 +138,22 @@ class _ProjectCardState extends State<ProjectCard> {
                         _DeadlineRow(deadline: widget.project.deadline!),
                       ],
                       const SizedBox(height: 12),
-                      Consumer<LabelProvider>(
-                        builder: (context, labelProvider, _) {
-                          final labels = widget.project.labelIds
-                              .map((id) => labelProvider.getById(id))
-                              .whereType<Label>()
-                              .toList();
-                          if (labels.isEmpty) return const SizedBox.shrink();
+                      () {
+                        final labelState = ref.watch(labelProvider);
+                        final labels = widget.project.labelIds
+                            .map((id) => labelState.getById(id))
+                            .whereType<Label>()
+                            .toList();
+                        if (labels.isEmpty) return const SizedBox.shrink();
 
-                          return Wrap(
-                            spacing: 4,
-                            runSpacing: 4,
-                            children: labels.map((label) {
-                              return LabelChip(label: label);
-                            }).toList(),
-                          );
-                        },
-                      ),
+                        return Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: labels.map((label) {
+                            return LabelChip(label: label);
+                          }).toList(),
+                        );
+                      }(),
                     ],
                   ),
                 ),

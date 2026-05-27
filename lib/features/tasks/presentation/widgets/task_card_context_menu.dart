@@ -1,17 +1,16 @@
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/common/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/common/warning_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/edit_task_dialog.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 
-void showTaskCardContextMenu(BuildContext context, Task task, Offset localPosition, RenderBox renderBox) {
-  final provider = context.read<TaskProvider>();
+void showTaskCardContextMenu(BuildContext context, WidgetRef ref, Task task, Offset localPosition, RenderBox renderBox) {
+  final provider = ref.read(taskProvider.notifier);
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
   final Offset position = renderBox.localToGlobal(localPosition, ancestor: overlay);
 
@@ -126,17 +125,11 @@ void showTaskCardContextMenu(BuildContext context, Task task, Offset localPositi
 void _showEditTask(BuildContext context, Task task) {
   showDialog(
     context: context,
-    builder: (_) => ChangeNotifierProvider.value(
-      value: context.read<TaskProvider>(),
-      child: ChangeNotifierProvider.value(
-        value: context.read<ProjectProvider>(),
-        child: EditTaskDialog(task: task),
-      ),
-    ),
+    builder: (_) => EditTaskDialog(task: task),
   );
 }
 
-void _showDeleteTask(BuildContext context, Task task, TaskProvider provider) {
+void _showDeleteTask(BuildContext context, Task task, TaskNotifier provider) {
   showDialog(
     context: context,
     builder: (_) => DeleteDialog(
@@ -147,7 +140,7 @@ void _showDeleteTask(BuildContext context, Task task, TaskProvider provider) {
   );
 }
 
-void _unscheduleTask(BuildContext context, Task task, TaskProvider provider) {
+void _unscheduleTask(BuildContext context, Task task, TaskNotifier provider) {
   if (task.status.isDone) {
     showDialog(
       context: context,

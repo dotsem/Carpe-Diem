@@ -5,7 +5,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart'
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
@@ -22,14 +22,14 @@ class _UnfocusSearchIntent extends Intent {
   const _UnfocusSearchIntent();
 }
 
-class ProjectsScreen extends StatefulWidget {
+class ProjectsScreen extends ConsumerStatefulWidget {
   const ProjectsScreen({super.key});
 
   @override
-  State<ProjectsScreen> createState() => _ProjectsScreenState();
+  ConsumerState<ProjectsScreen> createState() => _ProjectsScreenState();
 }
 
-class _ProjectsScreenState extends State<ProjectsScreen> {
+class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _mainFocusNode = FocusNode();
@@ -46,7 +46,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProjectProvider>().loadProjects();
+      ref.read(projectProvider.notifier).loadProjects();
     });
 
     _searchFocusNode.onKeyEvent = (node, event) {
@@ -219,15 +219,16 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     },
                   ),
                 ),
-                Consumer<FilterProvider>(
-                  builder: (context, filterProvider, _) => FilterBar(
-                    filter: filterProvider.filter,
-                    isBypassed: filterProvider.isBypassed,
+                () {
+                  final filterState = ref.watch(filterProvider);
+                  return FilterBar(
+                    filter: filterState.filter,
+                    isBypassed: filterState.isBypassed,
                     ignoreProjects: true,
                     onFilterTap: () => _showFilterDialog(context),
-                    onClearFilter: () => filterProvider.clearFilter(),
-                  ),
-                ),
+                    onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+                  );
+                }(),
                 Divider(height: 1),
                 Expanded(child: _projectGrid()),
               ],
@@ -239,132 +240,129 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   }
 
   Widget _projectGrid() {
-    return Consumer<ProjectProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return Center(child: CircularProgressIndicator());
-        }
+    final provider = ref.watch(projectProvider);
+    if (provider.isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
 
-        final filteredBySearch = provider.projects.where((p) {
-          if (_searchQuery.isEmpty) return true;
-          final query = _searchQuery.toLowerCase();
-          return p.name.toLowerCase().contains(query) || (p.description?.toLowerCase().contains(query) ?? false);
-        }).toList();
+    final filteredBySearch = provider.projects.where((p) {
+      if (_searchQuery.isEmpty) return true;
+      final query = _searchQuery.toLowerCase();
+      return p.name.toLowerCase().contains(query) || (p.description?.toLowerCase().contains(query) ?? false);
+    }).toList();
 
-        final filter = context.watch<FilterProvider>().activeFilter.limitTo(projects: false);
-        final filteredProjects = filteredBySearch.where((p) => filter.applyToProject(p)).toList();
-        final activeProjects = filteredProjects.where((p) => p.isActive).toList();
-        final inactiveProjects = filteredProjects.where((p) => !p.isActive).toList();
+    final filter = ref.watch(filterProvider).activeFilter.limitTo(projects: false);
+    final filteredProjects = filteredBySearch.where((p) => filter.applyToProject(p)).toList();
+    final activeProjects = filteredProjects.where((p) => p.isActive).toList();
+    final inactiveProjects = filteredProjects.where((p) => !p.isActive).toList();
 
-        if (filteredProjects.isEmpty) {
-          _orderedItemIds.clear();
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.folder_open, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                SizedBox(height: 16),
-                Text(
-                  provider.projects.isEmpty ? 'No projects yet' : 'No projects match your filter',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
-                ),
-                SizedBox(height: 8),
-                if (provider.projects.isEmpty)
-                  TextButton(onPressed: () => _showAddProject(context), child: Text('Create your first project')),
-              ],
+    if (filteredProjects.isEmpty) {
+      _orderedItemIds.clear();
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.folder_open, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            SizedBox(height: 16),
+            Text(
+              provider.projects.isEmpty ? 'No projects yet' : 'No projects match your filter',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
             ),
-          );
-        }
+            SizedBox(height: 8),
+            if (provider.projects.isEmpty)
+              TextButton(onPressed: () => _showAddProject(context), child: Text('Create your first project')),
+          ],
+        ),
+      );
+    }
 
-        // Build ordered IDs list explicitly
-        _orderedItemIds.clear();
-        for (final p in activeProjects) {
-          _orderedItemIds.add(p.id);
-        }
-        for (final p in inactiveProjects) {
-          _orderedItemIds.add(p.id);
-        }
+    // Build ordered IDs list explicitly
+    _orderedItemIds.clear();
+    for (final p in activeProjects) {
+      _orderedItemIds.add(p.id);
+    }
+    for (final p in inactiveProjects) {
+      _orderedItemIds.add(p.id);
+    }
 
-        final settings = context.watch<SettingsProvider>();
-        final showActiveOnly = settings.showActiveProjectsOnly;
+    final settings = ref.watch(settingsProvider);
+    final showActiveOnly = settings.showActiveProjectsOnly;
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32),
-          child: ListView(
-            controller: _scrollController,
-            scrollDirection: Axis.vertical,
-            children: [
-              if (activeProjects.isNotEmpty)
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: activeProjects.map((p) {
-                    final focusNode = _itemFocusNodes.putIfAbsent(p.id, () => FocusNode(debugLabel: 'Project_${p.id}'));
-                    return ProjectCard(project: p, focusNode: focusNode, onTap: () => context.go('/projects/${p.id}'));
-                  }).toList(),
-                ),
-              if ((!showActiveOnly || _temporarilyShowArchived) && inactiveProjects.isNotEmpty) ...[
-                const SizedBox(height: 48),
-                Text(
-                  'ARCHIVED',
-                  key: _archivedHeaderKey,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                SizedBox(height: 16),
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: inactiveProjects.map((p) {
-                    final focusNode = _itemFocusNodes.putIfAbsent(p.id, () => FocusNode(debugLabel: 'Project_${p.id}'));
-                    return ProjectCard(project: p, focusNode: focusNode, onTap: () => context.go('/projects/${p.id}'));
-                  }).toList(),
-                ),
-              ],
-              if (showActiveOnly && !_temporarilyShowArchived && inactiveProjects.isNotEmpty)
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() => _temporarilyShowArchived = true);
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (_archivedHeaderKey.currentContext != null) {
-                          Scrollable.ensureVisible(
-                            _archivedHeaderKey.currentContext!,
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      });
-                    },
-                    child: Text('Show archived projects'),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: ListView(
+        controller: _scrollController,
+        scrollDirection: Axis.vertical,
+        children: [
+          if (activeProjects.isNotEmpty)
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: activeProjects.map((p) {
+                final focusNode = _itemFocusNodes.putIfAbsent(p.id, () => FocusNode(debugLabel: 'Project_${p.id}'));
+                return ProjectCard(project: p, focusNode: focusNode, onTap: () => context.go('/projects/${p.id}'));
+              }).toList(),
+            ),
+          if ((!showActiveOnly || _temporarilyShowArchived) && inactiveProjects.isNotEmpty) ...[
+            const SizedBox(height: 48),
+            Text(
+              'ARCHIVED',
+              key: _archivedHeaderKey,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+            SizedBox(height: 16),
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: inactiveProjects.map((p) {
+                final focusNode = _itemFocusNodes.putIfAbsent(p.id, () => FocusNode(debugLabel: 'Project_${p.id}'));
+                return ProjectCard(project: p, focusNode: focusNode, onTap: () => context.go('/projects/${p.id}'));
+              }).toList(),
+            ),
+          ],
+          if (showActiveOnly && !_temporarilyShowArchived && inactiveProjects.isNotEmpty)
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() => _temporarilyShowArchived = true);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (_archivedHeaderKey.currentContext != null) {
+                      Scrollable.ensureVisible(
+                        _archivedHeaderKey.currentContext!,
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  });
+                },
+                child: Text('Show archived projects'),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
   void _showAddProject(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => ChangeNotifierProvider.value(value: context.read<ProjectProvider>(), child: AddProjectDialog()),
+      builder: (_) => const AddProjectDialog(),
     );
   }
 
   void _showFilterDialog(BuildContext context) async {
-    final filterProvider = context.read<FilterProvider>();
+    final filterNotifier = ref.read(filterProvider.notifier);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) => FilterDialog(initialFilter: filterProvider.filter, showProjectFilter: false),
+      builder: (_) => FilterDialog(initialFilter: ref.read(filterProvider).filter, showProjectFilter: false),
     );
     if (result != null) {
-      filterProvider.setFilter(result);
+      filterNotifier.setFilter(result);
     }
   }
 }

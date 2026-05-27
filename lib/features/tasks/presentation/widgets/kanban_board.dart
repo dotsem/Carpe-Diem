@@ -12,11 +12,10 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class KanbanBoard extends StatefulWidget {
+class KanbanBoard extends ConsumerStatefulWidget {
   final List<Task> tasks;
-  final ProjectProvider projectProvider;
   final void Function(Task task, TaskStatus status) onStatusChange;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
@@ -26,7 +25,6 @@ class KanbanBoard extends StatefulWidget {
   const KanbanBoard({
     super.key,
     required this.tasks,
-    required this.projectProvider,
     required this.onStatusChange,
     required this.onContextMenu,
     required this.onEdit,
@@ -35,10 +33,10 @@ class KanbanBoard extends StatefulWidget {
   });
 
   @override
-  State<KanbanBoard> createState() => _KanbanBoardState();
+  ConsumerState<KanbanBoard> createState() => _KanbanBoardState();
 }
 
-class _KanbanBoardState extends State<KanbanBoard> {
+class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   bool _forceExpanded = false;
   bool _isDraggingOver = false;
   bool _isTransitioning = false;
@@ -54,7 +52,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
   Widget build(BuildContext context) {
     final tasks = List<Task>.from(widget.tasks);
     tasks.sort((a, b) {
-      final settings = context.read<SettingsProvider>();
+      final settings = ref.read(settingsProvider);
 
       if (settings.prioritizeOverdue) {
         if (a.isOverdue && !b.isOverdue) return -1;
@@ -85,10 +83,10 @@ class _KanbanBoardState extends State<KanbanBoard> {
     final done = tasks.where((t) => t.status.isDone).toList();
 
     if (widget.onOrderedIdsChanged != null) {
-      final taskProvider = context.read<TaskProvider>();
-      final allAvailableTasks = {for (var t in taskProvider.tasks) t.id: t}
-        ..addAll({for (var t in taskProvider.overdueTasks) t.id: t})
-        ..addAll({for (var t in taskProvider.unscheduledTasks) t.id: t});
+      final taskState = ref.watch(taskProvider);
+      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
+        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
+        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
 
       List<String> getFlatIds(List<Task> categoryTasks) {
         final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
@@ -124,7 +122,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
                     titleColor: Theme.of(context).colorScheme.onSurface,
                     tasks: todo,
                     acceptedStatus: TaskStatus.todo,
-                    projectProvider: widget.projectProvider,
                     onStatusChange: widget.onStatusChange,
                     onContextMenu: widget.onContextMenu,
                     onEdit: widget.onEdit,
@@ -138,59 +135,38 @@ class _KanbanBoardState extends State<KanbanBoard> {
                     titleColor: AppColors.accent,
                     tasks: inProgress,
                     acceptedStatus: TaskStatus.inProgress,
-                    projectProvider: widget.projectProvider,
                     onStatusChange: widget.onStatusChange,
                     onContextMenu: widget.onContextMenu,
                     onEdit: widget.onEdit,
                   ),
                 ),
                 const SizedBox(width: 16),
-                TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutCubic,
-                  tween: Tween<double>(end: isExpanded ? responsiveColumnWidth : 24),
-                  onEnd: () {
-                    if (mounted) setState(() => _isTransitioning = false);
+                ItemSizeTransitionBuilder(
+                  isExpanded: isExpanded,
+                  width: responsiveColumnWidth,
+                  isNarrow: isNarrow,
+                  doneTasks: done,
+                  onStatusChange: widget.onStatusChange,
+                  onContextMenu: widget.onContextMenu,
+                  onEdit: widget.onEdit,
+                  itemFocusNodes: widget.itemFocusNodes,
+                  scrollController: _scrollController,
+                  forceExpanded: _forceExpanded,
+                  isDraggingOver: _isDraggingOver,
+                  isTransitioning: _isTransitioning,
+                  onToggle: () {
+                    setState(() {
+                      _forceExpanded = !_forceExpanded;
+                      _isTransitioning = true;
+                    });
                   },
-                  builder: (context, width, child) {
-                    if (_isTransitioning && _scrollController.hasClients && isExpanded) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (_scrollController.hasClients && _isTransitioning) {
-                          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-                        }
-                      });
-                    }
-
-                    return SizedBox(
-                      width: width,
-                      child: _KanbanColumn(
-                        title: 'Done',
-                        titleColor: AppColors.success,
-                        tasks: done,
-                        isNarrow: isNarrow,
-                        acceptedStatus: TaskStatus.done,
-                        projectProvider: widget.projectProvider,
-                        onStatusChange: widget.onStatusChange,
-                        onContextMenu: widget.onContextMenu,
-                        onEdit: widget.onEdit,
-                        itemFocusNodes: widget.itemFocusNodes,
-                        isCollapsed: !isExpanded,
-                        onToggle: () {
-                          setState(() {
-                            _forceExpanded = !_forceExpanded;
-                            _isTransitioning = true;
-                          });
-                        },
-                        onDragEntering: () {
-                          setState(() {
-                            _isDraggingOver = true;
-                            _isTransitioning = true;
-                          });
-                        },
-                        onDragExiting: () => setState(() => _isDraggingOver = false),
-                      ),
-                    );
+                  onDragEntering: () {
+                    setState(() {
+                      _isDraggingOver = true;
+                      _isTransitioning = true;
+                    });
                   },
+                  onDragExiting: () => setState(() => _isDraggingOver = false),
                 ),
               ],
             ),
@@ -201,12 +177,109 @@ class _KanbanBoardState extends State<KanbanBoard> {
   }
 }
 
-class _KanbanColumn extends StatelessWidget {
+class ItemSizeTransitionBuilder extends ConsumerStatefulWidget {
+  final bool isExpanded;
+  final double width;
+  final bool isNarrow;
+  final List<Task> doneTasks;
+  final void Function(Task task, TaskStatus status) onStatusChange;
+  final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
+  final void Function(Task task) onEdit;
+  final Map<String, FocusNode>? itemFocusNodes;
+  final ScrollController scrollController;
+  final bool forceExpanded;
+  final bool isDraggingOver;
+  final bool isTransitioning;
+  final VoidCallback onToggle;
+  final VoidCallback onDragEntering;
+  final VoidCallback onDragExiting;
+
+  const ItemSizeTransitionBuilder({
+    super.key,
+    required this.isExpanded,
+    required this.width,
+    required this.isNarrow,
+    required this.doneTasks,
+    required this.onStatusChange,
+    required this.onContextMenu,
+    required this.onEdit,
+    required this.itemFocusNodes,
+    required this.scrollController,
+    required this.forceExpanded,
+    required this.isDraggingOver,
+    required this.isTransitioning,
+    required this.onToggle,
+    required this.onDragEntering,
+    required this.onDragExiting,
+  });
+
+  @override
+  ConsumerState<ItemSizeTransitionBuilder> createState() => _ItemSizeTransitionBuilderState();
+}
+
+class _ItemSizeTransitionBuilderState extends ConsumerState<ItemSizeTransitionBuilder> {
+  bool _localTransitioning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _localTransitioning = widget.isTransitioning;
+  }
+
+  @override
+  void didUpdateWidget(ItemSizeTransitionBuilder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isTransitioning != oldWidget.isTransitioning) {
+      _localTransitioning = widget.isTransitioning;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      tween: Tween<double>(end: widget.isExpanded ? widget.width : 24),
+      onEnd: () {
+        if (mounted) setState(() => _localTransitioning = false);
+      },
+      builder: (context, width, child) {
+        if (_localTransitioning && widget.scrollController.hasClients && widget.isExpanded) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (widget.scrollController.hasClients && _localTransitioning) {
+              widget.scrollController.jumpTo(widget.scrollController.position.maxScrollExtent);
+            }
+          });
+        }
+
+        return SizedBox(
+          width: width,
+          child: _KanbanColumn(
+            title: 'Done',
+            titleColor: AppColors.success,
+            tasks: widget.doneTasks,
+            isNarrow: widget.isNarrow,
+            acceptedStatus: TaskStatus.done,
+            onStatusChange: widget.onStatusChange,
+            onContextMenu: widget.onContextMenu,
+            onEdit: widget.onEdit,
+            itemFocusNodes: widget.itemFocusNodes,
+            isCollapsed: !widget.isExpanded,
+            onToggle: widget.onToggle,
+            onDragEntering: widget.onDragEntering,
+            onDragExiting: widget.onDragExiting,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _KanbanColumn extends ConsumerWidget {
   final String title;
   final Color titleColor;
   final List<Task> tasks;
   final TaskStatus acceptedStatus;
-  final ProjectProvider projectProvider;
   final void Function(Task task, TaskStatus status) onStatusChange;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
@@ -222,7 +295,6 @@ class _KanbanColumn extends StatelessWidget {
     required this.titleColor,
     required this.tasks,
     required this.acceptedStatus,
-    required this.projectProvider,
     required this.onStatusChange,
     required this.onContextMenu,
     required this.onEdit,
@@ -235,7 +307,7 @@ class _KanbanColumn extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
         if (details.data.status != acceptedStatus) {
@@ -253,7 +325,7 @@ class _KanbanColumn extends StatelessWidget {
         if (isCollapsed) {
           return _buildCollapsed(context);
         }
-        return _buildFull(context, candidateData.isNotEmpty);
+        return _buildFull(context, ref, candidateData.isNotEmpty);
       },
     );
   }
@@ -274,7 +346,7 @@ class _KanbanColumn extends StatelessWidget {
             children: [
               const SizedBox(height: 12),
               SmallChip(
-                padding: EdgeInsets.all(2.0),
+                padding: const EdgeInsets.all(2.0),
                 borderRadius: 10,
                 color: titleColor.withValues(alpha: 0.15),
                 child: Text(
@@ -283,7 +355,6 @@ class _KanbanColumn extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-
               RotatedBox(
                 quarterTurns: 1,
                 child: Text(
@@ -303,7 +374,8 @@ class _KanbanColumn extends StatelessWidget {
     );
   }
 
-  Widget _buildFull(BuildContext context, bool isHighlighted) {
+  Widget _buildFull(BuildContext context, WidgetRef ref, bool isHighlighted) {
+    final projectNotifier = ref.read(projectProvider.notifier);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
@@ -362,10 +434,10 @@ class _KanbanColumn extends StatelessWidget {
                   )
                 : Builder(
                     builder: (context) {
-                      final taskProvider = context.read<TaskProvider>();
-                      final allAvailableTasks = {for (var t in taskProvider.tasks) t.id: t}
-                        ..addAll({for (var t in taskProvider.overdueTasks) t.id: t})
-                        ..addAll({for (var t in taskProvider.unscheduledTasks) t.id: t});
+                      final taskState = ref.watch(taskProvider);
+                      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
+                        ..addAll({for (var t in taskState.overdueTasks) t.id: t} )
+                        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
 
                       final hierarchical = TaskHierarchyUtils.buildHierarchy(tasks, allTasks: allAvailableTasks);
                       return ListView.builder(
@@ -383,7 +455,7 @@ class _KanbanColumn extends StatelessWidget {
                             return _KanbanCard(
                               key: ValueKey(task.id),
                               node: node,
-                              project: projectProvider,
+                              projectNotifier: projectNotifier,
                               onContextMenu: onContextMenu,
                               onEdit: onEdit,
                               focusNode: focusNode,
@@ -410,9 +482,9 @@ class _KanbanColumn extends StatelessWidget {
   }
 }
 
-class _KanbanCard extends StatelessWidget {
+class _KanbanCard extends ConsumerWidget {
   final TaskNode node;
-  final ProjectProvider project;
+  final ProjectNotifier projectNotifier;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
   final FocusNode? focusNode;
@@ -420,7 +492,7 @@ class _KanbanCard extends StatelessWidget {
   const _KanbanCard({
     super.key,
     required this.node,
-    required this.project,
+    required this.projectNotifier,
     required this.onContextMenu,
     required this.onEdit,
     this.focusNode,
@@ -432,7 +504,7 @@ class _KanbanCard extends StatelessWidget {
   bool get isOverdue => task.isOverdue;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Draggable<Task>(
       data: task,
       feedback: Material(
@@ -447,42 +519,43 @@ class _KanbanCard extends StatelessWidget {
       ),
       childWhenDragging: Opacity(
         opacity: 0.3,
-        child: _wrapHierarchy(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
+        child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
       ),
-      child: _wrapHierarchy(context, task, project, context.read<TaskProvider>(), isOverdue: isOverdue),
+      child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
     );
   }
 
   Widget _wrapHierarchy(
     BuildContext context,
+    WidgetRef ref,
     Task task,
-    ProjectProvider projectProvider,
-    TaskProvider provider, {
+    ProjectNotifier projectNotifier, {
     bool isOverdue = false,
   }) {
-    final card = _buildTaskCard(context, task, projectProvider, provider, isOverdue: isOverdue);
+    final card = _buildTaskCard(context, ref, task, projectNotifier, isOverdue: isOverdue);
 
     return TaskHierarchyIndicator(depth: depth, child: card);
   }
 
   TaskCard _buildTaskCard(
     BuildContext context,
+    WidgetRef ref,
     Task task,
-    ProjectProvider projectProvider,
-    TaskProvider provider, {
+    ProjectNotifier projectNotifier, {
     bool isOverdue = false,
   }) {
+    final taskNotifier = ref.read(taskProvider.notifier);
     return TaskCard(
       key: ValueKey(task.id),
       task: task,
-      project: task.projectId != null ? projectProvider.getById(task.projectId!) : null,
+      project: task.projectId != null ? projectNotifier.getById(task.projectId!) : null,
       isOverdue: isOverdue,
       useTimer: false,
       leading: Container(),
       focusNode: focusNode,
-      onToggle: (_) => provider.toggleComplete(task),
+      onToggle: (_) => taskNotifier.toggleComplete(task),
       onTap: () => onEdit(task),
-      onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(context, task, localPosition, renderBox),
+      onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(context, ref, task, localPosition, renderBox),
     );
   }
 }

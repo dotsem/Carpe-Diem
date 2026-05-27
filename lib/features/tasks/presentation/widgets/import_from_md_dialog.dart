@@ -4,23 +4,23 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ImportFromMDDialog extends StatefulWidget {
+class ImportFromMDDialog extends ConsumerStatefulWidget {
   final Project? project;
   const ImportFromMDDialog({super.key, this.project});
 
   @override
-  State<ImportFromMDDialog> createState() => _ImportFromMDDialogState();
+  ConsumerState<ImportFromMDDialog> createState() => _ImportFromMDDialogState();
 }
 
-class _ImportFromMDDialogState extends State<ImportFromMDDialog> {
+class _ImportFromMDDialogState extends ConsumerState<ImportFromMDDialog> {
   final TextEditingController _controller = TextEditingController();
   String? _selectedProjectId;
 
   @override
   Widget build(BuildContext context) {
-    final projects = context.read<ProjectProvider>().projects.where((p) => p.isActive).toList();
+    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
 
     return SizedDialog(
       maxWidth: 800,
@@ -51,7 +51,7 @@ class _ImportFromMDDialogState extends State<ImportFromMDDialog> {
   }
 
   void _submit() {
-    context.read<TaskProvider>().importTasksFromMarkdown(_controller.text, widget.project?.id ?? _selectedProjectId!);
+    ref.read(taskProvider.notifier).importTasksFromMarkdown(_controller.text, widget.project?.id ?? _selectedProjectId!);
     Navigator.pop(context);
   }
 }

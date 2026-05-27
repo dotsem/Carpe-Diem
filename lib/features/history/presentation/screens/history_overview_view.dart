@@ -4,15 +4,15 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/history/presentation/screens/widgets/overview_stat_card.dart';
 import 'package:carpe_diem/features/history/presentation/screens/widgets/project_breakdown_item.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HistoryOverviewView extends StatelessWidget {
+class HistoryOverviewView extends ConsumerWidget {
   final HistoryOverview? overview;
 
   const HistoryOverviewView({super.key, required this.overview});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (overview == null) return const Center(child: CircularProgressIndicator());
 
     return ListView(
@@ -67,13 +67,13 @@ class HistoryOverviewView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ..._buildProjectBreakdown(context),
+        ..._buildProjectBreakdown(context, ref),
       ],
     );
   }
 
-  List<Widget> _buildProjectBreakdown(BuildContext context) {
-    final projectProvider = context.read<ProjectProvider>();
+  List<Widget> _buildProjectBreakdown(BuildContext context, WidgetRef ref) {
+    final projectState = ref.read(projectProvider);
     final sortedProjects = overview!.tasksByProject.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     if (sortedProjects.isEmpty) {
@@ -90,7 +90,7 @@ class HistoryOverviewView extends StatelessWidget {
     final maxTasks = sortedProjects.first.value;
 
     return sortedProjects.map((entry) {
-      final project = entry.key != 'none' ? projectProvider.getById(entry.key) : null;
+      final project = entry.key != 'none' ? projectState.getById(entry.key) : null;
       final projectName = project?.name ?? 'No Project';
       final projectColor = project != null ? project.color : Theme.of(context).colorScheme.onSurfaceVariant;
 

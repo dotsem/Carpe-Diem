@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/projects/presentation/widgets/project_picker
 import 'package:carpe_diem/features/tasks/presentation/widgets/blocker_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -15,17 +15,17 @@ import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dar
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
 
-class AddTaskDialog extends StatefulWidget {
+class AddTaskDialog extends ConsumerStatefulWidget {
   final DateTime? initialDate;
   final String? initialProjectId;
 
   const AddTaskDialog({super.key, this.initialDate, this.initialProjectId});
 
   @override
-  State<AddTaskDialog> createState() => _AddTaskDialogState();
+  ConsumerState<AddTaskDialog> createState() => _AddTaskDialogState();
 }
 
-class _AddTaskDialogState extends State<AddTaskDialog> {
+class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
   DateTime? _selectedDate;
@@ -36,22 +36,22 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
   List<Task> _projectTasks = [];
   List<String> _selectedLabelIds = [];
   List<String> _inheritedLabelIds = [];
-  late WindowTitleProvider _windowTitleProvider;
+  late WindowTitleNotifier _windowTitleNotifier;
   final MenuController _projectMenuController = MenuController();
 
   @override
   void initState() {
     super.initState();
-    final settings = context.read<SettingsProvider>();
+    final settings = ref.read(settingsProvider);
     _selectedDate = widget.initialDate;
     _selectedProjectId = widget.initialProjectId ?? settings.defaultProjectId;
     _priority = Priority.fromName(settings.defaultPriority) ?? Priority.none;
 
     if (_selectedProjectId != null) _loadProjectDetails();
 
-    _windowTitleProvider = context.read<WindowTitleProvider>();
+    _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _windowTitleProvider.pushSubtitle('New Task');
+      _windowTitleNotifier.pushSubtitle('New Task');
     });
   }
 
@@ -64,15 +64,15 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
       });
       return;
     }
-    final tasks = await context.read<TaskProvider>().getTasksForProject(_selectedProjectId!);
+    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
     if (!mounted) return;
-    final project = context.read<ProjectProvider>().getById(_selectedProjectId!);
-    final settings = context.read<SettingsProvider>();
+    final project = ref.read(projectProvider).getById(_selectedProjectId!);
+    final settings = ref.read(settingsProvider);
     setState(() {
       _projectTasks = tasks;
       _inheritedLabelIds = project?.labelIds ?? [];
       if (settings.inheritProjectDeadline && project?.deadline != null) {
-        _deadline = project!.deadline;
+        _deadline = project?.deadline;
       }
     });
   }
@@ -81,15 +81,17 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
-    _windowTitleProvider.popSubtitle();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _windowTitleNotifier.popSubtitle();
+    });
     super.dispose();
   }
 
-  DateTime get _maxDate => DateTime.now().add(Duration(days: context.read<SettingsProvider>().maxPlanningDays));
+  DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
 
   @override
   Widget build(BuildContext context) {
-    final projects = context.read<ProjectProvider>().projects.where((p) => p.isActive).toList();
+    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
 
     return AppShortcutRegistrar(
       shortcuts: taskDialogShortcutEntries,
@@ -196,7 +198,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
 
-    context.read<TaskProvider>().addTask(
+    ref.read(taskProvider.notifier).addTask(
       title: title,
       description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
       scheduledDate: _selectedDate,

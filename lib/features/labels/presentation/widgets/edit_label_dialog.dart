@@ -4,17 +4,17 @@ import 'package:carpe_diem/features/labels/presentation/providers/label_provider
 import 'package:carpe_diem/features/common/presentation/widgets/color_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class EditLabelDialog extends StatefulWidget {
+class EditLabelDialog extends ConsumerStatefulWidget {
   final Label label;
   const EditLabelDialog({super.key, required this.label});
 
   @override
-  State<EditLabelDialog> createState() => _EditLabelDialogState();
+  ConsumerState<EditLabelDialog> createState() => _EditLabelDialogState();
 }
 
-class _EditLabelDialogState extends State<EditLabelDialog> {
+class _EditLabelDialogState extends ConsumerState<EditLabelDialog> {
   late TextEditingController nameController;
   Color selectedColor = AppColors.accent;
 
@@ -50,7 +50,7 @@ class _EditLabelDialogState extends State<EditLabelDialog> {
     final name = nameController.text.trim();
     if (name.isEmpty) return;
 
-    context.read<LabelProvider>().updateLabel(widget.label.copyWith(name: name, color: selectedColor));
+    ref.read(labelProvider.notifier).updateLabel(widget.label.copyWith(name: name, color: selectedColor));
     Navigator.of(context).pop();
   }
 }

@@ -12,18 +12,18 @@ import 'package:carpe_diem/features/history/presentation/screens/history_items_v
 import 'package:carpe_diem/features/history/presentation/screens/history_overview_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   DateTimeRange _dateRange = DateTimeRange(
     start: DateTime.now().subtract(const Duration(days: 6)),
     end: DateTime.now(),
@@ -40,7 +40,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
-    final settings = context.read<SettingsProvider>();
+    final settings = ref.read(settingsProvider);
     final now = DateTime.now();
 
     switch (settings.defaultStatsPeriod) {
@@ -68,26 +68,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _loadData();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final filterProvider = context.read<FilterProvider>();
-    filterProvider.removeListener(_onFilterChanged);
-    filterProvider.addListener(_onFilterChanged);
-  }
-
-  @override
-  void dispose() {
-    context.read<FilterProvider>().removeListener(_onFilterChanged);
-    super.dispose();
-  }
-
-  void _onFilterChanged() {
-    if (mounted) {
-      _loadData();
-    }
-  }
-
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
@@ -95,17 +75,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _hasMore = true;
       _completedTasks = [];
     });
-    final taskProvider = context.read<TaskProvider>();
+    final taskNotifier = ref.read(taskProvider.notifier);
 
-    _minDate ??= await taskProvider.getFirstTaskDate();
+    _minDate ??= await taskNotifier.getFirstTaskDate();
 
     final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
     final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day, 23, 59, 59);
     if (!mounted) return;
-    final filter = context.read<FilterProvider>().activeFilter;
+    final filter = ref.read(filterProvider).activeFilter;
 
-    final tasksFuture = taskProvider.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
-    final overviewFuture = taskProvider.getHistoryOverview(start, end, filter: filter);
+    final tasksFuture = taskNotifier.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
+    final overviewFuture = taskNotifier.getHistoryOverview(start, end, filter: filter);
 
     final results = await Future.wait([tasksFuture, overviewFuture]);
     final tasks = results[0] as List<Task>;
@@ -125,13 +105,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _loadMoreData() async {
     if (_isLoadingMore) return;
     setState(() => _isLoadingMore = true);
-    final taskProvider = context.read<TaskProvider>();
+    final taskNotifier = ref.read(taskProvider.notifier);
 
     final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
     final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day, 23, 59, 59);
-    final filter = context.read<FilterProvider>().activeFilter;
+    final filter = ref.read(filterProvider).activeFilter;
 
-    final tasks = await taskProvider.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
+    final tasks = await taskNotifier.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
 
     if (mounted) {
       setState(() {
@@ -161,25 +141,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _showFilterDialog() async {
-    final filterProvider = context.read<FilterProvider>();
+    final filterProviderVal = ref.read(filterProvider);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (context) => FilterDialog(initialFilter: filterProvider.filter),
+      builder: (context) => FilterDialog(initialFilter: filterProviderVal.filter),
     );
 
     if (result != null) {
-      filterProvider.setFilter(result);
+      ref.read(filterProvider.notifier).setFilter(result);
       _loadData();
     }
   }
 
   void _clearFilter() {
-    context.read<FilterProvider>().clearFilter();
+    ref.read(filterProvider.notifier).clearFilter();
     _loadData();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(filterProvider, (previous, next) {
+      _loadData();
+    });
+
+    final filterState = ref.watch(filterProvider);
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -188,13 +174,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ScreenHeader(title: 'History', actions: [_buildDateRangeButton()]),
-            Consumer<FilterProvider>(
-              builder: (context, filterProvider, _) => FilterBar(
-                filter: filterProvider.filter,
-                isBypassed: filterProvider.isBypassed,
-                onFilterTap: _showFilterDialog,
-                onClearFilter: _clearFilter,
-              ),
+            FilterBar(
+              filter: filterState.filter,
+              isBypassed: filterState.isBypassed,
+              onFilterTap: _showFilterDialog,
+              onClearFilter: _clearFilter,
             ),
 
             TabBar(

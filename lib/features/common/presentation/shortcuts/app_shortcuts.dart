@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:carpe_diem/routes/app_router.dart';
 import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcuts_help_overlay.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class NavigateToTodayIntent extends Intent {
   const NavigateToTodayIntent();
@@ -195,13 +195,13 @@ class NonTypingAction<T extends Intent> extends Action<T> {
   }
 }
 
-class GlobalShortcuts extends StatefulWidget {
+class GlobalShortcuts extends ConsumerStatefulWidget {
   final Widget child;
 
   const GlobalShortcuts({super.key, required this.child});
 
   @override
-  State<GlobalShortcuts> createState() => GlobalShortcutsState();
+  ConsumerState<GlobalShortcuts> createState() => GlobalShortcutsState();
 
   static GlobalShortcutsState? maybeOf(BuildContext context) {
     return context.findAncestorStateOfType<GlobalShortcutsState>();
@@ -219,7 +219,7 @@ class GlobalShortcuts extends StatefulWidget {
   }
 }
 
-class GlobalShortcutsState extends State<GlobalShortcuts> {
+class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
   final _overlayKey = GlobalKey<ShortcutsHelpOverlayState>();
   bool _helpVisible = false;
   bool _isAltPressed = false;
@@ -325,8 +325,7 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
             CloseHelpIntent: _CloseHelpAction(this),
             ToggleFilterBypassIntent: NonTypingAction<ToggleFilterBypassIntent>((intent) {
               debugPrint('Shortcut: ToggleFilterBypass');
-              final provider = context.read<FilterProvider>();
-              provider.toggleBypass();
+              ref.read(filterProvider.notifier).toggleBypass();
             }),
           },
           child: Focus(

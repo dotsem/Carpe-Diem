@@ -1,21 +1,21 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/common/delete_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/edit_task_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/common/delete_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 
 void showBacklogContextMenu(
   BuildContext context,
+  WidgetRef ref,
   Task task,
   Offset localPosition,
   RenderBox renderBox, {
   VoidCallback? onAction,
 }) {
-  final provider = context.read<TaskProvider>();
+  final provider = ref.read(taskProvider.notifier);
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
 
   final Offset position = renderBox.localToGlobal(localPosition, ancestor: overlay);
@@ -136,17 +136,11 @@ void showBacklogContextMenu(
 void _showEditTask(BuildContext context, Task task) {
   showDialog(
     context: context,
-    builder: (_) => ChangeNotifierProvider.value(
-      value: context.read<TaskProvider>(),
-      child: ChangeNotifierProvider.value(
-        value: context.read<ProjectProvider>(),
-        child: EditTaskDialog(task: task),
-      ),
-    ),
+    builder: (_) => EditTaskDialog(task: task),
   );
 }
 
-void _showDeleteTask(BuildContext context, Task task, TaskProvider provider, VoidCallback? onAction) {
+void _showDeleteTask(BuildContext context, Task task, TaskNotifier provider, VoidCallback? onAction) {
   showDialog(
     context: context,
     builder: (_) => DeleteDialog(

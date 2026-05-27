@@ -13,19 +13,19 @@ import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dia
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
-import 'package:provider/provider.dart';
 
-class EditTaskDialog extends StatefulWidget {
+class EditTaskDialog extends ConsumerStatefulWidget {
   final Task task;
   const EditTaskDialog({super.key, required this.task});
 
   @override
-  State<EditTaskDialog> createState() => _EditTaskDialogState();
+  ConsumerState<EditTaskDialog> createState() => _EditTaskDialogState();
 }
 
-class _EditTaskDialogState extends State<EditTaskDialog> {
+class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   late Priority _priority;
@@ -36,7 +36,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
   List<Task> _projectTasks = [];
   List<String> _selectedLabelIds = [];
   List<String> _inheritedLabelIds = [];
-  late WindowTitleProvider _windowTitleProvider;
+  late WindowTitleNotifier _windowTitleNotifier;
   final MenuController _projectMenuController = MenuController();
 
   @override
@@ -52,15 +52,17 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
     _selectedLabelIds = List.from(widget.task.labelIds);
     if (_selectedProjectId != null) _loadProjectDetails();
 
-    _windowTitleProvider = context.read<WindowTitleProvider>();
+    _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _windowTitleProvider.pushSubtitle('Editing: ${widget.task.title}');
+      _windowTitleNotifier.pushSubtitle('Editing: ${widget.task.title}');
     });
   }
 
   @override
   void dispose() {
-    _windowTitleProvider.popSubtitle();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _windowTitleNotifier.popSubtitle();
+    });
     super.dispose();
   }
 
@@ -73,25 +75,25 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
       });
       return;
     }
-    final tasks = await context.read<TaskProvider>().getTasksForProject(_selectedProjectId!);
+    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
     if (!mounted) return;
-    final project = context.read<ProjectProvider>().getById(_selectedProjectId!);
-    final settings = context.read<SettingsProvider>();
+    final project = ref.read(projectProvider).getById(_selectedProjectId!);
+    final settings = ref.read(settingsProvider);
     setState(() {
       _projectTasks = tasks;
       _inheritedLabelIds = project?.labelIds ?? [];
       if (overwriteDeadline && settings.inheritProjectDeadline && project?.deadline != null) {
-        _deadline = project!.deadline;
+        _deadline = project?.deadline;
       }
     });
   }
 
-  DateTime get _maxDate => DateTime.now().add(Duration(days: context.read<SettingsProvider>().maxPlanningDays));
+  DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
 
   @override
   Widget build(BuildContext context) {
-    final projects = context
-        .read<ProjectProvider>()
+    final projects = ref
+        .watch(projectProvider)
         .projects
         .where((p) => p.isActive || p.id == widget.task.projectId)
         .toList();
@@ -111,7 +113,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
                 message: 'Are you sure you want to delete this task?',
                 onConfirm: () {
                   Navigator.of(context).pop();
-                  context.read<TaskProvider>().deleteTask(widget.task);
+                  ref.read(taskProvider.notifier).deleteTask(widget.task);
                 },
               ),
             ),
@@ -217,7 +219,7 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
 
   void _submit() {
     if (_nameController.text.trim().isEmpty) return;
-    context.read<TaskProvider>().updateTask(
+    ref.read(taskProvider.notifier).updateTask(
       widget.task.copyWith(
         title: _nameController.text.trim(),
         description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),

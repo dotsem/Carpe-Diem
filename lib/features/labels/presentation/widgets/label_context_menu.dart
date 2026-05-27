@@ -4,10 +4,10 @@ import 'package:carpe_diem/features/common/presentation/widgets/common/delete_di
 import 'package:carpe_diem/features/labels/presentation/widgets/edit_label_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void showLabelContextMenu(BuildContext context, Label label, Offset localPosition, RenderBox renderBox) {
-  final provider = context.read<LabelProvider>();
+void showLabelContextMenu(BuildContext context, WidgetRef ref, Label label, Offset localPosition, RenderBox renderBox) {
+  final provider = ref.read(labelProvider.notifier);
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
 
   final Offset position = renderBox.localToGlobal(localPosition, ancestor: overlay);

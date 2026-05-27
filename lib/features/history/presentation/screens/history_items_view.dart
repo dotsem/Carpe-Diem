@@ -3,9 +3,9 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HistoryItemsView extends StatefulWidget {
+class HistoryItemsView extends ConsumerStatefulWidget {
   final List<Task> tasks;
   final bool hasMore;
   final VoidCallback onLoadMore;
@@ -20,10 +20,10 @@ class HistoryItemsView extends StatefulWidget {
   });
 
   @override
-  State<HistoryItemsView> createState() => _HistoryItemsViewState();
+  ConsumerState<HistoryItemsView> createState() => _HistoryItemsViewState();
 }
 
-class _HistoryItemsViewState extends State<HistoryItemsView> {
+class _HistoryItemsViewState extends ConsumerState<HistoryItemsView> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -52,7 +52,7 @@ class _HistoryItemsViewState extends State<HistoryItemsView> {
       return _buildEmptyState();
     }
 
-    final projectProvider = context.read<ProjectProvider>();
+    final projectState = ref.read(projectProvider);
 
     // Group tasks by completion date
     final groupedTasks = <String, List<Task>>{};
@@ -95,7 +95,7 @@ class _HistoryItemsViewState extends State<HistoryItemsView> {
               ),
             ),
             ...dayTasks.map((task) {
-              final project = task.projectId != null ? projectProvider.getById(task.projectId!) : null;
+              final project = task.projectId != null ? projectState.getById(task.projectId!) : null;
               return TaskCard(
                 task: task,
                 project: project,

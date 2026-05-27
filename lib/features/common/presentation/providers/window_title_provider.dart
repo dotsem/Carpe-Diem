@@ -1,58 +1,88 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
 
-class WindowTitleProvider extends ChangeNotifier {
-  String _baseTitle = AppConstants.appName;
-  String? _baseSubtitle;
-  final List<String> _subtitleStack = [];
+class WindowTitleState {
+  final String baseTitle;
+  final String? baseSubtitle;
+  final List<String> subtitleStack;
 
-  String get title => _baseTitle;
-  String? get subtitle => _baseSubtitle != null
-      ? _subtitleStack.isNotEmpty
-            ? "$_baseSubtitle -> ${_subtitleStack.join(" - ")}"
-            : _baseSubtitle
+  const WindowTitleState({
+    required this.baseTitle,
+    this.baseSubtitle,
+    required this.subtitleStack,
+  });
+
+  String get title => baseTitle;
+
+  String? get subtitle => baseSubtitle != null
+      ? subtitleStack.isNotEmpty
+          ? "$baseSubtitle -> ${subtitleStack.join(" - ")}"
+          : baseSubtitle
       : null;
 
-  void updateTitle({String? title, String? subtitle}) {
-    if (title != null) _baseTitle = title;
-    _baseSubtitle = subtitle;
+  String get fullTitle {
+    final sub = subtitle;
+    if (sub == null || sub.isEmpty) {
+      return baseTitle;
+    }
+    return '$baseTitle - $sub';
+  }
 
+  WindowTitleState copyWith({
+    String? baseTitle,
+    String? baseSubtitle,
+    bool clearBaseSubtitle = false,
+    List<String>? subtitleStack,
+  }) {
+    return WindowTitleState(
+      baseTitle: baseTitle ?? this.baseTitle,
+      baseSubtitle: clearBaseSubtitle ? null : (baseSubtitle ?? this.baseSubtitle),
+      subtitleStack: subtitleStack ?? this.subtitleStack,
+    );
+  }
+}
+
+class WindowTitleNotifier extends Notifier<WindowTitleState> {
+  @override
+  WindowTitleState build() {
+    return const WindowTitleState(
+      baseTitle: AppConstants.appName,
+      subtitleStack: [],
+    );
+  }
+
+  void updateTitle({String? title, String? subtitle}) {
+    state = state.copyWith(
+      baseTitle: title,
+      baseSubtitle: subtitle,
+      clearBaseSubtitle: subtitle == null,
+    );
     _applyToWindow();
-    notifyListeners();
   }
 
   void pushSubtitle(String subtitle) {
-    _subtitleStack.add(subtitle);
+    final newStack = List<String>.from(state.subtitleStack)..add(subtitle);
+    state = state.copyWith(subtitleStack: newStack);
     _applyToWindow();
-    notifyListeners();
   }
 
   void popSubtitle() {
-    if (_subtitleStack.isNotEmpty) {
-      _subtitleStack.removeLast();
+    if (state.subtitleStack.isNotEmpty) {
+      final newStack = List<String>.from(state.subtitleStack)..removeLast();
+      state = state.copyWith(subtitleStack: newStack);
       _applyToWindow();
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (hasListeners) notifyListeners();
-      });
     }
   }
 
   void reset() {
-    _baseTitle = AppConstants.appName;
-    _baseSubtitle = null;
-    _subtitleStack.clear();
+    state = const WindowTitleState(
+      baseTitle: AppConstants.appName,
+      subtitleStack: [],
+    );
     _applyToWindow();
-    notifyListeners();
-  }
-
-  String get fullTitle {
-    if (subtitle == null || subtitle!.isEmpty) {
-      return _baseTitle;
-    }
-    return '$_baseTitle - $subtitle';
   }
 
   Future<void> _applyToWindow() async {
@@ -61,10 +91,14 @@ class WindowTitleProvider extends ChangeNotifier {
             defaultTargetPlatform == TargetPlatform.windows ||
             defaultTargetPlatform == TargetPlatform.macOS)) {
       try {
-        await windowManager.setTitle(fullTitle);
+        await windowManager.setTitle(state.fullTitle);
       } catch (e) {
         debugPrint('Failed to set window title: $e');
       }
     }
   }
 }
+
+final windowTitleProvider = NotifierProvider<WindowTitleNotifier, WindowTitleState>(() {
+  return WindowTitleNotifier();
+});

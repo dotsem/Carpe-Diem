@@ -3,9 +3,9 @@ import 'package:carpe_diem/features/common/data/models/task_filter.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class FilterBar extends StatelessWidget {
+class FilterBar extends ConsumerWidget {
   final TaskFilter filter;
   final VoidCallback onFilterTap;
   final VoidCallback onClearFilter;
@@ -22,7 +22,7 @@ class FilterBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (filter.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -50,6 +50,9 @@ class FilterBar extends StatelessWidget {
       );
     }
 
+    final projectState = ref.watch(projectProvider);
+    final labelState = ref.watch(labelProvider);
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -76,39 +79,31 @@ class FilterBar extends StatelessWidget {
           if (filter.hasPriorityFilter)
             ...filter.priorities.map((p) => _buildChip(context, p.label, p.color, isBypassed: isBypassed)),
           if (filter.hasProjectFilter)
-            Consumer<ProjectProvider>(
-              builder: (context, provider, _) {
-                return Row(
-                  children: filter.projectIds.map((id) {
-                    final project = provider.getById(id);
-                    if (project == null) return const SizedBox.shrink();
-                    return _buildChip(
-                      context,
-                      project.name,
-                      project.color,
-                      isIgnored: ignoreProjects || isBypassed,
-                      isBypassed: isBypassed,
-                      tooltip: isBypassed
-                          ? 'Filters are temporarily bypassed (Shift+F)'
-                          : (ignoreProjects ? 'Project filters are ignored in this screen' : null),
-                    );
-                  }).toList(),
+            Row(
+              children: filter.projectIds.map((id) {
+                final project = projectState.getById(id);
+                if (project == null) return const SizedBox.shrink();
+                return _buildChip(
+                  context,
+                  project.name,
+                  project.color,
+                  isIgnored: ignoreProjects || isBypassed,
+                  isBypassed: isBypassed,
+                  tooltip: isBypassed
+                      ? 'Filters are temporarily bypassed (Shift+F)'
+                      : (ignoreProjects ? 'Project filters are ignored in this screen' : null),
                 );
-              },
+              }).toList(),
             ),
           if (filter.hasLabelFilter)
-            Consumer<LabelProvider>(
-              builder: (context, provider, _) {
-                return Row(
-                  children: filter.labelIds.map((id) {
-                    final label = provider.labels.firstWhere(
-                      (l) => l.id == id,
-                      orElse: () => throw Exception('Label not found'),
-                    );
-                    return _buildChip(context, label.name, label.color, isBypassed: isBypassed);
-                  }).toList(),
+            Row(
+              children: filter.labelIds.map((id) {
+                final label = labelState.labels.firstWhere(
+                  (l) => l.id == id,
+                  orElse: () => throw Exception('Label not found'),
                 );
-              },
+                return _buildChip(context, label.name, label.color, isBypassed: isBypassed);
+              }).toList(),
             ),
           const SizedBox(width: 8),
           IconButton(

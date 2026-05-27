@@ -12,17 +12,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class EditProjectDialog extends StatefulWidget {
+class EditProjectDialog extends ConsumerStatefulWidget {
   final Project project;
   const EditProjectDialog({super.key, required this.project});
 
   @override
-  State<EditProjectDialog> createState() => _EditProjectDialogState();
+  ConsumerState<EditProjectDialog> createState() => _EditProjectDialogState();
 }
 
-class _EditProjectDialogState extends State<EditProjectDialog> {
+class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   late Color _selectedColor;
@@ -66,7 +66,7 @@ class _EditProjectDialogState extends State<EditProjectDialog> {
                 title: 'Delete Project',
                 message: 'Are you sure you want to delete this project?',
                 onConfirm: () async {
-                  final provider = context.read<ProjectProvider>();
+                  final provider = ref.read(projectProvider.notifier);
                   await provider.deleteProject(widget.project);
                   if (context.mounted) {
                     Navigator.of(context).pop(); // Pop from edit dialog
@@ -157,7 +157,7 @@ class _EditProjectDialogState extends State<EditProjectDialog> {
       updatedAt: DateTime.now(),
       isActive: _isActive,
     );
-    context.read<ProjectProvider>().updateProject(project);
+    ref.read(projectProvider.notifier).updateProject(project);
     Navigator.of(context).pop();
   }
 }

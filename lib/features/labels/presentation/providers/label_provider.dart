@@ -1,27 +1,47 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 
-class LabelProvider extends ChangeNotifier {
-  final ILabelRepository _repo;
+class LabelState {
+  final List<Label> labels;
+  final bool isLoading;
+
+  const LabelState({this.labels = const [], this.isLoading = false});
+
+  LabelState copyWith({List<Label>? labels, bool? isLoading}) {
+    return LabelState(
+      labels: labels ?? this.labels,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+
+  Label? getById(String? id) {
+    if (id == null) return null;
+    try {
+      return labels.firstWhere((l) => l.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+class LabelNotifier extends Notifier<LabelState> {
+  late final ILabelRepository _repo;
   final _uuid = const Uuid();
 
-  LabelProvider(this._repo);
-
-  List<Label> _labels = [];
-  bool _isLoading = false;
-
-  List<Label> get labels => _labels;
-  bool get isLoading => _isLoading;
+  @override
+  LabelState build() {
+    _repo = ref.watch(labelRepositoryProvider);
+    return const LabelState();
+  }
 
   Future<void> loadLabels() async {
-    _isLoading = true;
-    notifyListeners();
-
-    _labels = await _repo.getAll();
-    _isLoading = false;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
+    final labels = await _repo.getAll();
+    state = LabelState(labels: labels, isLoading: false);
   }
 
   Future<void> addLabel({required String name, required Color color}) async {
@@ -43,9 +63,13 @@ class LabelProvider extends ChangeNotifier {
   Label? getById(String? id) {
     if (id == null) return null;
     try {
-      return _labels.firstWhere((l) => l.id == id);
+      return state.labels.firstWhere((l) => l.id == id);
     } catch (_) {
       return null;
     }
   }
 }
+
+final labelProvider = NotifierProvider<LabelNotifier, LabelState>(() {
+  return LabelNotifier();
+});

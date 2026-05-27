@@ -12,10 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_hierarchy_indicator.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 
-class TaskListView extends StatefulWidget {
+class TaskListView extends ConsumerStatefulWidget {
   final List<Task> tasks;
   final List<Task> overdueTasks;
   final Widget Function(BuildContext, Task)? trailingBuilder;
@@ -62,10 +62,10 @@ class TaskListView extends StatefulWidget {
   }) : padding = padding ?? const EdgeInsets.symmetric(vertical: 16);
 
   @override
-  State<TaskListView> createState() => _TaskListViewState();
+  ConsumerState<TaskListView> createState() => _TaskListViewState();
 }
 
-class _TaskListViewState extends State<TaskListView> {
+class _TaskListViewState extends ConsumerState<TaskListView> {
   late bool _isDoneExpanded;
   final Map<String, FocusNode> _localItemFocusNodes = {};
   Map<String, FocusNode> get _itemFocusNodes => widget.itemFocusNodes ?? _localItemFocusNodes;
@@ -121,8 +121,9 @@ class _TaskListViewState extends State<TaskListView> {
 
   @override
   Widget build(BuildContext context) {
-    final projectProvider = context.read<ProjectProvider>();
-    final taskProvider = context.read<TaskProvider>();
+    final projectState = ref.watch(projectProvider);
+    final taskState = ref.watch(taskProvider);
+    final taskNotifier = ref.read(taskProvider.notifier);
 
     bool isOverdue(Task t) => t.isOverdue;
 
@@ -143,7 +144,7 @@ class _TaskListViewState extends State<TaskListView> {
       );
     } else {
       allTasks.sort((a, b) {
-        final settings = context.read<SettingsProvider>();
+        final settings = ref.read(settingsProvider);
 
         if (settings.prioritizeOverdue) {
           if (a.isOverdue && !b.isOverdue) return -1;
@@ -187,9 +188,9 @@ class _TaskListViewState extends State<TaskListView> {
           _orderedItemIds.add(t.id);
         }
       } else {
-        final allAvailableTasks = {for (var t in taskProvider.tasks) t.id: t}
-          ..addAll({for (var t in taskProvider.overdueTasks) t.id: t})
-          ..addAll({for (var t in taskProvider.unscheduledTasks) t.id: t});
+        final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
+          ..addAll({for (var t in taskState.overdueTasks) t.id: t})
+          ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
         final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
         for (final n in flattened) {
           if (n is TaskNode) {
@@ -229,15 +230,15 @@ class _TaskListViewState extends State<TaskListView> {
         return widget._buildHierarchyNode(
           context,
           node,
-          projectProvider,
-          taskProvider,
+          projectState,
+          taskNotifier,
           overdueFn(node.task),
           widget.showScheduleDate,
           autofocus,
           focusNode,
         );
       } else if (node is BlockerIndicatorNode) {
-        return widget._buildHierarchyNode(context, node, projectProvider, taskProvider, false, false, false, null);
+        return widget._buildHierarchyNode(context, node, projectState, taskNotifier, false, false, false, null);
       }
       return const SizedBox.shrink();
     }
@@ -246,9 +247,9 @@ class _TaskListViewState extends State<TaskListView> {
       if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
         return categoryTasks.map((t) => buildNode(TaskNode(t, 0), overdueFn)).toList();
       }
-      final allAvailableTasks = {for (var t in taskProvider.tasks) t.id: t}
-        ..addAll({for (var t in taskProvider.overdueTasks) t.id: t})
-        ..addAll({for (var t in taskProvider.unscheduledTasks) t.id: t});
+      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
+        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
+        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
 
       final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
       return flattened.map((n) => buildNode(n, overdueFn)).toList();
@@ -274,25 +275,25 @@ class _TaskListViewState extends State<TaskListView> {
           }),
           PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
             if (widget.selectedTaskIds.isNotEmpty) {
-              taskProvider.scheduleTasksForToday(widget.selectedTaskIds.toList()).then((_) {
+              taskNotifier.scheduleTasksForToday(widget.selectedTaskIds.toList()).then((_) {
                 widget.onClearSelection?.call();
               });
             } else {
               final taskId = _getFocusedTaskId();
               if (taskId != null) {
-                taskProvider.scheduleTasksForToday([taskId]);
+                taskNotifier.scheduleTasksForToday([taskId]);
               }
             }
           }),
           PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
             if (widget.selectedTaskIds.isNotEmpty) {
-              taskProvider.scheduleTasksForTomorrow(widget.selectedTaskIds.toList()).then((_) {
+              taskNotifier.scheduleTasksForTomorrow(widget.selectedTaskIds.toList()).then((_) {
                 widget.onClearSelection?.call();
               });
             } else {
               final taskId = _getFocusedTaskId();
               if (taskId != null) {
-                taskProvider.scheduleTasksForTomorrow([taskId]);
+                taskNotifier.scheduleTasksForTomorrow([taskId]);
               }
             }
           }),
@@ -341,8 +342,8 @@ class _TaskListViewState extends State<TaskListView> {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
                 child: _isDoneExpanded
-                    ? Column(children: buildHierarchy(doneCategory, (_) => false))
-                    : const SizedBox(width: double.infinity),
+                     ? Column(children: buildHierarchy(doneCategory, (_) => false))
+                     : const SizedBox(width: double.infinity),
               ),
             ],
           ],
@@ -409,8 +410,8 @@ extension TaskListViewPrivate on TaskListView {
   Widget _buildHierarchyNode(
     BuildContext context,
     TaskHierarchyNode node,
-    ProjectProvider projectProvider,
-    TaskProvider taskProvider,
+    ProjectState projectState,
+    TaskNotifier taskNotifier,
     bool taskIsOverdue,
     bool showScheduleDate,
     bool autofocus,
@@ -421,7 +422,7 @@ extension TaskListViewPrivate on TaskListView {
       child = TaskCard(
         key: ValueKey(node.task.id),
         task: node.task,
-        project: node.task.projectId != null ? projectProvider.getById(node.task.projectId!) : null,
+        project: node.task.projectId != null ? projectState.getById(node.task.projectId!) : null,
         isOverdue: taskIsOverdue,
         autofocus: autofocus,
         focusNode: focusNode,
@@ -429,7 +430,7 @@ extension TaskListViewPrivate on TaskListView {
             ? (_) {}
             : selectionMode
             ? (value) => onSelectedChanged?.call(node.task)
-            : (_) => taskProvider.toggleComplete(node.task),
+            : (_) => taskNotifier.toggleComplete(node.task),
         isChecked: selectionMode ? selectedTaskIds.contains(node.task.id) : null,
         selectionMode: selectionMode,
         onTap: isReadOnly ? () {} : () => onEdit?.call(node.task),

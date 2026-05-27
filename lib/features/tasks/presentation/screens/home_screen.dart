@@ -10,7 +10,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context
 import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban_board.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -37,14 +37,14 @@ class _ToggleLayoutIntent extends Intent {
   const _ToggleLayoutIntent();
 }
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   late DateTime _selectedDate;
   late Timer timer;
   final _dateFormat = DateFormat('EEEE, MMMM d');
@@ -64,12 +64,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (_normalizedSelected == yesterday) {
         setState(() => _selectedDate = now);
-        context.read<TaskProvider>().loadTasksForDate(_selectedDate);
+        ref.read(taskProvider.notifier).loadTasksForDate(_selectedDate);
       }
     });
     _selectedDate = _today;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TaskProvider>().loadTasksForDate(_selectedDate);
+      ref.read(taskProvider.notifier).loadTasksForDate(_selectedDate);
     });
   }
 
@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<DateTime> get _days {
-    final settings = context.read<SettingsProvider>();
+    final settings = ref.read(settingsProvider);
     final today = DateTime(_today.year, _today.month, _today.day);
     return List.generate(settings.maxPlanningDays + 1, (i) => today.add(Duration(days: i)));
   }
@@ -123,7 +123,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<SettingsProvider>();
+    ref.watch(taskProvider);
+    final filterState = ref.watch(filterProvider);
+    final settings = ref.watch(settingsProvider);
+
     return AppShortcutRegistrar(
       shortcuts: homeShortcutEntries,
       child: Shortcuts(
@@ -152,7 +155,9 @@ class _HomeScreenState extends State<HomeScreen> {
               _showAddTask(context);
             }),
             _ToggleLayoutIntent: NonTypingAction<_ToggleLayoutIntent>((_) {
-              context.read<TaskProvider>().toggleLayoutMode();
+              final currentLayout = settings.getTaskLayout();
+              final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
+              ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
             }),
             FilterIntent: NonTypingAction<FilterIntent>((_) {
               _showFilterDialog(context);
@@ -165,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
             }),
             NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((_) {
               setState(() => _selectedDate = _today);
-              context.read<TaskProvider>().loadTasksForDate(_selectedDate);
+              ref.read(taskProvider.notifier).loadTasksForDate(_selectedDate);
             }),
           },
           child: Focus(
@@ -180,29 +185,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? _dateFormat.format(_selectedDate)
                       : '${_normalizedSelected.difference(DateTime(_today.year, _today.month, _today.day)).inDays} days from now',
                   actions: [
-                    Consumer<TaskProvider>(
-                      builder: (context, provider, _) => IconButton(
-                        onPressed: () => provider.toggleLayoutMode(),
-                        icon: Icon(provider.layoutMode == TaskLayout.list ? Icons.view_kanban : Icons.view_list),
-                        tooltip: provider.layoutMode == TaskLayout.list ? 'Kanban view' : 'List view',
-                      ),
+                    IconButton(
+                      onPressed: () {
+                        final currentLayout = settings.getTaskLayout();
+                        final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
+                        ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
+                      },
+                      icon: Icon(settings.getTaskLayout() == TaskLayout.list ? Icons.view_kanban : Icons.view_list),
+                      tooltip: settings.getTaskLayout() == TaskLayout.list ? 'Kanban view' : 'List view',
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () => _showAddTask(context),
-                      icon: Icon(Icons.add),
-                      label: Text('Add Task'),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Task'),
                     ),
                   ],
                 ),
                 _daySelector(),
-                Consumer<FilterProvider>(
-                  builder: (context, filterProvider, _) => FilterBar(
-                    filter: filterProvider.filter,
-                    isBypassed: filterProvider.isBypassed,
-                    onFilterTap: () => _showFilterDialog(context),
-                    onClearFilter: () => filterProvider.clearFilter(),
-                  ),
+                FilterBar(
+                  filter: filterState.filter,
+                  isBypassed: filterState.isBypassed,
+                  onFilterTap: () => _showFilterDialog(context),
+                  onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
                 ),
                 const Divider(height: 1),
                 Expanded(child: _body()),
@@ -220,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final nextIndex = currentIndex + delta;
     if (nextIndex >= 0 && nextIndex < days.length) {
       setState(() => _selectedDate = days[nextIndex]);
-      context.read<TaskProvider>().loadTasksForDate(days[nextIndex]);
+      ref.read(taskProvider.notifier).loadTasksForDate(days[nextIndex]);
     }
   }
 
@@ -232,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: _days.length,
-          separatorBuilder: (_, _) => SizedBox(width: 8),
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
             final day = _days[index];
             final isSelected = _normalizedSelected == day;
@@ -240,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return GestureDetector(
               onTap: () {
                 setState(() => _selectedDate = day);
-                context.read<TaskProvider>().loadTasksForDate(day);
+                ref.read(taskProvider.notifier).loadTasksForDate(day);
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -259,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       '${day.day}',
                       style: TextStyle(
@@ -279,58 +284,54 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _body() {
-    return Consumer<TaskProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return Center(child: CircularProgressIndicator());
-        }
+    final provider = ref.watch(taskProvider);
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        final projectProvider = context.read<ProjectProvider>();
-        final filter = context.watch<FilterProvider>().activeFilter;
-        final settings = context.watch<SettingsProvider>();
-        final showActiveOnly = settings.showActiveProjectsOnly;
+    final projectState = ref.watch(projectProvider);
+    final filter = ref.watch(filterProvider).activeFilter;
+    final settings = ref.watch(settingsProvider);
+    final showActiveOnly = settings.showActiveProjectsOnly;
 
-        final overdue = provider.overdueTasks.where((t) {
-          final project = t.projectId != null ? projectProvider.getById(t.projectId!) : null;
-          if (showActiveOnly && project != null && !project.isActive) return false;
-          return filter.applyToTask(t, project?.labelIds ?? []);
-        }).toList();
+    final overdue = provider.overdueTasks.where((t) {
+      final project = t.projectId != null ? projectState.getById(t.projectId!) : null;
+      if (showActiveOnly && project != null && !project.isActive) return false;
+      return filter.applyToTask(t, project?.labelIds ?? []);
+    }).toList();
 
-        final allTasks = provider.tasks.where((t) {
-          final project = t.projectId != null ? projectProvider.getById(t.projectId!) : null;
-          if (showActiveOnly && project != null && !project.isActive) return false;
-          return filter.applyToTask(t, project?.labelIds ?? []);
-        }).toList();
+    final allTasks = provider.tasks.where((t) {
+      final project = t.projectId != null ? projectState.getById(t.projectId!) : null;
+      if (showActiveOnly && project != null && !project.isActive) return false;
+      return filter.applyToTask(t, project?.labelIds ?? []);
+    }).toList();
 
-        if (provider.layoutMode == TaskLayout.kanban) {
-          return KanbanBoard(
-            tasks: [...(_isToday ? overdue : []), ...allTasks],
-            projectProvider: projectProvider,
-            onStatusChange: (task, status) => provider.updateTaskStatus(task, status),
-            onContextMenu: (task, pos, box) => showTaskCardContextMenu(context, task, pos, box),
-            onEdit: (task) => _showEditTask(context, task),
-            itemFocusNodes: _itemFocusNodes,
-            onOrderedIdsChanged: (ids) {
-              _orderedItemIds.clear();
-              _orderedItemIds.addAll(ids);
-            },
-          );
-        }
+    if (settings.getTaskLayout() == TaskLayout.kanban) {
+      return KanbanBoard(
+        tasks: [...(_isToday ? overdue : []), ...allTasks],
+        onStatusChange: (task, status) => ref.read(taskProvider.notifier).updateTaskStatus(task, status),
+        onContextMenu: (task, pos, box) => showTaskCardContextMenu(context, ref, task, pos, box),
+        onEdit: (task) => _showEditTask(context, task),
+        itemFocusNodes: _itemFocusNodes,
+        onOrderedIdsChanged: (ids) {
+          _orderedItemIds.clear();
+          _orderedItemIds.addAll(ids);
+        },
+      );
+    }
 
-        return TaskListView(
-          tasks: allTasks,
-          overdueTasks: _isToday ? overdue : [],
-          onContextMenu: (ctx, task, pos, box) => showTaskCardContextMenu(ctx, task, pos, box),
-          trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
-          onOrderedIdsChanged: (ids) {
-            _orderedItemIds.clear();
-            _orderedItemIds.addAll(ids);
-          },
-          itemFocusNodes: _itemFocusNodes,
-          onEdit: (task) => _showEditTask(context, task),
-          emptyPlaceholder: _buildEmptyState(),
-        );
+    return TaskListView(
+      tasks: allTasks,
+      overdueTasks: _isToday ? overdue : [],
+      onContextMenu: (ctx, task, pos, box) => showTaskCardContextMenu(ctx, ref, task, pos, box),
+      trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+      onOrderedIdsChanged: (ids) {
+        _orderedItemIds.clear();
+        _orderedItemIds.addAll(ids);
       },
+      itemFocusNodes: _itemFocusNodes,
+      onEdit: (task) => _showEditTask(context, task),
+      emptyPlaceholder: _buildEmptyState(),
     );
   }
 
@@ -340,13 +341,13 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.check_circle_outline, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             _isToday ? 'No tasks for today' : 'No tasks scheduled',
             style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
           ),
-          SizedBox(height: 8),
-          TextButton(onPressed: () => _showAddTask(context), child: Text('Add your first task')),
+          const SizedBox(height: 8),
+          TextButton(onPressed: () => _showAddTask(context), child: const Text('Add your first task')),
         ],
       ),
     );
@@ -359,12 +360,12 @@ class _HomeScreenState extends State<HomeScreen> {
         Builder(
           builder: (buttonContext) {
             return IconButton(
-              icon: Icon(Icons.more_vert, size: 18),
+              icon: const Icon(Icons.more_vert, size: 18),
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               onPressed: () {
                 final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
                 final localPosition = Offset.zero;
-                showTaskCardContextMenu(context, task, localPosition, renderBox);
+                showTaskCardContextMenu(context, ref, task, localPosition, renderBox);
               },
             );
           },
@@ -376,37 +377,25 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showAddTask(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => ChangeNotifierProvider.value(
-        value: context.read<TaskProvider>(),
-        child: ChangeNotifierProvider.value(
-          value: context.read<ProjectProvider>(),
-          child: AddTaskDialog(initialDate: _selectedDate),
-        ),
-      ),
+      builder: (_) => AddTaskDialog(initialDate: _selectedDate),
     );
   }
 
   void _showEditTask(BuildContext context, Task task) {
     showDialog(
       context: context,
-      builder: (_) => ChangeNotifierProvider.value(
-        value: context.read<TaskProvider>(),
-        child: ChangeNotifierProvider.value(
-          value: context.read<ProjectProvider>(),
-          child: EditTaskDialog(task: task),
-        ),
-      ),
+      builder: (_) => EditTaskDialog(task: task),
     );
   }
 
   void _showFilterDialog(BuildContext context) async {
-    final filterProvider = context.read<FilterProvider>();
+    final filterProviderVal = ref.read(filterProvider);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) => FilterDialog(initialFilter: filterProvider.filter),
+      builder: (_) => FilterDialog(initialFilter: filterProviderVal.filter),
     );
     if (result != null) {
-      filterProvider.setFilter(result);
+      ref.read(filterProvider.notifier).setFilter(result);
     }
   }
 }

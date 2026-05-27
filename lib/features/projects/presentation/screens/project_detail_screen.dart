@@ -13,7 +13,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_ba
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/priority_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -44,23 +44,22 @@ class _UnfocusSearchIntent extends Intent {
   const _UnfocusSearchIntent();
 }
 
-class ProjectDetailScreen extends StatefulWidget {
+class ProjectDetailScreen extends ConsumerStatefulWidget {
   final String projectId;
 
   const ProjectDetailScreen({super.key, required this.projectId});
 
   @override
-  State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
+  ConsumerState<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
 }
 
-class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
+class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _mainFocusNode = FocusNode();
   String _searchQuery = '';
   bool _isLoading = true;
   List<Task> _tasks = [];
-  late TaskProvider _taskProvider;
   final List<String> _selectedTaskIds = [];
   final FocusNode _firstItemFocusNode = FocusNode(debugLabel: 'ProjectDetailFirstItem');
   final List<String> _orderedItemIds = [];
@@ -69,7 +68,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _taskProvider = context.read<TaskProvider>();
     _loadTasks();
 
     _searchFocusNode.onKeyEvent = (node, event) {
@@ -86,16 +84,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _taskProvider = context.read<TaskProvider>();
-    _taskProvider.removeListener(_onTasksChanged);
-    _taskProvider.addListener(_onTasksChanged);
-  }
-
-  @override
   void dispose() {
-    _taskProvider.removeListener(_onTasksChanged);
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mainFocusNode.dispose();
@@ -115,17 +104,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     }
   }
 
-  void _onTasksChanged() {
-    if (mounted) {
-      _loadTasks(showLoading: false);
-    }
-  }
-
   Future<void> _loadTasks({bool showLoading = true}) async {
     if (showLoading && mounted) {
       setState(() => _isLoading = true);
     }
-    final tasks = await _taskProvider.getTasksForProject(widget.projectId);
+    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(widget.projectId);
     if (mounted) {
       setState(() {
         _tasks = tasks;
@@ -164,241 +147,242 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProjectProvider>(
-      builder: (context, projectProvider, child) {
-        final project = projectProvider.getById(widget.projectId);
+    ref.listen(taskProvider, (previous, next) {
+      _loadTasks(showLoading: false);
+    });
 
-        final selectedTasksAlreadyScheduled = _selectedTaskIds
-            .map((id) => _tasks.firstWhere((t) => t.id == id))
-            .every((task) => task.scheduledDate != null);
+    final project = ref.watch(projectProvider).getById(widget.projectId);
 
-        if (project == null) {
-          return Center(
-            child: Text("Project not found", style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-          );
-        }
+    if (project == null) {
+      return Center(
+        child: Text("Project not found", style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      );
+    }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.read<WindowTitleProvider>().updateTitle(subtitle: 'Project: ${project.name}');
-        });
+    final selectedTasksAlreadyScheduled = _selectedTaskIds
+        .map((id) => _tasks.firstWhere((t) => t.id == id))
+        .every((task) => task.scheduledDate != null);
 
-        return AppShortcutRegistrar(
-          shortcuts: projectDetailShortcutEntries,
-          child: Shortcuts(
-            shortcuts: {
-              const CharacterActivator('/'): const _FocusSearchIntent(),
-              const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-              if (project.isActive) const CharacterActivator('a'): const _NewTaskIntent(),
-              if (project.isActive) const CharacterActivator('A'): const _NewTaskIntent(),
-              const CharacterActivator('j'): const MoveNextIntent(),
-              const CharacterActivator('k'): const MovePrevIntent(),
-              const CharacterActivator('f'): const FilterIntent(),
-            },
-            child: Actions(
-              actions: {
-                MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-                  _moveFocus(1);
-                }),
-                MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-                  _moveFocus(-1);
-                }),
-                _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
-                  _searchFocusNode.requestFocus();
-                }),
-                _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
-                  onInvoke: (intent) {
-                    if (_searchFocusNode.hasFocus) {
-                      _searchFocusNode.unfocus();
-                      if (_tasks.isNotEmpty) {
-                        _firstItemFocusNode.requestFocus();
-                      } else {
-                        _mainFocusNode.requestFocus();
-                      }
-                    }
-                    return null;
-                  },
-                ),
-                if (project.isActive)
-                  _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
-                    _showAddTask(context);
-                  }),
-                FilterIntent: NonTypingAction<FilterIntent>((_) {
-                  _showFilterDialog(context);
-                }),
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(windowTitleProvider.notifier).updateTitle(subtitle: 'Project: ${project.name}');
+    });
+
+    return AppShortcutRegistrar(
+      shortcuts: projectDetailShortcutEntries,
+      child: Shortcuts(
+        shortcuts: {
+          const CharacterActivator('/'): const _FocusSearchIntent(),
+          const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+          if (project.isActive) const CharacterActivator('a'): const _NewTaskIntent(),
+          if (project.isActive) const CharacterActivator('A'): const _NewTaskIntent(),
+          const CharacterActivator('j'): const MoveNextIntent(),
+          const CharacterActivator('k'): const MovePrevIntent(),
+          const CharacterActivator('f'): const FilterIntent(),
+        },
+        child: Actions(
+          actions: {
+            MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+              _moveFocus(1);
+            }),
+            MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+              _moveFocus(-1);
+            }),
+            _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
+              _searchFocusNode.requestFocus();
+            }),
+            _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
+              onInvoke: (intent) {
+                if (_searchFocusNode.hasFocus) {
+                  _searchFocusNode.unfocus();
+                  if (_tasks.isNotEmpty) {
+                    _firstItemFocusNode.requestFocus();
+                  } else {
+                    _mainFocusNode.requestFocus();
+                  }
+                }
+                return null;
               },
-              child: Focus(
-                focusNode: _mainFocusNode,
-                autofocus: true,
-                debugLabel: 'ProjectDetailScreenMainFocus',
-                child: Scaffold(
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  body: Stack(
+            ),
+            if (project.isActive)
+              _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
+                _showAddTask(context);
+              }),
+            FilterIntent: NonTypingAction<FilterIntent>((_) {
+              _showFilterDialog(context);
+            }),
+          },
+          child: Focus(
+            focusNode: _mainFocusNode,
+            autofocus: true,
+            debugLabel: 'ProjectDetailScreenMainFocus',
+            child: Scaffold(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              body: Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _header(context, project),
-                          Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: FuzzySearchBar(
-                              controller: _searchController,
-                              focusNode: _searchFocusNode,
-                              hintText: 'Search backlog tasks... (Press / to focus)',
-                              onChanged: (value) => setState(() {
-                                _searchQuery = value;
-                              }),
-                              onSubmitted: (_) {
-                                if (_tasks.isNotEmpty) {
-                                  _firstItemFocusNode.requestFocus();
-                                }
-                              },
-                            ),
-                          ),
-                          Consumer<FilterProvider>(
-                            builder: (context, filterProvider, _) => FilterBar(
-                              filter: filterProvider.filter,
-                              isBypassed: filterProvider.isBypassed,
-                              ignoreProjects: true,
-                              onFilterTap: () => _showFilterDialog(context),
-                              onClearFilter: () => filterProvider.clearFilter(),
-                            ),
-                          ),
-                          Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
-                          Expanded(
-                            child: _isLoading
-                                ? Center(child: CircularProgressIndicator())
-                                : Builder(
-                                    builder: (context) {
-                                      final filter = context.watch<FilterProvider>().activeFilter.limitTo(
-                                        projects: false,
-                                      );
-                                      final filteredTasks = _tasks
-                                          .where((t) => filter.applyToTask(t, project.labelIds))
-                                          .toList();
-                                      return TaskListView(
-                                        tasks: filteredTasks,
-                                        padding: const EdgeInsets.symmetric(vertical: 24),
-                                        onContextMenu: (ctx, task, pos, box) {
-                                          if (task.scheduledDate != null) {
-                                            showTaskCardContextMenu(ctx, task, pos, box);
-                                          } else {
-                                            showBacklogContextMenu(ctx, task, pos, box);
-                                          }
-                                        },
-                                        trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
-                                        emptyPlaceholder: Center(
-                                          child: Text(
-                                            "No tasks in this project",
-                                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                          ),
-                                        ),
-                                        onOrderedIdsChanged: (ids) {
-                                          _orderedItemIds.clear();
-                                          _orderedItemIds.addAll(ids);
-                                        },
-                                        itemFocusNodes: _itemFocusNodes,
-                                        searchQuery: _searchQuery,
-                                        enablePlanShortcut: true,
-                                        firstNode: _firstItemFocusNode,
-                                        showScheduleDate: true,
-                                        selectionMode: true,
-                                        selectedTaskIds: _selectedTaskIds.toSet(),
-                                        onClearSelection: () => setState(() => _selectedTaskIds.clear()),
-                                        onSelectedChanged: (task) {
-                                          setState(() {
-                                            if (_selectedTaskIds.contains(task.id)) {
-                                              _selectedTaskIds.remove(task.id);
-                                            } else {
-                                              _selectedTaskIds.add(task.id);
-                                            }
-                                          });
-                                        },
-                                        onEdit: (task) => _showEditTask(context, task),
-                                        isReadOnly: !project.isActive,
-                                        initialDoneExpanded: !project.isActive,
-                                      );
-                                    },
-                                  ),
-                          ),
-                        ],
-                      ),
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 16,
-                        child: BulkPlanningBar(
-                          selectedCount: _selectedTaskIds.length,
-                          onClearSelection: () => setState(() => _selectedTaskIds.clear()),
-                          disableScheduling: selectedTasksAlreadyScheduled,
-                          onScheduleToday: () {
-                            context.read<TaskProvider>().scheduleTasksForToday(_selectedTaskIds).then((_) {
-                              setState(() => _selectedTaskIds.clear());
-                            });
-                          },
-                          onScheduleTomorrow: () {
-                            context.read<TaskProvider>().scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
-                              setState(() => _selectedTaskIds.clear());
-                            });
-                          },
-                          onBulkEdit: () {
-                            if (_selectedTaskIds.length == 1) {
-                              final task = _tasks.firstWhere((t) => t.id == _selectedTaskIds.first);
-                              _showEditTask(context, task);
-                            } else {
-                              _showBulkEdit(context);
-                            }
-                          },
-                          onBulkDelete: () {
-                            if (_selectedTaskIds.length == 1) {
-                              final task = _tasks.firstWhere((t) => t.id == _selectedTaskIds.first);
-                              showDialog(
-                                context: context,
-                                builder: (ctx) => DeleteDialog(
-                                  title: "Delete Task",
-                                  message: "Are you sure you want to delete this task?",
-                                  onConfirm: () {
-                                    context.read<TaskProvider>().deleteTask(task);
-                                    setState(() => _selectedTaskIds.clear());
-                                  },
-                                ),
-                              );
-                            } else {
-                              _showBulkDeleteConfirm(context);
+                      _header(context, project),
+                      Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: FuzzySearchBar(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          hintText: 'Search backlog tasks... (Press / to focus)',
+                          onChanged: (value) => setState(() {
+                            _searchQuery = value;
+                          }),
+                          onSubmitted: (_) {
+                            if (_tasks.isNotEmpty) {
+                              _firstItemFocusNode.requestFocus();
                             }
                           },
                         ),
                       ),
+                      () {
+                        final filterState = ref.watch(filterProvider);
+                        return FilterBar(
+                          filter: filterState.filter,
+                          isBypassed: filterState.isBypassed,
+                          ignoreProjects: true,
+                          onFilterTap: () => _showFilterDialog(context),
+                          onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+                        );
+                      }(),
+                      Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
+                      Expanded(
+                        child: _isLoading
+                            ? Center(child: CircularProgressIndicator())
+                            : Builder(
+                                builder: (context) {
+                                  final filter = ref.watch(filterProvider).activeFilter.limitTo(
+                                    projects: false,
+                                  );
+                                  final filteredTasks = _tasks
+                                      .where((t) => filter.applyToTask(t, project.labelIds))
+                                      .toList();
+                                  return TaskListView(
+                                    tasks: filteredTasks,
+                                    padding: const EdgeInsets.symmetric(vertical: 24),
+                                    onContextMenu: (ctx, task, pos, box) {
+                                      if (task.scheduledDate != null) {
+                                        showTaskCardContextMenu(ctx, ref, task, pos, box);
+                                      } else {
+                                        showBacklogContextMenu(ctx, ref, task, pos, box);
+                                      }
+                                    },
+                                    trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+                                    emptyPlaceholder: Center(
+                                      child: Text(
+                                        "No tasks in this project",
+                                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                      ),
+                                    ),
+                                    onOrderedIdsChanged: (ids) {
+                                      _orderedItemIds.clear();
+                                      _orderedItemIds.addAll(ids);
+                                    },
+                                    itemFocusNodes: _itemFocusNodes,
+                                    searchQuery: _searchQuery,
+                                    enablePlanShortcut: true,
+                                    firstNode: _firstItemFocusNode,
+                                    showScheduleDate: true,
+                                    selectionMode: true,
+                                    selectedTaskIds: _selectedTaskIds.toSet(),
+                                    onClearSelection: () => setState(() => _selectedTaskIds.clear()),
+                                    onSelectedChanged: (task) {
+                                      setState(() {
+                                        if (_selectedTaskIds.contains(task.id)) {
+                                          _selectedTaskIds.remove(task.id);
+                                        } else {
+                                          _selectedTaskIds.add(task.id);
+                                        }
+                                      });
+                                    },
+                                    onEdit: (task) => _showEditTask(context, task),
+                                    isReadOnly: !project.isActive,
+                                    initialDoneExpanded: !project.isActive,
+                                  );
+                                },
+                              ),
+                      ),
                     ],
                   ),
-                  floatingActionButton: project.isActive
-                      ? Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black,
-                                blurRadius: 15,
-                                spreadRadius: 2,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: FloatingActionButton(
-                            onPressed: () => _showAddTask(context),
-                            backgroundColor: project.color,
-                            elevation: 0,
-                            highlightElevation: 0,
-                            child: const Icon(Icons.add, color: Colors.white),
-                          ),
-                        )
-                      : null,
-                ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 16,
+                    child: BulkPlanningBar(
+                      selectedCount: _selectedTaskIds.length,
+                      onClearSelection: () => setState(() => _selectedTaskIds.clear()),
+                      disableScheduling: selectedTasksAlreadyScheduled,
+                      onScheduleToday: () {
+                        ref.read(taskProvider.notifier).scheduleTasksForToday(_selectedTaskIds).then((_) {
+                          setState(() => _selectedTaskIds.clear());
+                        });
+                      },
+                      onScheduleTomorrow: () {
+                        ref.read(taskProvider.notifier).scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
+                          setState(() => _selectedTaskIds.clear());
+                        });
+                      },
+                      onBulkEdit: () {
+                        if (_selectedTaskIds.length == 1) {
+                          final task = _tasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                          _showEditTask(context, task);
+                        } else {
+                          _showBulkEdit(context);
+                        }
+                      },
+                      onBulkDelete: () {
+                        if (_selectedTaskIds.length == 1) {
+                          final task = _tasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => DeleteDialog(
+                              title: "Delete Task",
+                              message: "Are you sure you want to delete this task?",
+                              onConfirm: () {
+                                ref.read(taskProvider.notifier).deleteTask(task);
+                                setState(() => _selectedTaskIds.clear());
+                              },
+                            ),
+                          );
+                        } else {
+                          _showBulkDeleteConfirm(context);
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
+              floatingActionButton: project.isActive
+                  ? Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black,
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: FloatingActionButton(
+                        onPressed: () => _showAddTask(context),
+                        backgroundColor: project.color,
+                        elevation: 0,
+                        highlightElevation: 0,
+                        child: const Icon(Icons.add, color: Colors.white),
+                      ),
+                    )
+                  : null,
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -492,8 +476,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   List<Widget> _getLabels(BuildContext context, Project project) {
-    final labelProvider = context.watch<LabelProvider>();
-    final labels = project.labelIds.map((id) => labelProvider.getById(id)).whereType<Label>().toList();
+    final labelState = ref.watch(labelProvider);
+    final labels = project.labelIds.map((id) => labelState.getById(id)).whereType<Label>().toList();
 
     return labels.map((label) => LabelChip(label: label, verticalPadding: 1)).toList();
   }
@@ -511,9 +495,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
                 final localPosition = Offset.zero;
                 if (task.scheduledDate != null) {
-                  showTaskCardContextMenu(context, task, localPosition, renderBox);
+                  showTaskCardContextMenu(context, ref, task, localPosition, renderBox);
                 } else {
-                  showBacklogContextMenu(context, task, localPosition, renderBox);
+                  showBacklogContextMenu(context, ref, task, localPosition, renderBox);
                 }
               },
             );
@@ -526,30 +510,18 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   void _showEditTask(BuildContext context, Task task) {
     showDialog(
       context: context,
-      builder: (_) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: context.read<TaskProvider>()),
-          ChangeNotifierProvider.value(value: context.read<ProjectProvider>()),
-        ],
-        child: EditTaskDialog(task: task),
-      ),
+      builder: (_) => EditTaskDialog(task: task),
     );
   }
 
   void _showBulkEdit(BuildContext context) async {
     final result = await showDialog<BulkEditResult>(
       context: context,
-      builder: (_) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: context.read<TaskProvider>()),
-          ChangeNotifierProvider.value(value: context.read<ProjectProvider>()),
-        ],
-        child: BulkEditTasksDialog(taskIds: _selectedTaskIds),
-      ),
+      builder: (_) => BulkEditTasksDialog(taskIds: _selectedTaskIds),
     );
 
     if (result != null && context.mounted) {
-      await context.read<TaskProvider>().bulkUpdateTasks(
+      await ref.read(taskProvider.notifier).bulkUpdateTasks(
         taskIds: _selectedTaskIds,
         priority: result.priority,
         updatePriority: result.updatePriority,
@@ -585,7 +557,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               foregroundColor: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () async {
-              await context.read<TaskProvider>().bulkDeleteTasks(_selectedTaskIds);
+              await ref.read(taskProvider.notifier).bulkDeleteTasks(_selectedTaskIds);
               if (!mounted) return;
               setState(() => _selectedTaskIds.clear());
               if (ctx.mounted) {
@@ -602,13 +574,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   void _showEditProject(BuildContext context, Project project) {
     showDialog(
       context: context,
-      builder: (_) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: context.read<ProjectProvider>()),
-          ChangeNotifierProvider.value(value: context.read<LabelProvider>()),
-        ],
-        child: EditProjectDialog(project: project),
-      ),
+      builder: (_) => EditProjectDialog(project: project),
     );
   }
 
@@ -620,9 +586,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         message:
             'Are you sure you want to delete "${project.name}"? This will not delete the tasks, but they will no longer be associated with this project.',
         onConfirm: () async {
-          final provider = context.read<ProjectProvider>();
+          final notifier = ref.read(projectProvider.notifier);
 
-          await provider.deleteProject(project);
+          await notifier.deleteProject(project);
 
           if (context.mounted) {
             GoRouter.of(context).go('/projects');
@@ -636,24 +602,18 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   void _showAddTask(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: context.read<TaskProvider>()),
-          ChangeNotifierProvider.value(value: context.read<ProjectProvider>()),
-        ],
-        child: AddTaskDialog(initialProjectId: widget.projectId),
-      ),
+      builder: (_) => AddTaskDialog(initialProjectId: widget.projectId),
     );
   }
 
   void _showFilterDialog(BuildContext context) async {
-    final filterProvider = context.read<FilterProvider>();
+    final filterNotifier = ref.read(filterProvider.notifier);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) => FilterDialog(initialFilter: filterProvider.filter, showProjectFilter: false),
+      builder: (_) => FilterDialog(initialFilter: ref.read(filterProvider).filter, showProjectFilter: false),
     );
     if (result != null) {
-      filterProvider.setFilter(result);
+      filterNotifier.setFilter(result);
     }
   }
 }

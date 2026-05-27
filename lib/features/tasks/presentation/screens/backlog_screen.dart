@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/add_task_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
@@ -8,9 +10,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/bulk_edit_tasks_d
 import 'package:carpe_diem/features/tasks/presentation/widgets/blocker_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -42,14 +42,14 @@ class _NewTaskIntent extends Intent {
   const _NewTaskIntent();
 }
 
-class BacklogScreen extends StatefulWidget {
+class BacklogScreen extends ConsumerStatefulWidget {
   const BacklogScreen({super.key});
 
   @override
-  State<BacklogScreen> createState() => _BacklogScreenState();
+  ConsumerState<BacklogScreen> createState() => _BacklogScreenState();
 }
 
-class _BacklogScreenState extends State<BacklogScreen> {
+class _BacklogScreenState extends ConsumerState<BacklogScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _mainFocusNode = FocusNode();
@@ -66,7 +66,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TaskProvider>().loadUnscheduledTasks();
+      ref.read(taskProvider.notifier).loadUnscheduledTasks();
     });
 
     _searchFocusNode.onKeyEvent = (node, event) {
@@ -121,7 +121,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.watch<SettingsProvider>();
+    final settings = ref.watch(settingsProvider);
     return AppShortcutRegistrar(
       shortcuts: backlogShortcutEntries,
       child: Shortcuts(
@@ -168,25 +168,25 @@ class _BacklogScreenState extends State<BacklogScreen> {
             }),
             PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
               if (_selectedTaskIds.isNotEmpty) {
-                context.read<TaskProvider>().scheduleTasksForToday(List.from(_selectedTaskIds)).then((_) {
+                ref.read(taskProvider.notifier).scheduleTasksForToday(List.from(_selectedTaskIds)).then((_) {
                   setState(() => _selectedTaskIds.clear());
                 });
               } else {
                 final taskId = _getFocusedTaskId();
                 if (taskId != null) {
-                  context.read<TaskProvider>().scheduleTasksForToday([taskId]);
+                  ref.read(taskProvider.notifier).scheduleTasksForToday([taskId]);
                 }
               }
             }),
             PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
               if (_selectedTaskIds.isNotEmpty) {
-                context.read<TaskProvider>().scheduleTasksForTomorrow(List.from(_selectedTaskIds)).then((_) {
+                ref.read(taskProvider.notifier).scheduleTasksForTomorrow(List.from(_selectedTaskIds)).then((_) {
                   setState(() => _selectedTaskIds.clear());
                 });
               } else {
                 final taskId = _getFocusedTaskId();
                 if (taskId != null) {
-                  context.read<TaskProvider>().scheduleTasksForTomorrow([taskId]);
+                  ref.read(taskProvider.notifier).scheduleTasksForTomorrow([taskId]);
                 }
               }
             }),
@@ -221,13 +221,11 @@ class _BacklogScreenState extends State<BacklogScreen> {
                         _buildHeaderActions(context),
                       ],
                     ),
-                    Consumer<FilterProvider>(
-                      builder: (context, filterProvider, _) => FilterBar(
-                        filter: filterProvider.filter,
-                        isBypassed: filterProvider.isBypassed,
-                        onFilterTap: () => _showFilterDialog(context),
-                        onClearFilter: () => filterProvider.clearFilter(),
-                      ),
+                    FilterBar(
+                      filter: ref.watch(filterProvider).filter,
+                      isBypassed: ref.watch(filterProvider).isBypassed,
+                      onFilterTap: () => _showFilterDialog(context),
+                      onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
                     ),
                     Divider(height: 1),
                     Padding(
@@ -258,18 +256,18 @@ class _BacklogScreenState extends State<BacklogScreen> {
                     selectedCount: _selectedTaskIds.length,
                     onClearSelection: () => setState(() => _selectedTaskIds.clear()),
                     onScheduleToday: () {
-                      context.read<TaskProvider>().scheduleTasksForToday(_selectedTaskIds).then((_) {
+                      ref.read(taskProvider.notifier).scheduleTasksForToday(_selectedTaskIds).then((_) {
                         setState(() => _selectedTaskIds.clear());
                       });
                     },
                     onScheduleTomorrow: () {
-                      context.read<TaskProvider>().scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
+                      ref.read(taskProvider.notifier).scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
                         setState(() => _selectedTaskIds.clear());
                       });
                     },
                     onBulkEdit: () {
                       if (_selectedTaskIds.length == 1) {
-                        final provider = context.read<TaskProvider>();
+                        final provider = ref.read(taskProvider);
                         final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
                         _showEditTask(context, task);
                       } else {
@@ -278,7 +276,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
                     },
                     onBulkDelete: () {
                       if (_selectedTaskIds.length == 1) {
-                        final provider = context.read<TaskProvider>();
+                        final provider = ref.read(taskProvider);
                         final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
                         showDialog(
                           context: context,
@@ -286,7 +284,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
                             title: "Delete Task",
                             message: "Are you sure you want to delete this task?",
                             onConfirm: () {
-                              provider.deleteTask(task);
+                              ref.read(taskProvider.notifier).deleteTask(task);
                               setState(() => _selectedTaskIds.clear());
                             },
                           ),
@@ -332,159 +330,157 @@ class _BacklogScreenState extends State<BacklogScreen> {
   }
 
   Widget _taskList() {
-    return Consumer<TaskProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return Center(child: CircularProgressIndicator());
-        }
+    final provider = ref.watch(taskProvider);
+    if (provider.isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
 
-        final projectProvider = context.read<ProjectProvider>();
-        final filter = context.watch<FilterProvider>().activeFilter;
-        var allTasks = provider.unscheduledTasks.where((t) {
-          final project = t.projectId != null ? projectProvider.getById(t.projectId!) : null;
-          return filter.applyToTask(t, project?.labelIds ?? []);
-        }).toList();
+    final projectState = ref.watch(projectProvider);
+    final filter = ref.watch(filterProvider).activeFilter;
+    var allTasks = provider.unscheduledTasks.where((t) {
+      final project = t.projectId != null ? projectState.getById(t.projectId!) : null;
+      return filter.applyToTask(t, project?.labelIds ?? []);
+    }).toList();
 
-        if (_searchQuery.isNotEmpty) {
-          allTasks = FuzzySearchUtils.search<Task>(
-            query: _searchQuery,
-            items: allTasks,
-            itemToString: (t) => '${t.title} ${t.description ?? ''}',
-            threshold: 0.3,
-          );
-        }
+    if (_searchQuery.isNotEmpty) {
+      allTasks = FuzzySearchUtils.search<Task>(
+        query: _searchQuery,
+        items: allTasks,
+        itemToString: (t) => '${t.title} ${t.description ?? ''}',
+        threshold: 0.3,
+      );
+    }
 
-        final activeTasks = allTasks.where((t) => !t.isCompleted).toList();
-        final completedTasks = allTasks.where((t) => t.isCompleted).toList();
+    final activeTasks = allTasks.where((t) => !t.isCompleted).toList();
+    final completedTasks = allTasks.where((t) => t.isCompleted).toList();
 
-        if (activeTasks.isEmpty && completedTasks.isEmpty) {
-          _orderedItemIds.clear();
-          return Center(
-            child: isFiltering(filter)
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.filter_list_alt, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      SizedBox(height: 16),
-                      Text('No items found'),
-                      SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _searchQuery = "";
-                            _searchController.text = "";
-                          });
-                          context.read<FilterProvider>().clearFilter();
-                        },
-                        child: Text('Remove Filters'),
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.inbox_rounded, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      SizedBox(height: 16),
-                      Text(
-                        'No backlog tasks',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
-                      ),
-                      SizedBox(height: 8),
-                      TextButton(onPressed: () => _showAddTask(context), child: Text('Add a task')),
-                    ],
+    if (activeTasks.isEmpty && completedTasks.isEmpty) {
+      _orderedItemIds.clear();
+      return Center(
+        child: isFiltering(filter)
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.filter_list_alt, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  SizedBox(height: 16),
+                  Text('No items found'),
+                  SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _searchQuery = "";
+                        _searchController.text = "";
+                      });
+                      ref.read(filterProvider.notifier).clearFilter();
+                    },
+                    child: Text('Remove Filters'),
                   ),
-          );
-        }
+                ],
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.inbox_rounded, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  SizedBox(height: 16),
+                  Text(
+                    'No backlog tasks',
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
+                  ),
+                  SizedBox(height: 8),
+                  TextButton(onPressed: () => _showAddTask(context), child: Text('Add a task')),
+                ],
+              ),
+      );
+    }
 
-        final allAvailableTasks = {for (var t in provider.tasks) t.id: t}
-          ..addAll({for (var t in provider.overdueTasks) t.id: t})
-          ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
+    final allAvailableTasks = {for (var t in provider.tasks) t.id: t}
+      ..addAll({for (var t in provider.overdueTasks) t.id: t})
+      ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
 
-        final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
-        final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks, allTasks: allAvailableTasks);
+    final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
+    final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks, allTasks: allAvailableTasks);
 
-        // Build the ordered list of IDs explicitly for traversal
-        _orderedItemIds.clear();
-        for (final n in activeHierarchical) {
-          if (n is TaskNode) {
-            _orderedItemIds.add(n.task.id);
-          }
-        }
-        for (final n in completedHierarchical) {
-          if (n is TaskNode) {
-            _orderedItemIds.add(n.task.id);
-          }
-        }
+    // Build the ordered list of IDs explicitly for traversal
+    _orderedItemIds.clear();
+    for (final n in activeHierarchical) {
+      if (n is TaskNode) {
+        _orderedItemIds.add(n.task.id);
+      }
+    }
+    for (final n in completedHierarchical) {
+      if (n is TaskNode) {
+        _orderedItemIds.add(n.task.id);
+      }
+    }
 
-        Widget buildNode(TaskHierarchyNode n) {
-          Widget child;
-          if (n is TaskNode) {
-            final focusNode = _itemFocusNodes.putIfAbsent(n.task.id, () => FocusNode(debugLabel: 'Task_${n.task.id}'));
+    Widget buildNode(TaskHierarchyNode n) {
+      Widget child;
+      if (n is TaskNode) {
+        final focusNode = _itemFocusNodes.putIfAbsent(n.task.id, () => FocusNode(debugLabel: 'Task_${n.task.id}'));
 
-            child = TaskCard(
-              key: ValueKey(n.task.id),
-              task: n.task,
-              project: n.task.projectId != null ? projectProvider.getById(n.task.projectId!) : null,
-              isChecked: _selectedTaskIds.contains(n.task.id),
-              selectionMode: true,
-              focusNode: focusNode,
-              onToggle: (value) {
-                if (value != null) {
-                  setState(() {
-                    if (value) {
-                      _selectedTaskIds.add(n.task.id);
-                    } else {
-                      _selectedTaskIds.remove(n.task.id);
-                    }
-                  });
+        child = TaskCard(
+          key: ValueKey(n.task.id),
+          task: n.task,
+          project: n.task.projectId != null ? projectState.getById(n.task.projectId!) : null,
+          isChecked: _selectedTaskIds.contains(n.task.id),
+          selectionMode: true,
+          focusNode: focusNode,
+          onToggle: (value) {
+            if (value != null) {
+              setState(() {
+                if (value) {
+                  _selectedTaskIds.add(n.task.id);
+                } else {
+                  _selectedTaskIds.remove(n.task.id);
                 }
-              },
-              onTap: () => _showEditTask(context, n.task),
-              onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
-                context,
-                n.task,
-                localPosition,
-                renderBox,
-                onAction: () {
-                  if (_selectedTaskIds.contains(n.task.id)) {
-                    setState(() => _selectedTaskIds.remove(n.task.id));
-                  }
-                },
-              ),
-              trailing: _taskTrailing(context, n.task),
-            );
-          } else if (n is BlockerIndicatorNode) {
-            child = BlockerIndicator(
-              blockerId: n.blockerId,
-              blockerTitle: n.blockerTitle,
-              blockedTaskId: n.blockedTaskId,
-            );
-          } else {
-            return const SizedBox.shrink();
-          }
-
-          return TaskHierarchyIndicator(depth: n.depth, child: child);
-        }
-
-        return ListView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          children: [
-            ...activeHierarchical.map((n) => buildNode(n)),
-            if (completedHierarchical.isNotEmpty) ...[
-              SizedBox(height: 20),
-              Text(
-                'Completed',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              SizedBox(height: 8),
-              ...completedHierarchical.map((n) => buildNode(n)),
-            ],
-          ],
+              });
+            }
+          },
+          onTap: () => _showEditTask(context, n.task),
+          onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
+            context,
+            ref,
+            n.task,
+            localPosition,
+            renderBox,
+            onAction: () {
+              if (_selectedTaskIds.contains(n.task.id)) {
+                setState(() => _selectedTaskIds.remove(n.task.id));
+              }
+            },
+          ),
+          trailing: _taskTrailing(context, n.task),
         );
-      },
+      } else if (n is BlockerIndicatorNode) {
+        child = BlockerIndicator(
+          blockerId: n.blockerId,
+          blockerTitle: n.blockerTitle,
+          blockedTaskId: n.blockedTaskId,
+        );
+      } else {
+        return const SizedBox.shrink();
+      }
+
+      return TaskHierarchyIndicator(depth: n.depth, child: child);
+    }
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      children: [
+        ...activeHierarchical.map((n) => buildNode(n)),
+        if (completedHierarchical.isNotEmpty) ...[
+          SizedBox(height: 20),
+          Text(
+            'Completed',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(height: 8),
+          ...completedHierarchical.map((n) => buildNode(n)),
+        ],
+      ],
     );
   }
 
@@ -502,6 +498,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
                 final localPosition = Offset.zero;
                 showBacklogContextMenu(
                   context,
+                  ref,
                   task,
                   localPosition,
                   renderBox,
@@ -522,61 +519,43 @@ class _BacklogScreenState extends State<BacklogScreen> {
   void _showEditTask(BuildContext context, Task task) {
     showDialog(
       context: context,
-      builder: (_) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: context.read<TaskProvider>()),
-          ChangeNotifierProvider.value(value: context.read<ProjectProvider>()),
-        ],
-        child: EditTaskDialog(task: task),
-      ),
+      builder: (_) => EditTaskDialog(task: task),
     );
   }
 
   void _showAddTask(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => ChangeNotifierProvider.value(
-        value: context.read<TaskProvider>(),
-        child: ChangeNotifierProvider.value(value: context.read<ProjectProvider>(), child: AddTaskDialog()),
-      ),
+      builder: (_) => AddTaskDialog(),
     );
   }
 
   void _showImportFromMD(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => ChangeNotifierProvider.value(
-        value: context.read<TaskProvider>(),
-        child: ChangeNotifierProvider.value(value: context.read<ProjectProvider>(), child: ImportFromMDDialog()),
-      ),
+      builder: (_) => ImportFromMDDialog(),
     );
   }
 
   void _showFilterDialog(BuildContext context) async {
-    final filterProvider = context.read<FilterProvider>();
+    final filterProviderVal = ref.read(filterProvider);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) => FilterDialog(initialFilter: filterProvider.filter),
+      builder: (_) => FilterDialog(initialFilter: filterProviderVal.filter),
     );
     if (result != null) {
-      filterProvider.setFilter(result);
+      ref.read(filterProvider.notifier).setFilter(result);
     }
   }
 
   void _showBulkEdit(BuildContext context) async {
     final result = await showDialog<BulkEditResult>(
       context: context,
-      builder: (_) => ChangeNotifierProvider.value(
-        value: context.read<TaskProvider>(),
-        child: ChangeNotifierProvider.value(
-          value: context.read<ProjectProvider>(),
-          child: BulkEditTasksDialog(taskIds: _selectedTaskIds),
-        ),
-      ),
+      builder: (_) => BulkEditTasksDialog(taskIds: _selectedTaskIds),
     );
 
     if (result != null && context.mounted) {
-      await context.read<TaskProvider>().bulkUpdateTasks(
+      await ref.read(taskProvider.notifier).bulkUpdateTasks(
         taskIds: _selectedTaskIds,
         priority: result.priority,
         updatePriority: result.updatePriority,
@@ -614,7 +593,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
               foregroundColor: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () async {
-              await context.read<TaskProvider>().bulkDeleteTasks(_selectedTaskIds);
+              await ref.read(taskProvider.notifier).bulkDeleteTasks(_selectedTaskIds);
               if (!mounted) return;
               setState(() => _selectedTaskIds.clear());
               if (ctx.mounted) {
@@ -629,13 +608,13 @@ class _BacklogScreenState extends State<BacklogScreen> {
   }
 
   void _pickRandomTask(BuildContext context) async {
-    final taskProvider = context.read<TaskProvider>();
-    final projectProvider = context.read<ProjectProvider>();
-    final filter = context.read<FilterProvider>().activeFilter;
+    final taskProviderVal = ref.read(taskProvider);
+    final projectProviderVal = ref.read(projectProvider);
+    final filter = ref.read(filterProvider).activeFilter;
 
     // Filter tasks based on current filters (same logic as in _taskList)
-    var availableTasks = taskProvider.unscheduledTasks.where((t) {
-      final project = t.projectId != null ? projectProvider.getById(t.projectId!) : null;
+    var availableTasks = taskProviderVal.unscheduledTasks.where((t) {
+      final project = t.projectId != null ? projectProviderVal.getById(t.projectId!) : null;
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
@@ -648,7 +627,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
       );
     }
 
-    final randomTask = await taskProvider.pickAndScheduleRandomTask(availableTasks);
+    final randomTask = await ref.read(taskProvider.notifier).pickAndScheduleRandomTask(availableTasks);
 
     if (randomTask == null) {
       ToastUtils.showInfo('No available tasks to pick from');
@@ -668,7 +647,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
           children: [
             TaskCard(
               task: randomTask,
-              project: randomTask.projectId != null ? projectProvider.getById(randomTask.projectId!) : null,
+              project: randomTask.projectId != null ? projectProviderVal.getById(randomTask.projectId!) : null,
               onToggle: (_) {}, // Read-only for history
               onTap: () {},
               leading: const SizedBox.shrink(),

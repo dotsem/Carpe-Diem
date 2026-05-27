@@ -2,7 +2,7 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/blocker_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -46,16 +46,16 @@ class BulkEditResult {
   });
 }
 
-class BulkEditTasksDialog extends StatefulWidget {
+class BulkEditTasksDialog extends ConsumerStatefulWidget {
   final List<String> taskIds;
 
   const BulkEditTasksDialog({super.key, required this.taskIds});
 
   @override
-  State<BulkEditTasksDialog> createState() => _BulkEditTasksDialogState();
+  ConsumerState<BulkEditTasksDialog> createState() => _BulkEditTasksDialogState();
 }
 
-class _BulkEditTasksDialogState extends State<BulkEditTasksDialog> {
+class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
   bool _enablePriority = false;
   Priority _priority = Priority.none;
 
@@ -71,20 +71,22 @@ class _BulkEditTasksDialogState extends State<BulkEditTasksDialog> {
   bool _enableBlocker = false;
   String? _blockedById;
   List<Task> _projectTasks = [];
-  late WindowTitleProvider _windowTitleProvider;
+  late WindowTitleNotifier _windowTitleNotifier;
 
   @override
   void initState() {
     super.initState();
-    _windowTitleProvider = context.read<WindowTitleProvider>();
+    _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _windowTitleProvider.pushSubtitle('Bulk Editing ${widget.taskIds.length} Tasks');
+      _windowTitleNotifier.pushSubtitle('Bulk Editing ${widget.taskIds.length} Tasks');
     });
   }
 
   @override
   void dispose() {
-    _windowTitleProvider.popSubtitle();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _windowTitleNotifier.popSubtitle();
+    });
     super.dispose();
   }
 
@@ -100,13 +102,13 @@ class _BulkEditTasksDialogState extends State<BulkEditTasksDialog> {
       }
       return;
     }
-    final tasks = await context.read<TaskProvider>().getTasksForProject(_selectedProjectId!);
+    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
     if (mounted) {
       setState(() => _projectTasks = tasks);
     }
   }
 
-  DateTime get _maxDate => DateTime.now().add(Duration(days: context.read<SettingsProvider>().maxPlanningDays));
+  DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
 
   Widget _buildFieldRow(String label, bool value, ValueChanged<bool?> onChanged, Widget child) {
     return Column(
@@ -134,7 +136,7 @@ class _BulkEditTasksDialogState extends State<BulkEditTasksDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = context.read<ProjectProvider>().projects.where((p) => p.isActive).toList();
+    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
 
     return SizedDialog(
       title: 'Bulk Edit ${widget.taskIds.length} Tasks',
