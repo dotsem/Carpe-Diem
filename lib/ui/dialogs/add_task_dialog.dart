@@ -89,7 +89,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = context.read<ProjectProvider>().projects;
+    final projects = context.read<ProjectProvider>().projects.where((p) => p.isActive).toList();
 
     return AppShortcutRegistrar(
       shortcuts: taskDialogShortcutEntries,

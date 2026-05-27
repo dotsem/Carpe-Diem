@@ -90,7 +90,11 @@ class _EditTaskDialogState extends State<EditTaskDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = context.read<ProjectProvider>().projects;
+    final projects = context
+        .read<ProjectProvider>()
+        .projects
+        .where((p) => p.isActive || p.id == widget.task.projectId)
+        .toList();
 
     return AppShortcutRegistrar(
       shortcuts: taskDialogShortcutEntries,

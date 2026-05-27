@@ -20,7 +20,7 @@ class _ImportFromMDDialogState extends State<ImportFromMDDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = context.read<ProjectProvider>().projects;
+    final projects = context.read<ProjectProvider>().projects.where((p) => p.isActive).toList();
 
     return SizedDialog(
       maxWidth: 800,

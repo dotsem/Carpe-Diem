@@ -134,7 +134,7 @@ class _BulkEditTasksDialogState extends State<BulkEditTasksDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = context.read<ProjectProvider>().projects;
+    final projects = context.read<ProjectProvider>().projects.where((p) => p.isActive).toList();
 
     return SizedDialog(
       title: 'Bulk Edit ${widget.taskIds.length} Tasks',
