@@ -1,6 +1,7 @@
 import 'package:carpe_diem/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/ui/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/common/sized_dialog.dart';
+import 'package:carpe_diem/ui/dialogs/common/delete_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/import_from_md_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/bulk_edit_tasks_dialog.dart';
@@ -18,6 +19,7 @@ import 'package:carpe_diem/providers/project_provider.dart';
 import 'package:carpe_diem/providers/settings_provider.dart';
 import 'package:carpe_diem/ui/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/ui/widgets/bulk_action_menu.dart';
+import 'package:carpe_diem/ui/widgets/bulk_planning_bar.dart';
 import 'package:carpe_diem/ui/widgets/task_card.dart';
 import 'package:carpe_diem/ui/widgets/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
@@ -174,73 +176,108 @@ class _BacklogScreenState extends State<BacklogScreen> {
             focusNode: _mainFocusNode,
             autofocus: true,
             debugLabel: 'BacklogScreenMainFocus',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                ScreenHeader(
-                  title: 'Backlog',
-                  subtitle: 'Tasks without a scheduled date',
-                  actions: [
-                    if (_selectedTaskIds.isNotEmpty) ...[
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.success,
-                          foregroundColor: Theme.of(context).colorScheme.onSurface,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ScreenHeader(
+                      title: 'Backlog',
+                      subtitle: 'Tasks without a scheduled date',
+                      actions: [
+                        if (settings.enableRandomTask) ...[
+                          IconButton(
+                            onPressed: () => _pickRandomTask(context),
+                            icon: Icon(Icons.casino_rounded),
+                            tooltip: 'Give me a random task!',
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        FilledButton.icon(
+                          onPressed: () => _showAddTask(context),
+                          icon: Icon(Icons.add),
+                          label: Text('Add Task'),
                         ),
-                        onPressed: () {
-                          context.read<TaskProvider>().scheduleTasksForToday(_selectedTaskIds).then((_) {
-                            setState(() => _selectedTaskIds.clear());
-                          });
-                        },
-                        label: Text('Plan tasks for today'),
-                        icon: Icon(Icons.calendar_today_rounded),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    if (settings.enableRandomTask) ...[
-                      IconButton(
-                        onPressed: () => _pickRandomTask(context),
-                        icon: Icon(Icons.casino_rounded),
-                        tooltip: 'Give me a random task!',
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    FilledButton.icon(
-                      onPressed: () => _showAddTask(context),
-                      icon: Icon(Icons.add),
-                      label: Text('Add Task'),
+                        const SizedBox(width: 8),
+                        _buildHeaderActions(context),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    _buildHeaderActions(context),
+                    Consumer<FilterProvider>(
+                      builder: (context, filterProvider, _) => FilterBar(
+                        filter: filterProvider.filter,
+                        isBypassed: filterProvider.isBypassed,
+                        onFilterTap: () => _showFilterDialog(context),
+                        onClearFilter: () => filterProvider.clearFilter(),
+                      ),
+                    ),
+                    Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: FuzzySearchBar(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        hintText: 'Search backlog tasks... (Press / to focus)',
+                        onChanged: (value) => setState(() {
+                          _searchQuery = value;
+                        }),
+                        onSubmitted: (_) {
+                          if (_orderedItemIds.isNotEmpty) {
+                            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                          }
+                        },
+                      ),
+                    ),
+                    Divider(height: 1),
+                    Expanded(child: _taskList()),
                   ],
                 ),
-                Consumer<FilterProvider>(
-                  builder: (context, filterProvider, _) => FilterBar(
-                    filter: filterProvider.filter,
-                    isBypassed: filterProvider.isBypassed,
-                    onFilterTap: () => _showFilterDialog(context),
-                    onClearFilter: () => filterProvider.clearFilter(),
-                  ),
-                ),
-                Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: FuzzySearchBar(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    hintText: 'Search backlog tasks... (Press / to focus)',
-                    onChanged: (value) => setState(() {
-                      _searchQuery = value;
-                    }),
-                    onSubmitted: (_) {
-                      if (_orderedItemIds.isNotEmpty) {
-                        _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 16,
+                  child: BulkPlanningBar(
+                    selectedCount: _selectedTaskIds.length,
+                    onClearSelection: () => setState(() => _selectedTaskIds.clear()),
+                    onScheduleToday: () {
+                      context.read<TaskProvider>().scheduleTasksForToday(_selectedTaskIds).then((_) {
+                        setState(() => _selectedTaskIds.clear());
+                      });
+                    },
+                    onScheduleTomorrow: () {
+                      context.read<TaskProvider>().scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
+                        setState(() => _selectedTaskIds.clear());
+                      });
+                    },
+                    onBulkEdit: () {
+                      if (_selectedTaskIds.length == 1) {
+                        final provider = context.read<TaskProvider>();
+                        final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                        _showEditTask(context, task);
+                      } else {
+                        _showBulkEdit(context);
+                      }
+                    },
+                    onBulkDelete: () {
+                      if (_selectedTaskIds.length == 1) {
+                        final provider = context.read<TaskProvider>();
+                        final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => DeleteDialog(
+                            title: "Delete Task",
+                            message: "Are you sure you want to delete this task?",
+                            onConfirm: () {
+                              provider.deleteTask(task);
+                              setState(() => _selectedTaskIds.clear());
+                            },
+                          ),
+                        );
+                      } else {
+                        _showBulkDeleteConfirm(context);
                       }
                     },
                   ),
                 ),
-                Divider(height: 1),
-                Expanded(child: _taskList()),
               ],
             ),
           ),
@@ -264,30 +301,11 @@ class _BacklogScreenState extends State<BacklogScreen> {
     return BulkActionMenu(
       options: [
         BulkActionOption(value: 'import', icon: Icons.download_rounded, label: 'Import from MD', enabled: true),
-        BulkActionOption(
-          value: 'edit',
-          icon: Icons.edit_rounded,
-          label: 'Bulk Edit',
-          enabled: _selectedTaskIds.length >= 2,
-        ),
-        BulkActionOption(
-          value: 'delete',
-          icon: Icons.delete_rounded,
-          label: 'Bulk Delete',
-          enabled: _selectedTaskIds.length >= 2,
-          isDestructive: true,
-        ),
       ],
       onOptionSelected: (value) {
         switch (value) {
           case 'import':
             _showImportFromMD(context);
-            break;
-          case 'edit':
-            _showBulkEdit(context);
-            break;
-          case 'delete':
-            _showBulkDeleteConfirm(context);
             break;
         }
       },
