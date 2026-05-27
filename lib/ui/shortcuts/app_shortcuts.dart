@@ -94,8 +94,12 @@ const taskCardShortcutEntries = [
   ShortcutEntry(key: 'Enter', description: 'Toggle completion', category: 'Focused Task'),
   ShortcutEntry(key: 'e', description: 'Edit task', category: 'Focused Task'),
   ShortcutEntry(key: 'd', description: 'Delete task', category: 'Focused Task'),
-  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
-  ShortcutEntry(key: 'Ctrl + Shift + T', description: 'Plan for tomorrow', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today, plans all selected tasks', category: 'Focused Task'),
+  ShortcutEntry(
+    key: 'Ctrl + Shift + T',
+    description: 'Plan for tomorrow, plans all selected tasks',
+    category: 'Focused Task',
+  ),
 ];
 
 const projectShortcutEntries = [
@@ -124,8 +128,12 @@ const backlogShortcutEntries = [
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Backlog'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Backlog'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Backlog'),
-  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
-  ShortcutEntry(key: 'Ctrl + Shift + T', description: 'Plan for tomorrow', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today, plans all selected tasks', category: 'Focused Task'),
+  ShortcutEntry(
+    key: 'Ctrl + Shift + T',
+    description: 'Plan for tomorrow, plans all selected tasks',
+    category: 'Focused Task',
+  ),
 ];
 
 const projectDetailShortcutEntries = [
@@ -134,8 +142,12 @@ const projectDetailShortcutEntries = [
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Project Detail'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Project Detail'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Project Detail'),
-  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
-  ShortcutEntry(key: 'Ctrl + Shift + T', description: 'Plan for tomorrow', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today, plans all selected tasks', category: 'Focused Task'),
+  ShortcutEntry(
+    key: 'Ctrl + Shift + T',
+    description: 'Plan for tomorrow, plans all selected tasks',
+    category: 'Focused Task',
+  ),
 ];
 
 bool isTypingInTextField() {

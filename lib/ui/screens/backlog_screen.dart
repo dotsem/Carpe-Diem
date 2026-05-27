@@ -167,15 +167,27 @@ class _BacklogScreenState extends State<BacklogScreen> {
               _showAddTask(context);
             }),
             PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
-              final taskId = _getFocusedTaskId();
-              if (taskId != null) {
-                context.read<TaskProvider>().scheduleTasksForToday([taskId]);
+              if (_selectedTaskIds.isNotEmpty) {
+                context.read<TaskProvider>().scheduleTasksForToday(List.from(_selectedTaskIds)).then((_) {
+                  setState(() => _selectedTaskIds.clear());
+                });
+              } else {
+                final taskId = _getFocusedTaskId();
+                if (taskId != null) {
+                  context.read<TaskProvider>().scheduleTasksForToday([taskId]);
+                }
               }
             }),
             PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
-              final taskId = _getFocusedTaskId();
-              if (taskId != null) {
-                context.read<TaskProvider>().scheduleTasksForTomorrow([taskId]);
+              if (_selectedTaskIds.isNotEmpty) {
+                context.read<TaskProvider>().scheduleTasksForTomorrow(List.from(_selectedTaskIds)).then((_) {
+                  setState(() => _selectedTaskIds.clear());
+                });
+              } else {
+                final taskId = _getFocusedTaskId();
+                if (taskId != null) {
+                  context.read<TaskProvider>().scheduleTasksForTomorrow([taskId]);
+                }
               }
             }),
           },

@@ -35,6 +35,7 @@ class TaskListView extends StatefulWidget {
   final Map<String, FocusNode>? itemFocusNodes;
   final ValueChanged<List<String>>? onOrderedIdsChanged;
   final bool enablePlanShortcut;
+  final VoidCallback? onClearSelection;
 
   const TaskListView({
     super.key,
@@ -57,6 +58,7 @@ class TaskListView extends StatefulWidget {
     this.itemFocusNodes,
     this.onOrderedIdsChanged,
     this.enablePlanShortcut = false,
+    this.onClearSelection,
   }) : padding = padding ?? const EdgeInsets.symmetric(vertical: 16);
 
   @override
@@ -271,15 +273,27 @@ class _TaskListViewState extends State<TaskListView> {
             _moveFocus(-1);
           }),
           PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
-            final taskId = _getFocusedTaskId();
-            if (taskId != null) {
-              taskProvider.scheduleTasksForToday([taskId]);
+            if (widget.selectedTaskIds.isNotEmpty) {
+              taskProvider.scheduleTasksForToday(widget.selectedTaskIds.toList()).then((_) {
+                widget.onClearSelection?.call();
+              });
+            } else {
+              final taskId = _getFocusedTaskId();
+              if (taskId != null) {
+                taskProvider.scheduleTasksForToday([taskId]);
+              }
             }
           }),
           PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
-            final taskId = _getFocusedTaskId();
-            if (taskId != null) {
-              taskProvider.scheduleTasksForTomorrow([taskId]);
+            if (widget.selectedTaskIds.isNotEmpty) {
+              taskProvider.scheduleTasksForTomorrow(widget.selectedTaskIds.toList()).then((_) {
+                widget.onClearSelection?.call();
+              });
+            } else {
+              final taskId = _getFocusedTaskId();
+              if (taskId != null) {
+                taskProvider.scheduleTasksForTomorrow([taskId]);
+              }
             }
           }),
         },

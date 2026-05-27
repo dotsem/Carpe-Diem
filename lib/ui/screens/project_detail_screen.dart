@@ -304,6 +304,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                         showScheduleDate: true,
                                         selectionMode: true,
                                         selectedTaskIds: _selectedTaskIds.toSet(),
+                                        onClearSelection: () => setState(() => _selectedTaskIds.clear()),
                                         onSelectedChanged: (task) {
                                           setState(() {
                                             if (_selectedTaskIds.contains(task.id)) {
