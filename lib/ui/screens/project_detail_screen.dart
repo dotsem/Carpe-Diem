@@ -9,6 +9,7 @@ import 'package:carpe_diem/ui/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/ui/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/ui/dialogs/bulk_edit_tasks_dialog.dart';
 import 'package:carpe_diem/ui/widgets/bulk_action_menu.dart';
+import 'package:carpe_diem/ui/widgets/bulk_planning_bar.dart';
 import 'package:carpe_diem/ui/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/ui/widgets/priority_indicator.dart';
 import 'package:flutter/material.dart';
@@ -167,6 +168,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       builder: (context, projectProvider, child) {
         final project = projectProvider.getById(widget.projectId);
 
+        final selectedTasksAlreadyScheduled = _selectedTaskIds
+            .map((id) => _tasks.firstWhere((t) => t.id == id))
+            .every((task) => task.scheduledDate != null);
+
         if (project == null) {
           return Center(
             child: Text("Project not found", style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -181,161 +186,218 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           shortcuts: projectDetailShortcutEntries,
           child: Shortcuts(
             shortcuts: {
-            const CharacterActivator('/'): const _FocusSearchIntent(),
-            const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-            if (project.isActive) const CharacterActivator('n'): const _NewTaskIntent(),
-            if (project.isActive) const CharacterActivator('N'): const _NewTaskIntent(),
-            const CharacterActivator('j'): const MoveNextIntent(),
-            const CharacterActivator('k'): const MovePrevIntent(),
-            const CharacterActivator('f'): const FilterIntent(),
-          },
-          child: Actions(
-            actions: {
-              MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-                _moveFocus(1);
-              }),
-              MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-                _moveFocus(-1);
-              }),
-              _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
-                _searchFocusNode.requestFocus();
-              }),
-              _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
-                onInvoke: (intent) {
-                  if (_searchFocusNode.hasFocus) {
-                    _searchFocusNode.unfocus();
-                    if (_tasks.isNotEmpty) {
-                      _firstItemFocusNode.requestFocus();
-                    } else {
-                      _mainFocusNode.requestFocus();
-                    }
-                  }
-                  return null;
-                },
-              ),
-              if (project.isActive)
-                _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
-                  _showAddTask(context);
-                }),
-              FilterIntent: NonTypingAction<FilterIntent>((_) {
-                _showFilterDialog(context);
-              }),
+              const CharacterActivator('/'): const _FocusSearchIntent(),
+              const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
+              if (project.isActive) const CharacterActivator('n'): const _NewTaskIntent(),
+              if (project.isActive) const CharacterActivator('N'): const _NewTaskIntent(),
+              const CharacterActivator('j'): const MoveNextIntent(),
+              const CharacterActivator('k'): const MovePrevIntent(),
+              const CharacterActivator('f'): const FilterIntent(),
             },
-            child: Focus(
-              focusNode: _mainFocusNode,
-              autofocus: true,
-              debugLabel: 'ProjectDetailScreenMainFocus',
-              child: Scaffold(
-                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                body: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _header(context, project),
-                    Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: FuzzySearchBar(
-                        controller: _searchController,
-                        focusNode: _searchFocusNode,
-                        hintText: 'Search backlog tasks... (Press / to focus)',
-                        onChanged: (value) => setState(() {
-                          _searchQuery = value;
-                        }),
-                        onSubmitted: (_) {
-                          if (_tasks.isNotEmpty) {
-                            _firstItemFocusNode.requestFocus();
-                          }
-                        },
-                      ),
-                    ),
-                    Consumer<FilterProvider>(
-                      builder: (context, filterProvider, _) => FilterBar(
-                        filter: filterProvider.filter,
-                        isBypassed: filterProvider.isBypassed,
-                        ignoreProjects: true,
-                        onFilterTap: () => _showFilterDialog(context),
-                        onClearFilter: () => filterProvider.clearFilter(),
-                      ),
-                    ),
-                    Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
-                    Expanded(
-                      child: _isLoading
-                          ? Center(child: CircularProgressIndicator())
-                          : Builder(
-                              builder: (context) {
-                                final filter = context.watch<FilterProvider>().activeFilter.limitTo(projects: false);
-                                final filteredTasks = _tasks
-                                    .where((t) => filter.applyToTask(t, project.labelIds))
-                                    .toList();
-                                return TaskListView(
-                                  tasks: filteredTasks,
-                                  padding: const EdgeInsets.symmetric(vertical: 24),
-                                  onContextMenu: (ctx, task, pos, box) {
-                                    if (task.scheduledDate != null) {
-                                      showTaskCardContextMenu(ctx, task, pos, box);
-                                    } else {
-                                      showBacklogContextMenu(ctx, task, pos, box);
-                                    }
-                                  },
-                                  trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
-                                  emptyPlaceholder: Center(
-                                    child: Text(
-                                      "No tasks in this project",
-                                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                    ),
-                                  ),
-                                  onOrderedIdsChanged: (ids) {
-                                    _orderedItemIds.clear();
-                                    _orderedItemIds.addAll(ids);
-                                  },
-                                  itemFocusNodes: _itemFocusNodes,
-                                  searchQuery: _searchQuery,
-                                  enablePlanShortcut: true,
-                                  firstNode: _firstItemFocusNode,
-                                  showScheduleDate: true,
-                                  selectionMode: true,
-                                  selectedTaskIds: _selectedTaskIds.toSet(),
-                                  onSelectedChanged: (task) {
-                                    setState(() {
-                                      if (_selectedTaskIds.contains(task.id)) {
-                                        _selectedTaskIds.remove(task.id);
-                                      } else {
-                                        _selectedTaskIds.add(task.id);
-                                      }
-                                    });
-                                  },
-                                  onEdit: (task) => _showEditTask(context, task),
-                                  isReadOnly: !project.isActive,
-                                  initialDoneExpanded: !project.isActive,
-                                );
+            child: Actions(
+              actions: {
+                MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
+                  _moveFocus(1);
+                }),
+                MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
+                  _moveFocus(-1);
+                }),
+                _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
+                  _searchFocusNode.requestFocus();
+                }),
+                _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
+                  onInvoke: (intent) {
+                    if (_searchFocusNode.hasFocus) {
+                      _searchFocusNode.unfocus();
+                      if (_tasks.isNotEmpty) {
+                        _firstItemFocusNode.requestFocus();
+                      } else {
+                        _mainFocusNode.requestFocus();
+                      }
+                    }
+                    return null;
+                  },
+                ),
+                if (project.isActive)
+                  _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
+                    _showAddTask(context);
+                  }),
+                FilterIntent: NonTypingAction<FilterIntent>((_) {
+                  _showFilterDialog(context);
+                }),
+              },
+              child: Focus(
+                focusNode: _mainFocusNode,
+                autofocus: true,
+                debugLabel: 'ProjectDetailScreenMainFocus',
+                child: Scaffold(
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  body: Stack(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _header(context, project),
+                          Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: FuzzySearchBar(
+                              controller: _searchController,
+                              focusNode: _searchFocusNode,
+                              hintText: 'Search backlog tasks... (Press / to focus)',
+                              onChanged: (value) => setState(() {
+                                _searchQuery = value;
+                              }),
+                              onSubmitted: (_) {
+                                if (_tasks.isNotEmpty) {
+                                  _firstItemFocusNode.requestFocus();
+                                }
                               },
                             ),
-                    ),
-                  ],
+                          ),
+                          Consumer<FilterProvider>(
+                            builder: (context, filterProvider, _) => FilterBar(
+                              filter: filterProvider.filter,
+                              isBypassed: filterProvider.isBypassed,
+                              ignoreProjects: true,
+                              onFilterTap: () => _showFilterDialog(context),
+                              onClearFilter: () => filterProvider.clearFilter(),
+                            ),
+                          ),
+                          Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
+                          Expanded(
+                            child: _isLoading
+                                ? Center(child: CircularProgressIndicator())
+                                : Builder(
+                                    builder: (context) {
+                                      final filter = context.watch<FilterProvider>().activeFilter.limitTo(
+                                        projects: false,
+                                      );
+                                      final filteredTasks = _tasks
+                                          .where((t) => filter.applyToTask(t, project.labelIds))
+                                          .toList();
+                                      return TaskListView(
+                                        tasks: filteredTasks,
+                                        padding: const EdgeInsets.symmetric(vertical: 24),
+                                        onContextMenu: (ctx, task, pos, box) {
+                                          if (task.scheduledDate != null) {
+                                            showTaskCardContextMenu(ctx, task, pos, box);
+                                          } else {
+                                            showBacklogContextMenu(ctx, task, pos, box);
+                                          }
+                                        },
+                                        trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+                                        emptyPlaceholder: Center(
+                                          child: Text(
+                                            "No tasks in this project",
+                                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                          ),
+                                        ),
+                                        onOrderedIdsChanged: (ids) {
+                                          _orderedItemIds.clear();
+                                          _orderedItemIds.addAll(ids);
+                                        },
+                                        itemFocusNodes: _itemFocusNodes,
+                                        searchQuery: _searchQuery,
+                                        enablePlanShortcut: true,
+                                        firstNode: _firstItemFocusNode,
+                                        showScheduleDate: true,
+                                        selectionMode: true,
+                                        selectedTaskIds: _selectedTaskIds.toSet(),
+                                        onSelectedChanged: (task) {
+                                          setState(() {
+                                            if (_selectedTaskIds.contains(task.id)) {
+                                              _selectedTaskIds.remove(task.id);
+                                            } else {
+                                              _selectedTaskIds.add(task.id);
+                                            }
+                                          });
+                                        },
+                                        onEdit: (task) => _showEditTask(context, task),
+                                        isReadOnly: !project.isActive,
+                                        initialDoneExpanded: !project.isActive,
+                                      );
+                                    },
+                                  ),
+                          ),
+                        ],
+                      ),
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 16,
+                        child: BulkPlanningBar(
+                          selectedCount: _selectedTaskIds.length,
+                          onClearSelection: () => setState(() => _selectedTaskIds.clear()),
+                          disableScheduling: selectedTasksAlreadyScheduled,
+                          onScheduleToday: () {
+                            context.read<TaskProvider>().scheduleTasksForToday(_selectedTaskIds).then((_) {
+                              setState(() => _selectedTaskIds.clear());
+                            });
+                          },
+                          onScheduleTomorrow: () {
+                            context.read<TaskProvider>().scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
+                              setState(() => _selectedTaskIds.clear());
+                            });
+                          },
+                          onBulkEdit: () {
+                            if (_selectedTaskIds.length == 1) {
+                              final task = _tasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                              _showEditTask(context, task);
+                            } else {
+                              _showBulkEdit(context);
+                            }
+                          },
+                          onBulkDelete: () {
+                            if (_selectedTaskIds.length == 1) {
+                              final task = _tasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                              showDialog(
+                                context: context,
+                                builder: (ctx) => DeleteDialog(
+                                  title: "Delete Task",
+                                  message: "Are you sure you want to delete this task?",
+                                  onConfirm: () {
+                                    context.read<TaskProvider>().deleteTask(task);
+                                    setState(() => _selectedTaskIds.clear());
+                                  },
+                                ),
+                              );
+                            } else {
+                              _showBulkDeleteConfirm(context);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  floatingActionButton: project.isActive
+                      ? Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black,
+                                blurRadius: 15,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: FloatingActionButton(
+                            onPressed: () => _showAddTask(context),
+                            backgroundColor: project.color,
+                            elevation: 0,
+                            highlightElevation: 0,
+                            child: const Icon(Icons.add, color: Colors.white),
+                          ),
+                        )
+                      : null,
                 ),
-                floatingActionButton: project.isActive
-                    ? Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(color: Colors.black, blurRadius: 15, spreadRadius: 2, offset: const Offset(0, 4)),
-                          ],
-                        ),
-                        child: FloatingActionButton(
-                          onPressed: () => _showAddTask(context),
-                          backgroundColor: project.color,
-                          elevation: 0,
-                          highlightElevation: 0,
-                          child: const Icon(Icons.add, color: Colors.white),
-                        ),
-                      )
-                    : null,
               ),
             ),
           ),
-        ),
-      );
-    },
+        );
+      },
     );
   }
 
@@ -370,34 +432,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           ),
                         ),
                       ),
-                      if (_selectedTaskIds.isEmpty) ...[
-                        IconButton(
-                          icon: Icon(Icons.edit_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                          onPressed: () => _showEditProject(context, project),
-                          tooltip: 'Edit Project',
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete_outline, color: AppColors.error),
-                          onPressed: () => _showDeleteProject(context, project),
-                          tooltip: 'Delete Project',
-                        ),
-                        SizedBox(width: 8),
-                      ] else ...[
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.success,
-                            foregroundColor: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          onPressed: () {
-                            context.read<TaskProvider>().scheduleTasksForToday(_selectedTaskIds).then((_) {
-                              setState(() => _selectedTaskIds.clear());
-                            });
-                          },
-                          label: Text('Plan for today'),
-                          icon: Icon(Icons.calendar_today_rounded),
-                        ),
-                        SizedBox(width: 8),
-                      ],
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        onPressed: () => _showEditProject(context, project),
+                        tooltip: 'Edit Project',
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete_outline, color: AppColors.error),
+                        onPressed: () => _showDeleteProject(context, project),
+                        tooltip: 'Delete Project',
+                      ),
+                      const SizedBox(width: 8),
                       BulkActionMenu(
                         options: [
                           BulkActionOption(
@@ -406,26 +451,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             label: 'Import from Markdown',
                             enabled: true,
                           ),
-                          BulkActionOption(
-                            value: 'edit',
-                            icon: Icons.edit_rounded,
-                            label: 'Bulk Edit',
-                            enabled: _selectedTaskIds.length >= 2,
-                          ),
-                          BulkActionOption(
-                            value: 'delete',
-                            icon: Icons.delete_rounded,
-                            label: 'Bulk Delete',
-                            enabled: _selectedTaskIds.length >= 2,
-                            isDestructive: true,
-                          ),
                         ],
                         onOptionSelected: (value) {
-                          if (value == 'edit') {
-                            _showBulkEdit(context);
-                          } else if (value == 'delete') {
-                            _showBulkDeleteConfirm(context);
-                          } else if (value == 'import') {
+                          if (value == 'import') {
                             showDialog(
                               context: context,
                               builder: (_) => ImportFromMDDialog(project: project),
