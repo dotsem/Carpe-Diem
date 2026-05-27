@@ -1,6 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
+// TODO: rename this
 class BulkActionOption {
   final String value;
   final IconData icon;
@@ -31,17 +32,12 @@ class BulkActionMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool hasMultiple = options.any((o) => o.enabled && (o.value == 'edit' || o.value == 'delete'));
-
     return Builder(
       builder: (buttonContext) {
         return IconButton(
-          icon: Icon(Icons.more_horiz, color: hasMultiple ? AppColors.accent : Theme.of(context).colorScheme.onSurface),
+          icon: Icon(Icons.more_horiz, color: Theme.of(context).colorScheme.onSurface),
           tooltip: 'More actions',
-          style: IconButton.styleFrom(
-            side: hasMultiple ? const BorderSide(color: AppColors.accent, width: 1.5) : BorderSide.none,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
+          style: IconButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
           onPressed: () => _showMenu(buttonContext),
         );
       },
