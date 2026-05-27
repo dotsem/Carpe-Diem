@@ -253,10 +253,15 @@ class _TaskListViewState extends State<TaskListView> {
     }
 
     return Shortcuts(
-      shortcuts: {
-        if (widget.enablePlanShortcut)
-          const SingleActivator(LogicalKeyboardKey.keyT, control: true): const PlanTaskIntent(),
-      },
+      shortcuts: Map.fromEntries([
+        if (widget.enablePlanShortcut) ...[
+          const MapEntry(SingleActivator(LogicalKeyboardKey.keyT, control: true), PlanTaskIntent()),
+          const MapEntry(
+            SingleActivator(LogicalKeyboardKey.keyT, control: true, shift: true),
+            PlanTaskTomorrowIntent(),
+          ),
+        ],
+      ]),
       child: Actions(
         actions: {
           MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
@@ -269,6 +274,12 @@ class _TaskListViewState extends State<TaskListView> {
             final taskId = _getFocusedTaskId();
             if (taskId != null) {
               taskProvider.scheduleTasksForToday([taskId]);
+            }
+          }),
+          PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
+            final taskId = _getFocusedTaskId();
+            if (taskId != null) {
+              taskProvider.scheduleTasksForTomorrow([taskId]);
             }
           }),
         },

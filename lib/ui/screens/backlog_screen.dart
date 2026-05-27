@@ -134,6 +134,7 @@ class _BacklogScreenState extends State<BacklogScreen> {
           const CharacterActivator('k'): const MovePrevIntent(),
           const CharacterActivator('f'): const FilterIntent(),
           const SingleActivator(LogicalKeyboardKey.keyT, control: true): const PlanTaskIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyT, control: true, shift: true): const PlanTaskTomorrowIntent(),
         },
         child: Actions(
           actions: {
@@ -169,6 +170,12 @@ class _BacklogScreenState extends State<BacklogScreen> {
               final taskId = _getFocusedTaskId();
               if (taskId != null) {
                 context.read<TaskProvider>().scheduleTasksForToday([taskId]);
+              }
+            }),
+            PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
+              final taskId = _getFocusedTaskId();
+              if (taskId != null) {
+                context.read<TaskProvider>().scheduleTasksForTomorrow([taskId]);
               }
             }),
           },

@@ -57,6 +57,10 @@ class PlanTaskIntent extends Intent {
   const PlanTaskIntent();
 }
 
+class PlanTaskTomorrowIntent extends Intent {
+  const PlanTaskTomorrowIntent();
+}
+
 class ShortcutEntry {
   final String key;
   final String description;
@@ -91,6 +95,7 @@ const taskCardShortcutEntries = [
   ShortcutEntry(key: 'e', description: 'Edit task', category: 'Focused Task'),
   ShortcutEntry(key: 'd', description: 'Delete task', category: 'Focused Task'),
   ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + Shift + T', description: 'Plan for tomorrow', category: 'Focused Task'),
 ];
 
 const projectShortcutEntries = [
@@ -120,6 +125,7 @@ const backlogShortcutEntries = [
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Backlog'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Backlog'),
   ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + Shift + T', description: 'Plan for tomorrow', category: 'Focused Task'),
 ];
 
 const projectDetailShortcutEntries = [
@@ -129,6 +135,7 @@ const projectDetailShortcutEntries = [
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Project Detail'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Project Detail'),
   ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + Shift + T', description: 'Plan for tomorrow', category: 'Focused Task'),
 ];
 
 bool isTypingInTextField() {
