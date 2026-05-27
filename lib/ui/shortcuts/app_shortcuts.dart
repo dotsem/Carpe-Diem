@@ -57,6 +57,10 @@ class PlanTaskIntent extends Intent {
   const PlanTaskIntent();
 }
 
+class PlanTaskTomorrowIntent extends Intent {
+  const PlanTaskTomorrowIntent();
+}
+
 class ShortcutEntry {
   final String key;
   final String description;
@@ -79,7 +83,7 @@ const globalShortcutEntries = [
 const homeShortcutEntries = [
   ShortcutEntry(key: 'h / l', description: 'Prev / Next day', category: 'Today View'),
   ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Today View'),
-  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Today View'),
+  ShortcutEntry(key: 'a', description: 'Add new task', category: 'Today View'),
   ShortcutEntry(key: 'v', description: 'Toggle layout', category: 'Today View'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Today View'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Today View'),
@@ -90,7 +94,12 @@ const taskCardShortcutEntries = [
   ShortcutEntry(key: 'Enter', description: 'Toggle completion', category: 'Focused Task'),
   ShortcutEntry(key: 'e', description: 'Edit task', category: 'Focused Task'),
   ShortcutEntry(key: 'd', description: 'Delete task', category: 'Focused Task'),
-  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today, plans all selected tasks', category: 'Focused Task'),
+  ShortcutEntry(
+    key: 'Ctrl + Shift + T',
+    description: 'Plan for tomorrow, plans all selected tasks',
+    category: 'Focused Task',
+  ),
 ];
 
 const projectShortcutEntries = [
@@ -115,20 +124,30 @@ const projectDialogShortcutEntries = [
 
 const backlogShortcutEntries = [
   ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Backlog'),
-  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Backlog'),
+  ShortcutEntry(key: 'a', description: 'Add new task', category: 'Backlog'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Backlog'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Backlog'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Backlog'),
-  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today, plans all selected tasks', category: 'Focused Task'),
+  ShortcutEntry(
+    key: 'Ctrl + Shift + T',
+    description: 'Plan for tomorrow, plans all selected tasks',
+    category: 'Focused Task',
+  ),
 ];
 
 const projectDetailShortcutEntries = [
   ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Project Detail'),
-  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Project Detail'),
+  ShortcutEntry(key: 'a', description: 'Add new task', category: 'Project Detail'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Project Detail'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Project Detail'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Project Detail'),
-  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today', category: 'Focused Task'),
+  ShortcutEntry(key: 'Ctrl + T', description: 'Plan for today, plans all selected tasks', category: 'Focused Task'),
+  ShortcutEntry(
+    key: 'Ctrl + Shift + T',
+    description: 'Plan for tomorrow, plans all selected tasks',
+    category: 'Focused Task',
+  ),
 ];
 
 bool isTypingInTextField() {
@@ -303,13 +322,7 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
               debugPrint('Shortcut: ToggleHelp');
               toggleHelp();
             }),
-            CloseHelpIntent: CallbackAction<CloseHelpIntent>(
-              onInvoke: (intent) {
-                debugPrint('Shortcut: CloseHelp');
-                closeHelp();
-                return null;
-              },
-            ),
+            CloseHelpIntent: _CloseHelpAction(this),
             ToggleFilterBypassIntent: NonTypingAction<ToggleFilterBypassIntent>((intent) {
               debugPrint('Shortcut: ToggleFilterBypass');
               final provider = context.read<FilterProvider>();
@@ -369,4 +382,20 @@ class _AppShortcutRegistrarState extends State<AppShortcutRegistrar> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+class _CloseHelpAction extends Action<CloseHelpIntent> {
+  final GlobalShortcutsState state;
+
+  _CloseHelpAction(this.state);
+
+  @override
+  bool isEnabled(CloseHelpIntent intent) => state._helpVisible;
+
+  @override
+  Object? invoke(CloseHelpIntent intent) {
+    debugPrint('Shortcut: CloseHelp');
+    state.closeHelp();
+    return intent;
+  }
 }

@@ -128,12 +128,13 @@ class _BacklogScreenState extends State<BacklogScreen> {
         shortcuts: {
           const CharacterActivator('/'): const _FocusSearchIntent(),
           const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-          const CharacterActivator('n'): const _NewTaskIntent(),
-          const CharacterActivator('N'): const _NewTaskIntent(),
+          const CharacterActivator('a'): const _NewTaskIntent(),
+          const CharacterActivator('A'): const _NewTaskIntent(),
           const CharacterActivator('j'): const MoveNextIntent(),
           const CharacterActivator('k'): const MovePrevIntent(),
           const CharacterActivator('f'): const FilterIntent(),
           const SingleActivator(LogicalKeyboardKey.keyT, control: true): const PlanTaskIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyT, control: true, shift: true): const PlanTaskTomorrowIntent(),
         },
         child: Actions(
           actions: {
@@ -166,9 +167,27 @@ class _BacklogScreenState extends State<BacklogScreen> {
               _showAddTask(context);
             }),
             PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
-              final taskId = _getFocusedTaskId();
-              if (taskId != null) {
-                context.read<TaskProvider>().scheduleTasksForToday([taskId]);
+              if (_selectedTaskIds.isNotEmpty) {
+                context.read<TaskProvider>().scheduleTasksForToday(List.from(_selectedTaskIds)).then((_) {
+                  setState(() => _selectedTaskIds.clear());
+                });
+              } else {
+                final taskId = _getFocusedTaskId();
+                if (taskId != null) {
+                  context.read<TaskProvider>().scheduleTasksForToday([taskId]);
+                }
+              }
+            }),
+            PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
+              if (_selectedTaskIds.isNotEmpty) {
+                context.read<TaskProvider>().scheduleTasksForTomorrow(List.from(_selectedTaskIds)).then((_) {
+                  setState(() => _selectedTaskIds.clear());
+                });
+              } else {
+                final taskId = _getFocusedTaskId();
+                if (taskId != null) {
+                  context.read<TaskProvider>().scheduleTasksForTomorrow([taskId]);
+                }
               }
             }),
           },

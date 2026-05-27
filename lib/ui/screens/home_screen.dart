@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<DateTime> get _days {
-    final settings = context.watch<SettingsProvider>();
+    final settings = context.read<SettingsProvider>();
     final today = DateTime(_today.year, _today.month, _today.day);
     return List.generate(settings.maxPlanningDays + 1, (i) => today.add(Duration(days: i)));
   }
@@ -123,18 +123,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<SettingsProvider>();
     return AppShortcutRegistrar(
       shortcuts: homeShortcutEntries,
       child: Shortcuts(
         shortcuts: {
           const CharacterActivator('h'): _PrevDayIntent(),
           const CharacterActivator('l'): _NextDayIntent(),
-          const CharacterActivator('n'): _NewTaskIntent(),
+          const CharacterActivator('a'): _NewTaskIntent(),
           const CharacterActivator('v'): _ToggleLayoutIntent(),
           const CharacterActivator('f'): FilterIntent(),
           const CharacterActivator('H'): _PrevDayIntent(),
           const CharacterActivator('L'): _NextDayIntent(),
-          const CharacterActivator('N'): _NewTaskIntent(),
+          const CharacterActivator('A'): _NewTaskIntent(),
           const CharacterActivator('V'): _ToggleLayoutIntent(),
           const CharacterActivator('j'): MoveNextIntent(),
           const CharacterActivator('k'): MovePrevIntent(),
@@ -161,6 +162,10 @@ class _HomeScreenState extends State<HomeScreen> {
             }),
             MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
               _moveFocus(-1);
+            }),
+            NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((_) {
+              setState(() => _selectedDate = _today);
+              context.read<TaskProvider>().loadTasksForDate(_selectedDate);
             }),
           },
           child: Focus(

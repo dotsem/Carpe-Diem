@@ -188,8 +188,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             shortcuts: {
               const CharacterActivator('/'): const _FocusSearchIntent(),
               const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-              if (project.isActive) const CharacterActivator('n'): const _NewTaskIntent(),
-              if (project.isActive) const CharacterActivator('N'): const _NewTaskIntent(),
+              if (project.isActive) const CharacterActivator('a'): const _NewTaskIntent(),
+              if (project.isActive) const CharacterActivator('A'): const _NewTaskIntent(),
               const CharacterActivator('j'): const MoveNextIntent(),
               const CharacterActivator('k'): const MovePrevIntent(),
               const CharacterActivator('f'): const FilterIntent(),
@@ -304,6 +304,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                         showScheduleDate: true,
                                         selectionMode: true,
                                         selectedTaskIds: _selectedTaskIds.toSet(),
+                                        onClearSelection: () => setState(() => _selectedTaskIds.clear()),
                                         onSelectedChanged: (task) {
                                           setState(() {
                                             if (_selectedTaskIds.contains(task.id)) {
