@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<DateTime> get _days {
-    final settings = context.watch<SettingsProvider>();
+    final settings = context.read<SettingsProvider>();
     final today = DateTime(_today.year, _today.month, _today.day);
     return List.generate(settings.maxPlanningDays + 1, (i) => today.add(Duration(days: i)));
   }
@@ -123,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<SettingsProvider>();
     return AppShortcutRegistrar(
       shortcuts: homeShortcutEntries,
       child: Shortcuts(
@@ -161,6 +162,10 @@ class _HomeScreenState extends State<HomeScreen> {
             }),
             MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
               _moveFocus(-1);
+            }),
+            NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((_) {
+              setState(() => _selectedDate = _today);
+              context.read<TaskProvider>().loadTasksForDate(_selectedDate);
             }),
           },
           child: Focus(
