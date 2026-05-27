@@ -25,6 +25,10 @@ class Task {
     bool scheduledOverdue = scheduledDate != null && scheduledDate!.isBefore(today);
     bool deadlineOverdue = deadline != null && deadline!.isBefore(today);
 
+    if (scheduledOverdue && deadline != null && !deadline!.isBefore(today)) {
+      return false;
+    }
+
     return scheduledOverdue || deadlineOverdue;
   }
 
