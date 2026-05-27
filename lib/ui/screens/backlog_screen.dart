@@ -128,8 +128,8 @@ class _BacklogScreenState extends State<BacklogScreen> {
         shortcuts: {
           const CharacterActivator('/'): const _FocusSearchIntent(),
           const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-          const CharacterActivator('n'): const _NewTaskIntent(),
-          const CharacterActivator('N'): const _NewTaskIntent(),
+          const CharacterActivator('a'): const _NewTaskIntent(),
+          const CharacterActivator('A'): const _NewTaskIntent(),
           const CharacterActivator('j'): const MoveNextIntent(),
           const CharacterActivator('k'): const MovePrevIntent(),
           const CharacterActivator('f'): const FilterIntent(),

@@ -79,7 +79,7 @@ const globalShortcutEntries = [
 const homeShortcutEntries = [
   ShortcutEntry(key: 'h / l', description: 'Prev / Next day', category: 'Today View'),
   ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Today View'),
-  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Today View'),
+  ShortcutEntry(key: 'a', description: 'Add new task', category: 'Today View'),
   ShortcutEntry(key: 'v', description: 'Toggle layout', category: 'Today View'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Today View'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Today View'),
@@ -115,7 +115,7 @@ const projectDialogShortcutEntries = [
 
 const backlogShortcutEntries = [
   ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Backlog'),
-  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Backlog'),
+  ShortcutEntry(key: 'a', description: 'Add new task', category: 'Backlog'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Backlog'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Backlog'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Backlog'),
@@ -124,7 +124,7 @@ const backlogShortcutEntries = [
 
 const projectDetailShortcutEntries = [
   ShortcutEntry(key: 'j / k', description: 'Focus next / prev', category: 'Project Detail'),
-  ShortcutEntry(key: 'n', description: 'Add new task', category: 'Project Detail'),
+  ShortcutEntry(key: 'a', description: 'Add new task', category: 'Project Detail'),
   ShortcutEntry(key: '/', description: 'Focus search', category: 'Project Detail'),
   ShortcutEntry(key: 'f', description: 'Open filter', category: 'Project Detail'),
   ShortcutEntry(key: 'Shift + F', description: 'Toggle filter bypass', category: 'Project Detail'),
