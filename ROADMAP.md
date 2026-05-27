@@ -69,6 +69,7 @@ The focus of this version is enhancing functionality and user experience.
 ### New Features
 
 - [ ] **Advanced Filtering:** Filter tasks by priority and date range.
+- [ ] **Undo & Redo:** Undo and redo recent actions.
 
 ---
 
@@ -78,6 +79,7 @@ The focus of this version is enhancing functionality and user experience.
 
 ## Future: v0.6.0 (Cloud Sync)
 
+- [ ] **CRDT:** Switch to CRDT for conflict resolution.
 - [ ] **Cloud Sync:** Cross-device synchronization (via cloud provider).
 - [ ] **Self Hosted Sync:** Option to sync with own server.
 
