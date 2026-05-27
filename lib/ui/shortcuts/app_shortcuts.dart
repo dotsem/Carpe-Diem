@@ -303,13 +303,7 @@ class GlobalShortcutsState extends State<GlobalShortcuts> {
               debugPrint('Shortcut: ToggleHelp');
               toggleHelp();
             }),
-            CloseHelpIntent: CallbackAction<CloseHelpIntent>(
-              onInvoke: (intent) {
-                debugPrint('Shortcut: CloseHelp');
-                closeHelp();
-                return null;
-              },
-            ),
+            CloseHelpIntent: _CloseHelpAction(this),
             ToggleFilterBypassIntent: NonTypingAction<ToggleFilterBypassIntent>((intent) {
               debugPrint('Shortcut: ToggleFilterBypass');
               final provider = context.read<FilterProvider>();
@@ -369,4 +363,20 @@ class _AppShortcutRegistrarState extends State<AppShortcutRegistrar> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+class _CloseHelpAction extends Action<CloseHelpIntent> {
+  final GlobalShortcutsState state;
+
+  _CloseHelpAction(this.state);
+
+  @override
+  bool isEnabled(CloseHelpIntent intent) => state._helpVisible;
+
+  @override
+  Object? invoke(CloseHelpIntent intent) {
+    debugPrint('Shortcut: CloseHelp');
+    state.closeHelp();
+    return intent;
+  }
 }
