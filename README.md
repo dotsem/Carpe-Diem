@@ -1,6 +1,10 @@
 # Carpe Diem
 
-<img src="assets/github/subtitle-light-text.png" alt="Plan The Day" width="300">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/github/subtitle-light-text.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/github/subtitle-dark-text.png">
+  <img alt="Plan The Day" src="assets/github/subtitle-light-text.png" width="300">
+</picture>
 
 A day by day planner built for productivity.
 
