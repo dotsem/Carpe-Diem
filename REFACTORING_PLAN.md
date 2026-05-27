@@ -17,23 +17,23 @@ Starting with unit tests immediately is a **bad idea** for the current codebase:
 
 ### Phase 1: Database & Repository Decoupling (Generalize DB Layer)
 Decouple repositories from static SQLite instances to enable dependency injection and mockability.
-- [ ] **Step 1.1: Define Repository Interfaces**
+- [x] **Step 1.1: Define Repository Interfaces**
   Create abstract contracts (`ITaskRepository`, `IProjectRepository`, `ILabelRepository`, `ISettingsRepository`) to support swapping implementations (SQLite vs. Mock).
-- [ ] **Step 1.2: Generalize Database Helper**
+- [x] **Step 1.2: Generalize Database Helper**
   Refactor `DatabaseHelper` from a static singleton to a class that can be initialized and injected.
-- [ ] **Step 1.3: Update Repository Concrete Implementations**
+- [x] **Step 1.3: Update Repository Concrete Implementations**
   Make repositories accept a database instance via constructor injection.
 
 ### Phase 2: Feature-First Directory Restructuring
 Restructure the app to enforce cohesive feature separation and strict boundaries.
-- [ ] **Step 2.1: Establish `lib/features/` Directory Structure**
+- [x] **Step 2.1: Establish `lib/features/` Directory Structure**
   Create feature sub-directories:
   - `lib/features/tasks/`
   - `lib/features/projects/`
   - `lib/features/labels/`
   - `lib/features/settings/`
   - `lib/features/history/`
-- [ ] **Step 2.2: Migrate & Split Files**
+- [x] **Step 2.2: Migrate & Split Files**
   Move existing layered files (`lib/data/`, `lib/providers/`, `lib/ui/`) to their respective feature directories:
   - `/data` -> `lib/features/[feature]/data/`
   - `/domain` -> `lib/features/[feature]/domain/` (create this layer for clean use-cases/entities)

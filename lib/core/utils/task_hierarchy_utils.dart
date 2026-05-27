@@ -1,5 +1,5 @@
-import 'package:carpe_diem/data/models/task.dart';
-import 'package:carpe_diem/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 
 class TaskHierarchyUtils {
   static List<TaskHierarchyNode> buildHierarchy(List<Task> categoryTasks, {Map<String, Task>? allTasks}) {
