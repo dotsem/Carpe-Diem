@@ -24,6 +24,9 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
 
   @override
   void dispose() {
+    if (_visible) {
+      _previousFocus?.requestFocus();
+    }
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();

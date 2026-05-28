@@ -8,6 +8,26 @@ class TaskRepository implements ITaskRepository {
 
   TaskRepository(this._db);
 
+  Future<List<Task>> _loadTasksWithLabels(List<Map<String, dynamic>> maps) async {
+    if (maps.isEmpty) return [];
+
+    final taskIds = maps.map((m) => m['id'] as String).toList();
+    
+    final labelsData = await _db.rawQuery(
+      'SELECT taskId, labelId FROM task_labels WHERE taskId IN (${taskIds.map((_) => "?").join(",")})',
+      taskIds,
+    );
+
+    final Map<String, List<String>> labelMap = {};
+    for (final row in labelsData) {
+      final tId = row['taskId'] as String;
+      final lId = row['labelId'] as String;
+      labelMap.putIfAbsent(tId, () => []).add(lId);
+    }
+
+    return maps.map((m) => Task.fromMap(m, labelIds: labelMap[m['id']] ?? const [])).toList();
+  }
+
   @override
   Future<List<Task>> getAll({bool prioritizeDeadlines = true}) async {
     final maps = await _db.rawQuery('''
@@ -16,14 +36,7 @@ class TaskRepository implements ITaskRepository {
       WHERE p.isActive IS NULL OR p.isActive = 1
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
     ''');
-
-    List<Task> tasks = [];
-    for (final map in maps) {
-      final id = map['id'] as String;
-      final labelIds = await _getLabelIds(id);
-      tasks.add(Task.fromMap(map, labelIds: labelIds));
-    }
-    return tasks;
+    return _loadTasksWithLabels(maps);
   }
 
   @override
@@ -38,13 +51,7 @@ class TaskRepository implements ITaskRepository {
   @override
   Future<List<Task>> getByBlockedBy(String taskId) async {
     final maps = await _db.query('tasks', where: 'blockedById = ?', whereArgs: [taskId]);
-    List<Task> tasks = [];
-    for (final map in maps) {
-      final id = map['id'] as String;
-      final labelIds = await _getLabelIds(id);
-      tasks.add(Task.fromMap(map, labelIds: labelIds));
-    }
-    return tasks;
+    return _loadTasksWithLabels(maps);
   }
 
   @override
@@ -61,13 +68,7 @@ class TaskRepository implements ITaskRepository {
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
     ''', [scheduledDateStr, startOfDay.toIso8601String(), endOfDay.toIso8601String()]);
 
-    List<Task> tasks = [];
-    for (final map in maps) {
-      final id = map['id'] as String;
-      final labelIds = await _getLabelIds(id);
-      tasks.add(Task.fromMap(map, labelIds: labelIds));
-    }
-    return tasks;
+    return _loadTasksWithLabels(maps);
   }
 
   @override
@@ -81,13 +82,7 @@ class TaskRepository implements ITaskRepository {
       ORDER BY t.priority DESC, t.scheduledDate ASC
     ''', [dateStr, TaskStatus.done.index]);
 
-    List<Task> tasks = [];
-    for (final map in maps) {
-      final id = map['id'] as String;
-      final labelIds = await _getLabelIds(id);
-      tasks.add(Task.fromMap(map, labelIds: labelIds));
-    }
-    return tasks;
+    return _loadTasksWithLabels(maps);
   }
 
   @override
@@ -100,13 +95,7 @@ class TaskRepository implements ITaskRepository {
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
     ''');
 
-    List<Task> tasks = [];
-    for (final map in maps) {
-      final id = map['id'] as String;
-      final labelIds = await _getLabelIds(id);
-      tasks.add(Task.fromMap(map, labelIds: labelIds));
-    }
-    return tasks;
+    return _loadTasksWithLabels(maps);
   }
 
   @override
@@ -118,13 +107,7 @@ class TaskRepository implements ITaskRepository {
       orderBy: _getOrderBy(useScheduledDate: true, prioritizeDeadlines: prioritizeDeadlines),
     );
 
-    List<Task> tasks = [];
-    for (final map in maps) {
-      final id = map['id'] as String;
-      final labelIds = await _getLabelIds(id);
-      tasks.add(Task.fromMap(map, labelIds: labelIds));
-    }
-    return tasks;
+    return _loadTasksWithLabels(maps);
   }
 
   @override
@@ -142,13 +125,7 @@ class TaskRepository implements ITaskRepository {
       [labelId, labelId],
     );
 
-    List<Task> tasks = [];
-    for (final map in maps) {
-      final id = map['id'] as String;
-      final labelIds = await _getLabelIds(id);
-      tasks.add(Task.fromMap(map, labelIds: labelIds));
-    }
-    return tasks;
+    return _loadTasksWithLabels(maps);
   }
 
   @override

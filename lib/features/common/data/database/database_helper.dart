@@ -10,10 +10,12 @@ class DatabaseHelper {
   DatabaseHelper({this.dbPath = ''});
 
   Database? _database;
+  Future<Database>? _dbOpenFuture;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB();
+    _dbOpenFuture ??= _initDB();
+    _database = await _dbOpenFuture;
     return _database!;
   }
 
@@ -69,16 +71,6 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE task_labels (
-        taskId TEXT NOT NULL,
-        labelId TEXT NOT NULL,
-        PRIMARY KEY (taskId, labelId),
-        FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE,
-        FOREIGN KEY (labelId) REFERENCES labels(id) ON DELETE CASCADE
-      )
-    ''');
-
-    await db.execute('''
       CREATE TABLE tasks (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
@@ -94,6 +86,16 @@ class DatabaseHelper {
         blockedById TEXT,
         FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE SET NULL,
         FOREIGN KEY (blockedById) REFERENCES tasks(id) ON DELETE SET NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE task_labels (
+        taskId TEXT NOT NULL,
+        labelId TEXT NOT NULL,
+        PRIMARY KEY (taskId, labelId),
+        FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE,
+        FOREIGN KEY (labelId) REFERENCES labels(id) ON DELETE CASCADE
       )
     ''');
 

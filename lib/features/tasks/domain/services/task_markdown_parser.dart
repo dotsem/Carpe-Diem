@@ -12,7 +12,7 @@ class TaskMarkdownParser {
       final trimmed = line.trim();
       if (trimmed.isEmpty) continue;
 
-      if ((trimmed.startsWith('- [ ]') || trimmed.startsWith('- ')) && !trimmed.startsWith('- [x]')) {
+      if (trimmed.startsWith('- ')) {
         final match = RegExp(r'^- \[?(x|\s)?\]?\s+(.*)$').firstMatch(trimmed);
         if (match != null) {
           final isDone = match.group(1) == 'x';

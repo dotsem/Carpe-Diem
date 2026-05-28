@@ -185,9 +185,13 @@ extension TaskNotifierExtension on TaskNotifier {
     }
   }
 
-  Future<void> _propagateDeadline(Task task) async {
+  Future<void> _propagateDeadline(Task task, [Set<String>? visited]) async {
     final settings = ref.read(settingsProvider);
     if (!settings.inheritParentDeadline || task.deadline == null || task.blockedById == null) return;
+
+    final localVisited = visited ?? <String>{};
+    if (localVisited.contains(task.id)) return;
+    localVisited.add(task.id);
 
     final blocker = await _repo.getById(task.blockedById!);
     if (blocker == null) return;
@@ -195,7 +199,7 @@ extension TaskNotifierExtension on TaskNotifier {
     if (blocker.deadline == null || blocker.deadline!.isAfter(task.deadline!)) {
       final updatedBlocker = blocker.copyWith(deadline: task.deadline);
       await _repo.update(updatedBlocker);
-      await _propagateDeadline(updatedBlocker);
+      await _propagateDeadline(updatedBlocker, localVisited);
     }
   }
 }
