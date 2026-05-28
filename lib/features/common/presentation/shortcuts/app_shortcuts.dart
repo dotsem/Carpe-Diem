@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 export 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_intents.dart';
 export 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
+export 'package:carpe_diem/features/common/presentation/shortcuts/base_screen_shortcuts.dart';
 
 bool isTypingInTextField() {
   final focus = FocusManager.instance.primaryFocus;

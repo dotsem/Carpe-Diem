@@ -14,10 +14,11 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/home_day_selector.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/home_planner_pane.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
+import 'package:carpe_diem/features/tasks/presentation/shortcuts/home_shortcuts.dart';
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -78,9 +79,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _moveFocus(int delta) => FocusUtils.moveFocus(
-        orderedItemIds: _orderedItemIds, itemFocusNodes: _itemFocusNodes,
-        delta: delta, debugLabelPrefix: 'HomeTask',
-      );
+    orderedItemIds: _orderedItemIds,
+    itemFocusNodes: _itemFocusNodes,
+    delta: delta,
+    debugLabelPrefix: 'HomeTask',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -88,114 +91,78 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final filterState = ref.watch(filterProvider);
     final settings = ref.watch(settingsProvider);
 
-    return AppShortcutRegistrar(
-      shortcuts: homeShortcutEntries,
-      child: Shortcuts(
-        shortcuts: {
-          const CharacterActivator(LeftKeys.char): const PrevDayIntent(),
-          const CharacterActivator(RightKeys.char): const NextDayIntent(),
-          const CharacterActivator(AddKeys.char): const NewTaskIntent(),
-          const CharacterActivator(ToggleLayoutKeys.char): const ToggleLayoutIntent(),
-          const CharacterActivator(FilterKeys.char): const FilterIntent(),
-          const CharacterActivator(LeftKeys.upper): const PrevDayIntent(),
-          const CharacterActivator(RightKeys.upper): const NextDayIntent(),
-          const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
-          const CharacterActivator(ToggleLayoutKeys.upper): const ToggleLayoutIntent(),
-          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
-          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-          const SingleActivator(AppKeyBindings.arrowLeft): const PrevDayIntent(),
-          const SingleActivator(AppKeyBindings.arrowRight): const NextDayIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
-          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
-        },
-        child: Actions(
-          actions: {
-            PrevDayIntent: NonTypingAction<PrevDayIntent>((_) {
-              _changeDay(-1);
-            }),
-            NextDayIntent: NonTypingAction<NextDayIntent>((_) {
-              _changeDay(1);
-            }),
-            NewTaskIntent: NonTypingAction<NewTaskIntent>((_) {
-              _showAddTask(context);
-            }),
-            ToggleLayoutIntent: NonTypingAction<ToggleLayoutIntent>((_) {
-              final currentLayout = settings.getTaskLayout();
-              final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
-              ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
-            }),
-            FilterIntent: NonTypingAction<FilterIntent>((_) {
-              _showFilterDialog(context);
-            }),
-            MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-              _moveFocus(1);
-            }),
-            MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-              _moveFocus(-1);
-            }),
-            NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((_) {
-              setState(() => _selectedDate = _today);
-              ref.read(taskProvider.notifier).loadTasksForDate(_selectedDate);
-            }),
-          },
-          child: Focus(
-            autofocus: true,
-            debugLabel: 'HomeScreenFocus',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ScreenHeader(
-                  title: _isToday ? 'Today' : _dateFormat.format(_selectedDate),
-                  subtitle: _isToday
-                      ? _dateFormat.format(_selectedDate)
-                      : '${_normalizedSelected.difference(DateTime(_today.year, _today.month, _today.day)).inDays} days from now',
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        final currentLayout = settings.getTaskLayout();
-                        final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
-                        ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
-                      },
-                      icon: Icon(settings.getTaskLayout() == TaskLayout.list ? Icons.view_kanban : Icons.view_list),
-                      tooltip: settings.getTaskLayout() == TaskLayout.list ? 'Kanban view' : 'List view',
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton.icon(
-                      onPressed: () => _showAddTask(context),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add Task'),
-                    ),
-                  ],
-                ),
-                HomeDaySelector(
-                  days: _days,
-                  selectedDate: _selectedDate,
-                  onDateSelected: (day) {
-                    setState(() => _selectedDate = day);
-                    ref.read(taskProvider.notifier).loadTasksForDate(day);
+    return HomeShortcuts(
+      onPrevDay: () => _changeDay(-1),
+      onNextDay: () => _changeDay(1),
+      onNewTask: () => _showAddTask(context),
+      onToggleLayout: () {
+        final currentLayout = settings.getTaskLayout();
+        final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
+        ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
+      },
+      onShowFilter: () => _showFilterDialog(context),
+      onMoveNext: () => _moveFocus(1),
+      onMovePrev: () => _moveFocus(-1),
+      onNavigateToToday: () {
+        setState(() => _selectedDate = _today);
+        ref.read(taskProvider.notifier).loadTasksForDate(_selectedDate);
+      },
+      child: Focus(
+        autofocus: true,
+        debugLabel: 'HomeScreenFocus',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ScreenHeader(
+              title: _isToday ? 'Today' : _dateFormat.format(_selectedDate),
+              subtitle: _isToday
+                  ? _dateFormat.format(_selectedDate)
+                  : '${_normalizedSelected.difference(DateTime(_today.year, _today.month, _today.day)).inDays} days from now',
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    final currentLayout = settings.getTaskLayout();
+                    final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
+                    ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
                   },
+                  icon: Icon(settings.getTaskLayout() == TaskLayout.list ? Icons.view_kanban : Icons.view_list),
+                  tooltip: settings.getTaskLayout() == TaskLayout.list ? 'Kanban view' : 'List view',
                 ),
-                FilterBar(
-                  filter: filterState.filter,
-                  isBypassed: filterState.isBypassed,
-                  onFilterTap: () => _showFilterDialog(context),
-                  onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: HomePlannerPane(
-                    selectedDate: _selectedDate,
-                    itemFocusNodes: _itemFocusNodes,
-                    onOrderedIdsChanged: (ids) {
-                      _orderedItemIds.clear();
-                      _orderedItemIds.addAll(ids);
-                    },
-                    onEdit: (task) => _showEditTask(context, task),
-                  ),
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  onPressed: () => _showAddTask(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Task'),
                 ),
               ],
             ),
-          ),
+            HomeDaySelector(
+              days: _days,
+              selectedDate: _selectedDate,
+              onDateSelected: (day) {
+                setState(() => _selectedDate = day);
+                ref.read(taskProvider.notifier).loadTasksForDate(day);
+              },
+            ),
+            FilterBar(
+              filter: filterState.filter,
+              isBypassed: filterState.isBypassed,
+              onFilterTap: () => _showFilterDialog(context),
+              onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: HomePlannerPane(
+                selectedDate: _selectedDate,
+                itemFocusNodes: _itemFocusNodes,
+                onOrderedIdsChanged: (ids) {
+                  _orderedItemIds.clear();
+                  _orderedItemIds.addAll(ids);
+                },
+                onEdit: (task) => _showEditTask(context, task),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -22,23 +22,12 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_ca
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/common/data/models/task_filter.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_list.dart';
 
-class _FocusSearchIntent extends Intent {
-  const _FocusSearchIntent();
-}
-
-class _UnfocusSearchIntent extends Intent {
-  const _UnfocusSearchIntent();
-}
-
-class _NewTaskIntent extends Intent {
-  const _NewTaskIntent();
-}
+import 'package:carpe_diem/features/tasks/presentation/shortcuts/backlog_shortcuts.dart';
 
 class BacklogScreen extends ConsumerStatefulWidget {
   const BacklogScreen({super.key});
@@ -91,212 +80,181 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
   }
 
   void _moveFocus(int delta) => FocusUtils.moveFocus(
-        orderedItemIds: _orderedItemIds, itemFocusNodes: _itemFocusNodes,
-        delta: delta, debugLabelPrefix: 'BacklogTask',
-      );
+    orderedItemIds: _orderedItemIds,
+    itemFocusNodes: _itemFocusNodes,
+    delta: delta,
+    debugLabelPrefix: 'BacklogTask',
+  );
 
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
-    return AppShortcutRegistrar(
-      shortcuts: backlogShortcutEntries,
-      child: Shortcuts(
-        shortcuts: {
-          const CharacterActivator(SearchKeys.char): const _FocusSearchIntent(),
-          const SingleActivator(AppKeyBindings.escape): const _UnfocusSearchIntent(),
-          const CharacterActivator(AddKeys.char): const _NewTaskIntent(),
-          const CharacterActivator(AddKeys.upper): const _NewTaskIntent(),
-          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
-          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-          const CharacterActivator(FilterKeys.char): const FilterIntent(),
-          const SingleActivator(TodayKeys.keyboardKey, control: true): const PlanTaskIntent(),
-          const SingleActivator(TodayKeys.keyboardKey, control: true, shift: true): const PlanTaskTomorrowIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
-          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
-        },
-        child: Actions(
-          actions: {
-            MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-              _moveFocus(1);
-            }),
-            MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-              _moveFocus(-1);
-            }),
-            FilterIntent: NonTypingAction<FilterIntent>((_) {
-              _showFilterDialog(context);
-            }),
-            _FocusSearchIntent: NonTypingAction<_FocusSearchIntent>((_) {
-              _searchFocusNode.requestFocus();
-            }),
-            _UnfocusSearchIntent: CallbackAction<_UnfocusSearchIntent>(
-              onInvoke: (intent) {
-                if (_searchFocusNode.hasFocus) {
-                  _searchFocusNode.unfocus();
-                  if (_orderedItemIds.isNotEmpty) {
-                    _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-                  } else {
-                    _mainFocusNode.requestFocus();
-                  }
-                }
-                return null;
-              },
-            ),
-            _NewTaskIntent: NonTypingAction<_NewTaskIntent>((_) {
-              _showAddTask(context);
-            }),
-            PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
-              if (_selectedTaskIds.isNotEmpty) {
-                ref.read(taskProvider.notifier).scheduleTasksForToday(List.from(_selectedTaskIds)).then((_) {
-                  setState(() => _selectedTaskIds.clear());
-                });
-              } else {
-                final taskId = _getFocusedTaskId();
-                if (taskId != null) {
-                  ref.read(taskProvider.notifier).scheduleTasksForToday([taskId]);
-                }
-              }
-            }),
-            PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
-              if (_selectedTaskIds.isNotEmpty) {
-                ref.read(taskProvider.notifier).scheduleTasksForTomorrow(List.from(_selectedTaskIds)).then((_) {
-                  setState(() => _selectedTaskIds.clear());
-                });
-              } else {
-                final taskId = _getFocusedTaskId();
-                if (taskId != null) {
-                  ref.read(taskProvider.notifier).scheduleTasksForTomorrow([taskId]);
-                }
-              }
-            }),
-          },
-          child: Focus(
-            focusNode: _mainFocusNode,
-            autofocus: true,
-            debugLabel: 'BacklogScreenMainFocus',
-            child: Stack(
+    return BacklogShortcuts(
+      onMoveNext: () => _moveFocus(1),
+      onMovePrev: () => _moveFocus(-1),
+      onShowFilter: () => _showFilterDialog(context),
+      onFocusSearch: () => _searchFocusNode.requestFocus(),
+      onUnfocusSearch: () {
+        if (_searchFocusNode.hasFocus) {
+          _searchFocusNode.unfocus();
+          if (_orderedItemIds.isNotEmpty) {
+            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+          } else {
+            _mainFocusNode.requestFocus();
+          }
+        }
+      },
+      onNewTask: () => _showAddTask(context),
+      onPlanTask: () {
+        if (_selectedTaskIds.isNotEmpty) {
+          ref.read(taskProvider.notifier).scheduleTasksForToday(List.from(_selectedTaskIds)).then((_) {
+            setState(() => _selectedTaskIds.clear());
+          });
+        } else {
+          final taskId = _getFocusedTaskId();
+          if (taskId != null) {
+            ref.read(taskProvider.notifier).scheduleTasksForToday([taskId]);
+          }
+        }
+      },
+      onPlanTaskTomorrow: () {
+        if (_selectedTaskIds.isNotEmpty) {
+          ref.read(taskProvider.notifier).scheduleTasksForTomorrow(List.from(_selectedTaskIds)).then((_) {
+            setState(() => _selectedTaskIds.clear());
+          });
+        } else {
+          final taskId = _getFocusedTaskId();
+          if (taskId != null) {
+            ref.read(taskProvider.notifier).scheduleTasksForTomorrow([taskId]);
+          }
+        }
+      },
+      child: Focus(
+        focusNode: _mainFocusNode,
+        autofocus: true,
+        debugLabel: 'BacklogScreenMainFocus',
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ScreenHeader(
-                      title: 'Backlog',
-                      subtitle: 'Tasks without a scheduled date',
-                      actions: [
-                        if (settings.enableRandomTask) ...[
-                          IconButton(
-                            onPressed: () => _pickRandomTask(context),
-                            icon: const Icon(Icons.casino_rounded),
-                            tooltip: 'Give me a random task!',
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        FilledButton.icon(
-                          onPressed: () => _showAddTask(context),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Task'),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildHeaderActions(context),
-                      ],
-                    ),
-                    FilterBar(
-                      filter: ref.watch(filterProvider).filter,
-                      isBypassed: ref.watch(filterProvider).isBypassed,
-                      onFilterTap: () => _showFilterDialog(context),
-                      onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
-                    ),
-                    Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: FuzzySearchBar(
-                        controller: _searchController,
-                        focusNode: _searchFocusNode,
-                        hintText: 'Search backlog tasks... (Press / to focus)',
-                        onChanged: (value) => setState(() {
-                          _searchQuery = value;
-                        }),
-                        onSubmitted: (_) {
-                          if (_orderedItemIds.isNotEmpty) {
-                            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-                          }
-                        },
+                ScreenHeader(
+                  title: 'Backlog',
+                  subtitle: 'Tasks without a scheduled date',
+                  actions: [
+                    if (settings.enableRandomTask) ...[
+                      IconButton(
+                        onPressed: () => _pickRandomTask(context),
+                        icon: const Icon(Icons.casino_rounded),
+                        tooltip: 'Give me a random task!',
                       ),
+                      const SizedBox(width: 8),
+                    ],
+                    FilledButton.icon(
+                      onPressed: () => _showAddTask(context),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Task'),
                     ),
-                    Divider(height: 1),
-                    Expanded(
-                      child: BacklogList(
-                        searchQuery: _searchQuery,
-                        selectedTaskIds: _selectedTaskIds,
-                        onSelectedChanged: (task) {
-                          setState(() {
-                            if (_selectedTaskIds.contains(task.id)) {
-                              _selectedTaskIds.remove(task.id);
-                            } else {
-                              _selectedTaskIds.add(task.id);
-                            }
-                          });
-                        },
-                        onEdit: (task) => _showEditTask(context, task),
-                        itemFocusNodes: _itemFocusNodes,
-                        onOrderedIdsChanged: (ids) {
-                          _orderedItemIds.clear();
-                          _orderedItemIds.addAll(ids);
-                        },
-                        trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
-                      ),
-                    ),
+                    const SizedBox(width: 8),
+                    _buildHeaderActions(context),
                   ],
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 16,
-                  child: BulkPlanningBar(
-                    selectedCount: _selectedTaskIds.length,
-                    onClearSelection: () => setState(() => _selectedTaskIds.clear()),
-                    onScheduleToday: () {
-                      ref.read(taskProvider.notifier).scheduleTasksForToday(_selectedTaskIds).then((_) {
-                        setState(() => _selectedTaskIds.clear());
-                      });
-                    },
-                    onScheduleTomorrow: () {
-                      ref.read(taskProvider.notifier).scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
-                        setState(() => _selectedTaskIds.clear());
-                      });
-                    },
-                    onBulkEdit: () {
-                      if (_selectedTaskIds.length == 1) {
-                        final provider = ref.read(taskProvider);
-                        final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
-                        _showEditTask(context, task);
-                      } else {
-                        _showBulkEdit(context);
-                      }
-                    },
-                    onBulkDelete: () {
-                      if (_selectedTaskIds.length == 1) {
-                        final provider = ref.read(taskProvider);
-                        final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => DeleteDialog(
-                            title: "Delete Task",
-                            message: "Are you sure you want to delete this task?",
-                            onConfirm: () {
-                              ref.read(taskProvider.notifier).deleteTask(task);
-                              setState(() => _selectedTaskIds.clear());
-                            },
-                          ),
-                        );
-                      } else {
-                        _showBulkDeleteConfirm(context);
+                FilterBar(
+                  filter: ref.watch(filterProvider).filter,
+                  isBypassed: ref.watch(filterProvider).isBypassed,
+                  onFilterTap: () => _showFilterDialog(context),
+                  onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+                ),
+                Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: FuzzySearchBar(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    hintText: 'Search backlog tasks... (Press / to focus)',
+                    onChanged: (value) => setState(() {
+                      _searchQuery = value;
+                    }),
+                    onSubmitted: (_) {
+                      if (_orderedItemIds.isNotEmpty) {
+                        _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
                       }
                     },
                   ),
                 ),
+                Divider(height: 1),
+                Expanded(
+                  child: BacklogList(
+                    searchQuery: _searchQuery,
+                    selectedTaskIds: _selectedTaskIds,
+                    onSelectedChanged: (task) {
+                      setState(() {
+                        if (_selectedTaskIds.contains(task.id)) {
+                          _selectedTaskIds.remove(task.id);
+                        } else {
+                          _selectedTaskIds.add(task.id);
+                        }
+                      });
+                    },
+                    onEdit: (task) => _showEditTask(context, task),
+                    itemFocusNodes: _itemFocusNodes,
+                    onOrderedIdsChanged: (ids) {
+                      _orderedItemIds.clear();
+                      _orderedItemIds.addAll(ids);
+                    },
+                    trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+                  ),
+                ),
               ],
             ),
-          ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 16,
+              child: BulkPlanningBar(
+                selectedCount: _selectedTaskIds.length,
+                onClearSelection: () => setState(() => _selectedTaskIds.clear()),
+                onScheduleToday: () {
+                  ref.read(taskProvider.notifier).scheduleTasksForToday(_selectedTaskIds).then((_) {
+                    setState(() => _selectedTaskIds.clear());
+                  });
+                },
+                onScheduleTomorrow: () {
+                  ref.read(taskProvider.notifier).scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
+                    setState(() => _selectedTaskIds.clear());
+                  });
+                },
+                onBulkEdit: () {
+                  if (_selectedTaskIds.length == 1) {
+                    final provider = ref.read(taskProvider);
+                    final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                    _showEditTask(context, task);
+                  } else {
+                    _showBulkEdit(context);
+                  }
+                },
+                onBulkDelete: () {
+                  if (_selectedTaskIds.length == 1) {
+                    final provider = ref.read(taskProvider);
+                    final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => DeleteDialog(
+                        title: "Delete Task",
+                        message: "Are you sure you want to delete this task?",
+                        onConfirm: () {
+                          ref.read(taskProvider.notifier).deleteTask(task);
+                          setState(() => _selectedTaskIds.clear());
+                        },
+                      ),
+                    );
+                  } else {
+                    _showBulkDeleteConfirm(context);
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -366,17 +324,11 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
   }
 
   void _showAddTask(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const AddTaskDialog(),
-    );
+    showDialog(context: context, builder: (_) => const AddTaskDialog());
   }
 
   void _showImportFromMD(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const ImportFromMDDialog(),
-    );
+    showDialog(context: context, builder: (_) => const ImportFromMDDialog());
   }
 
   void _showFilterDialog(BuildContext context) async {
@@ -397,23 +349,25 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     );
 
     if (result != null && context.mounted) {
-      await ref.read(taskProvider.notifier).bulkUpdateTasks(
-        taskIds: _selectedTaskIds,
-        priority: result.priority,
-        updatePriority: result.updatePriority,
-        scheduledDate: result.scheduledDate,
-        updateScheduledDate: result.updateScheduledDate,
-        clearScheduledDate: result.clearScheduledDate,
-        projectId: result.projectId,
-        updateProjectId: result.updateProjectId,
-        clearProjectId: result.clearProjectId,
-        deadline: result.deadline,
-        updateDeadline: result.updateDeadline,
-        clearDeadline: result.clearDeadline,
-        blockedById: result.blockedById,
-        updateBlockedById: result.updateBlockedById,
-        clearBlockedById: result.clearBlockedById,
-      );
+      await ref
+          .read(taskProvider.notifier)
+          .bulkUpdateTasks(
+            taskIds: _selectedTaskIds,
+            priority: result.priority,
+            updatePriority: result.updatePriority,
+            scheduledDate: result.scheduledDate,
+            updateScheduledDate: result.updateScheduledDate,
+            clearScheduledDate: result.clearScheduledDate,
+            projectId: result.projectId,
+            updateProjectId: result.updateProjectId,
+            clearProjectId: result.clearProjectId,
+            deadline: result.deadline,
+            updateDeadline: result.updateDeadline,
+            clearDeadline: result.clearDeadline,
+            blockedById: result.blockedById,
+            updateBlockedById: result.updateBlockedById,
+            clearBlockedById: result.clearBlockedById,
+          );
       setState(() => _selectedTaskIds.clear());
     }
   }

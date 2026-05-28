@@ -5,6 +5,18 @@ class NavigateToTodayIntent extends Intent {
   const NavigateToTodayIntent();
 }
 
+class FocusSearchIntent extends Intent {
+  const FocusSearchIntent();
+}
+
+class UnfocusSearchIntent extends Intent {
+  const UnfocusSearchIntent();
+}
+
+class NewItemIntent extends Intent {
+  const NewItemIntent();
+}
+
 class NavigateToBacklogIntent extends Intent {
   const NavigateToBacklogIntent();
 }
