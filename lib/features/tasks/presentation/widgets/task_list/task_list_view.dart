@@ -6,10 +6,10 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_components.dart';
+import 'package:carpe_diem/core/utils/focus_utils.dart';
 
 class TaskListView extends ConsumerStatefulWidget {
   final List<Task> tasks;
@@ -83,37 +83,13 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
     super.dispose();
   }
 
-  void _moveFocus(int delta) {
-    if (_orderedItemIds.isEmpty) return;
-
-    int currentIndex = -1;
-    for (int i = 0; i < _orderedItemIds.length; i++) {
-      FocusNode? node;
-      if (i == 0 && widget.firstNode != null) {
-        node = widget.firstNode;
-      } else {
-        node = _itemFocusNodes[_orderedItemIds[i]];
-      }
-      if (node?.hasFocus ?? false) {
-        currentIndex = i;
-        break;
-      }
-    }
-
-    if (currentIndex == -1) {
-      final targetIndex = delta > 0 ? 0 : _orderedItemIds.length - 1;
-      FocusNode? targetNode = (targetIndex == 0 && widget.firstNode != null)
-          ? widget.firstNode
-          : _itemFocusNodes[_orderedItemIds[targetIndex]];
-      targetNode?.requestFocus();
-    } else {
-      final nextIndex = (currentIndex + delta).clamp(0, _orderedItemIds.length - 1);
-      FocusNode? targetNode = (nextIndex == 0 && widget.firstNode != null)
-          ? widget.firstNode
-          : _itemFocusNodes[_orderedItemIds[nextIndex]];
-      targetNode?.requestFocus();
-    }
-  }
+  void _moveFocus(int delta) => FocusUtils.moveFocus(
+    orderedItemIds: _orderedItemIds,
+    itemFocusNodes: _itemFocusNodes,
+    delta: delta,
+    firstItemFocusNode: widget.firstNode,
+    debugLabelPrefix: 'TaskListTask',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -258,14 +234,8 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
     return Shortcuts(
       shortcuts: Map.fromEntries([
         if (widget.enablePlanShortcut) ...[
-          const MapEntry(
-            SingleActivator(TodayKeys.keyboardKey, control: true),
-            PlanTaskIntent(),
-          ),
-          const MapEntry(
-            SingleActivator(TodayKeys.keyboardKey, control: true, shift: true),
-            PlanTaskTomorrowIntent(),
-          ),
+          const MapEntry(SingleActivator(TodayKeys.keyboardKey, control: true), PlanTaskIntent()),
+          const MapEntry(SingleActivator(TodayKeys.keyboardKey, control: true, shift: true), PlanTaskTomorrowIntent()),
         ],
       ]),
       child: Actions(
@@ -305,21 +275,13 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
           padding: widget.padding,
           children: [
             if (inProgressCategory.isNotEmpty) ...[
-              TaskListSectionHeader(
-                title: 'In Progress',
-                color: AppColors.accent,
-                amount: inProgressCategory.length,
-              ),
+              TaskListSectionHeader(title: 'In Progress', color: AppColors.accent, amount: inProgressCategory.length),
               const SizedBox(height: 8),
               ...buildHierarchy(inProgressCategory, isOverdue),
               const SizedBox(height: 20),
             ],
             if (overdueCategory.isNotEmpty) ...[
-              TaskListSectionHeader(
-                title: 'Overdue',
-                color: AppColors.error,
-                amount: overdueCategory.length,
-              ),
+              TaskListSectionHeader(title: 'Overdue', color: AppColors.error, amount: overdueCategory.length),
               const SizedBox(height: 8),
               ...buildHierarchy(overdueCategory, (_) => true),
               const SizedBox(height: 20),

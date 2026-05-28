@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/constants/app_constants.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -9,18 +8,14 @@ class WindowTitleState {
   final String? baseSubtitle;
   final List<String> subtitleStack;
 
-  const WindowTitleState({
-    required this.baseTitle,
-    this.baseSubtitle,
-    required this.subtitleStack,
-  });
+  const WindowTitleState({required this.baseTitle, this.baseSubtitle, required this.subtitleStack});
 
   String get title => baseTitle;
 
   String? get subtitle => baseSubtitle != null
       ? subtitleStack.isNotEmpty
-          ? "$baseSubtitle -> ${subtitleStack.join(" - ")}"
-          : baseSubtitle
+            ? "$baseSubtitle -> ${subtitleStack.join(" - ")}"
+            : baseSubtitle
       : null;
 
   String get fullTitle {
@@ -48,18 +43,11 @@ class WindowTitleState {
 class WindowTitleNotifier extends Notifier<WindowTitleState> {
   @override
   WindowTitleState build() {
-    return const WindowTitleState(
-      baseTitle: AppConstants.appName,
-      subtitleStack: [],
-    );
+    return const WindowTitleState(baseTitle: AppConstants.appName, subtitleStack: []);
   }
 
   void updateTitle({String? title, String? subtitle}) {
-    state = state.copyWith(
-      baseTitle: title,
-      baseSubtitle: subtitle,
-      clearBaseSubtitle: subtitle == null,
-    );
+    state = state.copyWith(baseTitle: title, baseSubtitle: subtitle, clearBaseSubtitle: subtitle == null);
     _applyToWindow();
   }
 
@@ -78,10 +66,7 @@ class WindowTitleNotifier extends Notifier<WindowTitleState> {
   }
 
   void reset() {
-    state = const WindowTitleState(
-      baseTitle: AppConstants.appName,
-      subtitleStack: [],
-    );
+    state = const WindowTitleState(baseTitle: AppConstants.appName, subtitleStack: []);
     _applyToWindow();
   }
 

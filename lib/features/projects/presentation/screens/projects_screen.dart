@@ -7,7 +7,6 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
-import 'package:flutter/services.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';

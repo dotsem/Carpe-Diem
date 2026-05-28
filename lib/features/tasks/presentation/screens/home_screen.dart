@@ -17,7 +17,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/home_day_selector.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/home_planner_pane.dart';
-
+import 'package:carpe_diem/core/utils/focus_utils.dart';
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -77,30 +77,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return List.generate(settings.maxPlanningDays + 1, (i) => today.add(Duration(days: i)));
   }
 
-  void _moveFocus(int delta) {
-    if (_orderedItemIds.isEmpty) return;
-
-    int currentIndex = -1;
-    for (int i = 0; i < _orderedItemIds.length; i++) {
-      final node = _itemFocusNodes[_orderedItemIds[i]];
-      if (node?.hasFocus ?? false) {
-        currentIndex = i;
-        break;
-      }
-    }
-
-    if (currentIndex == -1) {
-      final targetIndex = delta > 0 ? 0 : _orderedItemIds.length - 1;
-      final id = _orderedItemIds[targetIndex];
-      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'HomeTask_$id'));
-      node.requestFocus();
-    } else {
-      final nextIndex = (currentIndex + delta).clamp(0, _orderedItemIds.length - 1);
-      final id = _orderedItemIds[nextIndex];
-      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'HomeTask_$id'));
-      node.requestFocus();
-    }
-  }
+  void _moveFocus(int delta) => FocusUtils.moveFocus(
+        orderedItemIds: _orderedItemIds, itemFocusNodes: _itemFocusNodes,
+        delta: delta, debugLabelPrefix: 'HomeTask',
+      );
 
   @override
   Widget build(BuildContext context) {

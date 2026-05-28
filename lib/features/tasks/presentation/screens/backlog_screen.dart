@@ -23,6 +23,7 @@ import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
+import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/common/data/models/task_filter.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_list.dart';
@@ -89,30 +90,10 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     super.dispose();
   }
 
-  void _moveFocus(int delta) {
-    if (_orderedItemIds.isEmpty) return;
-
-    int currentIndex = -1;
-    for (int i = 0; i < _orderedItemIds.length; i++) {
-      final node = _itemFocusNodes[_orderedItemIds[i]];
-      if (node?.hasFocus ?? false) {
-        currentIndex = i;
-        break;
-      }
-    }
-
-    if (currentIndex == -1) {
-      final targetIndex = delta > 0 ? 0 : _orderedItemIds.length - 1;
-      final id = _orderedItemIds[targetIndex];
-      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'BacklogTask_$id'));
-      node.requestFocus();
-    } else {
-      final nextIndex = (currentIndex + delta).clamp(0, _orderedItemIds.length - 1);
-      final id = _orderedItemIds[nextIndex];
-      final node = _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'BacklogTask_$id'));
-      node.requestFocus();
-    }
-  }
+  void _moveFocus(int delta) => FocusUtils.moveFocus(
+        orderedItemIds: _orderedItemIds, itemFocusNodes: _itemFocusNodes,
+        delta: delta, debugLabelPrefix: 'BacklogTask',
+      );
 
   @override
   Widget build(BuildContext context) {
