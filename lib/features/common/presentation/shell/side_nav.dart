@@ -6,7 +6,7 @@ import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/add_project_dialog.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
 
 class SideNav extends ConsumerWidget {
   final String currentPath;

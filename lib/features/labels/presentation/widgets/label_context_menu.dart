@@ -1,7 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/common/delete_dialog.dart';
-import 'package:carpe_diem/features/labels/presentation/widgets/edit_label_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
+import 'package:carpe_diem/features/labels/presentation/widgets/dialogs/edit_label_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

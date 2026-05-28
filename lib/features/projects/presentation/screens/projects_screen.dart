@@ -1,5 +1,5 @@
 import 'package:carpe_diem/features/common/data/models/task_filter.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/filter_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +8,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:flutter/services.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/add_project_dialog.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
 

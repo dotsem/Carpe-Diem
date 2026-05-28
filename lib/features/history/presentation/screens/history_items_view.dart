@@ -1,6 +1,6 @@
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

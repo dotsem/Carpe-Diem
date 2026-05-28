@@ -8,9 +8,9 @@ import 'package:carpe_diem/features/common/presentation/providers/filter_provide
 import 'package:carpe_diem/features/common/data/models/task_filter.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/blocker_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_hierarchy_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 
 class BacklogList extends ConsumerWidget {

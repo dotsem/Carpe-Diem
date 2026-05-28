@@ -1,5 +1,5 @@
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

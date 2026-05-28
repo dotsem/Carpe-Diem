@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/labels/presentation/widgets/add_label_dialog.dart';
+import 'package:carpe_diem/features/labels/presentation/widgets/dialogs/add_label_dialog.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -9,7 +9,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_list_components.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_components.dart';
 
 class TaskListView extends ConsumerStatefulWidget {
   final List<Task> tasks;

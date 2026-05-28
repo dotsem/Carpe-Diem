@@ -7,9 +7,9 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/blocker_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_hierarchy_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 

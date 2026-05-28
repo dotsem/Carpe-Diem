@@ -1,37 +1,37 @@
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/common/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/blocker_picker.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
-import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
+import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 
-class EditTaskDialog extends ConsumerStatefulWidget {
-  final Task task;
-  const EditTaskDialog({super.key, required this.task});
+class AddTaskDialog extends ConsumerStatefulWidget {
+  final DateTime? initialDate;
+  final String? initialProjectId;
+
+  const AddTaskDialog({super.key, this.initialDate, this.initialProjectId});
 
   @override
-  ConsumerState<EditTaskDialog> createState() => _EditTaskDialogState();
+  ConsumerState<AddTaskDialog> createState() => _AddTaskDialogState();
 }
 
-class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
-  final _nameController = TextEditingController();
+class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
+  final _titleController = TextEditingController();
   final _descController = TextEditingController();
-  late Priority _priority;
-  DateTime? _scheduledDate;
-  DateTime? _deadline;
+  DateTime? _selectedDate;
   String? _selectedProjectId;
+  Priority _priority = Priority.none;
+  DateTime? _deadline;
   String? _blockedById;
   List<Task> _projectTasks = [];
   List<String> _selectedLabelIds = [];
@@ -42,31 +42,20 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
   @override
   void initState() {
     super.initState();
-    _nameController.text = widget.task.title;
-    _descController.text = widget.task.description ?? '';
-    _priority = widget.task.priority;
-    _scheduledDate = widget.task.scheduledDate;
-    _deadline = widget.task.deadline;
-    _selectedProjectId = widget.task.projectId;
-    _blockedById = widget.task.blockedById;
-    _selectedLabelIds = List.from(widget.task.labelIds);
+    final settings = ref.read(settingsProvider);
+    _selectedDate = widget.initialDate;
+    _selectedProjectId = widget.initialProjectId ?? settings.defaultProjectId;
+    _priority = Priority.fromName(settings.defaultPriority) ?? Priority.none;
+
     if (_selectedProjectId != null) _loadProjectDetails();
 
     _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _windowTitleNotifier.pushSubtitle('Editing: ${widget.task.title}');
+      _windowTitleNotifier.pushSubtitle('New Task');
     });
   }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _windowTitleNotifier.popSubtitle();
-    });
-    super.dispose();
-  }
-
-  Future<void> _loadProjectDetails({bool overwriteDeadline = false}) async {
+  Future<void> _loadProjectDetails() async {
     if (_selectedProjectId == null) {
       setState(() {
         _projectTasks = [];
@@ -82,46 +71,35 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
     setState(() {
       _projectTasks = tasks;
       _inheritedLabelIds = project?.labelIds ?? [];
-      if (overwriteDeadline && settings.inheritProjectDeadline && project?.deadline != null) {
+      if (settings.inheritProjectDeadline && project?.deadline != null) {
         _deadline = project?.deadline;
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descController.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _windowTitleNotifier.popSubtitle();
+    });
+    super.dispose();
   }
 
   DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref
-        .watch(projectProvider)
-        .projects
-        .where((p) => p.isActive || p.id == widget.task.projectId)
-        .toList();
+    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
 
     return AppShortcutRegistrar(
       shortcuts: taskDialogShortcutEntries,
       child: SizedDialog(
-        title: 'Edit Task',
+        title: 'New Task',
         onSubmit: _submit,
-        submitText: 'Save Changes',
-        actions: [
-          TextButton.icon(
-            onPressed: () => showDialog(
-              context: context,
-              builder: (context) => DeleteDialog(
-                title: 'Delete Task',
-                message: 'Are you sure you want to delete this task?',
-                onConfirm: () {
-                  Navigator.of(context).pop();
-                  ref.read(taskProvider.notifier).deleteTask(widget.task);
-                },
-              ),
-            ),
-            icon: const Icon(Icons.delete),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            label: const Text("Delete"),
-          ),
-        ],
+        onCancel: () => Navigator.of(context).pop(),
+        submitText: 'Add Task',
         child: CallbackShortcuts(
           bindings: {
             const SingleActivator(LogicalKeyboardKey.digit1, control: true): () =>
@@ -141,9 +119,9 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
-                controller: _nameController,
+                controller: _titleController,
                 autofocus: true,
-                decoration: const InputDecoration(hintText: 'Task name'),
+                decoration: const InputDecoration(hintText: 'Task title'),
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               ),
               const SizedBox(height: 12),
@@ -162,10 +140,10 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
                 children: [
                   Expanded(
                     child: DatePickerButton(
-                      label: 'Schedule Date',
-                      date: _scheduledDate,
-                      onChanged: (d) => setState(() => _scheduledDate = d),
+                      label: 'Schedule date',
+                      date: _selectedDate,
                       lastDate: _maxDate,
+                      onChanged: (d) => setState(() => _selectedDate = d),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -176,7 +154,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
                       menuController: _projectMenuController,
                       onChanged: (id) {
                         setState(() => _selectedProjectId = id);
-                        _loadProjectDetails(overwriteDeadline: true);
+                        _loadProjectDetails();
                       },
                     ),
                   ),
@@ -187,7 +165,6 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
                 BlockerPicker(
                   availableTasks: _projectTasks,
                   selectedBlockerId: _blockedById,
-                  currentTaskId: widget.task.id,
                   onChanged: (id) {
                     setState(() {
                       _blockedById = id;
@@ -205,10 +182,10 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
               ),
               const SizedBox(height: 12),
               DatePickerButton(
-                label: 'Deadline (Optional)',
+                label: 'Deadline',
                 date: _deadline,
+                firstDate: DateTime.now(),
                 onChanged: (d) => setState(() => _deadline = d),
-                firstDate: widget.task.createdAt,
               ),
             ],
           ),
@@ -218,21 +195,18 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
   }
 
   void _submit() {
-    if (_nameController.text.trim().isEmpty) return;
-    ref.read(taskProvider.notifier).updateTask(
-      widget.task.copyWith(
-        title: _nameController.text.trim(),
-        description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),
-        priority: _priority,
-        scheduledDate: _scheduledDate,
-        clearScheduledDate: _scheduledDate == null,
-        deadline: _deadline,
-        clearDeadline: _deadline == null,
-        blockedById: _blockedById,
-        clearBlockedBy: _blockedById == null,
-        projectId: _selectedProjectId,
-        labelIds: _selectedLabelIds,
-      ),
+    final title = _titleController.text.trim();
+    if (title.isEmpty) return;
+
+    ref.read(taskProvider.notifier).addTask(
+      title: title,
+      description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+      scheduledDate: _selectedDate,
+      projectId: _selectedProjectId,
+      priority: _priority,
+      deadline: _deadline,
+      blockedById: _blockedById,
+      labelIds: _selectedLabelIds,
     );
     Navigator.of(context).pop();
   }

@@ -1,26 +1,26 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 
-class DestructiveDialog extends StatelessWidget {
+class WarningDialog extends StatelessWidget {
   final String title;
   final String message;
-  final String destructiveText;
+  final String warningText;
   final VoidCallback onConfirm;
-  const DestructiveDialog({
+  const WarningDialog({
     super.key,
     required this.title,
     required this.message,
     required this.onConfirm,
-    required this.destructiveText,
+    required this.warningText,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedDialog(
       title: title,
-      submitText: destructiveText,
-      submitStyle: FilledButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white),
+      submitText: warningText,
+      submitStyle: FilledButton.styleFrom(backgroundColor: AppColors.warning, foregroundColor: Theme.of(context).scaffoldBackgroundColor),
       onSubmit: () {
         Navigator.of(context).pop();
         onConfirm();

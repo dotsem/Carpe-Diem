@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/range_date_picker.dart';
 import 'package:flutter/material.dart';
 

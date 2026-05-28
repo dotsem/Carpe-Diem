@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/common/presentation/widgets/common/custom_date_picker_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/custom_date_picker_dialog.dart';
 import 'package:flutter/material.dart';
 
 class DatePickerButton extends StatelessWidget {

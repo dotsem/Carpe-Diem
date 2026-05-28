@@ -6,10 +6,10 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/kanban_board.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_list_view.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_board.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/add_task_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
 
 class HomePlannerPane extends ConsumerWidget {
   final DateTime selectedDate;

@@ -6,7 +6,7 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/add_project_dialog.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
 
 class ProjectGrid extends ConsumerStatefulWidget {
   final String searchQuery;

@@ -7,7 +7,7 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/kanban_column.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_column.dart';
 
 class KanbanBoard extends ConsumerStatefulWidget {
   final List<Task> tasks;

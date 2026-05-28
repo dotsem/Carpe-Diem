@@ -1,6 +1,6 @@
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/common/data/models/task_filter.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/multi_priority_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/multi_project_picker.dart';

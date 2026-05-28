@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/common/presentation/widgets/common/destructive_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/destructive_dialog.dart';
 import 'package:flutter/material.dart';
 
 class DeleteDialog extends StatelessWidget {
