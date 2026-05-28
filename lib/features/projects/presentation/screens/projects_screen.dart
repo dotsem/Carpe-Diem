@@ -57,13 +57,17 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
       shortcuts: projectShortcutEntries,
       child: Shortcuts(
         shortcuts: {
-          const CharacterActivator('/'): const _FocusSearchIntent(),
-          const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-          const CharacterActivator('j'): const MoveNextIntent(),
-          const CharacterActivator('k'): const MovePrevIntent(),
-          const CharacterActivator('h'): const MoveLeftIntent(),
-          const CharacterActivator('l'): const MoveRightIntent(),
-          const CharacterActivator('f'): const FilterIntent(),
+          const CharacterActivator(SearchKeys.char): const _FocusSearchIntent(),
+          const SingleActivator(AppKeyBindings.escape): const _UnfocusSearchIntent(),
+          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
+          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
+          const CharacterActivator(LeftKeys.char): const MoveLeftIntent(),
+          const CharacterActivator(RightKeys.char): const MoveRightIntent(),
+          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
+          const SingleActivator(AppKeyBindings.arrowLeft): const MoveLeftIntent(),
+          const SingleActivator(AppKeyBindings.arrowRight): const MoveRightIntent(),
+          const CharacterActivator(FilterKeys.char): const FilterIntent(),
         },
         child: Actions(
           actions: {
@@ -154,10 +158,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   }
 
   void _showAddProject(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const AddProjectDialog(),
-    );
+    showDialog(context: context, builder: (_) => const AddProjectDialog());
   }
 
   void _showFilterDialog(BuildContext context) async {

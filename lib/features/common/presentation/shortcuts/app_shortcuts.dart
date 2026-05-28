@@ -4,9 +4,11 @@ import 'package:carpe_diem/routes/app_router.dart';
 import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcuts_help_overlay.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_intents.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 export 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_intents.dart';
+export 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 
 bool isTypingInTextField() {
   final focus = FocusManager.instance.primaryFocus;
@@ -134,21 +136,23 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
       onKeyEvent: _handleKeyEvent,
       child: Shortcuts(
         shortcuts: {
-          const CharacterActivator('T'): const NavigateToTodayIntent(),
-          const CharacterActivator('B'): const NavigateToBacklogIntent(),
-          const CharacterActivator('P'): const NavigateToProjectsIntent(),
-          const CharacterActivator('Y'): const NavigateToHistoryIntent(),
-          const CharacterActivator('t'): const NavigateToTodayIntent(),
-          const CharacterActivator('b'): const NavigateToBacklogIntent(),
-          const CharacterActivator('p'): const NavigateToProjectsIntent(),
-          const CharacterActivator('y'): const NavigateToHistoryIntent(),
-          const CharacterActivator('?'): const ToggleHelpIntent(),
-          const CharacterActivator('F'): const ToggleFilterBypassIntent(),
-          const SingleActivator(LogicalKeyboardKey.escape): const CloseHelpIntent(),
-          const CharacterActivator('j'): const MoveNextIntent(),
-          const CharacterActivator('k'): const MovePrevIntent(),
-          const CharacterActivator('J'): const MoveNextIntent(),
-          const CharacterActivator('K'): const MovePrevIntent(),
+          const CharacterActivator(TodayKeys.upper): const NavigateToTodayIntent(),
+          const CharacterActivator(BacklogKeys.upper): const NavigateToBacklogIntent(),
+          const CharacterActivator(ProjectsKeys.upper): const NavigateToProjectsIntent(),
+          const CharacterActivator(HistoryKeys.upper): const NavigateToHistoryIntent(),
+          const CharacterActivator(TodayKeys.char): const NavigateToTodayIntent(),
+          const CharacterActivator(BacklogKeys.char): const NavigateToBacklogIntent(),
+          const CharacterActivator(ProjectsKeys.char): const NavigateToProjectsIntent(),
+          const CharacterActivator(HistoryKeys.char): const NavigateToHistoryIntent(),
+          const CharacterActivator(HelpKeys.char): const ToggleHelpIntent(),
+          const CharacterActivator(FilterKeys.upper): const ToggleFilterBypassIntent(),
+          const SingleActivator(AppKeyBindings.escape): const CloseHelpIntent(),
+          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
+          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
+          const CharacterActivator(DownKeys.upper): const MoveNextIntent(),
+          const CharacterActivator(UpKeys.upper): const MovePrevIntent(),
+          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
         },
         child: Actions(
           actions: {

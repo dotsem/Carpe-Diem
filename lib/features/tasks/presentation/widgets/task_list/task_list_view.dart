@@ -258,9 +258,12 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
     return Shortcuts(
       shortcuts: Map.fromEntries([
         if (widget.enablePlanShortcut) ...[
-          const MapEntry(SingleActivator(LogicalKeyboardKey.keyT, control: true), PlanTaskIntent()),
           const MapEntry(
-            SingleActivator(LogicalKeyboardKey.keyT, control: true, shift: true),
+            SingleActivator(TodayKeys.keyboardKey, control: true),
+            PlanTaskIntent(),
+          ),
+          const MapEntry(
+            SingleActivator(TodayKeys.keyboardKey, control: true, shift: true),
             PlanTaskTomorrowIntent(),
           ),
         ],

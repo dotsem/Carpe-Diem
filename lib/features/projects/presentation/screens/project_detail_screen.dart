@@ -166,13 +166,15 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       shortcuts: projectDetailShortcutEntries,
       child: Shortcuts(
         shortcuts: {
-          const CharacterActivator('/'): const _FocusSearchIntent(),
-          const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-          if (project.isActive) const CharacterActivator('a'): const _NewTaskIntent(),
-          if (project.isActive) const CharacterActivator('A'): const _NewTaskIntent(),
-          const CharacterActivator('j'): const MoveNextIntent(),
-          const CharacterActivator('k'): const MovePrevIntent(),
-          const CharacterActivator('f'): const FilterIntent(),
+          const CharacterActivator(SearchKeys.char): const _FocusSearchIntent(),
+          const SingleActivator(AppKeyBindings.escape): const _UnfocusSearchIntent(),
+          if (project.isActive) const CharacterActivator(AddKeys.char): const _NewTaskIntent(),
+          if (project.isActive) const CharacterActivator(AddKeys.upper): const _NewTaskIntent(),
+          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
+          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
+          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
+          const CharacterActivator(FilterKeys.char): const FilterIntent(),
         },
         child: Actions(
           actions: {
@@ -261,9 +263,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                             ? const Center(child: CircularProgressIndicator())
                             : Builder(
                                 builder: (context) {
-                                  final filter = ref.watch(filterProvider).activeFilter.limitTo(
-                                    projects: false,
-                                  );
+                                  final filter = ref.watch(filterProvider).activeFilter.limitTo(projects: false);
                                   final filteredTasks = _tasks
                                       .where((t) => filter.applyToTask(t, project.labelIds))
                                       .toList();
@@ -367,12 +367,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black,
-                            blurRadius: 15,
-                            spreadRadius: 2,
-                            offset: Offset(0, 4),
-                          ),
+                          BoxShadow(color: Colors.black, blurRadius: 15, spreadRadius: 2, offset: Offset(0, 4)),
                         ],
                       ),
                       child: FloatingActionButton(
@@ -430,23 +425,25 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     );
 
     if (result != null && context.mounted) {
-      await ref.read(taskProvider.notifier).bulkUpdateTasks(
-        taskIds: _selectedTaskIds,
-        priority: result.priority,
-        updatePriority: result.updatePriority,
-        scheduledDate: result.scheduledDate,
-        updateScheduledDate: result.updateScheduledDate,
-        clearScheduledDate: result.clearScheduledDate,
-        projectId: result.projectId,
-        updateProjectId: result.updateProjectId,
-        clearProjectId: result.clearProjectId,
-        deadline: result.deadline,
-        updateDeadline: result.updateDeadline,
-        clearDeadline: result.clearDeadline,
-        blockedById: result.blockedById,
-        updateBlockedById: result.updateBlockedById,
-        clearBlockedById: result.clearBlockedById,
-      );
+      await ref
+          .read(taskProvider.notifier)
+          .bulkUpdateTasks(
+            taskIds: _selectedTaskIds,
+            priority: result.priority,
+            updatePriority: result.updatePriority,
+            scheduledDate: result.scheduledDate,
+            updateScheduledDate: result.updateScheduledDate,
+            clearScheduledDate: result.clearScheduledDate,
+            projectId: result.projectId,
+            updateProjectId: result.updateProjectId,
+            clearProjectId: result.clearProjectId,
+            deadline: result.deadline,
+            updateDeadline: result.updateDeadline,
+            clearDeadline: result.clearDeadline,
+            blockedById: result.blockedById,
+            updateBlockedById: result.updateBlockedById,
+            clearBlockedById: result.clearBlockedById,
+          );
       setState(() => _selectedTaskIds.clear());
     }
   }

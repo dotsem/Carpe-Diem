@@ -121,15 +121,17 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
       shortcuts: backlogShortcutEntries,
       child: Shortcuts(
         shortcuts: {
-          const CharacterActivator('/'): const _FocusSearchIntent(),
-          const SingleActivator(LogicalKeyboardKey.escape): const _UnfocusSearchIntent(),
-          const CharacterActivator('a'): const _NewTaskIntent(),
-          const CharacterActivator('A'): const _NewTaskIntent(),
-          const CharacterActivator('j'): const MoveNextIntent(),
-          const CharacterActivator('k'): const MovePrevIntent(),
-          const CharacterActivator('f'): const FilterIntent(),
-          const SingleActivator(LogicalKeyboardKey.keyT, control: true): const PlanTaskIntent(),
-          const SingleActivator(LogicalKeyboardKey.keyT, control: true, shift: true): const PlanTaskTomorrowIntent(),
+          const CharacterActivator(SearchKeys.char): const _FocusSearchIntent(),
+          const SingleActivator(AppKeyBindings.escape): const _UnfocusSearchIntent(),
+          const CharacterActivator(AddKeys.char): const _NewTaskIntent(),
+          const CharacterActivator(AddKeys.upper): const _NewTaskIntent(),
+          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
+          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
+          const CharacterActivator(FilterKeys.char): const FilterIntent(),
+          const SingleActivator(TodayKeys.keyboardKey, control: true): const PlanTaskIntent(),
+          const SingleActivator(TodayKeys.keyboardKey, control: true, shift: true): const PlanTaskTomorrowIntent(),
+          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
         },
         child: Actions(
           actions: {

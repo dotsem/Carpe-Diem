@@ -3,7 +3,6 @@ import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
@@ -102,17 +101,16 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
         submitText: 'Add Task',
         child: CallbackShortcuts(
           bindings: {
-            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () =>
+            const SingleActivator(AppKeyBindings.digit1, control: true): () =>
                 setState(() => _priority = Priority.none),
-            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () =>
-                setState(() => _priority = Priority.low),
-            const SingleActivator(LogicalKeyboardKey.digit3, control: true): () =>
+            const SingleActivator(AppKeyBindings.digit2, control: true): () => setState(() => _priority = Priority.low),
+            const SingleActivator(AppKeyBindings.digit3, control: true): () =>
                 setState(() => _priority = Priority.medium),
-            const SingleActivator(LogicalKeyboardKey.digit4, control: true): () =>
+            const SingleActivator(AppKeyBindings.digit4, control: true): () =>
                 setState(() => _priority = Priority.high),
-            const SingleActivator(LogicalKeyboardKey.digit5, control: true): () =>
+            const SingleActivator(AppKeyBindings.digit5, control: true): () =>
                 setState(() => _priority = Priority.urgent),
-            const SingleActivator(LogicalKeyboardKey.keyP, control: true): () => _projectMenuController.open(),
+            const SingleActivator(ProjectsKeys.keyboardKey, control: true): () => _projectMenuController.open(),
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -198,16 +196,18 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
 
-    ref.read(taskProvider.notifier).addTask(
-      title: title,
-      description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
-      scheduledDate: _selectedDate,
-      projectId: _selectedProjectId,
-      priority: _priority,
-      deadline: _deadline,
-      blockedById: _blockedById,
-      labelIds: _selectedLabelIds,
-    );
+    ref
+        .read(taskProvider.notifier)
+        .addTask(
+          title: title,
+          description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+          scheduledDate: _selectedDate,
+          projectId: _selectedProjectId,
+          priority: _priority,
+          deadline: _deadline,
+          blockedById: _blockedById,
+          labelIds: _selectedLabelIds,
+        );
     Navigator.of(context).pop();
   }
 }

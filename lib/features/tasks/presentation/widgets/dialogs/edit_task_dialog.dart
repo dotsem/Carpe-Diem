@@ -12,7 +12,6 @@ import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dar
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
@@ -124,17 +123,16 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
         ],
         child: CallbackShortcuts(
           bindings: {
-            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () =>
+            const SingleActivator(AppKeyBindings.digit1, control: true): () =>
                 setState(() => _priority = Priority.none),
-            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () =>
-                setState(() => _priority = Priority.low),
-            const SingleActivator(LogicalKeyboardKey.digit3, control: true): () =>
+            const SingleActivator(AppKeyBindings.digit2, control: true): () => setState(() => _priority = Priority.low),
+            const SingleActivator(AppKeyBindings.digit3, control: true): () =>
                 setState(() => _priority = Priority.medium),
-            const SingleActivator(LogicalKeyboardKey.digit4, control: true): () =>
+            const SingleActivator(AppKeyBindings.digit4, control: true): () =>
                 setState(() => _priority = Priority.high),
-            const SingleActivator(LogicalKeyboardKey.digit5, control: true): () =>
+            const SingleActivator(AppKeyBindings.digit5, control: true): () =>
                 setState(() => _priority = Priority.urgent),
-            const SingleActivator(LogicalKeyboardKey.keyP, control: true): () => _projectMenuController.open(),
+            const SingleActivator(ProjectsKeys.keyboardKey, control: true): () => _projectMenuController.open(),
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -219,21 +217,23 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
 
   void _submit() {
     if (_nameController.text.trim().isEmpty) return;
-    ref.read(taskProvider.notifier).updateTask(
-      widget.task.copyWith(
-        title: _nameController.text.trim(),
-        description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),
-        priority: _priority,
-        scheduledDate: _scheduledDate,
-        clearScheduledDate: _scheduledDate == null,
-        deadline: _deadline,
-        clearDeadline: _deadline == null,
-        blockedById: _blockedById,
-        clearBlockedBy: _blockedById == null,
-        projectId: _selectedProjectId,
-        labelIds: _selectedLabelIds,
-      ),
-    );
+    ref
+        .read(taskProvider.notifier)
+        .updateTask(
+          widget.task.copyWith(
+            title: _nameController.text.trim(),
+            description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),
+            priority: _priority,
+            scheduledDate: _scheduledDate,
+            clearScheduledDate: _scheduledDate == null,
+            deadline: _deadline,
+            clearDeadline: _deadline == null,
+            blockedById: _blockedById,
+            clearBlockedBy: _blockedById == null,
+            projectId: _selectedProjectId,
+            labelIds: _selectedLabelIds,
+          ),
+        );
     Navigator.of(context).pop();
   }
 }
