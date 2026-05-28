@@ -1,11 +1,11 @@
 import 'package:go_router/go_router.dart';
-import 'package:carpe_diem/ui/screens/home_screen.dart';
-import 'package:carpe_diem/ui/screens/projects_screen.dart';
-import 'package:carpe_diem/ui/screens/backlog_screen.dart';
-import 'package:carpe_diem/ui/screens/history_screen.dart';
-import 'package:carpe_diem/ui/screens/project_detail_screen.dart';
-import 'package:carpe_diem/ui/screens/settings_screen.dart';
-import 'package:carpe_diem/ui/shell/app_shell.dart';
+import 'package:carpe_diem/features/tasks/presentation/screens/home_screen.dart';
+import 'package:carpe_diem/features/projects/presentation/screens/projects_screen.dart';
+import 'package:carpe_diem/features/tasks/presentation/screens/backlog_screen.dart';
+import 'package:carpe_diem/features/history/presentation/screens/history_screen.dart';
+import 'package:carpe_diem/features/projects/presentation/screens/project_detail_screen.dart';
+import 'package:carpe_diem/features/settings/presentation/screens/settings_screen.dart';
+import 'package:carpe_diem/features/common/presentation/shell/app_shell.dart';
 import 'package:carpe_diem/routes/keys.dart';
 
 final appRouter = GoRouter(
