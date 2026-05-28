@@ -172,16 +172,13 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       },
                     ),
                   ),
-                  () {
-                    final filterState = ref.watch(filterProvider);
-                    return FilterBar(
-                      filter: filterState.filter,
-                      isBypassed: filterState.isBypassed,
-                      ignoreProjects: true,
-                      onFilterTap: () => ProjectDetailDialogHandlers.showFilterDialog(context, ref),
-                      onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
-                    );
-                  }(),
+                  FilterBar(
+                    filter: ref.watch(filterProvider).filter,
+                    isBypassed: ref.watch(filterProvider).isBypassed,
+                    ignoreProjects: true,
+                    onFilterTap: () => ProjectDetailDialogHandlers.showFilterDialog(context, ref),
+                    onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+                  ),
                   Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
                   Expanded(
                     child: _isLoading

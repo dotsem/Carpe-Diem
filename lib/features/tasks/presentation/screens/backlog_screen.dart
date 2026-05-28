@@ -1,33 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/filter_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_edit_tasks_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/core/utils/toast_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
-import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_list.dart';
-
+import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_dialog_handlers.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/shortcuts/backlog_shortcuts.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 
 class BacklogScreen extends ConsumerStatefulWidget {
   const BacklogScreen({super.key});
@@ -86,13 +74,32 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     debugLabelPrefix: 'BacklogTask',
   );
 
+  String? _getFocusedTaskId() {
+    if (_orderedItemIds.isEmpty) return null;
+    for (int i = 0; i < _orderedItemIds.length; i++) {
+      final node = _itemFocusNodes[_orderedItemIds[i]];
+      if (node?.hasFocus ?? false) return _orderedItemIds[i];
+    }
+    return null;
+  }
+
+  Future<void> _scheduleTasks(Future<void> Function(List<String>) action) async {
+    final List<String> ids = _selectedTaskIds.isNotEmpty
+        ? List.from(_selectedTaskIds)
+        : [_getFocusedTaskId()].whereType<String>().toList();
+    if (ids.isNotEmpty) {
+      await action(ids);
+      if (mounted && _selectedTaskIds.isNotEmpty) setState(() => _selectedTaskIds.clear());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     return BacklogShortcuts(
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
-      onShowFilter: () => _showFilterDialog(context),
+      onShowFilter: () => BacklogDialogHandlers.showFilterDialog(context, ref),
       onFocusSearch: () => _searchFocusNode.requestFocus(),
       onUnfocusSearch: () {
         if (_searchFocusNode.hasFocus) {
@@ -104,31 +111,9 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
           }
         }
       },
-      onNewTask: () => _showAddTask(context),
-      onPlanTask: () {
-        if (_selectedTaskIds.isNotEmpty) {
-          ref.read(taskProvider.notifier).scheduleTasksForToday(List.from(_selectedTaskIds)).then((_) {
-            setState(() => _selectedTaskIds.clear());
-          });
-        } else {
-          final taskId = _getFocusedTaskId();
-          if (taskId != null) {
-            ref.read(taskProvider.notifier).scheduleTasksForToday([taskId]);
-          }
-        }
-      },
-      onPlanTaskTomorrow: () {
-        if (_selectedTaskIds.isNotEmpty) {
-          ref.read(taskProvider.notifier).scheduleTasksForTomorrow(List.from(_selectedTaskIds)).then((_) {
-            setState(() => _selectedTaskIds.clear());
-          });
-        } else {
-          final taskId = _getFocusedTaskId();
-          if (taskId != null) {
-            ref.read(taskProvider.notifier).scheduleTasksForTomorrow([taskId]);
-          }
-        }
-      },
+      onNewTask: () => BacklogDialogHandlers.showAddTask(context),
+      onPlanTask: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForToday),
+      onPlanTaskTomorrow: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForTomorrow),
       child: Focus(
         focusNode: _mainFocusNode,
         autofocus: true,
@@ -144,14 +129,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                   actions: [
                     if (settings.enableRandomTask) ...[
                       IconButton(
-                        onPressed: () => _pickRandomTask(context),
+                        onPressed: () => BacklogDialogHandlers.pickRandomTask(context, ref, _searchQuery),
                         icon: const Icon(Icons.casino_rounded),
                         tooltip: 'Give me a random task!',
                       ),
                       const SizedBox(width: 8),
                     ],
                     FilledButton.icon(
-                      onPressed: () => _showAddTask(context),
+                      onPressed: () => BacklogDialogHandlers.showAddTask(context),
                       icon: const Icon(Icons.add),
                       label: const Text('Add Task'),
                     ),
@@ -162,7 +147,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                 FilterBar(
                   filter: ref.watch(filterProvider).filter,
                   isBypassed: ref.watch(filterProvider).isBypassed,
-                  onFilterTap: () => _showFilterDialog(context),
+                  onFilterTap: () => BacklogDialogHandlers.showFilterDialog(context, ref),
                   onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
                 ),
                 Divider(height: 1),
@@ -187,16 +172,12 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                   child: BacklogList(
                     searchQuery: _searchQuery,
                     selectedTaskIds: _selectedTaskIds,
-                    onSelectedChanged: (task) {
-                      setState(() {
-                        if (_selectedTaskIds.contains(task.id)) {
-                          _selectedTaskIds.remove(task.id);
-                        } else {
-                          _selectedTaskIds.add(task.id);
-                        }
-                      });
-                    },
-                    onEdit: (task) => _showEditTask(context, task),
+                    onSelectedChanged: (task) => setState(() {
+                      _selectedTaskIds.contains(task.id)
+                          ? _selectedTaskIds.remove(task.id)
+                          : _selectedTaskIds.add(task.id);
+                    }),
+                    onEdit: (task) => BacklogDialogHandlers.showEditTask(context, task),
                     itemFocusNodes: _itemFocusNodes,
                     onOrderedIdsChanged: (ids) {
                       _orderedItemIds.clear();
@@ -214,23 +195,17 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
               child: BulkPlanningBar(
                 selectedCount: _selectedTaskIds.length,
                 onClearSelection: () => setState(() => _selectedTaskIds.clear()),
-                onScheduleToday: () {
-                  ref.read(taskProvider.notifier).scheduleTasksForToday(_selectedTaskIds).then((_) {
-                    setState(() => _selectedTaskIds.clear());
-                  });
-                },
-                onScheduleTomorrow: () {
-                  ref.read(taskProvider.notifier).scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
-                    setState(() => _selectedTaskIds.clear());
-                  });
-                },
+                onScheduleToday: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForToday),
+                onScheduleTomorrow: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForTomorrow),
                 onBulkEdit: () {
                   if (_selectedTaskIds.length == 1) {
                     final provider = ref.read(taskProvider);
                     final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
-                    _showEditTask(context, task);
+                    BacklogDialogHandlers.showEditTask(context, task);
                   } else {
-                    _showBulkEdit(context);
+                    BacklogDialogHandlers.showBulkEdit(context, ref, _selectedTaskIds, () {
+                      setState(() => _selectedTaskIds.clear());
+                    });
                   }
                 },
                 onBulkDelete: () {
@@ -249,7 +224,9 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                       ),
                     );
                   } else {
-                    _showBulkDeleteConfirm(context);
+                    BacklogDialogHandlers.showBulkDeleteConfirm(context, ref, _selectedTaskIds, () {
+                      setState(() => _selectedTaskIds.clear());
+                    });
                   }
                 },
               ),
@@ -260,17 +237,6 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     );
   }
 
-  String? _getFocusedTaskId() {
-    if (_orderedItemIds.isEmpty) return null;
-    for (int i = 0; i < _orderedItemIds.length; i++) {
-      final node = _itemFocusNodes[_orderedItemIds[i]];
-      if (node?.hasFocus ?? false) {
-        return _orderedItemIds[i];
-      }
-    }
-    return null;
-  }
-
   Widget _buildHeaderActions(BuildContext context) {
     return BulkActionMenu(
       options: [
@@ -278,7 +244,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
       ],
       onOptionSelected: (value) {
         if (value == 'import') {
-          _showImportFromMD(context);
+          BacklogDialogHandlers.showImportFromMD(context);
         }
       },
     );
@@ -313,144 +279,6 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
           },
         ),
       ],
-    );
-  }
-
-  void _showEditTask(BuildContext context, Task task) {
-    showDialog(
-      context: context,
-      builder: (_) => EditTaskDialog(task: task),
-    );
-  }
-
-  void _showAddTask(BuildContext context) {
-    showDialog(context: context, builder: (_) => const AddTaskDialog());
-  }
-
-  void _showImportFromMD(BuildContext context) {
-    showDialog(context: context, builder: (_) => const ImportFromMDDialog());
-  }
-
-  void _showFilterDialog(BuildContext context) async {
-    final filterProviderVal = ref.read(filterProvider);
-    final result = await showDialog<TaskFilter>(
-      context: context,
-      builder: (_) => FilterDialog(initialFilter: filterProviderVal.filter),
-    );
-    if (result != null) {
-      ref.read(filterProvider.notifier).setFilter(result);
-    }
-  }
-
-  void _showBulkEdit(BuildContext context) async {
-    final result = await showDialog<BulkEditResult>(
-      context: context,
-      builder: (_) => BulkEditTasksDialog(taskIds: _selectedTaskIds),
-    );
-
-    if (result != null && context.mounted) {
-      await ref
-          .read(taskProvider.notifier)
-          .bulkUpdateTasks(
-            taskIds: _selectedTaskIds,
-            priority: result.priority,
-            updatePriority: result.updatePriority,
-            scheduledDate: result.scheduledDate,
-            updateScheduledDate: result.updateScheduledDate,
-            clearScheduledDate: result.clearScheduledDate,
-            projectId: result.projectId,
-            updateProjectId: result.updateProjectId,
-            clearProjectId: result.clearProjectId,
-            deadline: result.deadline,
-            updateDeadline: result.updateDeadline,
-            clearDeadline: result.clearDeadline,
-            blockedById: result.blockedById,
-            updateBlockedById: result.updateBlockedById,
-            clearBlockedById: result.clearBlockedById,
-          );
-      setState(() => _selectedTaskIds.clear());
-    }
-  }
-
-  void _showBulkDeleteConfirm(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Confirm Deletion'),
-        content: Text('Are you sure you want to delete ${_selectedTaskIds.length} tasks?'),
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-        titleTextStyle: Theme.of(context).textTheme.titleLarge,
-        contentTextStyle: Theme.of(context).textTheme.bodyMedium,
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
-            ),
-            onPressed: () async {
-              await ref.read(taskProvider.notifier).bulkDeleteTasks(_selectedTaskIds);
-              if (!mounted) return;
-              setState(() => _selectedTaskIds.clear());
-              if (ctx.mounted) {
-                Navigator.of(ctx).pop();
-              }
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _pickRandomTask(BuildContext context) async {
-    final taskProviderVal = ref.read(taskProvider);
-    final projectProviderVal = ref.read(projectProvider);
-    final filter = ref.read(filterProvider).activeFilter;
-
-    var availableTasks = taskProviderVal.unscheduledTasks.where((t) {
-      final project = t.projectId != null ? projectProviderVal.getById(t.projectId!) : null;
-      return filter.applyToTask(t, project?.labelIds ?? []);
-    }).toList();
-
-    if (_searchQuery.isNotEmpty) {
-      availableTasks = FuzzySearchUtils.search<Task>(
-        query: _searchQuery,
-        items: availableTasks,
-        itemToString: (t) => '${t.title} ${t.description ?? ''}',
-        threshold: 0.3,
-      );
-    }
-
-    final randomTask = await ref.read(taskProvider.notifier).pickAndScheduleRandomTask(availableTasks);
-
-    if (randomTask == null) {
-      ToastUtils.showInfo('No available tasks to pick from');
-      return;
-    }
-
-    if (!context.mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => SizedDialog(
-        title: 'We\'ve picked this task for you:',
-        showDefaultActions: false,
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Great!'))],
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TaskCard(
-              task: randomTask,
-              project: randomTask.projectId != null ? projectProviderVal.getById(randomTask.projectId!) : null,
-              onToggle: (_) {},
-              onTap: () {},
-              leading: const SizedBox.shrink(),
-              showStrikeThroughOnCompleted: false,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

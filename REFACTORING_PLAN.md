@@ -56,14 +56,14 @@ Replace Provider/ChangeNotifier with highly decoupled, specialized Riverpod prov
 
 ### Phase 4: Presentation Decoupling & Component Extraction
 Aggressively decouple UI logic from screens and enforce the 300-line limit per file.
-- [ ] **Step 4.1: Split `backlog_screen.dart` (< 300 lines)**
+- [x] **Step 4.1: Split `backlog_screen.dart` (< 300 lines)**
   Extract UI components into independent widget files:
   - `backlog_search_bar.dart`
   - `backlog_list_view.dart`
   - `backlog_bulk_bar.dart`
-- [ ] **Step 4.2: Split `project_detail_screen.dart` (< 300 lines)**
+- [x] **Step 4.2: Split `project_detail_screen.dart` (< 300 lines)**
   Extract project header and task list elements.
-- [ ] **Step 4.3: Standardize Component Architecture**
+- [x] **Step 4.3: Standardize Component Architecture**
   Replace inline helper functions returning widgets with lightweight `StatelessWidget` or `ConsumerWidget` classes to optimize Flutter widget reconciliation.
 
 ### Phase 5: Comprehensive Unit & Widget Testing
