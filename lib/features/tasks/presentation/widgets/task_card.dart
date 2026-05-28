@@ -12,6 +12,8 @@ import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_progress_border_painter.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_status_indicator.dart';
 
 class TaskCard extends ConsumerStatefulWidget {
   final Task task;
@@ -108,7 +110,6 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
         _controller.reset();
       }
     } else {
-      // Todo -> immediately move to in progress
       widget.onToggle(value);
     }
   }
@@ -120,9 +121,10 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
     final bool showDone = widget.isChecked == null && (widget.task.isCompleted || isPending);
     final settings = ref.watch(settingsProvider);
 
-    // Sync animation if needed (e.g. after page swap)
     if (isPending && !_controller.isAnimating && _controller.value < 1.0) {
-      final progress = ref.read(taskTimerProvider.notifier).getPendingProgress(widget.task.id, settings.taskCompletionDelay);
+      final progress = ref
+          .read(taskTimerProvider.notifier)
+          .getPendingProgress(widget.task.id, settings.taskCompletionDelay);
       _controller.value = progress;
       _controller.forward();
     } else if (!isPending && (_controller.isAnimating || _controller.value > 0)) {
@@ -141,7 +143,12 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
       builder: (context, child) {
         return CustomPaint(
           foregroundPainter: isPending
-              ? _ProgressPainter(progress: _controller.value, color: AppColors.accent, width: 3.0, borderRadius: 12.0)
+              ? TaskProgressBorderPainter(
+                  progress: _controller.value,
+                  color: AppColors.accent,
+                  width: 3.0,
+                  borderRadius: 12.0,
+                )
               : null,
           child: child,
         );
@@ -191,10 +198,17 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
                 children: [
                   Positioned(left: 0, top: 0, bottom: 0, child: PriorityIndicator(priority: widget.task.priority)),
                   Padding(
-                    padding: const EdgeInsets.only(left: 14), // indicator width (6) + gap (8)
+                    padding: const EdgeInsets.only(left: 14),
                     child: Row(
                       children: [
-                        widget.leading ?? _statusIndicator(),
+                        widget.leading ??
+                            TaskStatusIndicator(
+                              task: widget.task,
+                              isChecked: widget.isChecked,
+                              selectionMode: widget.selectionMode,
+                              onToggle: widget.onToggle,
+                              onToggleAction: () => _handleToggle(null),
+                            ),
                         SizedBox(width: isCompact ? 6 : 8),
                         Expanded(
                           child: Column(
@@ -239,8 +253,8 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
                                   spacing: 4,
                                   runSpacing: 4,
                                   children: [
-                                    if (isOverdue && !widget.task.isCompleted && !isPending) OverdueChip(),
-                                    if (widget.task.status.isInProgress && !isPending) StatusChip(),
+                                    if (isOverdue && !widget.task.isCompleted && !isPending) const OverdueChip(),
+                                    if (widget.task.status.isInProgress && !isPending) const StatusChip(),
                                     if (widget.task.deadline != null) DeadlineChip(deadline: widget.task.deadline!),
                                     if (widget.showScheduleDate &&
                                         widget.task.scheduledDate != null &&
@@ -269,60 +283,6 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
     );
   }
 
-  Widget _statusIndicator() {
-    final bool effectiveIsChecked = widget.isChecked ?? widget.task.isCompleted;
-
-    if (widget.selectionMode) {
-      return Checkbox(
-        value: widget.isChecked ?? false,
-        onChanged: (value) => widget.onToggle(value),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-      );
-    }
-
-    final timerNotifier = ref.read(taskTimerProvider.notifier);
-    final isPending = timerNotifier.isTaskPending(widget.task.id);
-
-    if (widget.task.status.isInProgress) {
-      return GestureDetector(
-        onTap: () => _handleToggle(null),
-        child: Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isPending ? AppColors.accent.withValues(alpha: 0.5) : AppColors.accent.withValues(alpha: 0.3),
-            border: Border.all(color: AppColors.accent, width: 2),
-          ),
-          child: isPending ? const Icon(Icons.close, size: 14, color: AppColors.accent) : null,
-        ),
-      );
-    }
-
-    if (widget.task.status.isTodo) {
-      return GestureDetector(
-        onTap: () => _handleToggle(null),
-        child: Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.success.withValues(alpha: 0.1),
-            border: Border.all(color: AppColors.success, width: 2),
-          ),
-          child: const Icon(Icons.play_arrow_rounded, size: 16, color: AppColors.success),
-        ),
-      );
-    }
-
-    return Checkbox(
-      value: effectiveIsChecked,
-      onChanged: (value) => _handleToggle(value),
-      fillColor: isPending ? WidgetStateProperty.all(AppColors.accent.withValues(alpha: 0.5)) : null,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-    );
-  }
-
   List<Widget> _getLabels(BuildContext context) {
     ref.watch(labelProvider);
     final labelNotifier = ref.read(labelProvider.notifier);
@@ -334,38 +294,5 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
     final labels = allLabelIds.map((id) => labelNotifier.getById(id)).whereType<Label>().toList();
 
     return labels.map((label) => LabelChip(label: label, verticalPadding: 1)).toList();
-  }
-}
-
-class _ProgressPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-  final double width;
-  final double borderRadius;
-
-  _ProgressPainter({required this.progress, required this.color, required this.width, required this.borderRadius});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (progress == 0) return;
-
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = width;
-
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
-
-    final path = Path()..addRRect(rrect);
-    final metrics = path.computeMetrics().first;
-    final extractPath = metrics.extractPath(0.0, metrics.length * progress);
-
-    canvas.drawPath(extractPath, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress;
   }
 }

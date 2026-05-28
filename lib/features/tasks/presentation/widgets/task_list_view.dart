@@ -2,18 +2,14 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/blocker_indicator.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_hierarchy_indicator.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_list_components.dart';
 
 class TaskListView extends ConsumerStatefulWidget {
   final List<Task> tasks;
@@ -121,7 +117,6 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
 
   @override
   Widget build(BuildContext context) {
-    final projectState = ref.watch(projectProvider);
     final taskState = ref.watch(taskProvider);
     final taskNotifier = ref.read(taskProvider.notifier);
 
@@ -177,7 +172,7 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
     final doneCategory = allTasks.where((t) => t.status.isDone).toList();
 
     if (inProgressCategory.isEmpty && overdueCategory.isEmpty && todoCategory.isEmpty && doneCategory.isEmpty) {
-      return widget._buildEmptyState(context);
+      return TaskListEmptyPlaceholder(customPlaceholder: widget.emptyPlaceholder);
     }
 
     _orderedItemIds.clear();
@@ -215,32 +210,37 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
 
     int nodeIndex = 0;
     Widget buildNode(TaskHierarchyNode node, bool Function(Task) overdueFn) {
-      if (node is TaskNode) {
-        final autofocus = nodeIndex == 0 && widget.searchQuery == null && widget.firstNode == null;
+      final isTaskNode = node is TaskNode;
+      FocusNode? focusNode;
+      bool autofocus = false;
+
+      if (isTaskNode) {
         final isFirst = nodeIndex == 0;
-        final focusNode = (isFirst && widget.firstNode != null)
+        autofocus = nodeIndex == 0 && widget.searchQuery == null && widget.firstNode == null;
+        focusNode = (isFirst && widget.firstNode != null)
             ? widget.firstNode!
             : _itemFocusNodes.putIfAbsent(node.task.id, () => FocusNode(debugLabel: 'Task_${node.task.id}'));
 
         if (isFirst && widget.firstNode != null) {
           _itemFocusNodes[node.task.id] = widget.firstNode!;
         }
-
         nodeIndex++;
-        return widget._buildHierarchyNode(
-          context,
-          node,
-          projectState,
-          taskNotifier,
-          overdueFn(node.task),
-          widget.showScheduleDate,
-          autofocus,
-          focusNode,
-        );
-      } else if (node is BlockerIndicatorNode) {
-        return widget._buildHierarchyNode(context, node, projectState, taskNotifier, false, false, false, null);
       }
-      return const SizedBox.shrink();
+
+      return TaskHierarchyItem(
+        node: node,
+        taskIsOverdue: isTaskNode ? overdueFn(node.task) : false,
+        showScheduleDate: isTaskNode ? widget.showScheduleDate : false,
+        autofocus: autofocus,
+        focusNode: focusNode,
+        isReadOnly: widget.isReadOnly,
+        selectionMode: widget.selectionMode,
+        selectedTaskIds: widget.selectedTaskIds,
+        onSelectedChanged: widget.onSelectedChanged,
+        onEdit: widget.onEdit,
+        onContextMenu: widget.onContextMenu,
+        trailingBuilder: widget.trailingBuilder,
+      );
     }
 
     List<Widget> buildHierarchy(List<Task> categoryTasks, bool Function(Task) overdueFn) {
@@ -302,21 +302,28 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
           padding: widget.padding,
           children: [
             if (inProgressCategory.isNotEmpty) ...[
-              widget._buildHeader(context, 'In Progress', color: AppColors.accent, amount: inProgressCategory.length),
+              TaskListSectionHeader(
+                title: 'In Progress',
+                color: AppColors.accent,
+                amount: inProgressCategory.length,
+              ),
               const SizedBox(height: 8),
               ...buildHierarchy(inProgressCategory, isOverdue),
               const SizedBox(height: 20),
             ],
             if (overdueCategory.isNotEmpty) ...[
-              widget._buildHeader(context, 'Overdue', color: AppColors.error, amount: overdueCategory.length),
+              TaskListSectionHeader(
+                title: 'Overdue',
+                color: AppColors.error,
+                amount: overdueCategory.length,
+              ),
               const SizedBox(height: 8),
               ...buildHierarchy(overdueCategory, (_) => true),
               const SizedBox(height: 20),
             ],
             if (todoCategory.isNotEmpty) ...[
-              widget._buildHeader(
-                context,
-                'Todo',
+              TaskListSectionHeader(
+                title: 'Todo',
                 amount: todoCategory.length,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -325,9 +332,8 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
             ],
             if (doneCategory.isNotEmpty) ...[
               const SizedBox(height: 20),
-              widget._buildHeader(
-                context,
-                'Done',
+              TaskListSectionHeader(
+                title: 'Done',
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 amount: doneCategory.length,
                 onTap: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
@@ -342,8 +348,8 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
                 child: _isDoneExpanded
-                     ? Column(children: buildHierarchy(doneCategory, (_) => false))
-                     : const SizedBox(width: double.infinity),
+                    ? Column(children: buildHierarchy(doneCategory, (_) => false))
+                    : const SizedBox(width: double.infinity),
               ),
             ],
           ],
@@ -366,107 +372,5 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       }
     }
     return null;
-  }
-}
-
-extension TaskListViewPrivate on TaskListView {
-  Widget _buildHeader(
-    BuildContext context,
-    String title, {
-    Color? color,
-    int? amount,
-    VoidCallback? onTap,
-    Widget? trailing,
-  }) {
-    Widget content = Row(
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(width: 8),
-        SmallChip(
-          color: color?.withValues(alpha: 0.15) ?? Colors.transparent,
-          borderRadius: 10,
-          child: Text(
-            '${amount ?? tasks.length}',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
-          ),
-        ),
-        if (trailing != null) ...[const Spacer(), trailing],
-      ],
-    );
-
-    if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: content),
-      );
-    }
-    return content;
-  }
-
-  Widget _buildHierarchyNode(
-    BuildContext context,
-    TaskHierarchyNode node,
-    ProjectState projectState,
-    TaskNotifier taskNotifier,
-    bool taskIsOverdue,
-    bool showScheduleDate,
-    bool autofocus,
-    FocusNode? focusNode,
-  ) {
-    Widget child;
-    if (node is TaskNode) {
-      child = TaskCard(
-        key: ValueKey(node.task.id),
-        task: node.task,
-        project: node.task.projectId != null ? projectState.getById(node.task.projectId!) : null,
-        isOverdue: taskIsOverdue,
-        autofocus: autofocus,
-        focusNode: focusNode,
-        onToggle: isReadOnly
-            ? (_) {}
-            : selectionMode
-            ? (value) => onSelectedChanged?.call(node.task)
-            : (_) => taskNotifier.toggleComplete(node.task),
-        isChecked: selectionMode ? selectedTaskIds.contains(node.task.id) : null,
-        selectionMode: selectionMode,
-        onTap: isReadOnly ? () {} : () => onEdit?.call(node.task),
-        showScheduleDate: showScheduleDate,
-        onContextMenu: isReadOnly
-            ? null
-            : onContextMenu != null
-            ? (pos, box) => onContextMenu!(context, node.task, pos, box)
-            : null,
-        leading: isReadOnly ? const SizedBox.shrink() : null,
-        trailing: isReadOnly ? const SizedBox.shrink() : trailingBuilder?.call(context, node.task),
-      );
-    } else if (node is BlockerIndicatorNode) {
-      child = BlockerIndicator(
-        blockerId: node.blockerId,
-        blockerTitle: node.blockerTitle,
-        blockedTaskId: node.blockedTaskId,
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-
-    return TaskHierarchyIndicator(depth: node.depth, child: child);
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    if (emptyPlaceholder != null) return emptyPlaceholder!;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check_circle_outline, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          const SizedBox(height: 16),
-          Text('No tasks found', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16)),
-        ],
-      ),
-    );
   }
 }

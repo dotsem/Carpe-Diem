@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/add_task_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/common/sized_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/common/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/import_from_md_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/bulk_edit_tasks_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/blocker_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,14 +19,13 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/edit_task_dialog.
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_hierarchy_indicator.dart';
-import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/common/data/models/task_filter.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_list.dart';
 
 class _FocusSearchIntent extends Intent {
   const _FocusSearchIntent();
@@ -59,8 +56,6 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
 
   String _searchQuery = '';
   final List<String> _selectedTaskIds = [];
-
-  bool isFiltering(TaskFilter filter) => _searchQuery != "" || !filter.isEmpty;
 
   @override
   void initState() {
@@ -207,15 +202,15 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                         if (settings.enableRandomTask) ...[
                           IconButton(
                             onPressed: () => _pickRandomTask(context),
-                            icon: Icon(Icons.casino_rounded),
+                            icon: const Icon(Icons.casino_rounded),
                             tooltip: 'Give me a random task!',
                           ),
                           const SizedBox(width: 8),
                         ],
                         FilledButton.icon(
                           onPressed: () => _showAddTask(context),
-                          icon: Icon(Icons.add),
-                          label: Text('Add Task'),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Task'),
                         ),
                         const SizedBox(width: 8),
                         _buildHeaderActions(context),
@@ -245,7 +240,28 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                       ),
                     ),
                     Divider(height: 1),
-                    Expanded(child: _taskList()),
+                    Expanded(
+                      child: BacklogList(
+                        searchQuery: _searchQuery,
+                        selectedTaskIds: _selectedTaskIds,
+                        onSelectedChanged: (task) {
+                          setState(() {
+                            if (_selectedTaskIds.contains(task.id)) {
+                              _selectedTaskIds.remove(task.id);
+                            } else {
+                              _selectedTaskIds.add(task.id);
+                            }
+                          });
+                        },
+                        onEdit: (task) => _showEditTask(context, task),
+                        itemFocusNodes: _itemFocusNodes,
+                        onOrderedIdsChanged: (ids) {
+                          _orderedItemIds.clear();
+                          _orderedItemIds.addAll(ids);
+                        },
+                        trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+                      ),
+                    ),
                   ],
                 ),
                 Positioned(
@@ -320,167 +336,10 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
         BulkActionOption(value: 'import', icon: Icons.download_rounded, label: 'Import from MD', enabled: true),
       ],
       onOptionSelected: (value) {
-        switch (value) {
-          case 'import':
-            _showImportFromMD(context);
-            break;
+        if (value == 'import') {
+          _showImportFromMD(context);
         }
       },
-    );
-  }
-
-  Widget _taskList() {
-    final provider = ref.watch(taskProvider);
-    if (provider.isLoading) {
-      return Center(child: CircularProgressIndicator());
-    }
-
-    final projectState = ref.watch(projectProvider);
-    final filter = ref.watch(filterProvider).activeFilter;
-    var allTasks = provider.unscheduledTasks.where((t) {
-      final project = t.projectId != null ? projectState.getById(t.projectId!) : null;
-      return filter.applyToTask(t, project?.labelIds ?? []);
-    }).toList();
-
-    if (_searchQuery.isNotEmpty) {
-      allTasks = FuzzySearchUtils.search<Task>(
-        query: _searchQuery,
-        items: allTasks,
-        itemToString: (t) => '${t.title} ${t.description ?? ''}',
-        threshold: 0.3,
-      );
-    }
-
-    final activeTasks = allTasks.where((t) => !t.isCompleted).toList();
-    final completedTasks = allTasks.where((t) => t.isCompleted).toList();
-
-    if (activeTasks.isEmpty && completedTasks.isEmpty) {
-      _orderedItemIds.clear();
-      return Center(
-        child: isFiltering(filter)
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.filter_list_alt, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  SizedBox(height: 16),
-                  Text('No items found'),
-                  SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _searchQuery = "";
-                        _searchController.text = "";
-                      });
-                      ref.read(filterProvider.notifier).clearFilter();
-                    },
-                    child: Text('Remove Filters'),
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.inbox_rounded, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  SizedBox(height: 16),
-                  Text(
-                    'No backlog tasks',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
-                  ),
-                  SizedBox(height: 8),
-                  TextButton(onPressed: () => _showAddTask(context), child: Text('Add a task')),
-                ],
-              ),
-      );
-    }
-
-    final allAvailableTasks = {for (var t in provider.tasks) t.id: t}
-      ..addAll({for (var t in provider.overdueTasks) t.id: t})
-      ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
-
-    final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
-    final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks, allTasks: allAvailableTasks);
-
-    // Build the ordered list of IDs explicitly for traversal
-    _orderedItemIds.clear();
-    for (final n in activeHierarchical) {
-      if (n is TaskNode) {
-        _orderedItemIds.add(n.task.id);
-      }
-    }
-    for (final n in completedHierarchical) {
-      if (n is TaskNode) {
-        _orderedItemIds.add(n.task.id);
-      }
-    }
-
-    Widget buildNode(TaskHierarchyNode n) {
-      Widget child;
-      if (n is TaskNode) {
-        final focusNode = _itemFocusNodes.putIfAbsent(n.task.id, () => FocusNode(debugLabel: 'Task_${n.task.id}'));
-
-        child = TaskCard(
-          key: ValueKey(n.task.id),
-          task: n.task,
-          project: n.task.projectId != null ? projectState.getById(n.task.projectId!) : null,
-          isChecked: _selectedTaskIds.contains(n.task.id),
-          selectionMode: true,
-          focusNode: focusNode,
-          onToggle: (value) {
-            if (value != null) {
-              setState(() {
-                if (value) {
-                  _selectedTaskIds.add(n.task.id);
-                } else {
-                  _selectedTaskIds.remove(n.task.id);
-                }
-              });
-            }
-          },
-          onTap: () => _showEditTask(context, n.task),
-          onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
-            context,
-            ref,
-            n.task,
-            localPosition,
-            renderBox,
-            onAction: () {
-              if (_selectedTaskIds.contains(n.task.id)) {
-                setState(() => _selectedTaskIds.remove(n.task.id));
-              }
-            },
-          ),
-          trailing: _taskTrailing(context, n.task),
-        );
-      } else if (n is BlockerIndicatorNode) {
-        child = BlockerIndicator(
-          blockerId: n.blockerId,
-          blockerTitle: n.blockerTitle,
-          blockedTaskId: n.blockedTaskId,
-        );
-      } else {
-        return const SizedBox.shrink();
-      }
-
-      return TaskHierarchyIndicator(depth: n.depth, child: child);
-    }
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      children: [
-        ...activeHierarchical.map((n) => buildNode(n)),
-        if (completedHierarchical.isNotEmpty) ...[
-          SizedBox(height: 20),
-          Text(
-            'Completed',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          SizedBox(height: 8),
-          ...completedHierarchical.map((n) => buildNode(n)),
-        ],
-      ],
     );
   }
 
@@ -491,7 +350,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
         Builder(
           builder: (buttonContext) {
             return IconButton(
-              icon: Icon(Icons.more_vert, size: 18),
+              icon: const Icon(Icons.more_vert, size: 18),
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               onPressed: () {
                 final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
@@ -526,14 +385,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
   void _showAddTask(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AddTaskDialog(),
+      builder: (_) => const AddTaskDialog(),
     );
   }
 
   void _showImportFromMD(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => ImportFromMDDialog(),
+      builder: (_) => const ImportFromMDDialog(),
     );
   }
 
@@ -580,13 +439,13 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Confirm Deletion'),
+        title: const Text('Confirm Deletion'),
         content: Text('Are you sure you want to delete ${_selectedTaskIds.length} tasks?'),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         titleTextStyle: Theme.of(context).textTheme.titleLarge,
         contentTextStyle: Theme.of(context).textTheme.bodyMedium,
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
@@ -600,7 +459,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                 Navigator.of(ctx).pop();
               }
             },
-            child: Text('Delete'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -612,7 +471,6 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     final projectProviderVal = ref.read(projectProvider);
     final filter = ref.read(filterProvider).activeFilter;
 
-    // Filter tasks based on current filters (same logic as in _taskList)
     var availableTasks = taskProviderVal.unscheduledTasks.where((t) {
       final project = t.projectId != null ? projectProviderVal.getById(t.projectId!) : null;
       return filter.applyToTask(t, project?.labelIds ?? []);
@@ -641,14 +499,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
       builder: (ctx) => SizedDialog(
         title: 'We\'ve picked this task for you:',
         showDefaultActions: false,
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Great!'))],
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Great!'))],
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TaskCard(
               task: randomTask,
               project: randomTask.projectId != null ? projectProviderVal.getById(randomTask.projectId!) : null,
-              onToggle: (_) {}, // Read-only for history
+              onToggle: (_) {},
               onTap: () {},
               leading: const SizedBox.shrink(),
               showStrikeThroughOnCompleted: false,

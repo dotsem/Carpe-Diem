@@ -1,10 +1,7 @@
 import 'package:carpe_diem/features/common/data/models/task_filter.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_card.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
@@ -13,6 +10,7 @@ import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.
 import 'package:flutter/services.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/add_project_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
 
 class _FocusSearchIntent extends Intent {
   const _FocusSearchIntent();
@@ -33,14 +31,9 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _mainFocusNode = FocusNode();
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey _archivedHeaderKey = GlobalKey();
-
-  final Map<String, FocusNode> _itemFocusNodes = {};
-  final List<String> _orderedItemIds = [];
+  final GlobalKey<ProjectGridState> _gridKey = GlobalKey<ProjectGridState>();
 
   String _searchQuery = '';
-  bool _temporarilyShowArchived = false;
 
   @override
   void initState() {
@@ -48,19 +41,6 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(projectProvider.notifier).loadProjects();
     });
-
-    _searchFocusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.arrowDown || event.logicalKey == LogicalKeyboardKey.enter) {
-          if (_orderedItemIds.isNotEmpty) {
-            final firstNode = _itemFocusNodes[_orderedItemIds.first];
-            firstNode?.requestFocus();
-            return KeyEventResult.handled;
-          }
-        }
-      }
-      return KeyEventResult.ignored;
-    };
   }
 
   @override
@@ -68,74 +48,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mainFocusNode.dispose();
-    for (final node in _itemFocusNodes.values) {
-      node.dispose();
-    }
-    _scrollController.dispose();
     super.dispose();
-  }
-
-  void _moveFocus(int dx, int dy) {
-    if (_orderedItemIds.isEmpty) return;
-
-    String? currentId;
-    FocusNode? currentNode;
-    for (var entry in _itemFocusNodes.entries) {
-      if (entry.value.hasFocus) {
-        currentId = entry.key;
-        currentNode = entry.value;
-        break;
-      }
-    }
-
-    if (currentNode == null || currentNode.context == null) {
-      final targetIndex = (dx + dy) > 0 ? 0 : _orderedItemIds.length - 1;
-      final id = _orderedItemIds[targetIndex];
-      _itemFocusNodes.putIfAbsent(id, () => FocusNode(debugLabel: 'Project_$id')).requestFocus();
-      return;
-    }
-
-    final currentBox = currentNode.context!.findRenderObject() as RenderBox;
-    final currentCenter = currentBox.localToGlobal(currentBox.size.center(Offset.zero));
-
-    String? bestId;
-    double bestScore = double.infinity;
-
-    for (final id in _orderedItemIds) {
-      if (id == currentId) continue;
-      final node = _itemFocusNodes[id];
-      if (node == null || node.context == null) continue;
-
-      final box = node.context!.findRenderObject() as RenderBox;
-      final center = box.localToGlobal(box.size.center(Offset.zero));
-      final diff = center - currentCenter;
-
-      bool inDirection = false;
-      if (dx > 0) {
-        inDirection = diff.dx > 20;
-      } else if (dx < 0) {
-        inDirection = diff.dx < -20;
-      } else if (dy > 0) {
-        inDirection = diff.dy > 20;
-      } else if (dy < 0) {
-        inDirection = diff.dy < -20;
-      }
-
-      if (inDirection) {
-        double score = diff.distanceSquared;
-        if (dx != 0) score += diff.dy.abs() * 5000;
-        if (dy != 0) score += diff.dx.abs() * 5000;
-
-        if (score < bestScore) {
-          bestScore = score;
-          bestId = id;
-        }
-      }
-    }
-
-    if (bestId != null) {
-      _itemFocusNodes[bestId]?.requestFocus();
-    }
   }
 
   @override
@@ -155,16 +68,16 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
         child: Actions(
           actions: {
             MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-              _moveFocus(0, 1);
+              _gridKey.currentState?.moveFocus(0, 1);
             }),
             MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-              _moveFocus(0, -1);
+              _gridKey.currentState?.moveFocus(0, -1);
             }),
             MoveLeftIntent: NonTypingAction<MoveLeftIntent>((_) {
-              _moveFocus(-1, 0);
+              _gridKey.currentState?.moveFocus(-1, 0);
             }),
             MoveRightIntent: NonTypingAction<MoveRightIntent>((_) {
-              _moveFocus(1, 0);
+              _gridKey.currentState?.moveFocus(1, 0);
             }),
             FilterIntent: NonTypingAction<FilterIntent>((_) {
               _showFilterDialog(context);
@@ -176,11 +89,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               onInvoke: (intent) {
                 if (_searchFocusNode.hasFocus) {
                   _searchFocusNode.unfocus();
-                  if (_orderedItemIds.isNotEmpty) {
-                    _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-                  } else {
-                    _mainFocusNode.requestFocus();
-                  }
+                  _gridKey.currentState?.requestFirstItemFocus();
                 }
                 return null;
               },
@@ -198,8 +107,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   actions: [
                     FilledButton.icon(
                       onPressed: () => _showAddProject(context),
-                      icon: Icon(Icons.add),
-                      label: Text('New Project'),
+                      icon: const Icon(Icons.add),
+                      label: const Text('New Project'),
                     ),
                   ],
                 ),
@@ -213,9 +122,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                       _searchQuery = value;
                     }),
                     onSubmitted: (_) {
-                      if (_orderedItemIds.isNotEmpty) {
-                        _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-                      }
+                      _gridKey.currentState?.requestFirstItemFocus();
                     },
                   ),
                 ),
@@ -229,121 +136,19 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
                   );
                 }(),
-                Divider(height: 1),
-                Expanded(child: _projectGrid()),
+                const Divider(height: 1),
+                Expanded(
+                  child: ProjectGrid(
+                    key: _gridKey,
+                    searchQuery: _searchQuery,
+                    searchFocusNode: _searchFocusNode,
+                    mainFocusNode: _mainFocusNode,
+                  ),
+                ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _projectGrid() {
-    final provider = ref.watch(projectProvider);
-    if (provider.isLoading) {
-      return Center(child: CircularProgressIndicator());
-    }
-
-    final filteredBySearch = provider.projects.where((p) {
-      if (_searchQuery.isEmpty) return true;
-      final query = _searchQuery.toLowerCase();
-      return p.name.toLowerCase().contains(query) || (p.description?.toLowerCase().contains(query) ?? false);
-    }).toList();
-
-    final filter = ref.watch(filterProvider).activeFilter.limitTo(projects: false);
-    final filteredProjects = filteredBySearch.where((p) => filter.applyToProject(p)).toList();
-    final activeProjects = filteredProjects.where((p) => p.isActive).toList();
-    final inactiveProjects = filteredProjects.where((p) => !p.isActive).toList();
-
-    if (filteredProjects.isEmpty) {
-      _orderedItemIds.clear();
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.folder_open, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            SizedBox(height: 16),
-            Text(
-              provider.projects.isEmpty ? 'No projects yet' : 'No projects match your filter',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
-            ),
-            SizedBox(height: 8),
-            if (provider.projects.isEmpty)
-              TextButton(onPressed: () => _showAddProject(context), child: Text('Create your first project')),
-          ],
-        ),
-      );
-    }
-
-    // Build ordered IDs list explicitly
-    _orderedItemIds.clear();
-    for (final p in activeProjects) {
-      _orderedItemIds.add(p.id);
-    }
-    for (final p in inactiveProjects) {
-      _orderedItemIds.add(p.id);
-    }
-
-    final settings = ref.watch(settingsProvider);
-    final showActiveOnly = settings.showActiveProjectsOnly;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      child: ListView(
-        controller: _scrollController,
-        scrollDirection: Axis.vertical,
-        children: [
-          if (activeProjects.isNotEmpty)
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: activeProjects.map((p) {
-                final focusNode = _itemFocusNodes.putIfAbsent(p.id, () => FocusNode(debugLabel: 'Project_${p.id}'));
-                return ProjectCard(project: p, focusNode: focusNode, onTap: () => context.go('/projects/${p.id}'));
-              }).toList(),
-            ),
-          if ((!showActiveOnly || _temporarilyShowArchived) && inactiveProjects.isNotEmpty) ...[
-            const SizedBox(height: 48),
-            Text(
-              'ARCHIVED',
-              key: _archivedHeaderKey,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-              ),
-            ),
-            SizedBox(height: 16),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: inactiveProjects.map((p) {
-                final focusNode = _itemFocusNodes.putIfAbsent(p.id, () => FocusNode(debugLabel: 'Project_${p.id}'));
-                return ProjectCard(project: p, focusNode: focusNode, onTap: () => context.go('/projects/${p.id}'));
-              }).toList(),
-            ),
-          ],
-          if (showActiveOnly && !_temporarilyShowArchived && inactiveProjects.isNotEmpty)
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  setState(() => _temporarilyShowArchived = true);
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (_archivedHeaderKey.currentContext != null) {
-                      Scrollable.ensureVisible(
-                        _archivedHeaderKey.currentContext!,
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeInOut,
-                      );
-                    }
-                  });
-                },
-                child: Text('Show archived projects'),
-              ),
-            ),
-        ],
       ),
     );
   }

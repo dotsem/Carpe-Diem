@@ -1,11 +1,10 @@
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/interactive_task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,7 +18,7 @@ class SettingsScreen extends ConsumerWidget {
 
     return Column(
       children: [
-        ScreenHeader(title: 'Settings', subtitle: 'Manage your application preferences'),
+        const ScreenHeader(title: 'Settings', subtitle: 'Manage your application preferences'),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -32,7 +31,7 @@ class SettingsScreen extends ConsumerWidget {
                     title: 'Theme Mode',
                     subtitle: 'Choose your preferred theme',
                     value: settings.themeMode,
-                    items: [
+                    items: const [
                       DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
                       DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
                       DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
@@ -70,10 +69,13 @@ class SettingsScreen extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Drag on the card below to adjust project color intensity',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
                         ),
                         const SizedBox(height: 12),
-                        _InteractiveTaskCard(
+                        InteractiveTaskCard(
                           initialWidth: settings.taskGradientWidth,
                           onChanged: (val) => settingsNotifier.setTaskGradientWidth(val),
                         ),
@@ -109,7 +111,7 @@ class SettingsScreen extends ConsumerWidget {
                     title: 'First Day of Week',
                     subtitle: 'Start your week on Monday or Sunday',
                     value: settings.firstDayOfWeek,
-                    items: [
+                    items: const [
                       DropdownMenuItem(value: DateTime.monday, child: Text('Monday')),
                       DropdownMenuItem(value: DateTime.sunday, child: Text('Sunday')),
                     ],
@@ -193,21 +195,21 @@ class SettingsScreen extends ConsumerWidget {
                     items: [
                       const DropdownMenuItem(value: null, child: Text('None')),
                       ...ref.watch(projectProvider).projects.map(
-                        (p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(color: p.color, shape: BoxShape.circle),
+                            (p) => DropdownMenuItem(
+                              value: p.id,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(color: p.color, shape: BoxShape.circle),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(p.name),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Text(p.name),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
                     ],
                     onChanged: (value) => settingsNotifier.setDefaultProjectId(value),
                   ),
@@ -258,106 +260,6 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _InteractiveTaskCard extends StatefulWidget {
-  final double initialWidth;
-  final ValueChanged<double> onChanged;
-
-  const _InteractiveTaskCard({required this.initialWidth, required this.onChanged});
-
-  @override
-  State<_InteractiveTaskCard> createState() => _InteractiveTaskCardState();
-}
-
-class _InteractiveTaskCardState extends State<_InteractiveTaskCard> {
-  late double _currentWidth;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentWidth = widget.initialWidth;
-  }
-
-  @override
-  void didUpdateWidget(_InteractiveTaskCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialWidth != widget.initialWidth) {
-      _currentWidth = widget.initialWidth;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final projectColor = Colors.deepPurple.themeDependentColor(context);
-
-    return GestureDetector(
-      onPanUpdate: (details) {
-        final box = context.findRenderObject() as RenderBox;
-        final localX = details.localPosition.dx;
-        setState(() {
-          _currentWidth = (1.0 - (localX / box.size.width)).clamp(0.0, 1.0);
-        });
-      },
-      onPanEnd: (_) {
-        widget.onChanged(_currentWidth);
-      },
-      child: Card(
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Container(
-          height: 72,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.surface,
-                Theme.of(context).colorScheme.surface,
-                projectColor.withValues(alpha: 0),
-                projectColor.withValues(alpha: 0.4),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              stops: [0.0, (1.0 - _currentWidth).clamp(0.0, 1.0), (1.0 - _currentWidth).clamp(0.0, 1.0), 1.0],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.accent, width: 2),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Sample Task Card',
-                        style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface),
-                      ),
-                      Text(
-                        'Drag me horizontally to adjust width',
-                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.drag_handle, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

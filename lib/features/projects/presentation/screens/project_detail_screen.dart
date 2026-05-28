@@ -1,17 +1,11 @@
-import 'package:carpe_diem/features/labels/data/models/label.dart';
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/import_from_md_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/edit_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/bulk_edit_tasks_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
@@ -31,6 +25,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/filter_dialog.da
 import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/project_detail_header.dart';
 
 class _NewTaskIntent extends Intent {
   const _NewTaskIntent();
@@ -222,7 +217,17 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _header(context, project),
+                      ProjectDetailHeader(
+                        project: project,
+                        onEdit: () => _showEditProject(context, project),
+                        onDelete: () => _showDeleteProject(context, project),
+                        onImportMd: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => ImportFromMDDialog(project: project),
+                          ).then((_) => setState(() {}));
+                        },
+                      ),
                       Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -253,7 +258,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
                       Expanded(
                         child: _isLoading
-                            ? Center(child: CircularProgressIndicator())
+                            ? const Center(child: CircularProgressIndicator())
                             : Builder(
                                 builder: (context) {
                                   final filter = ref.watch(filterProvider).activeFilter.limitTo(
@@ -359,14 +364,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               ),
               floatingActionButton: project.isActive
                   ? Container(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black,
                             blurRadius: 15,
                             spreadRadius: 2,
-                            offset: const Offset(0, 4),
+                            offset: Offset(0, 4),
                           ),
                         ],
                       ),
@@ -386,102 +391,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     );
   }
 
-  Widget _header(BuildContext context, Project project) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 28, 0, 16),
-      child: Stack(
-        children: [
-          Positioned(left: 0, top: 0, bottom: 0, child: PriorityIndicator(priority: project.priority)),
-          Padding(
-            padding: const EdgeInsets.only(left: 22), // width of indicator (6) + spacing (16)
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: project.color),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          project.name,
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.edit_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                        onPressed: () => _showEditProject(context, project),
-                        tooltip: 'Edit Project',
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete_outline, color: AppColors.error),
-                        onPressed: () => _showDeleteProject(context, project),
-                        tooltip: 'Delete Project',
-                      ),
-                      const SizedBox(width: 8),
-                      BulkActionMenu(
-                        options: [
-                          BulkActionOption(
-                            value: 'import',
-                            icon: Icons.download,
-                            label: 'Import from Markdown',
-                            enabled: true,
-                          ),
-                        ],
-                        onOptionSelected: (value) {
-                          if (value == 'import') {
-                            showDialog(
-                              context: context,
-                              builder: (_) => ImportFromMDDialog(project: project),
-                            ).then((_) => setState(() {}));
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: [
-                    if (project.deadline != null) DeadlineChip(deadline: project.deadline!),
-                    ..._getLabels(context, project),
-                  ],
-                ),
-                if (project.description?.isNotEmpty == true) ...[
-                  SizedBox(height: 16),
-                  // TODO: add expand button
-                  Text(
-                    project.description!,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _getLabels(BuildContext context, Project project) {
-    final labelState = ref.watch(labelProvider);
-    final labels = project.labelIds.map((id) => labelState.getById(id)).whereType<Label>().toList();
-
-    return labels.map((label) => LabelChip(label: label, verticalPadding: 1)).toList();
-  }
-
   Widget _taskTrailing(BuildContext context, Task task) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -489,7 +398,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         Builder(
           builder: (buttonContext) {
             return IconButton(
-              icon: Icon(Icons.more_vert, size: 18),
+              icon: const Icon(Icons.more_vert, size: 18),
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               onPressed: () {
                 final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
@@ -546,11 +455,11 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Confirm Deletion'),
+        title: const Text('Confirm Deletion'),
         content: Text('Are you sure you want to delete ${_selectedTaskIds.length} tasks?'),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
@@ -564,7 +473,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 Navigator.of(ctx).pop();
               }
             },
-            child: Text('Delete'),
+            child: const Text('Delete'),
           ),
         ],
       ),
