@@ -13,7 +13,7 @@ class TaskMarkdownParser {
       if (trimmed.isEmpty) continue;
 
       if (trimmed.startsWith('- ')) {
-        final match = RegExp(r'^- \[?(x|\s)?\]?\s+(.*)$').firstMatch(trimmed);
+        final match = RegExp(r'^- (?:\[([x\s])\]\s+)?(.*)$').firstMatch(trimmed);
         if (match != null) {
           final isDone = match.group(1) == 'x';
           final title = match.group(2)!.trim();

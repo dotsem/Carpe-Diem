@@ -35,7 +35,15 @@ class DatabaseHelper {
       path = join(dir.path, AppConstants.dbName);
     }
 
-    return openDatabase(path, version: AppConstants.dbVersion, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return openDatabase(
+      path,
+      version: AppConstants.dbVersion,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   static Future<void> _onCreate(Database db, int version) async {
