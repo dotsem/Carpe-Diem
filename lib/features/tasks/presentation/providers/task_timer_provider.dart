@@ -31,6 +31,9 @@ class TaskTimerNotifier extends Notifier<TaskTimerState> {
   }
 
   void startPending(String taskId, int delaySeconds, Future<void> Function() onComplete) {
+    // cancel existing timer to avoid leak/race condition if task is toggled repeatedly
+    _completionTimers[taskId]?.cancel();
+
     final newPending = Map<String, DateTime>.from(state.pendingCompletions);
     newPending[taskId] = DateTime.now();
     state = TaskTimerState(pendingCompletions: newPending);

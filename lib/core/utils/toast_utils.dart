@@ -13,11 +13,17 @@ class ToastUtils {
   static const style = ToastificationStyle.minimal;
 
   static BuildContext? _getEffectiveContext(BuildContext? context) {
-    return context ?? rootNavigatorKey.currentContext;
+    if (context != null) return context;
+    try {
+      return rootNavigatorKey.currentContext;
+    } catch (_) {
+      return null;
+    }
   }
 
   static void showSuccess(String message, {BuildContext? context}) {
     final effectiveContext = _getEffectiveContext(context);
+    if (effectiveContext == null) return;
     toastification.show(
       context: effectiveContext,
       title: Text(message),
@@ -26,8 +32,8 @@ class ToastUtils {
       style: style,
       alignment: alignment,
       primaryColor: AppColors.accent,
-      backgroundColor: effectiveContext != null ? Theme.of(effectiveContext).colorScheme.surfaceContainerHigh : null,
-      foregroundColor: effectiveContext != null ? Theme.of(effectiveContext).colorScheme.onSurface : null,
+      backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
+      foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
       borderRadius: borderRadius,
       showProgressBar: showProgressBar,
       applyBlurEffect: applyBlurEffect,
@@ -37,6 +43,7 @@ class ToastUtils {
 
   static void showInfo(String message, {BuildContext? context}) {
     final effectiveContext = _getEffectiveContext(context);
+    if (effectiveContext == null) return;
     toastification.show(
       context: effectiveContext,
       title: Text(message),
@@ -45,8 +52,8 @@ class ToastUtils {
       style: style,
       alignment: alignment,
       primaryColor: AppColors.info,
-      backgroundColor: effectiveContext != null ? Theme.of(effectiveContext).colorScheme.surfaceContainerHigh : null,
-      foregroundColor: effectiveContext != null ? Theme.of(effectiveContext).colorScheme.onSurface : null,
+      backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
+      foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
       borderRadius: borderRadius,
       showProgressBar: showProgressBar,
       applyBlurEffect: applyBlurEffect,
@@ -56,6 +63,7 @@ class ToastUtils {
 
   static void showWarning(String message, {BuildContext? context}) {
     final effectiveContext = _getEffectiveContext(context);
+    if (effectiveContext == null) return;
     toastification.show(
       context: effectiveContext,
       title: Text(message),
@@ -64,8 +72,8 @@ class ToastUtils {
       style: style,
       alignment: alignment,
       primaryColor: AppColors.priorityMedium,
-      backgroundColor: effectiveContext != null ? Theme.of(effectiveContext).colorScheme.surfaceContainerHigh : null,
-      foregroundColor: effectiveContext != null ? Theme.of(effectiveContext).colorScheme.onSurface : null,
+      backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
+      foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
       borderRadius: borderRadius,
       showProgressBar: showProgressBar,
       applyBlurEffect: applyBlurEffect,

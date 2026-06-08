@@ -223,7 +223,7 @@ class _AppShortcutRegistrarState extends State<AppShortcutRegistrar> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        GlobalShortcuts.of(context).register(this, widget.shortcuts);
+        GlobalShortcuts.maybeOf(context)?.register(this, widget.shortcuts);
       }
     });
   }

@@ -2,12 +2,12 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ "**" ]
+    branches: [main, master]
     paths-ignore:
       - ".github/workflows/**"
       - "**.md"
   pull_request:
-    branches: [ main, master ]
+    branches: ["**"]
     paths-ignore:
       - ".github/workflows/**"
       - "**.md"

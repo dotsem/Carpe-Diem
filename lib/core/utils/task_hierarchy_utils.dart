@@ -95,9 +95,10 @@ class TaskHierarchyUtils {
 
     for (final task in tasks) {
       final rootId = findRootId(task.id, {});
-      if (rootId == null) continue;
-
-      if (rootId.startsWith('indicator_')) {
+      if (rootId == null) {
+        // Cycle detected: emit task as root to prevent it from disappearing
+        emit(task.id, 0);
+      } else if (rootId.startsWith('indicator_')) {
         emitExternalBlocker(rootId.replaceFirst('indicator_', ''));
       } else {
         emit(rootId, 0);
