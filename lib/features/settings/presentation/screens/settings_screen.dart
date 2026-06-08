@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -15,6 +16,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
+    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
 
     return Column(
       children: [
@@ -61,18 +63,12 @@ class SettingsScreen extends ConsumerWidget {
                       children: [
                         Text(
                           'Task Card Gradient Width',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Drag on the card below to adjust project color intensity',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontSize: 13,
-                          ),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
                         ),
                         const SizedBox(height: 12),
                         InteractiveTaskCard(
@@ -180,38 +176,23 @@ class SettingsScreen extends ConsumerWidget {
                     title: 'Default Priority',
                     subtitle: 'Priority for new tasks',
                     value: settings.defaultPriority,
-                    items: Priority.values
-                        .map((p) => DropdownMenuItem(value: p.name, child: Text(p.label)))
-                        .toList(),
+                    items: Priority.values.map((p) => DropdownMenuItem(value: p.name, child: Text(p.label))).toList(),
                     onChanged: (value) {
                       if (value != null) settingsNotifier.setDefaultPriority(value);
                     },
                   ),
-                  SettingsDropdownTile<String?>(
+                  SettingsCustomWidgetTile(
                     icon: Icons.folder_outlined,
                     title: 'Default Project',
                     subtitle: 'Project for new tasks',
-                    value: settings.defaultProjectId,
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('None')),
-                      ...ref.watch(projectProvider).projects.map(
-                            (p) => DropdownMenuItem(
-                              value: p.id,
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(color: p.color, shape: BoxShape.circle),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(p.name),
-                                ],
-                              ),
-                            ),
-                          ),
-                    ],
-                    onChanged: (value) => settingsNotifier.setDefaultProjectId(value),
+                    child: SizedBox(
+                      width: 200,
+                      child: ProjectPicker(
+                        selectedProjectId: settings.defaultProjectId,
+                        onChanged: (value) => settingsNotifier.setDefaultProjectId(value),
+                        projects: projects,
+                      ),
+                    ),
                   ),
                 ],
               ),

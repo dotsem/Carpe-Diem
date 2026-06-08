@@ -159,3 +159,28 @@ class SettingsSliderTile extends StatelessWidget {
     );
   }
 }
+
+class SettingsCustomWidgetTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget child;
+
+  const SettingsCustomWidgetTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsTile(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      trailing: Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: child),
+    );
+  }
+}

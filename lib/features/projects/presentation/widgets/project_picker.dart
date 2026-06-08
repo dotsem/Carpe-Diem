@@ -170,9 +170,9 @@ class _ProjectPickerState extends State<ProjectPicker> {
                     decoration: BoxDecoration(color: selectedProject.color, shape: BoxShape.circle),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(selectedProject.name)),
+                  Expanded(child: Text(selectedProject.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ] else
-                  const Expanded(child: Text('No project')),
+                  const Expanded(child: Text('No project', maxLines: 1, overflow: TextOverflow.ellipsis)),
                 const Icon(Icons.arrow_drop_down),
               ],
             ),
