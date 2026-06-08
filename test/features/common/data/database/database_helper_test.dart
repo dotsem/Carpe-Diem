@@ -8,7 +8,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('DatabaseHelper', () {
+  group('common', () {
     late DatabaseHelper dbHelper;
     late Database db;
 

@@ -11,7 +11,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('LabelRepository', () {
+  group('labels', () {
     late DatabaseHelper dbHelper;
     late Database db;
     late LabelRepository repository;

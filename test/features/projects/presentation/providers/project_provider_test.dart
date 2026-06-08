@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-
-class MockProjectRepository extends Mock implements IProjectRepository {}
+import '../../../../helpers/mock_repositories.dart';
 
 void main() {
   setUpAll(() {
@@ -19,7 +17,7 @@ void main() {
     ));
   });
 
-  group('ProjectNotifier', () {
+  group('projects', () {
     late MockProjectRepository mockRepo;
     late ProviderContainer container;
 

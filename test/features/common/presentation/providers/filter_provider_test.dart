@@ -5,7 +5,7 @@ import 'package:carpe_diem/features/common/data/models/task_filter.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 
 void main() {
-  group('FilterProvider Tests', () {
+  group('common', () {
     late ProviderContainer container;
 
     setUp(() {

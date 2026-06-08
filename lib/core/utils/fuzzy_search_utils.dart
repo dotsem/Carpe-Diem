@@ -10,7 +10,7 @@ class FuzzySearchUtils {
     required String Function(T) itemToString,
     double threshold = 0.4,
   }) {
-    if (query.isEmpty) return items;
+    if (query.trim().isEmpty) return items;
 
     final fuse = Fuzzy<T>(
       items,

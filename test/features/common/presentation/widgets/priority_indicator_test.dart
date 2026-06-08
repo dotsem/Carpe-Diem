@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/priority_indicator.dart';
 
 void main() {
-  group('PriorityIndicator Widget Test', () {
+  group('common', () {
     testWidgets('renders Container with priority color', (WidgetTester tester) async {
       for (final priority in Priority.values) {
         await tester.pumpWidget(

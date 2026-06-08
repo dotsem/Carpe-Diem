@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_d
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/destructive_dialog.dart';
 
 void main() {
-  group('Dialogs Widget Test', () {
+  group('common', () {
     testWidgets('DeleteDialog renders text and triggers callback', (WidgetTester tester) async {
       bool confirmed = false;
 

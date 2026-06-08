@@ -12,7 +12,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('TaskRepository', () {
+  group('tasks', () {
     late DatabaseHelper dbHelper;
     late Database db;
     late TaskRepository repository;

@@ -1,27 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-
-class MockTaskRepository extends Mock implements ITaskRepository {}
-
-class MockProjectRepository extends Mock implements IProjectRepository {}
-
-class MockHistoryRepository extends Mock implements IHistoryRepository {}
-
-class MockSettingsRepository extends Mock implements ISettingsRepository {}
+import '../../../../helpers/mock_repositories.dart';
 
 void main() {
   setUpAll(() {
     registerFallbackValue(Task(id: '', title: '', createdAt: DateTime.now()));
   });
 
-  group('TaskNotifier', () {
+  group('tasks', () {
     late MockTaskRepository mockTaskRepo;
     late MockProjectRepository mockProjectRepo;
     late MockHistoryRepository mockHistoryRepo;

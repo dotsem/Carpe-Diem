@@ -3,7 +3,7 @@ import 'package:carpe_diem/features/tasks/domain/services/task_markdown_parser.d
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 
 void main() {
-  group('TaskMarkdownParser', () {
+  group('tasks', () {
     test('should parse unchecked markdown checkboxes as TODO tasks', () {
       const markdown = '- [ ] Buy groceries\n- [ ] Clean the house';
       final tasks = TaskMarkdownParser.parseMarkdown(markdown);
@@ -44,6 +44,14 @@ void main() {
       expect(tasks.length, equals(1));
       expect(tasks[0].title, equals('Real task'));
       expect(tasks[0].status, equals(TaskStatus.todo));
+    });
+
+    test('should ignore empty or whitespace-only list items', () {
+      const markdown = '- \n- [ ]\n- [ ] \n- [x]   \n- Valid task';
+      final tasks = TaskMarkdownParser.parseMarkdown(markdown);
+
+      expect(tasks.length, equals(1));
+      expect(tasks[0].title, equals('Valid task'));
     });
   });
 }

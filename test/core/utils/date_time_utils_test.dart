@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 
 void main() {
-  group('DateTimeUtils', () {
+  group('core', () {
     test('isEndOfWorkWeek should return true for Friday, Saturday, Sunday', () {
       final friday = DateTime(2026, 5, 29); // Friday
       final saturday = DateTime(2026, 5, 30); // Saturday

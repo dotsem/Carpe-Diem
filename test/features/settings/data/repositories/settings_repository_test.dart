@@ -9,7 +9,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  group('SettingsRepository', () {
+  group('settings', () {
     late DatabaseHelper dbHelper;
     late Database db;
     late SettingsRepository repository;

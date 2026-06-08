@@ -5,7 +5,7 @@ import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 
 void main() {
-  group('TaskHierarchyUtils', () {
+  group('core', () {
     final now = DateTime.now();
 
     Task createTask({required String id, String? blockedById, TaskStatus status = TaskStatus.todo, String title = ''}) {

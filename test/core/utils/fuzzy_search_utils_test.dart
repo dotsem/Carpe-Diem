@@ -2,12 +2,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 
 void main() {
-  group('FuzzySearchUtils', () {
+  group('core', () {
     final items = ['apple', 'apricot', 'banana', 'blueberry', 'orange'];
 
     test('should return all items when search query is empty', () {
       final results = FuzzySearchUtils.search(
         query: '',
+        items: items,
+        itemToString: (item) => item,
+      );
+      expect(results, equals(items));
+    });
+
+    test('should return all items when search query is whitespace-only', () {
+      final results = FuzzySearchUtils.search(
+        query: '   ',
         items: items,
         itemToString: (item) => item,
       );

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 
 void main() {
-  group('TaskTimerNotifier', () {
+  group('tasks', () {
     late ProviderContainer container;
 
     setUp(() {
@@ -56,6 +56,26 @@ void main() {
       await completer.future;
 
       expect(notifier.isTaskPending('task-1'), isFalse);
+    });
+
+    test('should cancel previous timer and execute only latest callback when restarted', () async {
+      final notifier = container.read(taskTimerProvider.notifier);
+      bool firstCallbackCalled = false;
+      bool secondCallbackCalled = false;
+
+      notifier.startPending('task-1', 1, () async {
+        firstCallbackCalled = true;
+      });
+
+      notifier.startPending('task-1', 1, () async {
+        secondCallbackCalled = true;
+      });
+
+      // wait for timer to trigger
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      expect(firstCallbackCalled, isFalse);
+      expect(secondCallbackCalled, isTrue);
     });
   });
 }

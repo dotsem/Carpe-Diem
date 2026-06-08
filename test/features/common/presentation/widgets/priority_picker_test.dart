@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
 
 void main() {
-  group('PriorityPicker Widget Test', () {
+  group('common', () {
     testWidgets('renders all choices and triggers onChanged', (WidgetTester tester) async {
       Priority? changedPriority;
 
