@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
@@ -76,11 +76,15 @@ class FilterBar extends ConsumerWidget {
             side: BorderSide(color: isBypassed ? Colors.red : AppColors.accent.withAlpha(50)),
           ),
           const SizedBox(width: 8),
-          if (filter.hasPriorityFilter)
-            ...filter.priorities.map((p) => _buildChip(context, p.label, p.color, isBypassed: isBypassed)),
-          if (filter.hasProjectFilter)
+          if (filter.prioritiesIncluded.isNotEmpty)
+            ...filter.prioritiesIncluded.map((p) => _buildChip(context, p.label, p.color, isBypassed: isBypassed)),
+          if (filter.prioritiesExcluded.isNotEmpty)
+            ...filter.prioritiesExcluded.map(
+              (p) => _buildChip(context, p.label, p.color, isExcluded: true, isBypassed: isBypassed),
+            ),
+          if (filter.projectIdsIncluded.isNotEmpty)
             Row(
-              children: filter.projectIds.map((id) {
+              children: filter.projectIdsIncluded.map((id) {
                 final project = projectState.getById(id);
                 if (project == null) return const SizedBox.shrink();
                 return _buildChip(
@@ -95,14 +99,42 @@ class FilterBar extends ConsumerWidget {
                 );
               }).toList(),
             ),
-          if (filter.hasLabelFilter)
+          if (filter.projectIdsExcluded.isNotEmpty)
             Row(
-              children: filter.labelIds.map((id) {
+              children: filter.projectIdsExcluded.map((id) {
+                final project = projectState.getById(id);
+                if (project == null) return const SizedBox.shrink();
+                return _buildChip(
+                  context,
+                  project.name,
+                  project.color,
+                  isExcluded: true,
+                  isIgnored: ignoreProjects || isBypassed,
+                  isBypassed: isBypassed,
+                  tooltip: isBypassed
+                      ? 'Filters are temporarily bypassed (Shift+F)'
+                      : (ignoreProjects ? 'Project filters are ignored in this screen' : null),
+                );
+              }).toList(),
+            ),
+          if (filter.labelIdsIncluded.isNotEmpty)
+            Row(
+              children: filter.labelIdsIncluded.map((id) {
                 final label = labelState.labels.firstWhere(
                   (l) => l.id == id,
                   orElse: () => throw Exception('Label not found'),
                 );
                 return _buildChip(context, label.name, label.color, isBypassed: isBypassed);
+              }).toList(),
+            ),
+          if (filter.labelIdsExcluded.isNotEmpty)
+            Row(
+              children: filter.labelIdsExcluded.map((id) {
+                final label = labelState.labels.firstWhere(
+                  (l) => l.id == id,
+                  orElse: () => throw Exception('Label not found'),
+                );
+                return _buildChip(context, label.name, label.color, isExcluded: true, isBypassed: isBypassed);
               }).toList(),
             ),
           const SizedBox(width: 8),
@@ -122,22 +154,41 @@ class FilterBar extends ConsumerWidget {
     Color color, {
     bool isIgnored = false,
     bool isBypassed = false,
+    bool isExcluded = false,
     String? tooltip,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final includedColor = isDark ? Colors.greenAccent : Colors.green.shade700;
+    final excludedColor = isDark ? Colors.redAccent : Colors.red.shade700;
+
+    final displayLabel = isExcluded ? '- $label' : '+ $label';
+    final textColor = (isIgnored || isBypassed)
+        ? Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150)
+        : (isExcluded ? excludedColor : includedColor);
+
+    final backgroundColor = (isIgnored || isBypassed)
+        ? Theme.of(context).colorScheme.surfaceContainerHigh
+        : (isExcluded ? excludedColor.withAlpha(30) : includedColor.withAlpha(30));
+
+    final side = (isIgnored || isBypassed)
+        ? BorderSide.none
+        : BorderSide(color: isExcluded ? excludedColor : includedColor);
+
+    final textStyle = TextStyle(
+      fontSize: 12,
+      fontWeight: (isIgnored || isBypassed) ? FontWeight.normal : FontWeight.bold,
+      decoration: (isIgnored || isBypassed || isExcluded) ? TextDecoration.lineThrough : null,
+      color: textColor,
+    );
+
     final chip = Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Chip(
-        label: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            decoration: (isIgnored || isBypassed) ? TextDecoration.lineThrough : null,
-            color: (isIgnored || isBypassed) ? Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150) : null,
-          ),
-        ),
+        label: Text(displayLabel, style: textStyle),
         avatar: CircleAvatar(backgroundColor: (isIgnored || isBypassed) ? color.withAlpha(128) : color, radius: 4),
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-        side: BorderSide.none,
+        backgroundColor: backgroundColor,
+        side: side,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         visualDensity: VisualDensity.compact,
       ),
     );

@@ -11,8 +11,8 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
 import 'package:flutter/services.dart';
-import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_header.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/project_detail_shortcuts.dart';

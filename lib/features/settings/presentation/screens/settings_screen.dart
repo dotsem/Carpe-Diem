@@ -4,6 +4,7 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/interactive_task_card.dart';
 import 'package:flutter/material.dart';
@@ -237,6 +238,33 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              SettingsSection(
+                title: 'Filtering',
+                children: [
+                  SettingsDropdownTile<FilterInteractionMethod>(
+                    icon: Icons.filter_alt_outlined,
+                    title: 'Filter Tap Interaction',
+                    subtitle: 'Choose how tapping filter chips in the dialog behaves',
+                    value: settings.filterInteractionMethod,
+                    items: const [
+                      DropdownMenuItem(
+                        value: FilterInteractionMethod.cycle,
+                        child: Text('Cycle (None -> Include -> Exclude)'),
+                      ),
+                      DropdownMenuItem(
+                        value: FilterInteractionMethod.leftRightClick,
+                        child: Text('Left/Right Click (Left to Include, Right to Exclude)'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        settingsNotifier.setFilterInteractionMethod(value);
+                      }
+                    },
+                  ),
+                ],
+              ),
+
             ],
           ),
         ),

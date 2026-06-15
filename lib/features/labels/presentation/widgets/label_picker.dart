@@ -3,6 +3,7 @@ import 'package:carpe_diem/features/labels/presentation/widgets/label_context_me
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
 
 class LabelPicker extends ConsumerWidget {
   final List<String> selectedLabelIds;
@@ -10,6 +11,14 @@ class LabelPicker extends ConsumerWidget {
   final ValueChanged<List<String>> onSelected;
   final bool allowAdd;
   final bool isManageMode;
+  final bool enableContextMenu;
+  final Widget Function(
+    BuildContext context,
+    Label label,
+    bool isSelected,
+    bool isInherited,
+    Widget defaultChip,
+  )? chipBuilder;
 
   const LabelPicker({
     super.key,
@@ -18,11 +27,14 @@ class LabelPicker extends ConsumerWidget {
     required this.onSelected,
     this.allowAdd = true,
     this.isManageMode = false,
+    this.enableContextMenu = true,
+    this.chipBuilder,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = ref.watch(labelProvider);
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -48,7 +60,7 @@ class LabelPicker extends ConsumerWidget {
             );
           }
 
-          Widget chip = FilterChip(
+          final Widget defaultChip = FilterChip(
             label: Text(label.name),
             selected: isSelected,
             onSelected: isInherited
@@ -71,20 +83,28 @@ class LabelPicker extends ConsumerWidget {
             ),
           );
 
-          return Builder(
-            builder: (context) => GestureDetector(
-              onSecondaryTapDown: (details) {
-                showLabelContextMenu(
-                  context,
-                  ref,
-                  label,
-                  details.localPosition,
-                  context.findRenderObject() as RenderBox,
-                );
-              },
-              child: isInherited ? Tooltip(message: 'Inherited from project', child: chip) : chip,
-            ),
-          );
+          final Widget chip = chipBuilder != null
+              ? chipBuilder!(context, label, isSelected, isInherited, defaultChip)
+              : defaultChip;
+
+          if (enableContextMenu) {
+            return Builder(
+              builder: (context) => GestureDetector(
+                onSecondaryTapDown: (details) {
+                  showLabelContextMenu(
+                    context,
+                    ref,
+                    label,
+                    details.localPosition,
+                    context.findRenderObject() as RenderBox,
+                  );
+                },
+                child: isInherited ? Tooltip(message: 'Inherited from project', child: chip) : chip,
+              ),
+            );
+          } else {
+            return isInherited ? Tooltip(message: 'Inherited from project', child: chip) : chip;
+          }
         }),
         if (allowAdd)
           ActionChip(
@@ -92,6 +112,7 @@ class LabelPicker extends ConsumerWidget {
             avatar: const Icon(Icons.add, size: 16),
             onPressed: () => _showAddLabel(context),
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            side: BorderSide(color: Theme.of(context).colorScheme.outline),
           ),
       ],
     );

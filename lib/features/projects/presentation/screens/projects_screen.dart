@@ -1,13 +1,13 @@
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/filter_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/projects_shortcuts.dart';
 

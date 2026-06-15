@@ -19,6 +19,8 @@ class AppConstants {
   static const String defaultStatsPeriod = 'weekly';
   static const bool defaultShowActiveProjectsOnly = false;
   static const bool defaultEnableRandomTask = false;
+  static const String defaultFilterInteractionMethod = 'cycle';
+
 
   // Setting keys
   static const String keyMaxPlanningDays = 'max_planning_days';
@@ -39,4 +41,6 @@ class AppConstants {
   static const String keyShowActiveProjectsOnly = 'show_active_projects_only';
   static const String keyShowCompletedTasks = 'show_completed_tasks';
   static const String keyEnableRandomTask = 'enable_random_task';
+  static const String keyFilterInteractionMethod = 'filter_interaction_method';
 }
+

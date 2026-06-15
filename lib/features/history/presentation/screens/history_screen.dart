@@ -1,12 +1,12 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
-import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/filter_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/pick_date_range_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/filter_bar.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/history/presentation/screens/history_items_view.dart';
 import 'package:carpe_diem/features/history/presentation/screens/history_overview_view.dart';
