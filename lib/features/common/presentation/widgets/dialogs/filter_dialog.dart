@@ -5,9 +5,10 @@ import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dar
 import 'package:carpe_diem/features/common/presentation/widgets/multi_priority_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/multi_project_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 
-// TODO: refactor this code
-class FilterDialog extends StatefulWidget {
+class FilterDialog extends ConsumerStatefulWidget {
   final TaskFilter initialFilter;
   final bool showProjectFilter;
   final bool showPriorityFilter;
@@ -22,33 +23,45 @@ class FilterDialog extends StatefulWidget {
   });
 
   @override
-  State<FilterDialog> createState() => _FilterDialogState();
+  ConsumerState<FilterDialog> createState() => _FilterDialogState();
 }
 
-class _FilterDialogState extends State<FilterDialog> {
-  late Set<Priority> _priorities;
-  late Set<String> _projectIds;
-  late Set<String> _labelIds;
+class _FilterDialogState extends ConsumerState<FilterDialog> {
+  late Set<Priority> _prioritiesIncluded;
+  late Set<Priority> _prioritiesExcluded;
+  late Set<String> _projectIdsIncluded;
+  late Set<String> _projectIdsExcluded;
+  late Set<String> _labelIdsIncluded;
+  late Set<String> _labelIdsExcluded;
 
   @override
   void initState() {
     super.initState();
-    _priorities = Set.from(widget.initialFilter.priorities);
-    _projectIds = Set.from(widget.initialFilter.projectIds);
-    _labelIds = Set.from(widget.initialFilter.labelIds);
+    _prioritiesIncluded = Set.from(widget.initialFilter.prioritiesIncluded);
+    _prioritiesExcluded = Set.from(widget.initialFilter.prioritiesExcluded);
+    _projectIdsIncluded = Set.from(widget.initialFilter.projectIdsIncluded);
+    _projectIdsExcluded = Set.from(widget.initialFilter.projectIdsExcluded);
+    _labelIdsIncluded = Set.from(widget.initialFilter.labelIdsIncluded);
+    _labelIdsExcluded = Set.from(widget.initialFilter.labelIdsExcluded);
   }
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final interactionMethod = settings.filterInteractionMethod;
+
     return SizedDialog(
       title: 'Filter Tasks',
       submitText: 'Apply',
       onCancel: () => Navigator.pop(context),
       onSubmit: () {
         final filter = widget.initialFilter.copyWith(
-          priorities: _priorities,
-          projectIds: _projectIds,
-          labelIds: _labelIds,
+          prioritiesIncluded: _prioritiesIncluded,
+          prioritiesExcluded: _prioritiesExcluded,
+          projectIdsIncluded: _projectIdsIncluded,
+          projectIdsExcluded: _projectIdsExcluded,
+          labelIdsIncluded: _labelIdsIncluded,
+          labelIdsExcluded: _labelIdsExcluded,
         );
         Navigator.pop(context, filter);
       },
@@ -56,9 +69,12 @@ class _FilterDialogState extends State<FilterDialog> {
         TextButton(
           onPressed: () {
             setState(() {
-              _priorities.clear();
-              _projectIds.clear();
-              _labelIds.clear();
+              _prioritiesIncluded.clear();
+              _prioritiesExcluded.clear();
+              _projectIdsIncluded.clear();
+              _projectIdsExcluded.clear();
+              _labelIdsIncluded.clear();
+              _labelIdsExcluded.clear();
             });
           },
           child: const Text('Clear All'),
@@ -71,20 +87,39 @@ class _FilterDialogState extends State<FilterDialog> {
           children: [
             if (widget.showPriorityFilter) ...[
               _sectionHeader('Priority'),
-              MultiPriorityPicker(selected: _priorities, onChanged: (values) => setState(() => _priorities = values)),
+              MultiPriorityPicker(
+                included: _prioritiesIncluded,
+                excluded: _prioritiesExcluded,
+                onChanged: (inc, exc) => setState(() {
+                  _prioritiesIncluded = inc;
+                  _prioritiesExcluded = exc;
+                }),
+                interactionMethod: interactionMethod,
+              ),
               const SizedBox(height: 16),
             ],
             if (widget.showProjectFilter) ...[
               _sectionHeader('Project'),
-              MultiProjectPicker(selected: _projectIds, onChanged: (values) => setState(() => _projectIds = values)),
+              MultiProjectPicker(
+                included: _projectIdsIncluded,
+                excluded: _projectIdsExcluded,
+                onChanged: (inc, exc) => setState(() {
+                  _projectIdsIncluded = inc;
+                  _projectIdsExcluded = exc;
+                }),
+                interactionMethod: interactionMethod,
+              ),
               const SizedBox(height: 16),
             ],
             if (widget.showLabelFilter) ...[
               _sectionHeader('Labels'),
               LabelPicker(
-                selectedLabelIds: _labelIds.toList(),
-                onSelected: (values) => setState(() => _labelIds = Set.from(values)),
+                selectedLabelIds: _labelIdsIncluded.toList(),
+                excludedLabelIds: _labelIdsExcluded.toList(),
+                onSelected: (inc) => setState(() => _labelIdsIncluded = Set.from(inc)),
+                onExcluded: (exc) => setState(() => _labelIdsExcluded = Set.from(exc)),
                 allowAdd: false,
+                interactionMethod: interactionMethod,
               ),
             ],
           ],
@@ -108,3 +143,4 @@ class _FilterDialogState extends State<FilterDialog> {
     );
   }
 }
+

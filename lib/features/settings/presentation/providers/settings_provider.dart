@@ -4,6 +4,7 @@ import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/common/data/models/task_filter.dart';
 
 class SettingsState {
   final Map<String, String> _map;
@@ -95,6 +96,12 @@ class SettingsState {
   // Enable Random Task Picker
   bool get enableRandomTask =>
       _get(AppConstants.keyEnableRandomTask, AppConstants.defaultEnableRandomTask.toString()) == 'true';
+
+  // Filter Interaction Method
+  FilterInteractionMethod get filterInteractionMethod {
+    final methodStr = _get(AppConstants.keyFilterInteractionMethod, AppConstants.defaultFilterInteractionMethod);
+    return FilterInteractionMethod.fromString(methodStr);
+  }
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -136,6 +143,8 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> setDefaultStatsPeriod(String period) => _set(AppConstants.keyDefaultStatsPeriod, period);
   Future<void> setShowActiveProjectsOnly(bool value) => _set(AppConstants.keyShowActiveProjectsOnly, value.toString());
   Future<void> setEnableRandomTask(bool value) => _set(AppConstants.keyEnableRandomTask, value.toString());
+  Future<void> setFilterInteractionMethod(FilterInteractionMethod method) =>
+      _set(AppConstants.keyFilterInteractionMethod, method.name);
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

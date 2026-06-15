@@ -25,22 +25,30 @@ class HistoryRepository implements IHistoryRepository {
     List<dynamic> whereArgs = [TaskStatus.done.index, startStr, endStr];
 
     if (filter != null && !filter.isEmpty) {
-      if (filter.hasPriorityFilter) {
-        where += ' AND t.priority IN (${filter.priorities.map((p) => p.index).join(',')})';
+      if (filter.prioritiesIncluded.isNotEmpty) {
+        where += ' AND t.priority IN (${filter.prioritiesIncluded.map((p) => p.index).join(',')})';
       }
-      if (filter.hasProjectFilter) {
-        where += ' AND t.projectId IN (${filter.projectIds.map((id) => "'$id'").join(',')})';
+      if (filter.prioritiesExcluded.isNotEmpty) {
+        where += ' AND t.priority NOT IN (${filter.prioritiesExcluded.map((p) => p.index).join(',')})';
       }
-      if (filter.hasLabelFilter) {
-        where +=
-            ' AND (tl.labelId IN (${filter.labelIds.map((id) => "'$id'").join(',')}) OR pl.labelId IN (${filter.labelIds.map((id) => "'$id'").join(',')}))';
+      if (filter.projectIdsIncluded.isNotEmpty) {
+        where += ' AND t.projectId IN (${filter.projectIdsIncluded.map((id) => "'$id'").join(',')})';
+      }
+      if (filter.projectIdsExcluded.isNotEmpty) {
+        where += ' AND (t.projectId IS NULL OR t.projectId NOT IN (${filter.projectIdsExcluded.map((id) => "'$id'").join(',')}))';
+      }
+      if (filter.labelIdsIncluded.isNotEmpty) {
+        final labelList = filter.labelIdsIncluded.map((id) => "'$id'").join(',');
+        where += ' AND (t.id IN (SELECT taskId FROM task_labels WHERE labelId IN ($labelList)) OR t.projectId IN (SELECT projectId FROM project_labels WHERE labelId IN ($labelList)))';
+      }
+      if (filter.labelIdsExcluded.isNotEmpty) {
+        final labelList = filter.labelIdsExcluded.map((id) => "'$id'").join(',');
+        where += ' AND t.id NOT IN (SELECT taskId FROM task_labels WHERE labelId IN ($labelList)) AND (t.projectId IS NULL OR t.projectId NOT IN (SELECT projectId FROM project_labels WHERE labelId IN ($labelList)))';
       }
     }
 
     final query = '''
       SELECT DISTINCT t.* FROM tasks t
-      LEFT JOIN task_labels tl ON t.id = tl.taskId
-      LEFT JOIN project_labels pl ON t.projectId = pl.projectId
       WHERE $where
       ORDER BY t.completedAt DESC
       ${limit != null ? 'LIMIT $limit' : ''}
@@ -80,22 +88,27 @@ class HistoryRepository implements IHistoryRepository {
     String whereCompleted = 't.status = ? AND t.completedAt >= ? AND t.completedAt <= ?';
     List<dynamic> whereArgs = [TaskStatus.done.index, startStr, endStr];
 
-    String filterJoin = '';
     String filterWhere = '';
     if (filter != null && !filter.isEmpty) {
-      filterJoin = '''
-        LEFT JOIN task_labels ftl ON t.id = ftl.taskId
-        LEFT JOIN project_labels fpl ON t.projectId = fpl.projectId
-      ''';
-      if (filter.hasPriorityFilter) {
-        filterWhere += ' AND t.priority IN (${filter.priorities.map((p) => p.index).join(',')})';
+      if (filter.prioritiesIncluded.isNotEmpty) {
+        filterWhere += ' AND t.priority IN (${filter.prioritiesIncluded.map((p) => p.index).join(',')})';
       }
-      if (filter.hasProjectFilter) {
-        filterWhere += ' AND t.projectId IN (${filter.projectIds.map((id) => "'$id'").join(',')})';
+      if (filter.prioritiesExcluded.isNotEmpty) {
+        filterWhere += ' AND t.priority NOT IN (${filter.prioritiesExcluded.map((p) => p.index).join(',')})';
       }
-      if (filter.hasLabelFilter) {
-        filterWhere +=
-            ' AND (ftl.labelId IN (${filter.labelIds.map((id) => "'$id'").join(',')}) OR fpl.labelId IN (${filter.labelIds.map((id) => "'$id'").join(',')}))';
+      if (filter.projectIdsIncluded.isNotEmpty) {
+        filterWhere += ' AND t.projectId IN (${filter.projectIdsIncluded.map((id) => "'$id'").join(',')})';
+      }
+      if (filter.projectIdsExcluded.isNotEmpty) {
+        filterWhere += ' AND (t.projectId IS NULL OR t.projectId NOT IN (${filter.projectIdsExcluded.map((id) => "'$id'").join(',')}))';
+      }
+      if (filter.labelIdsIncluded.isNotEmpty) {
+        final labelList = filter.labelIdsIncluded.map((id) => "'$id'").join(',');
+        filterWhere += ' AND (t.id IN (SELECT taskId FROM task_labels WHERE labelId IN ($labelList)) OR t.projectId IN (SELECT projectId FROM project_labels WHERE labelId IN ($labelList)))';
+      }
+      if (filter.labelIdsExcluded.isNotEmpty) {
+        final labelList = filter.labelIdsExcluded.map((id) => "'$id'").join(',');
+        filterWhere += ' AND t.id NOT IN (SELECT taskId FROM task_labels WHERE labelId IN ($labelList)) AND (t.projectId IS NULL OR t.projectId NOT IN (SELECT projectId FROM project_labels WHERE labelId IN ($labelList)))';
       }
     }
 
@@ -103,35 +116,35 @@ class HistoryRepository implements IHistoryRepository {
 
     // 1. Total Completed
     final totalCompletedResult = await _db.rawQuery(
-      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t $filterJoin WHERE $whereCompleted',
+      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t WHERE $whereCompleted',
       whereArgs,
     );
     final totalCompleted = (totalCompletedResult.first['count'] as num?)?.toInt() ?? 0;
 
     // 2. Missed Deadlines
     final missedDeadlinesResult = await _db.rawQuery(
-      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t $filterJoin WHERE $whereCompleted AND t.deadline IS NOT NULL AND t.completedAt > t.deadline',
+      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t WHERE $whereCompleted AND t.deadline IS NOT NULL AND t.completedAt > t.deadline',
       whereArgs,
     );
     final missedDeadlines = (missedDeadlinesResult.first['count'] as num?)?.toInt() ?? 0;
 
     // 3. Completed Late (after scheduled date)
     final completedLateResult = await _db.rawQuery(
-      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t $filterJoin WHERE $whereCompleted AND t.scheduledDate IS NOT NULL AND t.completedAt > datetime(t.scheduledDate, \'+1 day\')',
+      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t WHERE $whereCompleted AND t.scheduledDate IS NOT NULL AND t.completedAt > datetime(t.scheduledDate, \'+1 day\')',
       whereArgs,
     );
     final completedLate = (completedLateResult.first['count'] as num?)?.toInt() ?? 0;
 
     // 4. Total Created in this period
     final totalCreatedResult = await _db.rawQuery(
-      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t $filterJoin WHERE t.createdAt >= ? AND t.createdAt <= ? $filterWhere',
+      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t WHERE t.createdAt >= ? AND t.createdAt <= ? $filterWhere',
       [startStr, endStr],
     );
     final totalCreated = (totalCreatedResult.first['count'] as num?)?.toInt() ?? 0;
 
     // 5. Tasks by Project
     final projectsResult = await _db.rawQuery(
-      'SELECT t.projectId, COUNT(DISTINCT t.id) as count FROM tasks t $filterJoin WHERE $whereCompleted GROUP BY t.projectId',
+      'SELECT t.projectId, COUNT(DISTINCT t.id) as count FROM tasks t WHERE $whereCompleted GROUP BY t.projectId',
       whereArgs,
     );
     final tasksByProject = {for (var r in projectsResult) (r['projectId'] as String? ?? 'none'): r['count'] as int};
@@ -141,7 +154,6 @@ class HistoryRepository implements IHistoryRepository {
       SELECT tl.labelId, COUNT(DISTINCT t.id) as count 
       FROM tasks t 
       JOIN task_labels tl ON t.id = tl.taskId 
-      $filterJoin
       WHERE $whereCompleted 
       GROUP BY tl.labelId
       ''', whereArgs);
@@ -162,3 +174,4 @@ class HistoryRepository implements IHistoryRepository {
     return maps.map((m) => m['labelId'] as String).toList();
   }
 }
+
