@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/interactive_task_card.dart';
 import 'package:flutter/material.dart';

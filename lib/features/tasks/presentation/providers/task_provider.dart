@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

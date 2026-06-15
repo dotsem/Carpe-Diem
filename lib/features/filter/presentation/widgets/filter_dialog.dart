@@ -1,9 +1,9 @@
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
-import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/multi_priority_picker.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/multi_project_picker.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_picker.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/priority_filter_picker.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/project_filter_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -87,7 +87,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
           children: [
             if (widget.showPriorityFilter) ...[
               _sectionHeader('Priority'),
-              MultiPriorityPicker(
+              PriorityFilterPicker(
                 included: _prioritiesIncluded,
                 excluded: _prioritiesExcluded,
                 onChanged: (inc, exc) => setState(() {
@@ -100,7 +100,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
             ],
             if (widget.showProjectFilter) ...[
               _sectionHeader('Project'),
-              MultiProjectPicker(
+              ProjectFilterPicker(
                 included: _projectIdsIncluded,
                 excluded: _projectIdsExcluded,
                 onChanged: (inc, exc) => setState(() {
@@ -113,12 +113,11 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
             ],
             if (widget.showLabelFilter) ...[
               _sectionHeader('Labels'),
-              LabelPicker(
+              LabelFilterPicker(
                 selectedLabelIds: _labelIdsIncluded.toList(),
                 excludedLabelIds: _labelIdsExcluded.toList(),
                 onSelected: (inc) => setState(() => _labelIdsIncluded = Set.from(inc)),
                 onExcluded: (exc) => setState(() => _labelIdsExcluded = Set.from(exc)),
-                allowAdd: false,
                 interactionMethod: interactionMethod,
               ),
             ],
@@ -143,4 +142,3 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
     );
   }
 }
-

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 
-class MultiPriorityPicker extends StatelessWidget {
+class PriorityFilterPicker extends StatelessWidget {
   final Set<Priority> included;
   final Set<Priority> excluded;
   final void Function(Set<Priority> included, Set<Priority> excluded) onChanged;
   final FilterInteractionMethod interactionMethod;
 
-  const MultiPriorityPicker({
+  const PriorityFilterPicker({
     super.key,
     required this.included,
     required this.excluded,

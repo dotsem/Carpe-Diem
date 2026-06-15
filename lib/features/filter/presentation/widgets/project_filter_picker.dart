@@ -1,15 +1,15 @@
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 
-class MultiProjectPicker extends ConsumerWidget {
+class ProjectFilterPicker extends ConsumerWidget {
   final Set<String> included;
   final Set<String> excluded;
   final void Function(Set<String> included, Set<String> excluded) onChanged;
   final FilterInteractionMethod interactionMethod;
 
-  const MultiProjectPicker({
+  const ProjectFilterPicker({
     super.key,
     required this.included,
     required this.excluded,

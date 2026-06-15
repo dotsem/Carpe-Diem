@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:carpe_diem/routes/app_router.dart';
-import 'package:carpe_diem/features/common/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcuts_help_overlay.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_intents.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';

@@ -107,7 +107,6 @@ class TaskFilter {
     return true;
   }
 
-
   TaskFilter limitTo({bool priority = true, bool projects = true, bool labels = true}) {
     return TaskFilter(
       prioritiesIncluded: priority ? prioritiesIncluded : const {},
