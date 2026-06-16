@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -262,9 +263,22 @@ class SettingsScreen extends ConsumerWidget {
                       }
                     },
                   ),
+                  SettingsSwitchTile(
+                    icon: Icons.save_outlined,
+                    title: 'Persistent Filters',
+                    subtitle: 'Remembers filters between app sessions',
+                    value: settings.persistentFilter,
+                    onChanged: (value) {
+                      if (value) {
+                        settingsNotifier.setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
+                      } else {
+                        settingsNotifier.setPersistentFilterValues({});
+                      }
+                      settingsNotifier.setPersistentFilter(value);
+                    },
+                  ),
                 ],
               ),
-
             ],
           ),
         ),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/core/constants/app_constants.dart';
@@ -102,6 +104,12 @@ class SettingsState {
     final methodStr = _get(AppConstants.keyFilterInteractionMethod, AppConstants.defaultFilterInteractionMethod);
     return FilterInteractionMethod.fromString(methodStr);
   }
+
+  bool get persistentFilter =>
+      _get(AppConstants.keyPersistentFilter, AppConstants.defaultPersistentFilter.toString()) == 'true';
+
+  Map<String, dynamic> get persistentFilterValues =>
+      Map.from(jsonDecode(_get(AppConstants.keyPersistentFilterValues, '{}')));
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -145,6 +153,9 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> setEnableRandomTask(bool value) => _set(AppConstants.keyEnableRandomTask, value.toString());
   Future<void> setFilterInteractionMethod(FilterInteractionMethod method) =>
       _set(AppConstants.keyFilterInteractionMethod, method.name);
+  Future<void> setPersistentFilter(bool value) => _set(AppConstants.keyPersistentFilter, value.toString());
+  Future<void> setPersistentFilterValues(Map<String, dynamic> values) =>
+      _set(AppConstants.keyPersistentFilterValues, jsonEncode(values));
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

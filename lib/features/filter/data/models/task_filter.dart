@@ -117,6 +117,36 @@ class TaskFilter {
       labelIdsExcluded: labels ? labelIdsExcluded : const {},
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'prioritiesIncluded': prioritiesIncluded.map((e) => e.name).toList(),
+      'projectIdsIncluded': projectIdsIncluded.toList(),
+      'labelIdsIncluded': labelIdsIncluded.toList(),
+      'prioritiesExcluded': prioritiesExcluded.map((e) => e.name).toList(),
+      'projectIdsExcluded': projectIdsExcluded.toList(),
+      'labelIdsExcluded': labelIdsExcluded.toList(),
+    };
+  }
+
+  factory TaskFilter.fromMap(Map<String, dynamic> map) {
+    Set<String> stringSetFromList(List<dynamic>? list) {
+      return Set<String>.from((list ?? []).map((e) => e.toString()));
+    }
+
+    Set<Priority> prioritySetFromList(List<dynamic>? list) {
+      return Set<Priority>.from((list ?? []).map((e) => Priority.fromName(e as String)).whereType<Priority>());
+    }
+
+    return TaskFilter(
+      prioritiesIncluded: prioritySetFromList(map['prioritiesIncluded'] as List<dynamic>?),
+      projectIdsIncluded: stringSetFromList(map['projectIdsIncluded'] as List<dynamic>?),
+      labelIdsIncluded: stringSetFromList(map['labelIdsIncluded'] as List<dynamic>?),
+      prioritiesExcluded: prioritySetFromList(map['prioritiesExcluded'] as List<dynamic>?),
+      projectIdsExcluded: stringSetFromList(map['projectIdsExcluded'] as List<dynamic>?),
+      labelIdsExcluded: stringSetFromList(map['labelIdsExcluded'] as List<dynamic>?),
+    );
+  }
 }
 
 enum FilterInteractionMethod {

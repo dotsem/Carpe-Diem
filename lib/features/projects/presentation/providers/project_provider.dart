@@ -1,3 +1,5 @@
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
@@ -15,10 +17,7 @@ class ProjectState {
   const ProjectState({this.projects = const [], this.isLoading = false});
 
   ProjectState copyWith({List<Project>? projects, bool? isLoading}) {
-    return ProjectState(
-      projects: projects ?? this.projects,
-      isLoading: isLoading ?? this.isLoading,
-    );
+    return ProjectState(projects: projects ?? this.projects, isLoading: isLoading ?? this.isLoading);
   }
 
   Project? getById(String id) {
@@ -75,6 +74,8 @@ class ProjectNotifier extends Notifier<ProjectState> {
 
   Future<void> deleteProject(Project project) async {
     await _repo.delete(project.id);
+    ref.read(filterProvider.notifier).removeProjectFilter(project.id);
+    await ref.read(settingsProvider.notifier).setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadProjects();
   }
 
