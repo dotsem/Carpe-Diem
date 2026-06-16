@@ -20,7 +20,7 @@ class AppConstants {
   static const bool defaultShowActiveProjectsOnly = false;
   static const bool defaultEnableRandomTask = false;
   static const String defaultFilterInteractionMethod = 'cycle';
-
+  static const bool defaultPersistentFilter = false;
 
   // Setting keys
   static const String keyMaxPlanningDays = 'max_planning_days';
@@ -42,5 +42,6 @@ class AppConstants {
   static const String keyShowCompletedTasks = 'show_completed_tasks';
   static const String keyEnableRandomTask = 'enable_random_task';
   static const String keyFilterInteractionMethod = 'filter_interaction_method';
+  static const String keyPersistentFilter = 'persistent_filter';
+  static const String keyPersistentFilterValues = 'persistent_filter_values';
 }
-

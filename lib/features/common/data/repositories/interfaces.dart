@@ -20,13 +20,7 @@ abstract class ITaskRepository {
 }
 
 abstract class IHistoryRepository {
-  Future<List<Task>> getCompletedInRange(
-    DateTime start,
-    DateTime end, {
-    int? limit,
-    int? offset,
-    TaskFilter? filter,
-  });
+  Future<List<Task>> getCompletedInRange(DateTime start, DateTime end, {int? limit, int? offset, TaskFilter? filter});
   Future<DateTime?> getFirstCompletedDate();
   Future<HistoryOverview> getHistoryOverview(DateTime start, DateTime end, {TaskFilter? filter});
 }
@@ -51,4 +45,8 @@ abstract class ISettingsRepository {
   Future<void> set(String key, String value);
   Future<String?> get(String key);
   Future<Map<String, String>> getAll();
+}
+
+abstract class IRepository {
+  Future<void> clearHistory();
 }

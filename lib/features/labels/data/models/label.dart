@@ -13,4 +13,8 @@ class Label {
       Label(id: map['id'] as String, name: map['name'] as String, color: Color(map['color'] as int));
 
   Label copyWith({String? name, Color? color}) => Label(id: id, name: name ?? this.name, color: color ?? this.color);
+
+  factory Label.empty() => const Label(id: '', name: '', color: Colors.transparent);
+
+  bool get isEmpty => id.isEmpty && name.isEmpty;
 }

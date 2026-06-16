@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
@@ -120,20 +121,16 @@ class FilterBar extends ConsumerWidget {
           if (filter.labelIdsIncluded.isNotEmpty)
             Row(
               children: filter.labelIdsIncluded.map((id) {
-                final label = labelState.labels.firstWhere(
-                  (l) => l.id == id,
-                  orElse: () => throw Exception('Label not found'),
-                );
+                Label label = labelState.labels.firstWhere((l) => l.id == id, orElse: () => Label.empty());
+                if (label.isEmpty) return const SizedBox.shrink();
                 return _buildChip(context, label.name, label.color, isBypassed: isBypassed);
               }).toList(),
             ),
           if (filter.labelIdsExcluded.isNotEmpty)
             Row(
               children: filter.labelIdsExcluded.map((id) {
-                final label = labelState.labels.firstWhere(
-                  (l) => l.id == id,
-                  orElse: () => throw Exception('Label not found'),
-                );
+                Label label = labelState.labels.firstWhere((l) => l.id == id, orElse: () => Label.empty());
+                if (label.isEmpty) return const SizedBox.shrink();
                 return _buildChip(context, label.name, label.color, isExcluded: true, isBypassed: isBypassed);
               }).toList(),
             ),

@@ -1,3 +1,5 @@
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -12,10 +14,7 @@ class LabelState {
   const LabelState({this.labels = const [], this.isLoading = false});
 
   LabelState copyWith({List<Label>? labels, bool? isLoading}) {
-    return LabelState(
-      labels: labels ?? this.labels,
-      isLoading: isLoading ?? this.isLoading,
-    );
+    return LabelState(labels: labels ?? this.labels, isLoading: isLoading ?? this.isLoading);
   }
 
   Label? getById(String? id) {
@@ -57,6 +56,8 @@ class LabelNotifier extends Notifier<LabelState> {
 
   Future<void> deleteLabel(String id) async {
     await _repo.delete(id);
+    ref.read(filterProvider.notifier).removeLabelFilter(id);
+    await ref.read(settingsProvider.notifier).setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadLabels();
   }
 
