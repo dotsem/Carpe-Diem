@@ -80,4 +80,46 @@ class ToastUtils {
       dragToClose: dragToClose,
     );
   }
+
+  static void showUndoable(String message, VoidCallback onUndo, {BuildContext? context}) {
+    final effectiveContext = _getEffectiveContext(context);
+    if (effectiveContext == null) return;
+
+    late final ToastificationItem item;
+    item = toastification.show(
+      context: effectiveContext,
+      title: Row(
+        children: [
+          Expanded(child: Text(message)),
+          const SizedBox(width: 12),
+          TextButton(
+            onPressed: () {
+              onUndo();
+              toastification.dismiss(item);
+            },
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              'Undo',
+              style: TextStyle(color: Theme.of(effectiveContext).colorScheme.primary, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      autoCloseDuration: autoCloseDuration,
+      type: ToastificationType.success,
+      style: style,
+      alignment: alignment,
+      primaryColor: AppColors.accent,
+      backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
+      foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
+      borderRadius: borderRadius,
+      showProgressBar: showProgressBar,
+      applyBlurEffect: applyBlurEffect,
+      dragToClose: dragToClose,
+    );
+  }
 }

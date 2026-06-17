@@ -136,7 +136,6 @@ class TaskNotifier extends Notifier<TaskState> {
       await _propagateDeadline(task);
     }
     await _refreshAll();
-    ToastUtils.showSuccess('Task "$title" created');
   }
 
   Future<void> updateTaskStatus(Task task, TaskStatus status) async {
@@ -145,7 +144,6 @@ class TaskNotifier extends Notifier<TaskState> {
         .read(undoRedoProvider.notifier)
         .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
     await _refreshAll();
-    ToastUtils.showSuccess('Task status updated to ${status.name}');
   }
 
   Future<void> startTask(Task task) async {
@@ -205,7 +203,6 @@ class TaskNotifier extends Notifier<TaskState> {
       await _propagateDeadline(task);
     }
     await _refreshAll();
-    ToastUtils.showSuccess('Task "${task.title}" updated');
   }
 
   Future<void> deleteTask(Task task) async {
@@ -213,7 +210,6 @@ class TaskNotifier extends Notifier<TaskState> {
         .read(undoRedoProvider.notifier)
         .execute(DeleteCommand(repo: _repo, item: task, id: task.id, displayName: task.title));
     await _refreshAll();
-    ToastUtils.showSuccess('Task "${task.title}" deleted');
   }
 
   Future<void> rescheduleOverdue(Task task, DateTime newDate) async {
@@ -230,7 +226,6 @@ class TaskNotifier extends Notifier<TaskState> {
         .read(undoRedoProvider.notifier)
         .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
     await _refreshAll();
-    ToastUtils.showSuccess('Task "${task.title}" unscheduled');
   }
 
   Future<List<Task>> getTasksForProject(String projectId) async {
