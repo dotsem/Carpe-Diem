@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:carpe_diem/routes/app_router.dart';
@@ -154,6 +155,9 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
           const CharacterActivator(UpKeys.upper): const MovePrevIntent(),
           const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
           const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
+
+          const CharacterActivator(UndoKeys.char, control: true): const UndoIntent(),
+          const CharacterActivator(RedoKeys.char, control: true): const RedoIntent(),
         },
         child: Actions(
           actions: {
@@ -189,6 +193,14 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
             ToggleFilterBypassIntent: NonTypingAction<ToggleFilterBypassIntent>((intent) {
               debugPrint('Shortcut: ToggleFilterBypass');
               ref.read(filterProvider.notifier).toggleBypass();
+            }),
+            UndoIntent: NonTypingAction<UndoIntent>((intent) {
+              debugPrint('Shortcut: Undo');
+              ref.read(undoRedoProvider.notifier).undo();
+            }),
+            RedoIntent: NonTypingAction<RedoIntent>((intent) {
+              debugPrint('Shortcut: Redo');
+              ref.read(undoRedoProvider.notifier).redo();
             }),
           },
           child: Focus(
