@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 
 class ProjectState {
   final List<Project> projects;
@@ -36,6 +38,16 @@ class ProjectNotifier extends Notifier<ProjectState> {
   @override
   ProjectState build() {
     _repo = ref.watch(projectRepositoryProvider);
+
+    ref.listen<UndoRedoState>(undoRedoProvider, (previous, next) {
+      if (previous != null && previous.isProcessing && !next.isProcessing) {
+        if (next.lastOperationType == UndoRedoOperationType.undo ||
+            next.lastOperationType == UndoRedoOperationType.redo) {
+          loadProjects();
+        }
+      }
+    });
+
     return const ProjectState();
   }
 
@@ -63,17 +75,25 @@ class ProjectNotifier extends Notifier<ProjectState> {
       deadline: deadline,
       createdAt: DateTime.now(),
     );
-    await _repo.insert(project);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(CreateCommand(repo: _repo, item: project, id: project.id, displayName: project.name));
     await loadProjects();
   }
 
   Future<void> updateProject(Project project) async {
-    await _repo.update(project);
+    final oldProject = await _repo.getById(project.id);
+    if (oldProject == null) return;
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(UpdateCommand(repo: _repo, previous: oldProject, next: project, displayName: project.name));
     await loadProjects();
   }
 
   Future<void> deleteProject(Project project) async {
-    await _repo.delete(project.id);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(DeleteCommand(repo: _repo, item: project, id: project.id, displayName: project.name));
     ref.read(filterProvider.notifier).removeProjectFilter(project.id);
     await ref.read(settingsProvider.notifier).setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadProjects();

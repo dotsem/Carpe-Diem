@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 
 class LabelState {
   final List<Label> labels;
@@ -34,6 +36,16 @@ class LabelNotifier extends Notifier<LabelState> {
   @override
   LabelState build() {
     _repo = ref.watch(labelRepositoryProvider);
+
+    ref.listen<UndoRedoState>(undoRedoProvider, (previous, next) {
+      if (previous != null && previous.isProcessing && !next.isProcessing) {
+        if (next.lastOperationType == UndoRedoOperationType.undo ||
+            next.lastOperationType == UndoRedoOperationType.redo) {
+          loadLabels();
+        }
+      }
+    });
+
     return const LabelState();
   }
 
@@ -45,17 +57,27 @@ class LabelNotifier extends Notifier<LabelState> {
 
   Future<void> addLabel({required String name, required Color color}) async {
     final label = Label(id: _uuid.v4(), name: name, color: color);
-    await _repo.insert(label);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(CreateCommand(repo: _repo, item: label, id: label.id, displayName: label.name));
     await loadLabels();
   }
 
   Future<void> updateLabel(Label label) async {
-    await _repo.update(label);
+    final oldLabel = await _repo.getById(label.id);
+    if (oldLabel == null) return;
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(UpdateCommand(repo: _repo, previous: oldLabel, next: label, displayName: label.name));
     await loadLabels();
   }
 
   Future<void> deleteLabel(String id) async {
-    await _repo.delete(id);
+    final label = await _repo.getById(id);
+    if (label == null) return;
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(DeleteCommand(repo: _repo, item: label, id: label.id, displayName: label.name));
     ref.read(filterProvider.notifier).removeLabelFilter(id);
     await ref.read(settingsProvider.notifier).setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadLabels();

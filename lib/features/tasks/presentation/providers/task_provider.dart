@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
@@ -12,6 +13,7 @@ import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_markdown_parser.dart';
 
@@ -62,6 +64,16 @@ class TaskNotifier extends Notifier<TaskState> {
     _repo = ref.watch(taskRepositoryProvider);
     _projectRepo = ref.watch(projectRepositoryProvider);
     _historyRepo = ref.watch(historyRepositoryProvider);
+
+    ref.listen<UndoRedoState>(undoRedoProvider, (previous, next) {
+      if (previous != null && previous.isProcessing && !next.isProcessing) {
+        if (next.lastOperationType == UndoRedoOperationType.undo ||
+            next.lastOperationType == UndoRedoOperationType.redo) {
+          _refreshAll();
+        }
+      }
+    });
+
     return TaskState(currentDate: _normalizeDate(DateTime.now()));
   }
 
@@ -80,11 +92,7 @@ class TaskNotifier extends Notifier<TaskState> {
     final tasks = await _repo.getByDate(normalized, prioritizeDeadlines: settings.prioritizeDeadlines);
     final overdue = await _repo.getOverdue(normalized);
 
-    state = state.copyWith(
-      tasks: tasks,
-      overdueTasks: overdue,
-      isLoading: false,
-    );
+    state = state.copyWith(tasks: tasks, overdueTasks: overdue, isLoading: false);
   }
 
   Future<void> loadUnscheduledTasks({bool silent = false}) async {
@@ -94,10 +102,7 @@ class TaskNotifier extends Notifier<TaskState> {
     final settings = ref.read(settingsProvider);
     final unscheduled = await _repo.getUnscheduled(prioritizeDeadlines: settings.prioritizeDeadlines);
 
-    state = state.copyWith(
-      unscheduledTasks: unscheduled,
-      isLoading: false,
-    );
+    state = state.copyWith(unscheduledTasks: unscheduled, isLoading: false);
   }
 
   Future<void> addTask({
@@ -123,26 +128,31 @@ class TaskNotifier extends Notifier<TaskState> {
       labelIds: labelIds,
     );
 
-    await _repo.insert(task);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(CreateCommand(repo: _repo, item: task, id: task.id, displayName: task.title));
     final settings = ref.read(settingsProvider);
     if (settings.inheritParentDeadline && task.deadline != null) {
       await _propagateDeadline(task);
     }
-    await loadTasksForDate(state.currentDate);
-    await loadUnscheduledTasks();
+    await _refreshAll();
     ToastUtils.showSuccess('Task "$title" created');
   }
 
   Future<void> updateTaskStatus(Task task, TaskStatus status) async {
     final updated = task.copyWith(status: status);
-    await _repo.update(updated);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
     await _refreshAll();
     ToastUtils.showSuccess('Task status updated to ${status.name}');
   }
 
   Future<void> startTask(Task task) async {
     final updated = task.copyWith(status: TaskStatus.inProgress, scheduledDate: _normalizeDate(DateTime.now()));
-    await _repo.update(updated);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
     await _refreshAll();
   }
 
@@ -152,7 +162,9 @@ class TaskNotifier extends Notifier<TaskState> {
       scheduledDate: task.scheduledDate ?? _normalizeDate(DateTime.now()),
       completedAt: DateTime.now(),
     );
-    await _repo.update(updated);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
     await cleanupHistory();
     await _refreshAll();
   }
@@ -183,7 +195,11 @@ class TaskNotifier extends Notifier<TaskState> {
   }
 
   Future<void> updateTask(Task task) async {
-    await _repo.update(task);
+    final oldTask = await _repo.getById(task.id);
+    if (oldTask == null) return;
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(UpdateCommand(repo: _repo, previous: oldTask, next: task, displayName: task.title));
     final settings = ref.read(settingsProvider);
     if (settings.inheritParentDeadline && task.deadline != null) {
       await _propagateDeadline(task);
@@ -193,20 +209,26 @@ class TaskNotifier extends Notifier<TaskState> {
   }
 
   Future<void> deleteTask(Task task) async {
-    await _repo.delete(task.id);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(DeleteCommand(repo: _repo, item: task, id: task.id, displayName: task.title));
     await _refreshAll();
     ToastUtils.showSuccess('Task "${task.title}" deleted');
   }
 
   Future<void> rescheduleOverdue(Task task, DateTime newDate) async {
     final updated = task.copyWith(scheduledDate: _normalizeDate(newDate));
-    await _repo.update(updated);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
     await _refreshAll();
   }
 
   Future<void> unScheduleTask(Task task, {bool resetStatus = false}) async {
     final updated = task.copyWith(clearScheduledDate: true, status: resetStatus ? TaskStatus.todo : task.status);
-    await _repo.update(updated);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
     await _refreshAll();
     ToastUtils.showSuccess('Task "${task.title}" unscheduled');
   }
