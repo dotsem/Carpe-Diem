@@ -11,6 +11,8 @@ class UndoRedoState {
   final String? redoDescription;
   final bool isProcessing;
   final UndoRedoOperationType lastOperationType;
+  final List<Command> undoStack;
+  final List<Command> redoStack;
 
   const UndoRedoState({
     required this.canUndo,
@@ -19,6 +21,8 @@ class UndoRedoState {
     this.lastOperationType = UndoRedoOperationType.none,
     this.undoDescription,
     this.redoDescription,
+    this.undoStack = const [],
+    this.redoStack = const [],
   });
 
   UndoRedoState copyWith({
@@ -28,6 +32,8 @@ class UndoRedoState {
     UndoRedoOperationType? lastOperationType,
     String? undoDescription,
     String? redoDescription,
+    List<Command>? undoStack,
+    List<Command>? redoStack,
   }) {
     return UndoRedoState(
       canUndo: canUndo ?? this.canUndo,
@@ -36,6 +42,8 @@ class UndoRedoState {
       lastOperationType: lastOperationType ?? this.lastOperationType,
       undoDescription: undoDescription ?? this.undoDescription,
       redoDescription: redoDescription ?? this.redoDescription,
+      undoStack: undoStack ?? this.undoStack,
+      redoStack: redoStack ?? this.redoStack,
     );
   }
 }
@@ -46,7 +54,7 @@ class UndoRedoNotifier extends Notifier<UndoRedoState> {
 
   @override
   UndoRedoState build() {
-    return const UndoRedoState(canUndo: false, canRedo: false);
+    return const UndoRedoState(canUndo: false, canRedo: false, undoStack: [], redoStack: []);
   }
 
   Future<void> execute(Command cmd) async {
@@ -88,6 +96,48 @@ class UndoRedoNotifier extends Notifier<UndoRedoState> {
     }
   }
 
+  Future<void> jumpTo(Command targetCommand) async {
+    if (state.isProcessing) return;
+
+    final undoIndex = _undoStack.indexOf(targetCommand);
+    if (undoIndex != -1) {
+      // undo elements executed after the target to revert state to that point
+      final undosCount = _undoStack.length - 1 - undoIndex;
+      if (undosCount <= 0) return;
+
+      state = state.copyWith(isProcessing: true, lastOperationType: UndoRedoOperationType.undo);
+      try {
+        for (int i = 0; i < undosCount; i++) {
+          if (_undoStack.isEmpty) break;
+          final cmd = _undoStack.removeLast();
+          await cmd.undo();
+          _redoStack.add(cmd);
+        }
+      } finally {
+        _updateState(UndoRedoOperationType.undo);
+      }
+    } else {
+      final redoIndex = _redoStack.indexOf(targetCommand);
+      if (redoIndex != -1) {
+        // redo elements up to the target to bring state forward
+        final redoesCount = _redoStack.length - redoIndex;
+        if (redoesCount <= 0) return;
+
+        state = state.copyWith(isProcessing: true, lastOperationType: UndoRedoOperationType.redo);
+        try {
+          for (int i = 0; i < redoesCount; i++) {
+            if (_redoStack.isEmpty) break;
+            final cmd = _redoStack.removeLast();
+            await cmd.execute();
+            _undoStack.add(cmd);
+          }
+        } finally {
+          _updateState(UndoRedoOperationType.redo);
+        }
+      }
+    }
+  }
+
   void _updateState(UndoRedoOperationType type) {
     state = UndoRedoState(
       canUndo: _undoStack.isNotEmpty,
@@ -96,6 +146,8 @@ class UndoRedoNotifier extends Notifier<UndoRedoState> {
       lastOperationType: type,
       undoDescription: _undoStack.isNotEmpty ? _undoStack.last.description : null,
       redoDescription: _redoStack.isNotEmpty ? _redoStack.last.description : null,
+      undoStack: List.unmodifiable(_undoStack),
+      redoStack: List.unmodifiable(_redoStack),
     );
   }
 }

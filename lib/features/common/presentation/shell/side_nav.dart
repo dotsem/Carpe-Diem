@@ -8,6 +8,7 @@ import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
 
 class SideNav extends ConsumerWidget {
   final String currentPath;
@@ -93,6 +94,7 @@ class SideNav extends ConsumerWidget {
             child: ProjectList(currentPath: currentPath, onProjectSelected: (path) => _navigateTo(context, path)),
           ),
           const Divider(height: 1),
+          const UndoRedoPanel(),
           NavItem(
             icon: Icons.settings_outlined,
             label: 'Settings',
