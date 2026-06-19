@@ -2,7 +2,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 
-class ProjectRepository implements IProjectRepository {
+class ProjectRepository extends IProjectRepository {
   final Database _db;
 
   ProjectRepository(this._db);
@@ -59,7 +59,12 @@ class ProjectRepository implements IProjectRepository {
   }
 
   Future<List<String>> _getLabelIds(String projectId) async {
-    final maps = await _db.query('project_labels', where: 'projectId = ?', columns: ['labelId'], whereArgs: [projectId]);
+    final maps = await _db.query(
+      'project_labels',
+      where: 'projectId = ?',
+      columns: ['labelId'],
+      whereArgs: [projectId],
+    );
     return maps.map((m) => m['labelId'] as String).toList();
   }
 }

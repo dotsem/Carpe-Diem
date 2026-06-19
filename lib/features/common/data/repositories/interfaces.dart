@@ -4,8 +4,21 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 
-abstract class ITaskRepository {
+abstract class ICrudRepository<T> {
+  String get repositoryName;
+  Future<List<T>> getAll();
+  Future<T?> getById(String id);
+  Future<void> insert(T item);
+  Future<void> update(T item);
+  Future<void> delete(String id);
+}
+
+abstract class ITaskRepository implements ICrudRepository<Task> {
+  @override
+  String get repositoryName => 'task';
+  @override
   Future<List<Task>> getAll({bool prioritizeDeadlines = true});
+  @override
   Future<Task?> getById(String id);
   Future<List<Task>> getByBlockedBy(String taskId);
   Future<List<Task>> getByDate(DateTime date, {bool prioritizeDeadlines = true});
@@ -13,8 +26,12 @@ abstract class ITaskRepository {
   Future<List<Task>> getUnscheduled({bool prioritizeDeadlines = true});
   Future<List<Task>> getByProject(String projectId, {bool prioritizeDeadlines = true});
   Future<List<Task>> getByLabel(String labelId, {bool prioritizeDeadlines = true});
+
+  @override
   Future<void> insert(Task task);
+  @override
   Future<void> update(Task task);
+  @override
   Future<void> delete(String id);
   Future<int> cleanupHistory(int days);
 }
@@ -25,19 +42,33 @@ abstract class IHistoryRepository {
   Future<HistoryOverview> getHistoryOverview(DateTime start, DateTime end, {TaskFilter? filter});
 }
 
-abstract class IProjectRepository {
+abstract class IProjectRepository implements ICrudRepository<Project> {
+  @override
+  String get repositoryName => 'project';
+  @override
   Future<List<Project>> getAll();
+  @override
   Future<Project?> getById(String id);
+  @override
   Future<void> insert(Project project);
+  @override
   Future<void> update(Project project);
+  @override
   Future<void> delete(String id);
 }
 
-abstract class ILabelRepository {
+abstract class ILabelRepository implements ICrudRepository<Label> {
+  @override
+  String get repositoryName => 'label';
+  @override
   Future<List<Label>> getAll();
+  @override
   Future<Label?> getById(String id);
+  @override
   Future<void> insert(Label label);
+  @override
   Future<void> update(Label label);
+  @override
   Future<void> delete(String id);
 }
 

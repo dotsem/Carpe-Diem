@@ -9,7 +9,6 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/edit_project_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
-import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
@@ -50,7 +49,6 @@ class ProjectDetailDialogHandlers {
           await notifier.deleteProject(project);
           if (context.mounted) {
             GoRouter.of(context).go('/projects');
-            ToastUtils.showSuccess('Project "${project.name}" deleted', context: context);
           }
         },
       ),

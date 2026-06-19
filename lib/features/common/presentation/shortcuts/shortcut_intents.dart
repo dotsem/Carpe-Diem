@@ -85,16 +85,20 @@ class PlanTaskTomorrowIntent extends Intent {
   const PlanTaskTomorrowIntent();
 }
 
+class UndoIntent extends Intent {
+  const UndoIntent();
+}
+
+class RedoIntent extends Intent {
+  const RedoIntent();
+}
+
 class ShortcutEntry {
   final String key;
   final String description;
   final String category;
 
-  const ShortcutEntry({
-    required this.key,
-    required this.description,
-    required this.category,
-  });
+  const ShortcutEntry({required this.key, required this.description, required this.category});
 }
 
 final globalShortcutEntries = [
@@ -106,6 +110,8 @@ final globalShortcutEntries = [
   const ShortcutEntry(key: UpKeys.char, description: 'Move Focus Up', category: 'Navigation'),
   const ShortcutEntry(key: HelpKeys.char, description: 'Toggle shortcut help', category: 'Global'),
   const ShortcutEntry(key: 'Alt', description: 'Hold to show hints', category: 'Global'),
+  const ShortcutEntry(key: 'Ctrl + ${UndoKeys.char}', description: 'Undo', category: 'Global'),
+  const ShortcutEntry(key: 'Ctrl + ${RedoKeys.char}', description: 'Redo', category: 'Global'),
 ];
 
 final homeShortcutEntries = [
@@ -122,11 +128,7 @@ final homeShortcutEntries = [
   const ShortcutEntry(key: AddKeys.char, description: 'Add new task', category: 'Today View'),
   const ShortcutEntry(key: ToggleLayoutKeys.char, description: 'Toggle layout', category: 'Today View'),
   const ShortcutEntry(key: FilterKeys.char, description: 'Open filter', category: 'Today View'),
-  const ShortcutEntry(
-    key: 'Shift + ${FilterKeys.upper}',
-    description: 'Toggle filter bypass',
-    category: 'Today View',
-  ),
+  const ShortcutEntry(key: 'Shift + ${FilterKeys.upper}', description: 'Toggle filter bypass', category: 'Today View'),
 ];
 
 final taskCardShortcutEntries = [
@@ -175,19 +177,11 @@ final projectDialogShortcutEntries = [
 ];
 
 final backlogShortcutEntries = [
-  const ShortcutEntry(
-    key: '${DownKeys.char} / ${UpKeys.char}',
-    description: 'Focus next / prev',
-    category: 'Backlog',
-  ),
+  const ShortcutEntry(key: '${DownKeys.char} / ${UpKeys.char}', description: 'Focus next / prev', category: 'Backlog'),
   const ShortcutEntry(key: AddKeys.char, description: 'Add new task', category: 'Backlog'),
   const ShortcutEntry(key: SearchKeys.char, description: 'Focus search', category: 'Backlog'),
   const ShortcutEntry(key: FilterKeys.char, description: 'Open filter', category: 'Backlog'),
-  const ShortcutEntry(
-    key: 'Shift + ${FilterKeys.upper}',
-    description: 'Toggle filter bypass',
-    category: 'Backlog',
-  ),
+  const ShortcutEntry(key: 'Shift + ${FilterKeys.upper}', description: 'Toggle filter bypass', category: 'Backlog'),
   const ShortcutEntry(
     key: 'Ctrl + ${TodayKeys.upper}',
     description: 'Plan for today, plans all selected tasks',

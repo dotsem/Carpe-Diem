@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
 
 class SideNav extends ConsumerWidget {
   final String currentPath;
@@ -36,10 +38,9 @@ class SideNav extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Carpe Diem',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(color: AppColors.accent, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -48,28 +49,28 @@ class SideNav extends ConsumerWidget {
           NavItem(
             icon: Icons.today_rounded,
             label: 'Today',
-            shortcutHint: 'T',
+            shortcutHint: TodayKeys.upper,
             isSelected: currentPath == '/',
             onTap: () => _navigateTo(context, '/'),
           ),
           NavItem(
             icon: Icons.inbox_rounded,
             label: 'Backlog',
-            shortcutHint: 'B',
+            shortcutHint: BacklogKeys.upper,
             isSelected: currentPath == '/tasks',
             onTap: () => _navigateTo(context, '/tasks'),
           ),
           NavItem(
             icon: Icons.history_rounded,
             label: 'History',
-            shortcutHint: 'Y',
+            shortcutHint: HistoryKeys.upper,
             isSelected: currentPath == '/history',
             onTap: () => _navigateTo(context, '/history'),
           ),
           NavItem(
             icon: Icons.folder_rounded,
             label: 'All Projects',
-            shortcutHint: 'P',
+            shortcutHint: ProjectsKeys.upper,
             isSelected: currentPath == '/projects',
             onTap: () => _navigateTo(context, '/projects'),
           ),
@@ -90,12 +91,10 @@ class SideNav extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: ProjectList(
-              currentPath: currentPath,
-              onProjectSelected: (path) => _navigateTo(context, path),
-            ),
+            child: ProjectList(currentPath: currentPath, onProjectSelected: (path) => _navigateTo(context, path)),
           ),
           const Divider(height: 1),
+          const UndoRedoPanel(),
           NavItem(
             icon: Icons.settings_outlined,
             label: 'Settings',
@@ -114,11 +113,7 @@ class ProjectList extends ConsumerWidget {
   final String currentPath;
   final ValueChanged<String> onProjectSelected;
 
-  const ProjectList({
-    super.key,
-    required this.currentPath,
-    required this.onProjectSelected,
-  });
+  const ProjectList({super.key, required this.currentPath, required this.onProjectSelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -142,10 +137,7 @@ class ProjectList extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton.icon(
-            onPressed: () => showDialog(
-              context: context,
-              builder: (context) => const AddProjectDialog(),
-            ),
+            onPressed: () => showDialog(context: context, builder: (context) => const AddProjectDialog()),
             icon: const Icon(Icons.add),
             label: const Text('Create a project'),
           ),
@@ -188,10 +180,7 @@ class ProjectList extends ConsumerWidget {
                 bottom: 0,
                 width: 3,
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: priority.color,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                  decoration: BoxDecoration(color: priority.color, borderRadius: BorderRadius.circular(2)),
                 ),
               ),
             ],
@@ -240,8 +229,7 @@ class NavItem extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color: iconColor ??
-                      (isSelected ? AppColors.accent : Theme.of(context).colorScheme.onSurfaceVariant),
+                  color: iconColor ?? (isSelected ? AppColors.accent : Theme.of(context).colorScheme.onSurfaceVariant),
                   size: iconSize,
                 ),
                 const SizedBox(width: 12),

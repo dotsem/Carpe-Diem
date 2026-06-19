@@ -3,7 +3,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 
-class TaskRepository implements ITaskRepository {
+class TaskRepository extends ITaskRepository {
   final Database _db;
 
   TaskRepository(this._db);
@@ -12,7 +12,7 @@ class TaskRepository implements ITaskRepository {
     if (maps.isEmpty) return [];
 
     final taskIds = maps.map((m) => m['id'] as String).toList();
-    
+
     final labelsData = await _db.rawQuery(
       'SELECT taskId, labelId FROM task_labels WHERE taskId IN (${taskIds.map((_) => "?").join(",")})',
       taskIds,
@@ -60,13 +60,16 @@ class TaskRepository implements ITaskRepository {
     final endOfDay = startOfDay.add(const Duration(days: 1));
     final scheduledDateStr = startOfDay.toIso8601String();
 
-    final maps = await _db.rawQuery('''
+    final maps = await _db.rawQuery(
+      '''
       SELECT DISTINCT t.* FROM tasks t
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE ((t.scheduledDate = ?) OR (t.completedAt >= ? AND t.completedAt < ?))
       AND (p.isActive IS NULL OR p.isActive = 1)
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
-    ''', [scheduledDateStr, startOfDay.toIso8601String(), endOfDay.toIso8601String()]);
+    ''',
+      [scheduledDateStr, startOfDay.toIso8601String(), endOfDay.toIso8601String()],
+    );
 
     return _loadTasksWithLabels(maps);
   }
@@ -74,13 +77,16 @@ class TaskRepository implements ITaskRepository {
   @override
   Future<List<Task>> getOverdue(DateTime today) async {
     final dateStr = DateTime(today.year, today.month, today.day).toIso8601String();
-    final maps = await _db.rawQuery('''
+    final maps = await _db.rawQuery(
+      '''
       SELECT DISTINCT t.* FROM tasks t
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE (t.scheduledDate IS NOT NULL AND t.scheduledDate < ? AND t.status != ?)
       AND (p.isActive IS NULL OR p.isActive = 1)
       ORDER BY t.priority DESC, t.scheduledDate ASC
-    ''', [dateStr, TaskStatus.done.index]);
+    ''',
+      [dateStr, TaskStatus.done.index],
+    );
 
     return _loadTasksWithLabels(maps);
   }

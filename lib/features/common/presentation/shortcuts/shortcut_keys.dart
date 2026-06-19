@@ -20,9 +20,9 @@ abstract class ProjectsKeys {
 }
 
 abstract class HistoryKeys {
-  static const char = "y";
-  static const upper = "Y";
-  static const keyboardKey = LogicalKeyboardKey.keyY;
+  static const char = "i";
+  static const upper = "I";
+  static const keyboardKey = LogicalKeyboardKey.keyI;
 }
 
 // Focus & Traversal
@@ -48,6 +48,19 @@ abstract class RightKeys {
   static const char = "l";
   static const upper = "L";
   static const keyboardKey = LogicalKeyboardKey.keyL;
+}
+
+// Undo/Redo
+abstract class UndoKeys {
+  static const char = "z";
+  static const upper = "Z";
+  static const keyboardKey = LogicalKeyboardKey.keyZ;
+}
+
+abstract class RedoKeys {
+  static const char = "y";
+  static const upper = "Y";
+  static const keyboardKey = LogicalKeyboardKey.keyY;
 }
 
 // Action Triggers
@@ -92,13 +105,13 @@ abstract class DeleteKeys {
 class AppKeyBindings {
   static const escape = LogicalKeyboardKey.escape;
   static const enter = LogicalKeyboardKey.enter;
-  
+
   // Arrow Keys
   static const arrowLeft = LogicalKeyboardKey.arrowLeft;
   static const arrowDown = LogicalKeyboardKey.arrowDown;
   static const arrowUp = LogicalKeyboardKey.arrowUp;
   static const arrowRight = LogicalKeyboardKey.arrowRight;
-  
+
   // Priority Digits
   static const digit1 = LogicalKeyboardKey.digit1;
   static const digit2 = LogicalKeyboardKey.digit2;

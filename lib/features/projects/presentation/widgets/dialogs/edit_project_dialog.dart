@@ -11,7 +11,6 @@ import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dar
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
-import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class EditProjectDialog extends ConsumerStatefulWidget {
@@ -69,8 +68,7 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
                   final provider = ref.read(projectProvider.notifier);
                   await provider.deleteProject(widget.project);
                   if (context.mounted) {
-                    Navigator.of(context).pop(); // Pop from edit dialog
-                    ToastUtils.showSuccess('Project "${widget.project.name}" deleted', context: context);
+                    Navigator.of(context).pop();
                   }
                 },
               ),
