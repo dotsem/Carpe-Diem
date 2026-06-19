@@ -79,6 +79,7 @@ void main() {
       );
 
       when(() => mockRepo.update(any())).thenAnswer((_) async => {});
+      when(() => mockRepo.getById('p1')).thenAnswer((_) async => project);
       when(() => mockRepo.getAll()).thenAnswer((_) async => [project]);
 
       await container.read(projectProvider.notifier).toggleProjectActive(project);
