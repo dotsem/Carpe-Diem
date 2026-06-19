@@ -69,7 +69,7 @@ The focus of this version is enhancing functionality and user experience.
 ### New Features
 
 - [ ] **Advanced Filtering:** Filter tasks by priority and date range.
-- [ ] **Undo & Redo:** Undo and redo recent actions.
+- [✅] **Undo & Redo:** Undo and redo recent actions.
 
 ---
 
