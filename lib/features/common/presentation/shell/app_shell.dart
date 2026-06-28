@@ -112,7 +112,9 @@ class _AppShellState extends ConsumerState<AppShell> {
             child: Stack(
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: currentPath == '/settings' ? 0 : (isMobile ? 16 : 32),
+                  ),
                   child: widget.child,
                 ),
                 if (isMobile)
