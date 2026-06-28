@@ -8,6 +8,8 @@ import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 
 class LabelState {
   final List<Label> labels;
@@ -70,6 +72,8 @@ class LabelNotifier extends Notifier<LabelState> {
         .read(undoRedoProvider.notifier)
         .execute(UpdateCommand(repo: _repo, previous: oldLabel, next: label, displayName: label.name));
     await loadLabels();
+    await ref.read(projectProvider.notifier).loadProjects();
+    await ref.read(taskProvider.notifier).refreshTasks();
   }
 
   Future<void> deleteLabel(String id) async {
@@ -81,6 +85,8 @@ class LabelNotifier extends Notifier<LabelState> {
     ref.read(filterProvider.notifier).removeLabelFilter(id);
     await ref.read(settingsProvider.notifier).setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadLabels();
+    await ref.read(projectProvider.notifier).loadProjects();
+    await ref.read(taskProvider.notifier).refreshTasks();
   }
 
   Label? getById(String? id) {

@@ -137,9 +137,25 @@ class TaskRepository extends ITaskRepository {
   @override
   Future<void> insert(Task task) async {
     await _db.transaction((txn) async {
-      await txn.insert('tasks', task.toMap());
+      final map = task.toMap();
+      if (task.projectId != null) {
+        final projectExists = (await txn.rawQuery('SELECT 1 FROM projects WHERE id = ?', [task.projectId])).isNotEmpty;
+        if (!projectExists) {
+          map['projectId'] = null;
+        }
+      }
+      if (task.blockedById != null) {
+        final taskExists = (await txn.rawQuery('SELECT 1 FROM tasks WHERE id = ?', [task.blockedById])).isNotEmpty;
+        if (!taskExists) {
+          map['blockedById'] = null;
+        }
+      }
+      await txn.insert('tasks', map);
       for (final labelId in task.labelIds) {
-        await txn.insert('task_labels', {'taskId': task.id, 'labelId': labelId});
+        final labelExists = (await txn.rawQuery('SELECT 1 FROM labels WHERE id = ?', [labelId])).isNotEmpty;
+        if (labelExists) {
+          await txn.insert('task_labels', {'taskId': task.id, 'labelId': labelId});
+        }
       }
     });
   }
@@ -147,11 +163,28 @@ class TaskRepository extends ITaskRepository {
   @override
   Future<void> update(Task task) async {
     await _db.transaction((txn) async {
-      await txn.update('tasks', task.toMap(), where: 'id = ?', whereArgs: [task.id]);
+      final map = task.toMap();
+      map.remove('id');
+      if (task.projectId != null) {
+        final projectExists = (await txn.rawQuery('SELECT 1 FROM projects WHERE id = ?', [task.projectId])).isNotEmpty;
+        if (!projectExists) {
+          map['projectId'] = null;
+        }
+      }
+      if (task.blockedById != null) {
+        final taskExists = (await txn.rawQuery('SELECT 1 FROM tasks WHERE id = ?', [task.blockedById])).isNotEmpty;
+        if (!taskExists) {
+          map['blockedById'] = null;
+        }
+      }
+      await txn.update('tasks', map, where: 'id = ?', whereArgs: [task.id]);
 
       await txn.delete('task_labels', where: 'taskId = ?', whereArgs: [task.id]);
       for (final labelId in task.labelIds) {
-        await txn.insert('task_labels', {'taskId': task.id, 'labelId': labelId});
+        final labelExists = (await txn.rawQuery('SELECT 1 FROM labels WHERE id = ?', [labelId])).isNotEmpty;
+        if (labelExists) {
+          await txn.insert('task_labels', {'taskId': task.id, 'labelId': labelId});
+        }
       }
     });
   }

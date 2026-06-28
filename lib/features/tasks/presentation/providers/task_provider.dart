@@ -243,6 +243,8 @@ class TaskNotifier extends Notifier<TaskState> {
     return _repo.getByLabel(labelId, prioritizeDeadlines: settings.prioritizeDeadlines);
   }
 
+  Future<void> refreshTasks() => _refreshAll();
+
   Future<void> _refreshAll() async {
     await loadTasksForDate(state.currentDate, silent: true);
     await loadUnscheduledTasks(silent: true);

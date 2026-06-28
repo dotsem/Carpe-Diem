@@ -34,7 +34,10 @@ class ProjectRepository extends IProjectRepository {
     await _db.transaction((txn) async {
       await txn.insert('projects', project.toMap());
       for (final labelId in project.labelIds) {
-        await txn.insert('project_labels', {'projectId': project.id, 'labelId': labelId});
+        final labelExists = (await txn.rawQuery('SELECT 1 FROM labels WHERE id = ?', [labelId])).isNotEmpty;
+        if (labelExists) {
+          await txn.insert('project_labels', {'projectId': project.id, 'labelId': labelId});
+        }
       }
     });
   }
@@ -42,12 +45,17 @@ class ProjectRepository extends IProjectRepository {
   @override
   Future<void> update(Project project) async {
     await _db.transaction((txn) async {
-      await txn.update('projects', project.toMap(), where: 'id = ?', whereArgs: [project.id]);
+      final map = project.toMap();
+      map.remove('id');
+      await txn.update('projects', map, where: 'id = ?', whereArgs: [project.id]);
 
       // Update labels: simplest is to delete all and re-insert
       await txn.delete('project_labels', where: 'projectId = ?', whereArgs: [project.id]);
       for (final labelId in project.labelIds) {
-        await txn.insert('project_labels', {'projectId': project.id, 'labelId': labelId});
+        final labelExists = (await txn.rawQuery('SELECT 1 FROM labels WHERE id = ?', [labelId])).isNotEmpty;
+        if (labelExists) {
+          await txn.insert('project_labels', {'projectId': project.id, 'labelId': labelId});
+        }
       }
     });
   }
