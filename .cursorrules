@@ -1,0 +1,16 @@
+# Cursor AI Coding Rules for Carpe Diem
+
+This file configures Cursor's AI behavior for this codebase. For comprehensive rules, structural guidelines, and standards, see [GUIDELINES.md](GUIDELINES.md).
+
+## Critical Guidelines
+- **Rule File Reference**: Always inspect and follow [GUIDELINES.md](GUIDELINES.md).
+- **Line Limit**: Files must never exceed **300 lines**. Aggressively decouple widgets/classes. Ask before major refactoring/splitting.
+- **No Code Generation**: Implement Riverpod state providers and models manually. Do **not** generate code (no `@riverpod`, no `freezed`, no `json_serializable`).
+- **Comments**: No redundant or inline syntax/control-flow comments. Use lowercase short comments.
+- **Testing**: Use `flutter_test` and `mocktail`.
+- **Workflow**: Never execute git commits or push code. Always get approval on implementation plans before execution.
+
+## Verification
+- Format: `dart format .`
+- Lint: `flutter analyze`
+- Test: `flutter test`
