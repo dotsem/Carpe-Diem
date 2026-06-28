@@ -1,4 +1,5 @@
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/navigation_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,28 +47,28 @@ class SideNav extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 40),
-          NavItem(
+          NavigationItem(
             icon: Icons.today_rounded,
             label: 'Today',
             shortcutHint: TodayKeys.upper,
             isSelected: currentPath == '/',
             onTap: () => _navigateTo(context, '/'),
           ),
-          NavItem(
+          NavigationItem(
             icon: Icons.inbox_rounded,
             label: 'Backlog',
             shortcutHint: BacklogKeys.upper,
             isSelected: currentPath == '/tasks',
             onTap: () => _navigateTo(context, '/tasks'),
           ),
-          NavItem(
+          NavigationItem(
             icon: Icons.history_rounded,
             label: 'History',
             shortcutHint: HistoryKeys.upper,
             isSelected: currentPath == '/history',
             onTap: () => _navigateTo(context, '/history'),
           ),
-          NavItem(
+          NavigationItem(
             icon: Icons.folder_rounded,
             label: 'All Projects',
             shortcutHint: ProjectsKeys.upper,
@@ -95,7 +96,7 @@ class SideNav extends ConsumerWidget {
           ),
           const Divider(height: 1),
           const UndoRedoPanel(),
-          NavItem(
+          NavigationItem(
             icon: Icons.settings_outlined,
             label: 'Settings',
             isSelected: currentPath == '/settings',
@@ -162,7 +163,7 @@ class ProjectList extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: groupProjects.map((project) {
                     final isSelected = currentPath.startsWith('/projects/${project.id}');
-                    return NavItem(
+                    return NavigationItem(
                       icon: Icons.circle,
                       iconColor: project.color.themeDependentColor(context),
                       iconSize: 12,
@@ -187,83 +188,6 @@ class ProjectList extends ConsumerWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final Color? iconColor;
-  final double iconSize;
-  final EdgeInsets? outerPadding;
-  final String? shortcutHint;
-
-  const NavItem({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    this.iconColor,
-    this.iconSize = 20,
-    this.outerPadding,
-    this.shortcutHint,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: outerPadding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: Material(
-        color: isSelected ? AppColors.accent.withValues(alpha: 0.15) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: iconColor ?? (isSelected ? AppColors.accent : Theme.of(context).colorScheme.onSurfaceVariant),
-                  size: iconSize,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: isSelected ? AppColors.accent : Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ),
-                if (shortcutHint != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      shortcutHint!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
