@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -9,89 +10,112 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 
-void showTaskCardContextMenu(BuildContext context, WidgetRef ref, Task task, Offset localPosition, RenderBox renderBox) {
+void showTaskCardContextMenu(
+  BuildContext context,
+  WidgetRef ref,
+  Task task,
+  Offset localPosition,
+  RenderBox renderBox,
+) {
   final provider = ref.read(taskProvider.notifier);
+  final selectedDate = ref.read(selectedDateProvider);
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
   final Offset position = renderBox.localToGlobal(localPosition, ancestor: overlay);
+  final isSelectedDateToday = selectedDate.isToday;
 
   final items = <PopupMenuEntry<void>>[];
 
-  if (task.status.isTodo) {
-    items.add(
+  if (isSelectedDateToday) {
+    if (task.status.isTodo) {
+      items.add(
+        PopupMenuItem(
+          onTap: () => provider.startTask(task),
+          child: const ListTile(
+            leading: Icon(Icons.play_arrow, color: AppColors.success),
+            title: Text('Start (In Progress)', style: TextStyle(color: AppColors.success)),
+            dense: true,
+          ),
+        ),
+      );
+      items.add(
+        PopupMenuItem(
+          onTap: () => provider.completeTask(task),
+          child: const ListTile(
+            leading: Icon(Icons.check_circle_outline, color: AppColors.success),
+            title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
+            dense: true,
+          ),
+        ),
+      );
+    }
+
+    if (task.status.isInProgress) {
+      items.add(
+        PopupMenuItem(
+          onTap: () => provider.updateTaskStatus(task, TaskStatus.todo),
+          child: const ListTile(leading: Icon(Icons.undo), title: Text('Back to Todo'), dense: true),
+        ),
+      );
+      items.add(
+        PopupMenuItem(
+          onTap: () => provider.completeTask(task),
+          child: const ListTile(
+            leading: Icon(Icons.check_circle_outline, color: AppColors.success),
+            title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
+            dense: true,
+          ),
+        ),
+      );
+    }
+
+    if (task.status.isDone) {
+      items.add(
+        PopupMenuItem(
+          onTap: () => provider.updateTaskStatus(task, TaskStatus.todo),
+          child: const ListTile(leading: Icon(Icons.undo), title: Text('Back to Todo'), dense: true),
+        ),
+      );
+      items.add(
+        PopupMenuItem(
+          onTap: () => provider.updateTaskStatus(task, TaskStatus.inProgress),
+          child: const ListTile(leading: Icon(Icons.play_arrow), title: Text('Back to In Progress'), dense: true),
+        ),
+      );
+    }
+
+    items.addAll([
       PopupMenuItem(
-        onTap: () => provider.startTask(task),
+        onTap: () => provider.scheduleTasksForTomorrow([task.id]),
         child: const ListTile(
-          leading: Icon(Icons.play_arrow, color: AppColors.success),
-          title: Text('Start (In Progress)', style: TextStyle(color: AppColors.success)),
+          leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
+          title: Text('Reschedule for Tomorrow', style: TextStyle(color: AppColors.info)),
           dense: true,
         ),
       ),
-    );
+      if (todayIsEndOfWorkWeek()) ...[
+        PopupMenuItem(
+          onTap: () => provider.scheduleTasksForNextWorkDay([task.id]),
+          child: const ListTile(
+            leading: Icon(Icons.work_history_outlined, color: AppColors.info),
+            title: Text('Reschedule for Next Week', style: TextStyle(color: AppColors.info)),
+            dense: true,
+          ),
+        ),
+      ],
+    ]);
+  } else {
     items.add(
       PopupMenuItem(
-        onTap: () => provider.completeTask(task),
+        onTap: () => provider.scheduleTasksForToday([task.id]),
         child: const ListTile(
-          leading: Icon(Icons.check_circle_outline, color: AppColors.success),
-          title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
+          leading: Icon(Icons.schedule_outlined, color: AppColors.success),
+          title: Text('Schedule for Today', style: TextStyle(color: AppColors.success)),
           dense: true,
         ),
       ),
     );
   }
-
-  if (task.status.isInProgress) {
-    items.add(
-      PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.todo),
-        child: const ListTile(leading: Icon(Icons.undo), title: Text('Back to Todo'), dense: true),
-      ),
-    );
-    items.add(
-      PopupMenuItem(
-        onTap: () => provider.completeTask(task),
-        child: const ListTile(
-          leading: Icon(Icons.check_circle_outline, color: AppColors.success),
-          title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
-          dense: true,
-        ),
-      ),
-    );
-  }
-
-  if (task.status.isDone) {
-    items.add(
-      PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.todo),
-        child: const ListTile(leading: Icon(Icons.undo), title: Text('Back to Todo'), dense: true),
-      ),
-    );
-    items.add(
-      PopupMenuItem(
-        onTap: () => provider.updateTaskStatus(task, TaskStatus.inProgress),
-        child: const ListTile(leading: Icon(Icons.play_arrow), title: Text('Back to In Progress'), dense: true),
-      ),
-    );
-  }
-
   items.addAll([
-    PopupMenuItem(
-      onTap: () => provider.scheduleTasksForTomorrow([task.id]),
-      child: const ListTile(
-        leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
-        title: Text('Reschedule for Tomorrow', style: TextStyle(color: AppColors.info)),
-        dense: true,
-      ),
-    ),
-    if (todayIsEndOfWorkWeek()) ...[
-      PopupMenuItem(
-        onTap: () => provider.scheduleTasksForNextWorkDay([task.id]),
-        child: const ListTile(
-          leading: Icon(Icons.work_history_outlined, color: AppColors.info),
-          title: Text('Reschedule for Next Week', style: TextStyle(color: AppColors.info)),
-          dense: true,
-        ),
-      ),
-    ],
     PopupMenuItem(
       onTap: () => _showEditTask(context, task),
       child: const ListTile(leading: Icon(Icons.edit), title: Text('Edit'), dense: true),

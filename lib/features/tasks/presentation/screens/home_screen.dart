@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
@@ -27,7 +28,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  late DateTime _selectedDate;
   late Timer timer;
   final _dateFormat = DateFormat('EEEE, MMMM d');
   final List<String> _orderedItemIds = [];
@@ -44,14 +44,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final today = DateTime(now.year, now.month, now.day);
       final yesterday = today.subtract(const Duration(days: 1));
 
-      if (_normalizedSelected == yesterday) {
-        setState(() => _selectedDate = now);
-        ref.read(taskProvider.notifier).loadTasksForDate(_selectedDate);
+      final selectedDate = ref.read(selectedDateProvider);
+      if (selectedDate.normalize == yesterday) {
+        ref.read(selectedDateProvider.notifier).state = now;
+        ref.read(taskProvider.notifier).loadTasksForDate(now);
       }
     });
-    _selectedDate = _today;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(taskProvider.notifier).loadTasksForDate(_selectedDate);
+      ref.read(taskProvider.notifier).loadTasksForDate(ref.read(selectedDateProvider));
     });
   }
 
@@ -65,12 +66,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   DateTime get _today => DateTime.now();
-  DateTime get _normalizedSelected => DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
-
-  bool get _isToday {
-    final now = _today;
-    return _normalizedSelected == DateTime(now.year, now.month, now.day);
-  }
 
   List<DateTime> get _days {
     final settings = ref.read(settingsProvider);
@@ -90,6 +85,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(taskProvider);
     final filterState = ref.watch(filterProvider);
     final settings = ref.watch(settingsProvider);
+    final selectedDate = ref.watch(selectedDateProvider);
+    final isToday = selectedDate.isToday;
+    final daysFromToday = selectedDate.daysFromToday;
 
     return HomeShortcuts(
       onPrevDay: () => _changeDay(-1),
@@ -104,8 +102,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
       onNavigateToToday: () {
-        setState(() => _selectedDate = _today);
-        ref.read(taskProvider.notifier).loadTasksForDate(_selectedDate);
+        ref.read(selectedDateProvider.notifier).state = _today;
+        ref.read(taskProvider.notifier).loadTasksForDate(_today);
       },
       child: Focus(
         autofocus: true,
@@ -114,10 +112,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ScreenHeader(
-              title: _isToday ? 'Today' : _dateFormat.format(_selectedDate),
-              subtitle: _isToday
-                  ? _dateFormat.format(_selectedDate)
-                  : switch (_normalizedSelected.difference(DateTime(_today.year, _today.month, _today.day)).inDays) {
+              title: isToday ? 'Today' : _dateFormat.format(selectedDate),
+              subtitle: isToday
+                  ? _dateFormat.format(selectedDate)
+                  : switch (daysFromToday) {
                       1 => '1 day from now',
                       int d => '$d days from now',
                     },
@@ -139,14 +137,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ],
             ),
-            HomeDaySelector(
-              days: _days,
-              selectedDate: _selectedDate,
-              onDateSelected: (day) {
-                setState(() => _selectedDate = day);
-                ref.read(taskProvider.notifier).loadTasksForDate(day);
-              },
-            ),
+            const HomeDaySelector(),
             FilterBar(
               filter: filterState.filter,
               isBypassed: filterState.isBypassed,
@@ -156,7 +147,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const Divider(height: 1),
             Expanded(
               child: HomePlannerPane(
-                selectedDate: _selectedDate,
                 itemFocusNodes: _itemFocusNodes,
                 onOrderedIdsChanged: (ids) {
                   _orderedItemIds.clear();
@@ -173,19 +163,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _changeDay(int delta) {
     final days = _days;
-    final currentIndex = days.indexWhere((d) => d == _normalizedSelected);
+    final selectedDate = ref.read(selectedDateProvider);
+    final currentIndex = days.indexWhere((d) => d == selectedDate.normalize);
     final nextIndex = currentIndex + delta;
     if (nextIndex >= 0 && nextIndex < days.length) {
-      setState(() => _selectedDate = days[nextIndex]);
-      ref.read(taskProvider.notifier).loadTasksForDate(days[nextIndex]);
+      final nextDay = days[nextIndex];
+      ref.read(selectedDateProvider.notifier).state = nextDay;
+      ref.read(taskProvider.notifier).loadTasksForDate(nextDay);
     }
   }
 
   void _showAddTask(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AddTaskDialog(initialDate: _selectedDate),
-    );
+    showDialog(context: context, builder: (_) => const AddTaskDialog());
   }
 
   void _showEditTask(BuildContext context, Task task) {
