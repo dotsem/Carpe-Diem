@@ -66,10 +66,15 @@ The focus of this version is enhancing functionality and user experience.
 - [ ] **Markdown Import Enhancement:** Get preview when importing markdown files.
 - [ ] **File Watcher:** Watch for changes in markdown (like Roadmap.md) files and update tasks accordingly.
 
+### Improved settings menu
+
+- [ ] **Group Settings:** Group settings by category in a new sidebar.
+
 ### New Features
 
 - [ ] **Advanced Filtering:** Filter tasks by priority and date range.
 - [✅] **Undo & Redo:** Undo and redo recent actions.
+- [ ] **Tags:** Support adding tags to tasks.
 
 ---
 
