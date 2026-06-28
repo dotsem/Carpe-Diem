@@ -27,7 +27,9 @@ class LabelRepository extends ILabelRepository {
 
   @override
   Future<void> update(Label label) async {
-    await _db.update('labels', label.toMap(), where: 'id = ?', whereArgs: [label.id]);
+    final map = label.toMap();
+    map.remove('id');
+    await _db.update('labels', map, where: 'id = ?', whereArgs: [label.id]);
   }
 
   @override
