@@ -117,7 +117,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               title: _isToday ? 'Today' : _dateFormat.format(_selectedDate),
               subtitle: _isToday
                   ? _dateFormat.format(_selectedDate)
-                  : '${_normalizedSelected.difference(DateTime(_today.year, _today.month, _today.day)).inDays} days from now',
+                  : switch (_normalizedSelected.difference(DateTime(_today.year, _today.month, _today.day)).inDays) {
+                      1 => '1 day from now',
+                      int d => '$d days from now',
+                    },
               actions: [
                 IconButton(
                   onPressed: () {
