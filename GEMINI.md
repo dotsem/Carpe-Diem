@@ -4,7 +4,7 @@ This file provides high-level guidelines and instructions for Gemini models inte
 
 ---
 
-## 🚨 CRITICAL CONSTRAINTS (Must Follow Without Exception)
+## CRITICAL CONSTRAINTS (Must Follow Without Exception)
 
 1. **Strict File Line Limit (300 Lines)**
    - Every file has a strict maximum ceiling of **300 lines**.
@@ -26,7 +26,7 @@ This file provides high-level guidelines and instructions for Gemini models inte
 
 ---
 
-## 🛠️ Verification Command Reference
+## Verification Command Reference
 
 Always format and check your code before finishing tasks:
 
