@@ -1,22 +1,22 @@
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 
-class HomeDaySelector extends StatelessWidget {
-  final List<DateTime> days;
-  final DateTime selectedDate;
-  final ValueChanged<DateTime> onDateSelected;
-
-  const HomeDaySelector({
-    super.key,
-    required this.days,
-    required this.selectedDate,
-    required this.onDateSelected,
-  });
+class HomeDaySelector extends ConsumerWidget {
+  const HomeDaySelector({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final normalizedSelected = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedDate = ref.watch(selectedDateProvider);
+    final settings = ref.watch(settingsProvider);
+
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+    final days = List.generate(settings.maxPlanningDays + 1, (i) => todayNormalized.add(Duration(days: i)));
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -28,10 +28,13 @@ class HomeDaySelector extends StatelessWidget {
           separatorBuilder: (_, _) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
             final day = days[index];
-            final isSelected = normalizedSelected == day;
+            final isSelected = selectedDate.normalize == day;
             final dayOfWeek = DateFormat('E').format(day);
             return GestureDetector(
-              onTap: () => onDateSelected(day),
+              onTap: () {
+                ref.read(selectedDateProvider.notifier).state = day;
+                ref.read(taskProvider.notifier).loadTasksForDate(day);
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: 52,
