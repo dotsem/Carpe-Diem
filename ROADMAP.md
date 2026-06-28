@@ -68,7 +68,7 @@ The focus of this version is enhancing functionality and user experience.
 
 ### Improved settings menu
 
-- [ ] **Group Settings:** Group settings by category in a new sidebar.
+- [✅] **Group Settings:** Group settings by category in a new sidebar.
 
 ### New Features
 
