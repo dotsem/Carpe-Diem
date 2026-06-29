@@ -37,13 +37,13 @@ The focus of this version is adding history and statistics. It will also include
 
 This version is focused on architectural stability and technical debt.
 
-### 🌊 State Management Rewrite
+### State Management Rewrite
 
 - [✅] **Migrate to Riverpod:** Replace Provider/ChangeNotifier with Riverpod providers.
 - [✅] **Core Logic Decoupling:** Move repository and logic out of the providers.
 - [✅] **Improved Performance:** Implement granular rebuilds for complex lists.
 
-### 🧪 Quality Assurance
+### Quality Assurance
 
 - [✅] **Unit Testing:** Increase coverage for core logic.
 - [✅] **Widget Testing:** Initial test suite for major UI components.
