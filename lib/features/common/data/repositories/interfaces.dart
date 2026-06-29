@@ -1,5 +1,6 @@
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
@@ -68,6 +69,21 @@ abstract class ILabelRepository implements ICrudRepository<Label> {
   Future<void> insert(Label label);
   @override
   Future<void> update(Label label);
+  @override
+  Future<void> delete(String id);
+}
+
+abstract class ITagRepository implements ICrudRepository<Tag> {
+  @override
+  String get repositoryName => 'tag';
+  @override
+  Future<List<Tag>> getAll();
+  @override
+  Future<Tag?> getById(String id);
+  @override
+  Future<void> insert(Tag tag);
+  @override
+  Future<void> update(Tag tag);
   @override
   Future<void> delete(String id);
 }

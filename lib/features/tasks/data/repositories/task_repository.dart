@@ -8,13 +8,14 @@ class TaskRepository extends ITaskRepository {
 
   TaskRepository(this._db);
 
-  Future<List<Task>> _loadTasksWithLabels(List<Map<String, dynamic>> maps) async {
+  Future<List<Task>> _loadTasksWithRelations(List<Map<String, dynamic>> maps) async {
     if (maps.isEmpty) return [];
 
     final taskIds = maps.map((m) => m['id'] as String).toList();
+    final placeholders = taskIds.map((_) => "?").join(",");
 
     final labelsData = await _db.rawQuery(
-      'SELECT taskId, labelId FROM task_labels WHERE taskId IN (${taskIds.map((_) => "?").join(",")})',
+      'SELECT taskId, labelId FROM task_labels WHERE taskId IN ($placeholders)',
       taskIds,
     );
 
@@ -25,7 +26,23 @@ class TaskRepository extends ITaskRepository {
       labelMap.putIfAbsent(tId, () => []).add(lId);
     }
 
-    return maps.map((m) => Task.fromMap(m, labelIds: labelMap[m['id']] ?? const [])).toList();
+    final tagsData = await _db.rawQuery(
+      'SELECT taskId, tagId FROM task_tags WHERE taskId IN ($placeholders)',
+      taskIds,
+    );
+
+    final Map<String, List<String>> tagMap = {};
+    for (final row in tagsData) {
+      final tId = row['taskId'] as String;
+      final tgId = row['tagId'] as String;
+      tagMap.putIfAbsent(tId, () => []).add(tgId);
+    }
+
+    return maps.map((m) => Task.fromMap(
+      m,
+      labelIds: labelMap[m['id']] ?? const [],
+      tagIds: tagMap[m['id']] ?? const [],
+    )).toList();
   }
 
   @override
@@ -36,7 +53,7 @@ class TaskRepository extends ITaskRepository {
       WHERE p.isActive IS NULL OR p.isActive = 1
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
     ''');
-    return _loadTasksWithLabels(maps);
+    return _loadTasksWithRelations(maps);
   }
 
   @override
@@ -45,13 +62,14 @@ class TaskRepository extends ITaskRepository {
     if (maps.isEmpty) return null;
 
     final labelIds = await _getLabelIds(id);
-    return Task.fromMap(maps.first, labelIds: labelIds);
+    final tagIds = await _getTagIds(id);
+    return Task.fromMap(maps.first, labelIds: labelIds, tagIds: tagIds);
   }
 
   @override
   Future<List<Task>> getByBlockedBy(String taskId) async {
     final maps = await _db.query('tasks', where: 'blockedById = ?', whereArgs: [taskId]);
-    return _loadTasksWithLabels(maps);
+    return _loadTasksWithRelations(maps);
   }
 
   @override
@@ -71,7 +89,7 @@ class TaskRepository extends ITaskRepository {
       [scheduledDateStr, startOfDay.toIso8601String(), endOfDay.toIso8601String()],
     );
 
-    return _loadTasksWithLabels(maps);
+    return _loadTasksWithRelations(maps);
   }
 
   @override
@@ -88,7 +106,7 @@ class TaskRepository extends ITaskRepository {
       [dateStr, TaskStatus.done.index],
     );
 
-    return _loadTasksWithLabels(maps);
+    return _loadTasksWithRelations(maps);
   }
 
   @override
@@ -101,7 +119,7 @@ class TaskRepository extends ITaskRepository {
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
     ''');
 
-    return _loadTasksWithLabels(maps);
+    return _loadTasksWithRelations(maps);
   }
 
   @override
@@ -113,7 +131,7 @@ class TaskRepository extends ITaskRepository {
       orderBy: _getOrderBy(useScheduledDate: true, prioritizeDeadlines: prioritizeDeadlines),
     );
 
-    return _loadTasksWithLabels(maps);
+    return _loadTasksWithRelations(maps);
   }
 
   @override
@@ -131,7 +149,7 @@ class TaskRepository extends ITaskRepository {
       [labelId, labelId],
     );
 
-    return _loadTasksWithLabels(maps);
+    return _loadTasksWithRelations(maps);
   }
 
   @override
@@ -155,6 +173,12 @@ class TaskRepository extends ITaskRepository {
         final labelExists = (await txn.rawQuery('SELECT 1 FROM labels WHERE id = ?', [labelId])).isNotEmpty;
         if (labelExists) {
           await txn.insert('task_labels', {'taskId': task.id, 'labelId': labelId});
+        }
+      }
+      for (final tagId in task.tagIds) {
+        final tagExists = (await txn.rawQuery('SELECT 1 FROM tags WHERE id = ?', [tagId])).isNotEmpty;
+        if (tagExists) {
+          await txn.insert('task_tags', {'taskId': task.id, 'tagId': tagId});
         }
       }
     });
@@ -186,6 +210,14 @@ class TaskRepository extends ITaskRepository {
           await txn.insert('task_labels', {'taskId': task.id, 'labelId': labelId});
         }
       }
+
+      await txn.delete('task_tags', where: 'taskId = ?', whereArgs: [task.id]);
+      for (final tagId in task.tagIds) {
+        final tagExists = (await txn.rawQuery('SELECT 1 FROM tags WHERE id = ?', [tagId])).isNotEmpty;
+        if (tagExists) {
+          await txn.insert('task_tags', {'taskId': task.id, 'tagId': tagId});
+        }
+      }
     });
   }
 
@@ -207,6 +239,11 @@ class TaskRepository extends ITaskRepository {
   Future<List<String>> _getLabelIds(String taskId) async {
     final maps = await _db.query('task_labels', where: 'taskId = ?', columns: ['labelId'], whereArgs: [taskId]);
     return maps.map((m) => m['labelId'] as String).toList();
+  }
+
+  Future<List<String>> _getTagIds(String taskId) async {
+    final maps = await _db.query('task_tags', where: 'taskId = ?', columns: ['tagId'], whereArgs: [taskId]);
+    return maps.map((m) => m['tagId'] as String).toList();
   }
 
   String _getOrderBy({bool useScheduledDate = false, String? tableAlias, bool prioritizeDeadlines = true}) {

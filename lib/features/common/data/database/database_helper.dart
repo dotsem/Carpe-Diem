@@ -113,11 +113,43 @@ class DatabaseHelper {
         value TEXT NOT NULL
       )
     ''');
+    await db.execute('''
+        CREATE TABLE tags (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL
+        )
+      ''');
+    await db.execute('''
+        CREATE TABLE task_tags (
+          taskId TEXT NOT NULL,
+          tagId TEXT NOT NULL,
+          PRIMARY KEY (taskId, tagId),
+          FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE,
+          FOREIGN KEY (tagId) REFERENCES tags(id) ON DELETE CASCADE
+        )
+      ''');
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 11) {
       await db.execute('ALTER TABLE projects ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1');
+    }
+    if (oldVersion < 12) {
+      await db.execute('''
+        CREATE TABLE tags (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE task_tags (
+          taskId TEXT NOT NULL,
+          tagId TEXT NOT NULL,
+          PRIMARY KEY (taskId, tagId),
+          FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE,
+          FOREIGN KEY (tagId) REFERENCES tags(id) ON DELETE CASCADE
+        )
+      ''');
     }
   }
 }

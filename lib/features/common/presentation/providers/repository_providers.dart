@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tags/data/repositories/tag_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
@@ -34,4 +35,9 @@ final taskRepositoryProvider = Provider<ITaskRepository>((ref) {
 final historyRepositoryProvider = Provider<IHistoryRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return HistoryRepository(db);
+});
+
+final tagRepositoryProvider = Provider<ITagRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return TagRepository(db);
 });

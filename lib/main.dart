@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/constants/app_constants.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,25 +26,17 @@ void main() async {
   final dbHelper = DatabaseHelper();
   final database = await dbHelper.database;
 
-  final container = ProviderContainer(
-    overrides: [
-      databaseProvider.overrideWithValue(database),
-    ],
-  );
+  final container = ProviderContainer(overrides: [databaseProvider.overrideWithValue(database)]);
 
   // Eagerly load all providers before running the app to ensure data is ready on first frame
   await container.read(settingsProvider.notifier).loadSettings();
   await container.read(labelProvider.notifier).loadLabels();
+  await container.read(tagProvider.notifier).loadTags();
   await container.read(projectProvider.notifier).loadProjects();
   await container.read(taskProvider.notifier).loadTasksForDate(DateTime.now());
   await container.read(taskProvider.notifier).loadUnscheduledTasks();
 
-  runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const CarpeDiemApp(),
-    ),
-  );
+  runApp(UncontrolledProviderScope(container: container, child: const CarpeDiemApp()));
 }
 
 class CarpeDiemApp extends ConsumerWidget {
@@ -64,9 +57,7 @@ class CarpeDiemApp extends ConsumerWidget {
         routerConfig: appRouter,
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         supportedLocales: const [Locale('en', 'US'), Locale('en', 'GB')],
-        locale: settings.firstDayOfWeek == DateTime.monday
-            ? const Locale('en', 'GB')
-            : const Locale('en', 'US'),
+        locale: settings.firstDayOfWeek == DateTime.monday ? const Locale('en', 'GB') : const Locale('en', 'US'),
         builder: (context, child) {
           return GlobalShortcuts(child: child!);
         },

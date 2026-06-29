@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +36,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   List<Task> _projectTasks = [];
   List<String> _selectedLabelIds = [];
   List<String> _inheritedLabelIds = [];
+  List<String> _selectedTagIds = [];
   late WindowTitleNotifier _windowTitleNotifier;
   final MenuController _projectMenuController = MenuController();
 
@@ -178,6 +180,14 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
                 inheritedLabelIds: _inheritedLabelIds,
                 onSelected: (ids) => setState(() => _selectedLabelIds = ids),
               ),
+
+              const SizedBox(height: 16),
+              Text('Tags', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 12),
+              TagPicker(selectedTagIds: _selectedTagIds, onSelected: (ids) => setState(() => _selectedTagIds = ids)),
+
+              const SizedBox(height: 16),
+              Text('Deadline', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 12),
               DatePickerButton(
                 label: 'Deadline',
@@ -207,6 +217,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
           deadline: _deadline,
           blockedById: _blockedById,
           labelIds: _selectedLabelIds,
+          tagIds: _selectedTagIds,
         );
     Navigator.of(context).pop();
   }

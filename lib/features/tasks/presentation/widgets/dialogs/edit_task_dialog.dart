@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -35,6 +36,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
   List<Task> _projectTasks = [];
   List<String> _selectedLabelIds = [];
   List<String> _inheritedLabelIds = [];
+  List<String> _selectedTagIds = [];
   late WindowTitleNotifier _windowTitleNotifier;
   final MenuController _projectMenuController = MenuController();
 
@@ -49,6 +51,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
     _selectedProjectId = widget.task.projectId;
     _blockedById = widget.task.blockedById;
     _selectedLabelIds = List.from(widget.task.labelIds);
+    _selectedTagIds = List.from(widget.task.tagIds);
     if (_selectedProjectId != null) _loadProjectDetails();
 
     _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
@@ -201,6 +204,10 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
                 inheritedLabelIds: _inheritedLabelIds,
                 onSelected: (ids) => setState(() => _selectedLabelIds = ids),
               ),
+              const SizedBox(height: 16),
+              Text('Tags', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              TagPicker(selectedTagIds: _selectedTagIds, onSelected: (ids) => setState(() => _selectedTagIds = ids)),
               const SizedBox(height: 12),
               DatePickerButton(
                 label: 'Deadline (Optional)',
@@ -232,6 +239,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
             clearBlockedBy: _blockedById == null,
             projectId: _selectedProjectId,
             labelIds: _selectedLabelIds,
+            tagIds: _selectedTagIds,
           ),
         );
     Navigator.of(context).pop();

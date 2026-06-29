@@ -1,10 +1,7 @@
-import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_chips_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/priority_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
@@ -242,31 +239,12 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
                                     ),
                                   ),
                                 ),
-                              if (widget.project != null ||
-                                  isOverdue ||
-                                  widget.task.status.isInProgress ||
-                                  widget.task.deadline != null ||
-                                  widget.task.labelIds.isNotEmpty ||
-                                  (widget.showScheduleDate && widget.task.scheduledDate != null)) ...[
-                                SizedBox(height: isCompact ? 2 : 4),
-                                Wrap(
-                                  spacing: 4,
-                                  runSpacing: 4,
-                                  children: [
-                                    if (isOverdue && !widget.task.isCompleted && !isPending) const OverdueChip(),
-                                    if (widget.task.status.isInProgress && !isPending) const StatusChip(),
-                                    if (widget.task.deadline != null) DeadlineChip(deadline: widget.task.deadline!),
-                                    if (widget.showScheduleDate &&
-                                        widget.task.scheduledDate != null &&
-                                        ((widget.task.scheduledDate!.isBefore(today) && !widget.task.isCompleted) ||
-                                            widget.task.scheduledDate!.isAtSameMomentAs(today) ||
-                                            widget.task.scheduledDate!.isAfter(today)))
-                                      ScheduledChip(scheduledDate: widget.task.scheduledDate!),
-                                    if (widget.project != null) ProjectChip(project: widget.project),
-                                    ..._getLabels(context),
-                                  ],
-                                ),
-                              ],
+                              TaskChipsBar(
+                                task: widget.task,
+                                project: widget.project,
+                                isOverdue: isOverdue && !widget.task.isCompleted && !isPending,
+                                showScheduleDate: widget.showScheduleDate,
+                              ),
                             ],
                           ),
                         ),
@@ -281,18 +259,5 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
         ),
       ),
     );
-  }
-
-  List<Widget> _getLabels(BuildContext context) {
-    ref.watch(labelProvider);
-    final labelNotifier = ref.read(labelProvider.notifier);
-    final Set<String> allLabelIds = {...widget.task.labelIds};
-    if (widget.project != null) {
-      allLabelIds.addAll(widget.project!.labelIds);
-    }
-
-    final labels = allLabelIds.map((id) => labelNotifier.getById(id)).whereType<Label>().toList();
-
-    return labels.map((label) => LabelChip(label: label, verticalPadding: 1)).toList();
   }
 }
