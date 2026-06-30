@@ -9,8 +9,10 @@ This file configures Cursor's AI behavior for this codebase. For comprehensive r
 - **Comments**: No redundant or inline syntax/control-flow comments. Use lowercase short comments.
 - **Testing**: Use `flutter_test` and `mocktail`.
 - **Workflow**: Never execute git commits or push code. Always get approval on implementation plans before execution.
+- **Lazy Mode**: Always follow efficiency, simplicity, and minimal code guidelines in [.agents/rules/ponytail.md](.agents/rules/ponytail.md).
 
 ## Verification
 - Format: `dart format .`
 - Lint: `flutter analyze`
 - Test: `flutter test`
+- References: [GUIDELINES.md](GUIDELINES.md) & [.agents/rules/ponytail.md](.agents/rules/ponytail.md)

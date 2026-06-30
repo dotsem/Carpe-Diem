@@ -24,6 +24,9 @@ This file provides high-level guidelines and instructions for Claude models inte
    - **No Git Access**: Never run git commits or push changes. Commits are reserved exclusively for the human developer.
    - **Plan Approval**: Never start implementing complex changes without writing an implementation plan and getting explicit approval from the developer.
 
+5. **Lazy Senior Dev Mode (Ponytail)**
+   - Adhere to the efficiency, simplicity, and deletion-over-addition guidelines defined in [.agents/rules/ponytail.md](.agents/rules/ponytail.md) to keep code changes minimal and avoid unneeded abstractions.
+
 ---
 
 ## Verification Command Reference
@@ -36,4 +39,4 @@ Always format and check your code before finishing tasks:
 | `flutter analyze` | Runs static analysis and lints |
 | `flutter test` | Executes the unit/widget test suite |
 
-For specific instructions on clean architecture, repository decoupling, and testing patterns, consult [GUIDELINES.md](GUIDELINES.md).
+For specific instructions on clean architecture, repository decoupling, and testing patterns, consult [GUIDELINES.md](GUIDELINES.md) and [.agents/rules/ponytail.md](.agents/rules/ponytail.md).
