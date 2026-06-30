@@ -69,11 +69,11 @@ class HomePlannerPane extends ConsumerWidget {
       onOrderedIdsChanged: onOrderedIdsChanged,
       itemFocusNodes: itemFocusNodes,
       onEdit: onEdit,
-      emptyPlaceholder: _buildEmptyState(context, isToday),
+      emptyPlaceholder: _buildEmptyState(context, ref, isToday),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, bool isToday) {
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref, bool isToday) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -85,7 +85,7 @@ class HomePlannerPane extends ConsumerWidget {
             style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
           ),
           const SizedBox(height: 8),
-          TextButton(onPressed: () => _showAddTask(context), child: const Text('Add your first task')),
+          TextButton(onPressed: () => _showAddTask(context, ref), child: const Text('Add your first task')),
         ],
       ),
     );
@@ -112,10 +112,10 @@ class HomePlannerPane extends ConsumerWidget {
     );
   }
 
-  void _showAddTask(BuildContext context) {
+  void _showAddTask(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (_) => const AddTaskDialog(),
+      builder: (_) => AddTaskDialog(initialDate: ref.read(selectedDateProvider)),
     );
   }
 }
