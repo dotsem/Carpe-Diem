@@ -45,4 +45,7 @@ class AppConstants {
   static const String keyFilterInteractionMethod = 'filter_interaction_method';
   static const String keyPersistentFilter = 'persistent_filter';
   static const String keyPersistentFilterValues = 'persistent_filter_values';
+  static const TagAppendPosition defaultTagAppendPosition = TagAppendPosition.back;
 }
+
+enum TagAppendPosition { front, back }

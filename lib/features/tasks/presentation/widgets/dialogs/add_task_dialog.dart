@@ -1,6 +1,12 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_sync_utils.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/create_tags_prompt_dialog.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_autocomplete_text_field.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_highlighting_controller.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_picker.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +32,7 @@ class AddTaskDialog extends ConsumerStatefulWidget {
 }
 
 class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
-  final _titleController = TextEditingController();
+  late final TagHighlightingController _titleController;
   final _descController = TextEditingController();
   DateTime? _selectedDate;
   String? _selectedProjectId;
@@ -40,6 +46,8 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   late WindowTitleNotifier _windowTitleNotifier;
   final MenuController _projectMenuController = MenuController();
 
+  bool _isSyncing = false;
+
   @override
   void initState() {
     super.initState();
@@ -48,12 +56,34 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     _selectedProjectId = widget.initialProjectId ?? settings.defaultProjectId;
     _priority = Priority.fromName(settings.defaultPriority) ?? Priority.none;
 
+    _titleController = TagHighlightingController(
+      getExistingTagNames: () => ref.read(tagProvider).tags.map((t) => t.name).toList(),
+    );
+    _titleController.addListener(_onTitleChanged);
+
     if (_selectedProjectId != null) _loadProjectDetails();
 
     _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _windowTitleNotifier.pushSubtitle('New Task');
     });
+  }
+
+  void _onTitleChanged() {
+    if (_isSyncing) return;
+    _isSyncing = true;
+    final newTagIds = TagSyncUtils.syncTitleToPicker(
+      _titleController.text,
+      ref.read(tagProvider).tags,
+    );
+    final set1 = Set.from(_selectedTagIds);
+    final set2 = Set.from(newTagIds);
+    if (set1.length != set2.length || !set1.containsAll(set2)) {
+      setState(() {
+        _selectedTagIds = newTagIds;
+      });
+    }
+    _isSyncing = false;
   }
 
   Future<void> _loadProjectDetails() async {
@@ -80,6 +110,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
 
   @override
   void dispose() {
+    _titleController.removeListener(_onTitleChanged);
     _titleController.dispose();
     _descController.dispose();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -87,7 +118,6 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     });
     super.dispose();
   }
-
   DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
 
   @override
@@ -118,7 +148,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
+              TagAutocompleteTextField(
                 controller: _titleController,
                 autofocus: true,
                 decoration: const InputDecoration(hintText: 'Task title'),
@@ -184,7 +214,39 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
               const SizedBox(height: 16),
               Text('Tags', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 12),
-              TagPicker(selectedTagIds: _selectedTagIds, onSelected: (ids) => setState(() => _selectedTagIds = ids)),
+              TagPicker(
+                selectedTagIds: _selectedTagIds,
+                onSelected: (ids) {
+                  if (_isSyncing) return;
+                  _isSyncing = true;
+
+                  final added = ids.firstWhere((id) => !_selectedTagIds.contains(id), orElse: () => '');
+                  final removed = _selectedTagIds.firstWhere((id) => !ids.contains(id), orElse: () => '');
+
+                  var currentText = _titleController.text;
+                  if (added.isNotEmpty) {
+                    final tag = ref.read(tagProvider).getById(added);
+                    if (tag != null) {
+                      currentText = TagSyncUtils.addTagToText(currentText, tag.name);
+                    }
+                  } else if (removed.isNotEmpty) {
+                    final tag = ref.read(tagProvider).getById(removed);
+                    if (tag != null) {
+                      currentText = TagSyncUtils.removeTagFromText(currentText, tag.name);
+                    }
+                  }
+
+                  _titleController.text = currentText;
+                  _titleController.selection = TextSelection.fromPosition(
+                    TextPosition(offset: currentText.length),
+                  );
+
+                  setState(() {
+                    _selectedTagIds = ids;
+                  });
+                  _isSyncing = false;
+                },
+              ),
 
               const SizedBox(height: 16),
               Text('Deadline', style: Theme.of(context).textTheme.labelLarge),
@@ -202,14 +264,42 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     );
   }
 
-  void _submit() {
-    final title = _titleController.text.trim();
-    if (title.isEmpty) return;
+  Future<void> _submit() async {
+    final rawTitle = _titleController.text.trim();
+    if (rawTitle.isEmpty) return;
 
-    ref
-        .read(taskProvider.notifier)
-        .addTask(
-          title: title,
+    final parsedTagNames = TagParser.parseTags(rawTitle);
+    final existingTags = ref.read(tagProvider).tags;
+    final existingNamesSet = existingTags.map((t) => t.name.toLowerCase()).toSet();
+
+    final newTagNames = parsedTagNames
+        .where((name) => !existingNamesSet.contains(name.toLowerCase()))
+        .toList();
+
+    List<String> finalTagIds = List.from(_selectedTagIds);
+
+    if (newTagNames.isNotEmpty) {
+      final result = await showDialog<CreateTagsPromptResult>(
+        context: context,
+        builder: (_) => CreateTagsPromptDialog(newTagNames: newTagNames),
+      );
+
+      if (result == null || result == CreateTagsPromptResult.cancel) {
+        return;
+      }
+
+      if (result == CreateTagsPromptResult.createAndSave) {
+        for (final name in newTagNames) {
+          final newTag = await ref.read(tagProvider.notifier).addTag(name);
+          finalTagIds.add(newTag.id);
+        }
+      }
+    }
+
+    final cleanTitle = TagParser.stripTags(rawTitle);
+
+    ref.read(taskProvider.notifier).addTask(
+          title: cleanTitle,
           description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
           scheduledDate: _selectedDate,
           projectId: _selectedProjectId,
@@ -217,8 +307,11 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
           deadline: _deadline,
           blockedById: _blockedById,
           labelIds: _selectedLabelIds,
-          tagIds: _selectedTagIds,
+          tagIds: finalTagIds,
         );
-    Navigator.of(context).pop();
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 }

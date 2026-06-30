@@ -52,12 +52,13 @@ class TagNotifier extends Notifier<TagState> {
     state = state.copyWith(tags: labels, isLoading: false);
   }
 
-  Future<void> addTag(String name) async {
+  Future<Tag> addTag(String name) async {
     final tag = Tag(id: _uuid.v4(), name: name);
     await ref
         .read(undoRedoProvider.notifier)
         .execute(CreateCommand(repo: _repo, item: tag, id: tag.id, displayName: tag.name));
     await loadTags();
+    return tag;
   }
 
   Future<void> updateTag(Tag tag) async {
