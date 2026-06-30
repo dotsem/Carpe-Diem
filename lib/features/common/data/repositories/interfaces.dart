@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
@@ -96,4 +97,10 @@ abstract class ISettingsRepository {
 
 abstract class IRepository {
   Future<void> clearHistory();
+}
+
+abstract class ITagIconRepository {
+  Future<Map<String, IconData>> getAllIconDatas();
+  Future<void> setIconDataForTag(String tagName, IconData iconData);
+  Future<void> deleteIconDataForTag(String tagName);
 }

@@ -1,4 +1,5 @@
 import 'package:carpe_diem/features/tags/data/repositories/tag_repository.dart';
+import 'package:carpe_diem/features/tags/data/repositories/tag_icon_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
@@ -40,4 +41,9 @@ final historyRepositoryProvider = Provider<IHistoryRepository>((ref) {
 final tagRepositoryProvider = Provider<ITagRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return TagRepository(db);
+});
+
+final tagIconRepositoryProvider = Provider<ITagIconRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return TagIconRepository(db);
 });
