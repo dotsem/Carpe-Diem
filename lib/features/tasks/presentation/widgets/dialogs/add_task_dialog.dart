@@ -43,10 +43,9 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   List<String> _selectedLabelIds = [];
   List<String> _inheritedLabelIds = [];
   List<String> _selectedTagIds = [];
+  List<String> _previousParsedIds = [];
   late WindowTitleNotifier _windowTitleNotifier;
   final MenuController _projectMenuController = MenuController();
-
-  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -70,12 +69,22 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   }
 
   void _onTitleChanged() {
-    if (_isSyncing) return;
-    _isSyncing = true;
     final newTagIds = TagSyncUtils.syncTitleToPicker(
-      _titleController.text,
-      ref.read(tagProvider).tags,
+      text: _titleController.text,
+      allTags: ref.read(tagProvider).tags,
+      currentSelectedIds: _selectedTagIds,
+      previousParsedIds: _previousParsedIds,
+      // TODO: add mode from settings
     );
+
+    final parsedNames = TagParser.parseTags(_titleController.text);
+    _previousParsedIds = ref
+        .read(tagProvider)
+        .tags
+        .where((t) => parsedNames.contains(t.name.toLowerCase()))
+        .map((t) => t.id)
+        .toList();
+
     final set1 = Set.from(_selectedTagIds);
     final set2 = Set.from(newTagIds);
     if (set1.length != set2.length || !set1.containsAll(set2)) {
@@ -83,7 +92,6 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
         _selectedTagIds = newTagIds;
       });
     }
-    _isSyncing = false;
   }
 
   Future<void> _loadProjectDetails() async {
@@ -118,6 +126,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     });
     super.dispose();
   }
+
   DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
 
   @override
@@ -217,34 +226,9 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
               TagPicker(
                 selectedTagIds: _selectedTagIds,
                 onSelected: (ids) {
-                  if (_isSyncing) return;
-                  _isSyncing = true;
-
-                  final added = ids.firstWhere((id) => !_selectedTagIds.contains(id), orElse: () => '');
-                  final removed = _selectedTagIds.firstWhere((id) => !ids.contains(id), orElse: () => '');
-
-                  var currentText = _titleController.text;
-                  if (added.isNotEmpty) {
-                    final tag = ref.read(tagProvider).getById(added);
-                    if (tag != null) {
-                      currentText = TagSyncUtils.addTagToText(currentText, tag.name);
-                    }
-                  } else if (removed.isNotEmpty) {
-                    final tag = ref.read(tagProvider).getById(removed);
-                    if (tag != null) {
-                      currentText = TagSyncUtils.removeTagFromText(currentText, tag.name);
-                    }
-                  }
-
-                  _titleController.text = currentText;
-                  _titleController.selection = TextSelection.fromPosition(
-                    TextPosition(offset: currentText.length),
-                  );
-
                   setState(() {
                     _selectedTagIds = ids;
                   });
-                  _isSyncing = false;
                 },
               ),
 
@@ -272,9 +256,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     final existingTags = ref.read(tagProvider).tags;
     final existingNamesSet = existingTags.map((t) => t.name.toLowerCase()).toSet();
 
-    final newTagNames = parsedTagNames
-        .where((name) => !existingNamesSet.contains(name.toLowerCase()))
-        .toList();
+    final newTagNames = parsedTagNames.where((name) => !existingNamesSet.contains(name.toLowerCase())).toList();
 
     List<String> finalTagIds = List.from(_selectedTagIds);
 
@@ -298,7 +280,9 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
 
     final cleanTitle = TagParser.stripTags(rawTitle);
 
-    ref.read(taskProvider.notifier).addTask(
+    ref
+        .read(taskProvider.notifier)
+        .addTask(
           title: cleanTitle,
           description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
           scheduledDate: _selectedDate,

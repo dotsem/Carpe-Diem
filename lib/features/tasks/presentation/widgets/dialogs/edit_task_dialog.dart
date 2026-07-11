@@ -1,4 +1,3 @@
-import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
@@ -44,10 +43,9 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
   List<String> _selectedLabelIds = [];
   List<String> _inheritedLabelIds = [];
   List<String> _selectedTagIds = [];
+  List<String> _previousParsedIds = [];
   late WindowTitleNotifier _windowTitleNotifier;
   final MenuController _projectMenuController = MenuController();
-
-  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -61,21 +59,16 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
     _selectedLabelIds = List.from(widget.task.labelIds);
     _selectedTagIds = List.from(widget.task.tagIds);
 
-    final initialTagsText = widget.task.tagIds
-        .map((id) => ref.read(tagProvider).getById(id)?.name)
-        .whereType<String>()
-        .map((name) => '#$name')
-        .join(' ');
-    
-    final String initialText;
-    if (AppConstants.defaultTagAppendPosition == TagAppendPosition.front) {
-      initialText = (initialTagsText.isNotEmpty ? '$initialTagsText ' : '') + widget.task.title;
-    } else {
-      initialText = widget.task.title + (initialTagsText.isNotEmpty ? ' $initialTagsText' : '');
-    }
+    final initialTags = TagParser.parseTags(widget.task.title);
+    _previousParsedIds = ref
+        .read(tagProvider)
+        .tags
+        .where((t) => initialTags.contains(t.name.toLowerCase()))
+        .map((t) => t.id)
+        .toList();
 
     _nameController = TagHighlightingController(
-      text: initialText,
+      text: widget.task.title,
       getExistingTagNames: () => ref.read(tagProvider).tags.map((t) => t.name).toList(),
     );
     _nameController.addListener(_onTitleChanged);
@@ -89,12 +82,22 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
   }
 
   void _onTitleChanged() {
-    if (_isSyncing) return;
-    _isSyncing = true;
     final newTagIds = TagSyncUtils.syncTitleToPicker(
-      _nameController.text,
-      ref.read(tagProvider).tags,
+      text: _nameController.text,
+      allTags: ref.read(tagProvider).tags,
+      currentSelectedIds: _selectedTagIds,
+      previousParsedIds: _previousParsedIds,
+      // TODO: add mode from settings
     );
+
+    final parsedNames = TagParser.parseTags(_nameController.text);
+    _previousParsedIds = ref
+        .read(tagProvider)
+        .tags
+        .where((t) => parsedNames.contains(t.name.toLowerCase()))
+        .map((t) => t.id)
+        .toList();
+
     final set1 = Set.from(_selectedTagIds);
     final set2 = Set.from(newTagIds);
     if (set1.length != set2.length || !set1.containsAll(set2)) {
@@ -102,7 +105,6 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
         _selectedTagIds = newTagIds;
       });
     }
-    _isSyncing = false;
   }
 
   @override
@@ -137,11 +139,16 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
       }
     });
   }
+
   DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive || p.id == widget.task.projectId).toList();
+    final projects = ref
+        .watch(projectProvider)
+        .projects
+        .where((p) => p.isActive || p.id == widget.task.projectId)
+        .toList();
 
     return AppShortcutRegistrar(
       shortcuts: taskDialogShortcutEntries,
@@ -169,11 +176,15 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
         ],
         child: CallbackShortcuts(
           bindings: {
-            const SingleActivator(AppKeyBindings.digit1, control: true): () => setState(() => _priority = Priority.none),
+            const SingleActivator(AppKeyBindings.digit1, control: true): () =>
+                setState(() => _priority = Priority.none),
             const SingleActivator(AppKeyBindings.digit2, control: true): () => setState(() => _priority = Priority.low),
-            const SingleActivator(AppKeyBindings.digit3, control: true): () => setState(() => _priority = Priority.medium),
-            const SingleActivator(AppKeyBindings.digit4, control: true): () => setState(() => _priority = Priority.high),
-            const SingleActivator(AppKeyBindings.digit5, control: true): () => setState(() => _priority = Priority.urgent),
+            const SingleActivator(AppKeyBindings.digit3, control: true): () =>
+                setState(() => _priority = Priority.medium),
+            const SingleActivator(AppKeyBindings.digit4, control: true): () =>
+                setState(() => _priority = Priority.high),
+            const SingleActivator(AppKeyBindings.digit5, control: true): () =>
+                setState(() => _priority = Priority.urgent),
             const SingleActivator(ProjectsKeys.keyboardKey, control: true): () => _projectMenuController.open(),
           },
           child: Column(
@@ -249,34 +260,9 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
               TagPicker(
                 selectedTagIds: _selectedTagIds,
                 onSelected: (ids) {
-                  if (_isSyncing) return;
-                  _isSyncing = true;
-
-                  final added = ids.firstWhere((id) => !_selectedTagIds.contains(id), orElse: () => '');
-                  final removed = _selectedTagIds.firstWhere((id) => !ids.contains(id), orElse: () => '');
-
-                  var currentText = _nameController.text;
-                  if (added.isNotEmpty) {
-                    final tag = ref.read(tagProvider).getById(added);
-                    if (tag != null) {
-                      currentText = TagSyncUtils.addTagToText(currentText, tag.name);
-                    }
-                  } else if (removed.isNotEmpty) {
-                    final tag = ref.read(tagProvider).getById(removed);
-                    if (tag != null) {
-                      currentText = TagSyncUtils.removeTagFromText(currentText, tag.name);
-                    }
-                  }
-
-                  _nameController.text = currentText;
-                  _nameController.selection = TextSelection.fromPosition(
-                    TextPosition(offset: currentText.length),
-                  );
-
                   setState(() {
                     _selectedTagIds = ids;
                   });
-                  _isSyncing = false;
                 },
               ),
               const SizedBox(height: 12),
@@ -301,9 +287,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
     final existingTags = ref.read(tagProvider).tags;
     final existingNamesSet = existingTags.map((t) => t.name.toLowerCase()).toSet();
 
-    final newTagNames = parsedTagNames
-        .where((name) => !existingNamesSet.contains(name.toLowerCase()))
-        .toList();
+    final newTagNames = parsedTagNames.where((name) => !existingNamesSet.contains(name.toLowerCase())).toList();
 
     List<String> finalTagIds = List.from(_selectedTagIds);
 
@@ -327,7 +311,9 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
 
     final cleanTitle = TagParser.stripTags(rawTitle);
 
-    ref.read(taskProvider.notifier).updateTask(
+    ref
+        .read(taskProvider.notifier)
+        .updateTask(
           widget.task.copyWith(
             title: cleanTitle,
             description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),

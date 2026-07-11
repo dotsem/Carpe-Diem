@@ -240,26 +240,23 @@ class _SuggestionItem extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _SuggestionItem({
-    required this.tag,
-    required this.isSelected,
-    required this.icon,
-    required this.onTap,
-  });
+  const _SuggestionItem({required this.tag, required this.isSelected, required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        color: isSelected ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3) : null,
+        color: isSelected ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 8),
             Expanded(

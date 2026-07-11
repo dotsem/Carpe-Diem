@@ -3,31 +3,39 @@ import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 
 class TagSyncUtils {
-  /// Appends a hashtag to the text if it's not already present.
-  static String addTagToText(String text, String tagName, {TagAppendPosition position = AppConstants.defaultTagAppendPosition}) {
-    final parsed = TagParser.parseTags(text);
-    if (parsed.contains(tagName.toLowerCase())) {
-      return text;
-    }
-    if (position == TagAppendPosition.front) {
-      return '#$tagName ${text.trim()}'.trim();
-    } else {
-      return '${text.trim()} #$tagName'.trim();
-    }
-  }
-
-  /// Removes a hashtag from the text, handling surrounding whitespace cleanly.
-  static String removeTagFromText(String text, String tagName) {
-    final escapedName = RegExp.escape(tagName);
-    final regExp = RegExp('\\s*#$escapedName\\b', caseSensitive: false);
-    var result = text.replaceAll(regExp, '');
-    result = result.replaceAll(RegExp(r'\s+'), ' ').trim();
-    return result;
-  }
-
-  /// Matches the current text hashtags to existing tag IDs.
-  static List<String> syncTitleToPicker(String text, List<Tag> allTags) {
+  /// Syncs title text changes to the selected tag IDs.
+  /// If a new tag is detected in [text] (i.e., parsed tags has an ID not in [currentSelectedIds]):
+  ///   - [TagSyncMode.replace]: replaces all selected tags with the newly parsed ones.
+  ///   - [TagSyncMode.append]: appends the newly parsed tags to the current selections.
+  /// If no new tag is added, but one was removed from [text] (compared to [previousParsedIds]),
+  /// we remove that tag from [currentSelectedIds].
+  static List<String> syncTitleToPicker({
+    required String text,
+    required List<Tag> allTags,
+    required List<String> currentSelectedIds,
+    required List<String> previousParsedIds,
+    TagSyncMode mode = AppConstants.defaultTagSyncMode,
+  }) {
     final parsedNames = TagParser.parseTags(text);
-    return allTags.where((t) => parsedNames.contains(t.name.toLowerCase())).map((t) => t.id).toList();
+    final parsedTagIds = allTags
+        .where((t) => parsedNames.contains(t.name.toLowerCase()))
+        .map((t) => t.id)
+        .toList();
+
+    final addedIds = parsedTagIds.where((id) => !currentSelectedIds.contains(id)).toList();
+    if (addedIds.isNotEmpty) {
+      if (mode == TagSyncMode.replace) {
+        return parsedTagIds;
+      } else {
+        return (Set<String>.from(currentSelectedIds)..addAll(parsedTagIds)).toList();
+      }
+    }
+
+    final removedFromText = previousParsedIds.where((id) => !parsedTagIds.contains(id)).toList();
+    if (removedFromText.isNotEmpty) {
+      return currentSelectedIds.where((id) => !removedFromText.contains(id)).toList();
+    }
+
+    return currentSelectedIds;
   }
 }
