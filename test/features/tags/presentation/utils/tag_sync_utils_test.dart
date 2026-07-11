@@ -18,7 +18,7 @@ void main() {
           allTags: mockTags,
           currentSelectedIds: ['2', '3'],
           previousParsedIds: [],
-          mode: TagSyncMode.replace,
+          mode: Absorption.replace,
         );
         expect(result, equals(['1']));
       });
@@ -29,7 +29,7 @@ void main() {
           allTags: mockTags,
           currentSelectedIds: ['2', '3'],
           previousParsedIds: [],
-          mode: TagSyncMode.append,
+          mode: Absorption.append,
         );
         expect(result, containsAll(['1', '2', '3']));
         expect(result.length, equals(3));
@@ -41,7 +41,7 @@ void main() {
           allTags: mockTags,
           currentSelectedIds: ['1', '2'],
           previousParsedIds: ['1'],
-          mode: TagSyncMode.replace,
+          mode: Absorption.replace,
         );
         expect(result, equals(['2']));
       });
@@ -52,7 +52,7 @@ void main() {
           allTags: mockTags,
           currentSelectedIds: ['1', '2'],
           previousParsedIds: ['1'],
-          mode: TagSyncMode.replace,
+          mode: Absorption.replace,
         );
         expect(result, equals(['1', '2']));
       });

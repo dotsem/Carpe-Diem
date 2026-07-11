@@ -14,17 +14,14 @@ class TagSyncUtils {
     required List<Tag> allTags,
     required List<String> currentSelectedIds,
     required List<String> previousParsedIds,
-    TagSyncMode mode = AppConstants.defaultTagSyncMode,
+    required Absorption mode,
   }) {
     final parsedNames = TagParser.parseTags(text);
-    final parsedTagIds = allTags
-        .where((t) => parsedNames.contains(t.name.toLowerCase()))
-        .map((t) => t.id)
-        .toList();
+    final parsedTagIds = allTags.where((t) => parsedNames.contains(t.name.toLowerCase())).map((t) => t.id).toList();
 
     final addedIds = parsedTagIds.where((id) => !currentSelectedIds.contains(id)).toList();
     if (addedIds.isNotEmpty) {
-      if (mode == TagSyncMode.replace) {
+      if (mode == Absorption.replace) {
         return parsedTagIds;
       } else {
         return (Set<String>.from(currentSelectedIds)..addAll(parsedTagIds)).toList();

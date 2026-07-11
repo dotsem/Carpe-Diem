@@ -87,7 +87,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
       allTags: ref.read(tagProvider).tags,
       currentSelectedIds: _selectedTagIds,
       previousParsedIds: _previousParsedIds,
-      // TODO: add mode from settings
+      mode: ref.read(settingsProvider).tagAbsorption,
     );
 
     final parsedNames = TagParser.parseTags(_nameController.text);

@@ -22,6 +22,7 @@ class AppConstants {
   static const bool defaultEnableRandomTask = false;
   static const String defaultFilterInteractionMethod = 'cycle';
   static const bool defaultPersistentFilter = false;
+  static const Absorption defaultTagAbsorption = Absorption.replace;
 
   // Setting keys
   static const String keyMaxPlanningDays = 'max_planning_days';
@@ -45,7 +46,14 @@ class AppConstants {
   static const String keyFilterInteractionMethod = 'filter_interaction_method';
   static const String keyPersistentFilter = 'persistent_filter';
   static const String keyPersistentFilterValues = 'persistent_filter_values';
-  static const TagSyncMode defaultTagSyncMode = TagSyncMode.replace;
+  static const String keyTagAbsorption = 'tag_absorption';
 }
 
-enum TagSyncMode { replace, append }
+enum Absorption {
+  replace,
+  append;
+
+  static Absorption fromString(String name) {
+    return Absorption.values.firstWhere((e) => e.name == name, orElse: () => Absorption.replace);
+  }
+}

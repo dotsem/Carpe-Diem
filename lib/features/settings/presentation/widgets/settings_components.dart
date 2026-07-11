@@ -13,13 +13,20 @@ class SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+          padding: const EdgeInsets.fromLTRB(0, 24, 16, 8),
           child: Text(
             title.toUpperCase(),
             style: TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
           ),
         ),
-        ...children,
+        Column(
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              children[i],
+              if (i < children.length - 1) const Divider(height: 1),
+            ],
+          ],
+        ),
       ],
     );
   }
@@ -31,8 +38,17 @@ class SettingsTile extends StatelessWidget {
   final String? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final EdgeInsetsGeometry? padding;
 
-  const SettingsTile({super.key, required this.icon, required this.title, this.subtitle, this.trailing, this.onTap});
+  const SettingsTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+    this.padding,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +63,7 @@ class SettingsTile extends StatelessWidget {
           : null,
       trailing: trailing,
       onTap: onTap,
+      contentPadding: padding ?? const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
     );
   }
 }
@@ -181,6 +198,45 @@ class SettingsCustomWidgetTile extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       trailing: Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: child),
+    );
+  }
+}
+
+class SettingsCustomListTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final List<Widget> children;
+
+  const SettingsCustomListTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SettingsTile(
+            icon: icon,
+            title: title,
+            subtitle: subtitle,
+            trailing: const SizedBox.shrink(),
+            padding: EdgeInsets.zero,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: Column(children: children),
+          ),
+        ],
+      ),
     );
   }
 }

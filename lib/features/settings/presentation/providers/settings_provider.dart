@@ -110,6 +110,11 @@ class SettingsState {
 
   Map<String, dynamic> get persistentFilterValues =>
       Map.from(jsonDecode(_get(AppConstants.keyPersistentFilterValues, '{}')));
+
+  Absorption get tagAbsorption {
+    final absorptionStr = _get(AppConstants.keyTagAbsorption, AppConstants.defaultTagAbsorption.name);
+    return Absorption.fromString(absorptionStr);
+  }
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -156,6 +161,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> setPersistentFilter(bool value) => _set(AppConstants.keyPersistentFilter, value.toString());
   Future<void> setPersistentFilterValues(Map<String, dynamic> values) =>
       _set(AppConstants.keyPersistentFilterValues, jsonEncode(values));
+  Future<void> setTagAbsorption(Absorption absorption) => _set(AppConstants.keyTagAbsorption, absorption.name);
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

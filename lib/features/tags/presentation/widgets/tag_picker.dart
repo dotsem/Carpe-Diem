@@ -3,6 +3,7 @@ import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dar
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/add_tag_dialog.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_context_menu.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/chip/manageable_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,18 +39,11 @@ class TagPicker extends ConsumerWidget {
           final icon = tagIcons[tag.name.trim().toLowerCase()] ?? Icons.tag;
 
           if (isManageMode) {
-            return Builder(
-              builder: (context) {
-                return ActionChip(
-                  label: Text(tag.name),
-                  avatar: Icon(icon),
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  side: BorderSide.none,
-                  onPressed: () {
-                    final RenderBox box = context.findRenderObject() as RenderBox;
-                    showTagContextMenu(context, ref, tag, Offset.zero, box);
-                  },
-                );
+            return ManageableChip(
+              label: tag.name,
+              avatar: Icon(icon),
+              onTap: (details, box) {
+                showTagContextMenu(context, ref, tag, details.localPosition, box);
               },
             );
           }

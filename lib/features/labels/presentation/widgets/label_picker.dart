@@ -1,5 +1,6 @@
 import 'package:carpe_diem/features/labels/presentation/widgets/dialogs/add_label_dialog.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_context_menu.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/chip/manageable_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
@@ -39,27 +40,11 @@ class LabelPicker extends ConsumerWidget {
           final isSelected = selectedLabelIds.contains(label.id) || isInherited;
 
           if (isManageMode) {
-            return Builder(
-              builder: (context) {
-                final Widget rawChip = Chip(
-                  label: Text(label.name),
-                  avatar: CircleAvatar(backgroundColor: label.color, radius: 6),
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  side: BorderSide.none,
-                );
-
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapDown: (details) {
-                    final RenderBox box = context.findRenderObject() as RenderBox;
-                    showLabelContextMenu(context, ref, label, details.localPosition, box);
-                  },
-                  onSecondaryTapDown: (details) {
-                    final RenderBox box = context.findRenderObject() as RenderBox;
-                    showLabelContextMenu(context, ref, label, details.localPosition, box);
-                  },
-                  child: rawChip,
-                );
+            return ManageableChip(
+              label: label.name,
+              avatar: CircleAvatar(backgroundColor: label.color, radius: 6),
+              onTap: (details, box) {
+                showLabelContextMenu(context, ref, label, details.localPosition, box);
               },
             );
           }
