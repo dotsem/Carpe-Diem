@@ -196,13 +196,13 @@ class DatabaseHelper {
     }
     if (oldVersion < 12) {
       await db.execute('''
-        CREATE TABLE tags (
+        CREATE TABLE IF NOT EXISTS tags (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL
         )
       ''');
       await db.execute('''
-        CREATE TABLE task_tags (
+        CREATE TABLE IF NOT EXISTS task_tags (
           taskId TEXT NOT NULL,
           tagId TEXT NOT NULL,
           PRIMARY KEY (taskId, tagId),
@@ -213,7 +213,7 @@ class DatabaseHelper {
     }
     if (oldVersion < 13) {
       await db.execute('''
-        CREATE TABLE tag_icons (
+        CREATE TABLE IF NOT EXISTS tag_icons (
           tag_name TEXT PRIMARY KEY,
           icon_code_point INTEGER NOT NULL
         )
