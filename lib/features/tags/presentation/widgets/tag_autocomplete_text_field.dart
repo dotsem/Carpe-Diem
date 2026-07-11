@@ -144,13 +144,15 @@ class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextFi
 
   void _selectTag(Tag tag) {
     if (_queryStart == null || _queryEnd == null) return;
+    final start = _queryStart!;
+    final end = _queryEnd!;
     final text = widget.controller.text;
-    final before = text.substring(0, _queryStart!);
-    final after = text.substring(_queryEnd!);
+    final before = text.substring(0, start);
+    final after = text.substring(end);
     final newText = '$before#${tag.name} $after';
 
     widget.controller.text = newText;
-    final newCursorOffset = _queryStart! + tag.name.length + 2;
+    final newCursorOffset = start + tag.name.length + 2;
     widget.controller.selection = TextSelection.fromPosition(
       TextPosition(offset: newCursorOffset.clamp(0, newText.length)),
     );

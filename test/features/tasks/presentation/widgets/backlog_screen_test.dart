@@ -15,6 +15,8 @@ void main() {
     late MockLabelRepository mockLabelRepo;
     late MockHistoryRepository mockHistoryRepo;
     late MockSettingsRepository mockSettingsRepo;
+    late MockTagRepository mockTagRepo;
+    late MockTagIconRepository mockTagIconRepo;
 
     setUp(() {
       mockTaskRepo = MockTaskRepository();
@@ -22,10 +24,14 @@ void main() {
       mockLabelRepo = MockLabelRepository();
       mockHistoryRepo = MockHistoryRepository();
       mockSettingsRepo = MockSettingsRepository();
+      mockTagRepo = MockTagRepository();
+      mockTagIconRepo = MockTagIconRepository();
 
       when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
       when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
       when(() => mockLabelRepo.getAll()).thenAnswer((_) async => []);
+      when(() => mockTagRepo.getAll()).thenAnswer((_) async => []);
+      when(() => mockTagIconRepo.getAllIconDatas()).thenAnswer((_) async => {});
       when(
         () => mockTaskRepo.getByDate(any(), prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
       ).thenAnswer((_) async => []);
@@ -49,6 +55,8 @@ void main() {
             labelRepositoryProvider.overrideWithValue(mockLabelRepo),
             historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
             settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+            tagRepositoryProvider.overrideWithValue(mockTagRepo),
+            tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
           ],
           child: const MaterialApp(home: Scaffold(body: BacklogScreen())),
         ),

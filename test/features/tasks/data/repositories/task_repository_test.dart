@@ -49,6 +49,53 @@ void main() {
       expect(fetched.labelIds, contains('label-1'));
     });
 
+    test('should insert and fetch a task with tag mappings', () async {
+      await db.insert('tags', {'id': 'tag-1', 'name': 'bug'});
+
+      final task = Task(
+        id: 'task-2',
+        title: 'Fix issue',
+        description: 'Read and fix',
+        priority: Priority.high,
+        tagIds: const ['tag-1'],
+        createdAt: DateTime.now(),
+      );
+
+      await repository.insert(task);
+
+      final fetched = await repository.getById('task-2');
+      expect(fetched, isNotNull);
+      expect(fetched!.title, equals('Fix issue'));
+      expect(fetched.tagIds, contains('tag-1'));
+    });
+
+    test('should update a task and synchronize its tag mappings', () async {
+      await db.insert('tags', {'id': 'tag-1', 'name': 'bug'});
+      await db.insert('tags', {'id': 'tag-2', 'name': 'feature'});
+
+      final task = Task(
+        id: 'task-3',
+        title: 'Initial task',
+        tagIds: const ['tag-1'],
+        createdAt: DateTime.now(),
+      );
+
+      await repository.insert(task);
+
+      final updatedTask = task.copyWith(
+        title: 'Updated task',
+        tagIds: const ['tag-2'],
+      );
+
+      await repository.update(updatedTask);
+
+      final fetched = await repository.getById('task-3');
+      expect(fetched, isNotNull);
+      expect(fetched!.title, equals('Updated task'));
+      expect(fetched.tagIds, isNot(contains('tag-1')));
+      expect(fetched.tagIds, contains('tag-2'));
+    });
+
     test('should retrieve tasks by scheduled date or completion date range', () async {
       final date = DateTime(2026, 6, 1);
       final task1 = Task(
