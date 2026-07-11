@@ -12,13 +12,8 @@ class LabelPicker extends ConsumerWidget {
   final bool allowAdd;
   final bool isManageMode;
   final bool enableContextMenu;
-  final Widget Function(
-    BuildContext context,
-    Label label,
-    bool isSelected,
-    bool isInherited,
-    Widget defaultChip,
-  )? chipBuilder;
+  final Widget Function(BuildContext context, Label label, bool isSelected, bool isInherited, Widget defaultChip)?
+  chipBuilder;
 
   const LabelPicker({
     super.key,
@@ -46,15 +41,24 @@ class LabelPicker extends ConsumerWidget {
           if (isManageMode) {
             return Builder(
               builder: (context) {
-                return ActionChip(
+                final Widget rawChip = Chip(
                   label: Text(label.name),
                   avatar: CircleAvatar(backgroundColor: label.color, radius: 6),
                   backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
                   side: BorderSide.none,
-                  onPressed: () {
+                );
+
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (details) {
                     final RenderBox box = context.findRenderObject() as RenderBox;
-                    showLabelContextMenu(context, ref, label, Offset.zero, box);
+                    showLabelContextMenu(context, ref, label, details.localPosition, box);
                   },
+                  onSecondaryTapDown: (details) {
+                    final RenderBox box = context.findRenderObject() as RenderBox;
+                    showLabelContextMenu(context, ref, label, details.localPosition, box);
+                  },
+                  child: rawChip,
                 );
               },
             );
@@ -78,32 +82,27 @@ class LabelPicker extends ConsumerWidget {
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
             selectedColor: isInherited ? label.color.withAlpha(100) : label.color.withAlpha(200),
             checkmarkColor: Colors.white,
-            labelStyle: TextStyle(
-              color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            labelStyle: TextStyle(color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant),
           );
 
           final Widget chip = chipBuilder != null
               ? chipBuilder!(context, label, isSelected, isInherited, defaultChip)
               : defaultChip;
 
+          final Widget tooltipChip = isInherited ? Tooltip(message: 'Inherited from project', child: chip) : chip;
+
           if (enableContextMenu) {
             return Builder(
               builder: (context) => GestureDetector(
                 onSecondaryTapDown: (details) {
-                  showLabelContextMenu(
-                    context,
-                    ref,
-                    label,
-                    details.localPosition,
-                    context.findRenderObject() as RenderBox,
-                  );
+                  final RenderBox box = context.findRenderObject() as RenderBox;
+                  showLabelContextMenu(context, ref, label, details.localPosition, box);
                 },
-                child: isInherited ? Tooltip(message: 'Inherited from project', child: chip) : chip,
+                child: tooltipChip,
               ),
             );
           } else {
-            return isInherited ? Tooltip(message: 'Inherited from project', child: chip) : chip;
+            return tooltipChip;
           }
         }),
         if (allowAdd)
