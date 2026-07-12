@@ -2,6 +2,7 @@ import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/tag_profile_selection_dialog.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +37,20 @@ class LabelsSection extends ConsumerWidget {
               subtitle: 'Manage your tags',
               icon: Icons.tag,
               children: [TagPicker(selectedTagIds: [], onSelected: (_) {}, isManageMode: true)],
+            ),
+            SettingsTile(
+              icon: Icons.auto_awesome_outlined,
+              title: 'Suggest Tags from Profile',
+              subtitle: 'Import predefined tags and icons for specific interests',
+              trailing: FilledButton.tonal(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const TagProfileSelectionDialog(),
+                  );
+                },
+                child: const Text('Select Profile'),
+              ),
             ),
             SettingsDropdownTile<Absorption>(
               icon: Icons.merge,

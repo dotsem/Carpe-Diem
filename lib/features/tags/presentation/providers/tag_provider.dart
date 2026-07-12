@@ -4,6 +4,9 @@ import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
+import 'package:carpe_diem/features/tags/data/models/tag_profile.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/set_tag_icon_command.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -81,6 +84,33 @@ class TagNotifier extends Notifier<TagState> {
     await loadTags();
     await ref.read(projectProvider.notifier).loadProjects();
     await ref.read(taskProvider.notifier).refreshTasks();
+  }
+
+  Future<void> populateProfile(TagProfile profile) async {
+    final existingTags = state.tags.map((t) => t.name.toLowerCase()).toSet();
+    final tagRepo = _repo;
+    final iconRepo = ref.read(tagIconRepositoryProvider);
+
+    final List<Command> commands = [];
+
+    for (final tagInfo in profile.tags) {
+      final name = tagInfo.name;
+      final icon = tagInfo.icon;
+
+      if (!existingTags.contains(name.toLowerCase())) {
+        final tag = Tag(id: _uuid.v4(), name: name);
+        commands.add(CreateCommand(repo: tagRepo, item: tag, id: tag.id, displayName: tag.name));
+      }
+
+      commands.add(SetTagIconCommand(repo: iconRepo, tagName: name, iconData: icon));
+    }
+
+    if (commands.isNotEmpty) {
+      final compound = CompoundCommand(commands, 'Populate "${profile.name}" Profile');
+      await ref.read(undoRedoProvider.notifier).execute(compound);
+      await loadTags();
+      await ref.read(tagIconProvider.notifier).loadIcons();
+    }
   }
 
   Tag? getById(String? id) {
