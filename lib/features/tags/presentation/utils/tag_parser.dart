@@ -22,6 +22,11 @@ class TagParser {
     return cleaned;
   }
 
+  /// Removes the '#' character from tags in the text, keeping the word.
+  static String hideHashtagSymbols(String text) {
+    return text.replaceAllMapped(_tagRegExp, (m) => '${m.group(1)}${m.group(2)}');
+  }
+
   /// Checks if a specific hashtag exists in the text.
   static bool containsTag(String text, String tagName) {
     final RegExp tagRegex = RegExp(r'(^|\s)#' + RegExp.escape(tagName) + r'(?![a-zA-Z0-9_\-])', caseSensitive: false);

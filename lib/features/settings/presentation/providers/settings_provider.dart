@@ -118,6 +118,9 @@ class SettingsState {
 
   bool get keepTagsInTitle =>
       _get(AppConstants.keyKeepTagsInTitle, AppConstants.defaultKeepTagsInTitle.toString()) == 'true';
+
+  bool get showHashtagInTitle =>
+      _get(AppConstants.keyShowHashtagInTitle, AppConstants.defaultShowHashtagInTitle.toString()) == 'true';
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -166,6 +169,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
       _set(AppConstants.keyPersistentFilterValues, jsonEncode(values));
   Future<void> setTagAbsorption(Absorption absorption) => _set(AppConstants.keyTagAbsorption, absorption.name);
   Future<void> setKeepTagsInTitle(bool value) => _set(AppConstants.keyKeepTagsInTitle, value.toString());
+  Future<void> setShowHashtagInTitle(bool value) => _set(AppConstants.keyShowHashtagInTitle, value.toString());
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

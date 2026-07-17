@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 
-class BlockerIndicator extends StatelessWidget {
+class BlockerIndicator extends ConsumerWidget {
   final String blockerId;
   final String blockerTitle;
   final String blockedTaskId;
@@ -8,11 +11,14 @@ class BlockerIndicator extends StatelessWidget {
   const BlockerIndicator({super.key, required this.blockerId, required this.blockerTitle, required this.blockedTaskId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showHashtags = ref.watch(settingsProvider).showHashtagInTitle;
+    final title = showHashtags ? blockerTitle : TagParser.hideHashtagSymbols(blockerTitle);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Tooltip(
-        message: 'Blocked by: $blockerTitle',
+        message: 'Blocked by: $title',
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(

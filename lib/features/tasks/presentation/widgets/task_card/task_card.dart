@@ -11,6 +11,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_progress_border_painter.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_status_indicator.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 
 class TaskCard extends ConsumerStatefulWidget {
   final Task task;
@@ -212,7 +213,9 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.task.title,
+                                settings.showHashtagInTitle
+                                    ? widget.task.title
+                                    : TagParser.hideHashtagSymbols(widget.task.title),
                                 style: TextStyle(
                                   fontSize: isCompact ? 14 : 15,
                                   fontWeight: FontWeight.w500,
