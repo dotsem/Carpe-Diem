@@ -14,6 +14,7 @@ class Task {
   final DateTime? completedAt;
   final String? blockedById;
   final List<String> labelIds;
+  final List<String> tagIds;
 
   bool get isCompleted => status.isDone;
 
@@ -45,6 +46,7 @@ class Task {
     this.completedAt,
     this.blockedById,
     this.labelIds = const [],
+    this.tagIds = const [],
   });
 
   Map<String, dynamic> toMap() => {
@@ -62,20 +64,22 @@ class Task {
     'blockedById': blockedById,
   };
 
-  factory Task.fromMap(Map<String, dynamic> map, {List<String> labelIds = const []}) => Task(
-    id: map['id'] as String,
-    title: map['title'] as String,
-    description: map['description'] as String?,
-    scheduledDate: map['scheduledDate'] != null ? DateTime.parse(map['scheduledDate'] as String) : null,
-    status: TaskStatus.values[map['status'] as int],
-    projectId: map['projectId'] as String?,
-    priority: Priority.values[map['priority'] as int],
-    deadline: map['deadline'] != null ? DateTime.parse(map['deadline'] as String) : null,
-    createdAt: DateTime.parse(map['createdAt'] as String),
-    completedAt: map['completedAt'] != null ? DateTime.parse(map['completedAt'] as String) : null,
-    blockedById: map['blockedById'] as String?,
-    labelIds: labelIds,
-  );
+  factory Task.fromMap(Map<String, dynamic> map, {List<String> labelIds = const [], List<String> tagIds = const []}) =>
+      Task(
+        id: map['id'] as String,
+        title: map['title'] as String,
+        description: map['description'] as String?,
+        scheduledDate: map['scheduledDate'] != null ? DateTime.parse(map['scheduledDate'] as String) : null,
+        status: TaskStatus.values[map['status'] as int],
+        projectId: map['projectId'] as String?,
+        priority: Priority.values[map['priority'] as int],
+        deadline: map['deadline'] != null ? DateTime.parse(map['deadline'] as String) : null,
+        createdAt: DateTime.parse(map['createdAt'] as String),
+        completedAt: map['completedAt'] != null ? DateTime.parse(map['completedAt'] as String) : null,
+        blockedById: map['blockedById'] as String?,
+        labelIds: labelIds,
+        tagIds: tagIds,
+      );
 
   Task copyWith({
     String? title,
@@ -92,6 +96,7 @@ class Task {
     String? blockedById,
     bool clearBlockedBy = false,
     List<String>? labelIds,
+    List<String>? tagIds,
   }) => Task(
     id: id,
     title: title ?? this.title,
@@ -107,5 +112,6 @@ class Task {
         : (status != null && !status.isDone ? null : this.completedAt),
     blockedById: clearBlockedBy ? null : (blockedById ?? this.blockedById),
     labelIds: labelIds ?? this.labelIds,
+    tagIds: tagIds ?? this.tagIds,
   );
 }

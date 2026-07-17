@@ -7,6 +7,8 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 
 class KanbanCard extends ConsumerWidget {
   final TaskNode node;
@@ -30,6 +32,8 @@ class KanbanCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
     return Draggable<Task>(
       data: task,
       feedback: Material(
@@ -42,7 +46,10 @@ class KanbanCard extends ConsumerWidget {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(task.title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
+          child: Text(
+            settings.showHashtagInTitle ? task.title : TagParser.hideHashtagSymbols(task.title),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+          ),
         ),
       ),
       childWhenDragging: Opacity(

@@ -1,6 +1,13 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_sync_utils.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/create_tags_prompt_dialog.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_autocomplete_text_field.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_highlighting_controller.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,7 +32,7 @@ class AddTaskDialog extends ConsumerStatefulWidget {
 }
 
 class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
-  final _titleController = TextEditingController();
+  late final TagHighlightingController _titleController;
   final _descController = TextEditingController();
   DateTime? _selectedDate;
   String? _selectedProjectId;
@@ -35,6 +42,8 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   List<Task> _projectTasks = [];
   List<String> _selectedLabelIds = [];
   List<String> _inheritedLabelIds = [];
+  List<String> _selectedTagIds = [];
+  List<String> _previousParsedIds = [];
   late WindowTitleNotifier _windowTitleNotifier;
   final MenuController _projectMenuController = MenuController();
 
@@ -46,12 +55,43 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     _selectedProjectId = widget.initialProjectId ?? settings.defaultProjectId;
     _priority = Priority.fromName(settings.defaultPriority) ?? Priority.none;
 
+    _titleController = TagHighlightingController(
+      getExistingTagNames: () => ref.read(tagProvider).tags.map((t) => t.name).toList(),
+    );
+    _titleController.addListener(_onTitleChanged);
+
     if (_selectedProjectId != null) _loadProjectDetails();
 
     _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _windowTitleNotifier.pushSubtitle('New Task');
     });
+  }
+
+  void _onTitleChanged() {
+    final newTagIds = TagSyncUtils.syncTitleToPicker(
+      text: _titleController.text,
+      allTags: ref.read(tagProvider).tags,
+      currentSelectedIds: _selectedTagIds,
+      previousParsedIds: _previousParsedIds,
+      mode: ref.read(settingsProvider).tagAbsorption,
+    );
+
+    final parsedNames = TagParser.parseTags(_titleController.text);
+    _previousParsedIds = ref
+        .read(tagProvider)
+        .tags
+        .where((t) => parsedNames.contains(t.name.toLowerCase()))
+        .map((t) => t.id)
+        .toList();
+
+    final set1 = Set.from(_selectedTagIds);
+    final set2 = Set.from(newTagIds);
+    if (set1.length != set2.length || !set1.containsAll(set2)) {
+      setState(() {
+        _selectedTagIds = newTagIds;
+      });
+    }
   }
 
   Future<void> _loadProjectDetails() async {
@@ -78,6 +118,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
 
   @override
   void dispose() {
+    _titleController.removeListener(_onTitleChanged);
     _titleController.dispose();
     _descController.dispose();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -116,11 +157,20 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
+              TagAutocompleteTextField(
                 controller: _titleController,
                 autofocus: true,
                 decoration: const InputDecoration(hintText: 'Task title'),
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                onTagSelected: (tag) {
+                  if (!ref.read(settingsProvider).keepTagsInTitle) {
+                    setState(() {
+                      if (!_selectedTagIds.contains(tag.id)) {
+                        _selectedTagIds.add(tag.id);
+                      }
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               TextField(
@@ -178,6 +228,28 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
                 inheritedLabelIds: _inheritedLabelIds,
                 onSelected: (ids) => setState(() => _selectedLabelIds = ids),
               ),
+
+              const SizedBox(height: 16),
+              Text('Tags', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 12),
+              TagPicker(
+                selectedTagIds: _selectedTagIds,
+                onSelected: (ids) {
+                  final newText = TagSyncUtils.syncPickerToTitle(
+                    currentText: _titleController.text,
+                    oldSelectedIds: _selectedTagIds,
+                    newSelectedIds: ids,
+                    allTags: ref.read(tagProvider).tags,
+                  );
+                  _titleController.text = newText;
+                  setState(() {
+                    _selectedTagIds = ids;
+                  });
+                },
+              ),
+
+              const SizedBox(height: 16),
+              Text('Deadline', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 12),
               DatePickerButton(
                 label: 'Deadline',
@@ -192,14 +264,49 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     );
   }
 
-  void _submit() {
-    final title = _titleController.text.trim();
-    if (title.isEmpty) return;
+  Future<void> _submit() async {
+    final rawTitle = _titleController.text.trim();
+    if (rawTitle.isEmpty) return;
+
+    final parsedTagNames = TagParser.parseTags(rawTitle);
+    final existingTags = ref.read(tagProvider).tags;
+    final existingNamesSet = existingTags.map((t) => t.name.toLowerCase()).toSet();
+
+    final newTagNames = parsedTagNames.where((name) => !existingNamesSet.contains(name.toLowerCase())).toList();
+
+    List<String> finalTagIds = List.from(_selectedTagIds);
+    final List<String> tagsToStrip = [];
+
+    if (newTagNames.isNotEmpty) {
+      final result = await showDialog<CreateTagsPromptResult>(
+        context: context,
+        builder: (_) => CreateTagsPromptDialog(newTagNames: newTagNames),
+      );
+
+      if (result == null || result == CreateTagsPromptResult.cancel) {
+        return;
+      }
+
+      if (result == CreateTagsPromptResult.createAndSave) {
+        for (final name in newTagNames) {
+          final newTag = await ref.read(tagProvider.notifier).addTag(name);
+          finalTagIds.add(newTag.id);
+        }
+      } else if (result == CreateTagsPromptResult.saveWithoutTags) {
+        tagsToStrip.addAll(newTagNames);
+      }
+    }
+
+    final settings = ref.read(settingsProvider);
+    var titleToSave = settings.keepTagsInTitle ? rawTitle : TagParser.stripTags(rawTitle);
+    if (settings.keepTagsInTitle && tagsToStrip.isNotEmpty) {
+      titleToSave = TagParser.stripSpecificTags(titleToSave, tagsToStrip);
+    }
 
     ref
         .read(taskProvider.notifier)
         .addTask(
-          title: title,
+          title: titleToSave,
           description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
           scheduledDate: _selectedDate,
           projectId: _selectedProjectId,
@@ -207,7 +314,11 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
           deadline: _deadline,
           blockedById: _blockedById,
           labelIds: _selectedLabelIds,
+          tagIds: finalTagIds,
         );
-    Navigator.of(context).pop();
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 }

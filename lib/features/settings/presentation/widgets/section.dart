@@ -2,14 +2,14 @@ import 'package:carpe_diem/features/settings/presentation/widgets/sections/appea
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/data_management_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/defaults_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/filtering_section.dart';
-import 'package:carpe_diem/features/settings/presentation/widgets/sections/labels_section.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/sections/labels_and_tags_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/planning_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/tasks_section.dart';
 import 'package:flutter/material.dart';
 
 enum Section {
   appearance('Appearance', Icons.palette_outlined),
-  labels('Labels', Icons.label_outline),
+  labelsAndTags('Labels & Tags', Icons.label_outline),
   planning('Planning', Icons.calendar_month_outlined),
   tasks('Tasks', Icons.task_alt),
   defaults('Defaults', Icons.settings_suggest_outlined),
@@ -30,7 +30,7 @@ class SectionContent extends StatelessWidget {
     switch (section) {
       case Section.appearance:
         return const AppearanceSection();
-      case Section.labels:
+      case Section.labelsAndTags:
         return const LabelsSection();
       case Section.planning:
         return const PlanningSection();

@@ -174,7 +174,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showAddTask(BuildContext context) {
-    showDialog(context: context, builder: (_) => const AddTaskDialog());
+    showDialog(
+      context: context,
+      builder: (_) => AddTaskDialog(initialDate: ref.read(selectedDateProvider)),
+    );
   }
 
   void _showEditTask(BuildContext context, Task task) {

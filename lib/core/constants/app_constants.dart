@@ -1,7 +1,7 @@
 class AppConstants {
   static const String appName = 'Carpe Diem';
   static const String dbName = 'carpe_diem.db';
-  static const int dbVersion = 11;
+  static const int dbVersion = 13;
   static const int maxUndoRedoStackSize = 50;
   // initial values for settings
   static const int firstDayOfWeek = DateTime.monday;
@@ -22,6 +22,9 @@ class AppConstants {
   static const bool defaultEnableRandomTask = false;
   static const String defaultFilterInteractionMethod = 'cycle';
   static const bool defaultPersistentFilter = false;
+  static const Absorption defaultTagAbsorption = Absorption.append;
+  static const bool defaultKeepTagsInTitle = true;
+  static const bool defaultShowHashtagInTitle = false;
 
   // Setting keys
   static const String keyMaxPlanningDays = 'max_planning_days';
@@ -45,4 +48,16 @@ class AppConstants {
   static const String keyFilterInteractionMethod = 'filter_interaction_method';
   static const String keyPersistentFilter = 'persistent_filter';
   static const String keyPersistentFilterValues = 'persistent_filter_values';
+  static const String keyTagAbsorption = 'tag_absorption';
+  static const String keyKeepTagsInTitle = 'keep_tags_in_title';
+  static const String keyShowHashtagInTitle = 'show_hashtag_in_title';
+}
+
+enum Absorption {
+  replace,
+  append;
+
+  static Absorption fromString(String name) {
+    return Absorption.values.firstWhere((e) => e.name == name, orElse: () => Absorption.replace);
+  }
 }

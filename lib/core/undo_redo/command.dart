@@ -49,3 +49,26 @@ class DeleteCommand<T> implements Command {
   @override
   String get description => 'Delete ${repo.repositoryName}: "$displayName"';
 }
+
+class CompoundCommand implements Command {
+  final List<Command> commands;
+  @override
+  final String description;
+
+  CompoundCommand(this.commands, this.description);
+
+  @override
+  Future<void> execute() async {
+    for (final cmd in commands) {
+      await cmd.execute();
+    }
+  }
+
+  @override
+  Future<void> undo() async {
+    for (final cmd in commands.reversed) {
+      await cmd.undo();
+    }
+  }
+}
+

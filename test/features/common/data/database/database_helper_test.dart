@@ -30,7 +30,10 @@ void main() {
         'project_labels',
         'tasks',
         'task_labels',
-        'settings'
+        'settings',
+        'tags',
+        'task_tags',
+        'tag_icons',
       ];
 
       for (final table in tables) {
@@ -40,6 +43,17 @@ void main() {
         );
         expect(result, isNotEmpty, reason: 'Table $table should exist');
       }
+    });
+
+    test('should seed initial tag icons in tag_icons table', () async {
+      final results = await db.query('tag_icons');
+      expect(results, isNotEmpty);
+
+      final bugIcon = results.firstWhere((r) => r['tag_name'] == 'bug');
+      expect(bugIcon['icon_code_point'], isNotNull);
+
+      final featIcon = results.firstWhere((r) => r['tag_name'] == 'feat');
+      expect(featIcon['icon_code_point'], isNotNull);
     });
 
     test('should enforce foreign keys on the created database', () async {

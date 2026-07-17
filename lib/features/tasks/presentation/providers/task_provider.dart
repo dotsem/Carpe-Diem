@@ -114,6 +114,7 @@ class TaskNotifier extends Notifier<TaskState> {
     DateTime? deadline,
     String? blockedById,
     List<String> labelIds = const [],
+    List<String> tagIds = const [],
   }) async {
     final task = Task(
       id: _uuid.v4(),
@@ -126,6 +127,7 @@ class TaskNotifier extends Notifier<TaskState> {
       createdAt: DateTime.now(),
       blockedById: blockedById,
       labelIds: labelIds,
+      tagIds: tagIds,
     );
 
     await ref
