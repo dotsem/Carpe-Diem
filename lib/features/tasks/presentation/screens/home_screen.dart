@@ -94,7 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onNextDay: () => _changeDay(1),
       onNewTask: () => _showAddTask(context),
       onToggleLayout: () {
-        final currentLayout = settings.getTaskLayout();
+        final currentLayout = settings.taskLayout;
         final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
         ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
       },
@@ -122,12 +122,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               actions: [
                 IconButton(
                   onPressed: () {
-                    final currentLayout = settings.getTaskLayout();
+                    final currentLayout = settings.taskLayout;
                     final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
                     ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
                   },
-                  icon: Icon(settings.getTaskLayout() == TaskLayout.list ? Icons.view_kanban : Icons.view_list),
-                  tooltip: settings.getTaskLayout() == TaskLayout.list ? 'Kanban view' : 'List view',
+                  icon: Icon(settings.taskLayout == TaskLayout.list ? Icons.view_kanban : Icons.view_list),
+                  tooltip: settings.taskLayout == TaskLayout.list ? 'Kanban view' : 'List view',
                 ),
                 const SizedBox(width: 8),
                 FilledButton.icon(

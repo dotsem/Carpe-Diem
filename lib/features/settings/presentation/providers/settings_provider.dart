@@ -15,120 +15,60 @@ class SettingsState {
 
   String _get(String key, String defaultValue) => _map[key] ?? defaultValue;
 
-  // Task Layout
-  TaskLayout getTaskLayout() {
-    final layoutStr = _get('task_layout', TaskLayout.list.name);
-    try {
-      return TaskLayout.fromString(layoutStr);
-    } catch (_) {
-      return TaskLayout.list;
-    }
+  int _getInt(String key, int defaultValue) => int.tryParse(_get(key, '')) ?? defaultValue;
+
+  double _getDouble(String key, double defaultValue) => double.tryParse(_get(key, '')) ?? defaultValue;
+
+  bool _getBool(String key, bool defaultValue) => _get(key, defaultValue.toString()) == 'true';
+
+  T _getEnum<T extends Enum>(String key, List<T> values, T defaultValue) {
+    final valueStr = _get(key, defaultValue.name);
+    return values.firstWhere((e) => e.name == valueStr, orElse: () => defaultValue);
   }
 
-  // Max Planning Days
-  int get maxPlanningDays =>
-      int.tryParse(_get(SettingsConstants.keyMaxPlanningDays, SettingsConstants.maxPlanningDaysAhead.toString())) ??
-      SettingsConstants.maxPlanningDaysAhead;
-
-  // First Day of Week
-  int get firstDayOfWeek =>
-      int.tryParse(_get(SettingsConstants.keyFirstDayOfWeek, SettingsConstants.firstDayOfWeek.toString())) ??
-      SettingsConstants.firstDayOfWeek;
-
-  // Task Completion Delay
-  int get taskCompletionDelay =>
-      int.tryParse(_get(SettingsConstants.keyTaskDelay, SettingsConstants.taskCompletionDelaySeconds.toString())) ??
-      SettingsConstants.taskCompletionDelaySeconds;
-
-  // Inherit Parent Deadline
+  TaskLayout get taskLayout => _getEnum('task_layout', TaskLayout.values, TaskLayout.list);
+  int get maxPlanningDays => _getInt(SettingsConstants.keyMaxPlanningDays, SettingsConstants.maxPlanningDaysAhead);
+  int get firstDayOfWeek => _getInt(SettingsConstants.keyFirstDayOfWeek, SettingsConstants.firstDayOfWeek);
+  int get taskCompletionDelay => _getInt(SettingsConstants.keyTaskDelay, SettingsConstants.taskCompletionDelaySeconds);
   bool get inheritParentDeadline =>
-      _get(SettingsConstants.keyInheritParentDeadline, SettingsConstants.inheritParentDeadline.toString()) == 'true';
-
-  // Prioritize Deadlines
+      _getBool(SettingsConstants.keyInheritParentDeadline, SettingsConstants.inheritParentDeadline);
   bool get prioritizeDeadlines =>
-      _get(SettingsConstants.keyPrioritizeDeadlines, SettingsConstants.prioritizeDeadlines.toString()) == 'true';
-
-  // Prioritize Overdue
-  bool get prioritizeOverdue =>
-      _get(SettingsConstants.keyPrioritizeOverdue, SettingsConstants.prioritizeOverdue.toString()) == 'true';
-
-  // Inherit Project Deadline
+      _getBool(SettingsConstants.keyPrioritizeDeadlines, SettingsConstants.prioritizeDeadlines);
+  bool get prioritizeOverdue => _getBool(SettingsConstants.keyPrioritizeOverdue, SettingsConstants.prioritizeOverdue);
   bool get inheritProjectDeadline =>
-      _get(SettingsConstants.keyInheritProjectDeadline, SettingsConstants.inheritProjectDeadline.toString()) == 'true';
-
-  // Theme Mode
-  ThemeMode get themeMode {
-    final modeStr = _get(SettingsConstants.keyThemeMode, ThemeMode.system.name);
-    return ThemeMode.values.firstWhere((e) => e.name == modeStr, orElse: () => ThemeMode.system);
-  }
-
-  // Task Gradient Width
+      _getBool(SettingsConstants.keyInheritProjectDeadline, SettingsConstants.inheritProjectDeadline);
+  ThemeMode get themeMode => _getEnum(SettingsConstants.keyThemeMode, ThemeMode.values, ThemeMode.system);
   double get taskGradientWidth =>
-      double.tryParse(
-        _get(SettingsConstants.keyTaskGradientWidth, SettingsConstants.defaultTaskGradientWidth.toString()),
-      ) ??
-      SettingsConstants.defaultTaskGradientWidth;
-
-  // Compact Mode
-  bool get compactMode =>
-      _get(SettingsConstants.keyCompactMode, SettingsConstants.defaultCompactMode.toString()) == 'true';
-
-  // Show Description on Card
+      _getDouble(SettingsConstants.keyTaskGradientWidth, SettingsConstants.defaultTaskGradientWidth);
+  bool get compactMode => _getBool(SettingsConstants.keyCompactMode, SettingsConstants.defaultCompactMode);
   bool get showDescriptionOnCard =>
-      _get(SettingsConstants.keyShowDescriptionOnCard, SettingsConstants.defaultShowDescriptionOnCard.toString()) ==
-      'true';
-
-  // Default Priority
+      _getBool(SettingsConstants.keyShowDescriptionOnCard, SettingsConstants.defaultShowDescriptionOnCard);
   String get defaultPriority => _get(SettingsConstants.keyDefaultPriority, SettingsConstants.defaultTaskPriority);
-
-  // Default Project
   String? get defaultProjectId {
     final id = _get(SettingsConstants.keyDefaultProjectId, 'null');
     return id == 'null' ? null : id;
   }
 
-  // History Retention
-  int get historyRetention =>
-      int.tryParse(_get(SettingsConstants.keyHistoryRetention, SettingsConstants.defaultHistoryRetention.toString())) ??
-      SettingsConstants.defaultHistoryRetention;
-
-  // Default Stats Period
+  int get historyRetention => _getInt(SettingsConstants.keyHistoryRetention, SettingsConstants.defaultHistoryRetention);
   String get defaultStatsPeriod => _get(SettingsConstants.keyDefaultStatsPeriod, SettingsConstants.defaultStatsPeriod);
-
-  // Show Active Projects Only
   bool get showActiveProjectsOnly =>
-      _get(SettingsConstants.keyShowActiveProjectsOnly, SettingsConstants.defaultShowActiveProjectsOnly.toString()) ==
-      'true';
-
-  // Enable Random Task Picker
+      _getBool(SettingsConstants.keyShowActiveProjectsOnly, SettingsConstants.defaultShowActiveProjectsOnly);
   bool get enableRandomTask =>
-      _get(SettingsConstants.keyEnableRandomTask, SettingsConstants.defaultEnableRandomTask.toString()) == 'true';
-
-  // Filter Interaction Method
-  FilterInteractionMethod get filterInteractionMethod {
-    final methodStr = _get(
-      SettingsConstants.keyFilterInteractionMethod,
-      SettingsConstants.defaultFilterInteractionMethod,
-    );
-    return FilterInteractionMethod.fromString(methodStr);
-  }
-
+      _getBool(SettingsConstants.keyEnableRandomTask, SettingsConstants.defaultEnableRandomTask);
+  FilterInteractionMethod get filterInteractionMethod => _getEnum(
+    SettingsConstants.keyFilterInteractionMethod,
+    FilterInteractionMethod.values,
+    FilterInteractionMethod.cycle,
+  );
   bool get persistentFilter =>
-      _get(SettingsConstants.keyPersistentFilter, SettingsConstants.defaultPersistentFilter.toString()) == 'true';
-
+      _getBool(SettingsConstants.keyPersistentFilter, SettingsConstants.defaultPersistentFilter);
   Map<String, dynamic> get persistentFilterValues =>
       Map.from(jsonDecode(_get(SettingsConstants.keyPersistentFilterValues, '{}')));
-
-  Absorption get tagAbsorption {
-    final absorptionStr = _get(SettingsConstants.keyTagAbsorption, SettingsConstants.defaultTagAbsorption.name);
-    return Absorption.fromString(absorptionStr);
-  }
-
-  bool get keepTagsInTitle =>
-      _get(SettingsConstants.keyKeepTagsInTitle, SettingsConstants.defaultKeepTagsInTitle.toString()) == 'true';
-
+  Absorption get tagAbsorption =>
+      _getEnum(SettingsConstants.keyTagAbsorption, Absorption.values, SettingsConstants.defaultTagAbsorption);
+  bool get keepTagsInTitle => _getBool(SettingsConstants.keyKeepTagsInTitle, SettingsConstants.defaultKeepTagsInTitle);
   bool get showHashtagInTitle =>
-      _get(SettingsConstants.keyShowHashtagInTitle, SettingsConstants.defaultShowHashtagInTitle.toString()) == 'true';
+      _getBool(SettingsConstants.keyShowHashtagInTitle, SettingsConstants.defaultShowHashtagInTitle);
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {

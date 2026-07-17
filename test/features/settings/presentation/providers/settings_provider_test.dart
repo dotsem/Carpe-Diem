@@ -25,7 +25,7 @@ void main() {
       final state = container.read(settingsProvider);
       expect(state.compactMode, isFalse);
       expect(state.themeMode, equals(ThemeMode.system));
-      expect(state.getTaskLayout(), equals(TaskLayout.list));
+      expect(state.taskLayout, equals(TaskLayout.list));
     });
 
     test('should load settings from repository into state', () async {
@@ -38,7 +38,7 @@ void main() {
       final state = container.read(settingsProvider);
       expect(state.themeMode, equals(ThemeMode.dark));
       expect(state.compactMode, isTrue);
-      expect(state.getTaskLayout(), equals(TaskLayout.kanban));
+      expect(state.taskLayout, equals(TaskLayout.kanban));
       verify(() => mockRepo.getAll()).called(1);
     });
 
