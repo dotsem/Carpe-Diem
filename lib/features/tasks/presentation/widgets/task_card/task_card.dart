@@ -129,8 +129,6 @@ class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderSt
       _controller.reset();
     }
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final isOverdue = widget.task.isOverdue;
 
     final isCompact = settings.compactMode;

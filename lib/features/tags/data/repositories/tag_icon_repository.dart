@@ -13,6 +13,7 @@ class TagIconRepository implements ITagIconRepository {
     final Map<String, IconData> result = {};
     for (final map in maps) {
       final name = map['tag_name'] as String;
+      // ignore: non_const_argument_for_const_parameter
       final codePoint = map['icon_code_point'] as int;
       result[name] = IconData(codePoint, fontFamily: 'MaterialIcons');
     }
@@ -22,14 +23,10 @@ class TagIconRepository implements ITagIconRepository {
   @override
   Future<void> setIconDataForTag(String tagName, IconData iconData) async {
     final cleanName = tagName.trim().toLowerCase();
-    await db.insert(
-      'tag_icons',
-      {
-        'tag_name': cleanName,
-        'icon_code_point': iconData.codePoint,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('tag_icons', {
+      'tag_name': cleanName,
+      'icon_code_point': iconData.codePoint,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   @override
