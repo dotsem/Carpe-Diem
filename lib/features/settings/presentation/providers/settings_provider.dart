@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:carpe_diem/core/constants/app_constants.dart';
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
@@ -15,116 +15,62 @@ class SettingsState {
 
   String _get(String key, String defaultValue) => _map[key] ?? defaultValue;
 
-  // Task Layout
-  TaskLayout getTaskLayout() {
-    final layoutStr = _get('task_layout', TaskLayout.list.name);
-    try {
-      return TaskLayout.fromString(layoutStr);
-    } catch (_) {
-      return TaskLayout.list;
-    }
+  int _getInt(String key, int defaultValue) => int.tryParse(_get(key, '')) ?? defaultValue;
+
+  double _getDouble(String key, double defaultValue) => double.tryParse(_get(key, '')) ?? defaultValue;
+
+  bool _getBool(String key, bool defaultValue) => _get(key, defaultValue.toString()) == 'true';
+
+  T _getEnum<T extends Enum>(String key, List<T> values, T defaultValue) {
+    final valueStr = _get(key, defaultValue.name);
+    return values.firstWhere((e) => e.name == valueStr, orElse: () => defaultValue);
   }
 
-  // Max Planning Days
-  int get maxPlanningDays =>
-      int.tryParse(_get(AppConstants.keyMaxPlanningDays, AppConstants.maxPlanningDaysAhead.toString())) ??
-      AppConstants.maxPlanningDaysAhead;
-
-  // First Day of Week
-  int get firstDayOfWeek =>
-      int.tryParse(_get(AppConstants.keyFirstDayOfWeek, AppConstants.firstDayOfWeek.toString())) ??
-      AppConstants.firstDayOfWeek;
-
-  // Task Completion Delay
-  int get taskCompletionDelay =>
-      int.tryParse(_get(AppConstants.keyTaskDelay, AppConstants.taskCompletionDelaySeconds.toString())) ??
-      AppConstants.taskCompletionDelaySeconds;
-
-  // Inherit Parent Deadline
+  TaskLayout get taskLayout => _getEnum(SettingsConstants.keyTaskLayout, TaskLayout.values, TaskLayout.list);
+  int get maxPlanningDays => _getInt(SettingsConstants.keyMaxPlanningDays, SettingsConstants.maxPlanningDaysAhead);
+  int get firstDayOfWeek => _getInt(SettingsConstants.keyFirstDayOfWeek, SettingsConstants.firstDayOfWeek);
+  int get taskCompletionDelay => _getInt(SettingsConstants.keyTaskDelay, SettingsConstants.taskCompletionDelaySeconds);
   bool get inheritParentDeadline =>
-      _get(AppConstants.keyInheritParentDeadline, AppConstants.inheritParentDeadline.toString()) == 'true';
-
-  // Prioritize Deadlines
+      _getBool(SettingsConstants.keyInheritParentDeadline, SettingsConstants.inheritParentDeadline);
   bool get prioritizeDeadlines =>
-      _get(AppConstants.keyPrioritizeDeadlines, AppConstants.prioritizeDeadlines.toString()) == 'true';
-
-  // Prioritize Overdue
-  bool get prioritizeOverdue =>
-      _get(AppConstants.keyPrioritizeOverdue, AppConstants.prioritizeOverdue.toString()) == 'true';
-
-  // Inherit Project Deadline
+      _getBool(SettingsConstants.keyPrioritizeDeadlines, SettingsConstants.prioritizeDeadlines);
+  bool get prioritizeOverdue => _getBool(SettingsConstants.keyPrioritizeOverdue, SettingsConstants.prioritizeOverdue);
   bool get inheritProjectDeadline =>
-      _get(AppConstants.keyInheritProjectDeadline, AppConstants.inheritProjectDeadline.toString()) == 'true';
-
-  // Theme Mode
-  ThemeMode get themeMode {
-    final modeStr = _get(AppConstants.keyThemeMode, ThemeMode.system.name);
-    return ThemeMode.values.firstWhere((e) => e.name == modeStr, orElse: () => ThemeMode.system);
-  }
-
-  // Task Gradient Width
+      _getBool(SettingsConstants.keyInheritProjectDeadline, SettingsConstants.inheritProjectDeadline);
+  ThemeMode get themeMode => _getEnum(SettingsConstants.keyThemeMode, ThemeMode.values, ThemeMode.system);
   double get taskGradientWidth =>
-      double.tryParse(_get(AppConstants.keyTaskGradientWidth, AppConstants.defaultTaskGradientWidth.toString())) ??
-      AppConstants.defaultTaskGradientWidth;
-
-  // Compact Mode
-  bool get compactMode => _get(AppConstants.keyCompactMode, AppConstants.defaultCompactMode.toString()) == 'true';
-
-  // Show Description on Card
+      _getDouble(SettingsConstants.keyTaskGradientWidth, SettingsConstants.defaultTaskGradientWidth);
+  bool get compactMode => _getBool(SettingsConstants.keyCompactMode, SettingsConstants.defaultCompactMode);
   bool get showDescriptionOnCard =>
-      _get(AppConstants.keyShowDescriptionOnCard, AppConstants.defaultShowDescriptionOnCard.toString()) == 'true';
+      _getBool(SettingsConstants.keyShowDescriptionOnCard, SettingsConstants.defaultShowDescriptionOnCard);
+  String get defaultPriority => _get(SettingsConstants.keyDefaultPriority, SettingsConstants.defaultTaskPriority);
+  String? get defaultProjectId => _map[SettingsConstants.keyDefaultProjectId];
 
-  // Default Priority
-  String get defaultPriority => _get(AppConstants.keyDefaultPriority, AppConstants.defaultTaskPriority);
-
-  // Default Project
-  String? get defaultProjectId {
-    final id = _get(AppConstants.keyDefaultProjectId, 'null');
-    return id == 'null' ? null : id;
-  }
-
-  // History Retention
-  int get historyRetention =>
-      int.tryParse(_get(AppConstants.keyHistoryRetention, AppConstants.defaultHistoryRetention.toString())) ??
-      AppConstants.defaultHistoryRetention;
-
-  // Default Stats Period
-  String get defaultStatsPeriod => _get(AppConstants.keyDefaultStatsPeriod, AppConstants.defaultStatsPeriod);
-
-  // Show Active Projects Only
+  int get historyRetention => _getInt(SettingsConstants.keyHistoryRetention, SettingsConstants.defaultHistoryRetention);
+  String get defaultStatsPeriod => _get(SettingsConstants.keyDefaultStatsPeriod, SettingsConstants.defaultStatsPeriod);
   bool get showActiveProjectsOnly =>
-      _get(AppConstants.keyShowActiveProjectsOnly, AppConstants.defaultShowActiveProjectsOnly.toString()) == 'true';
-
-  // Enable Random Task Picker
+      _getBool(SettingsConstants.keyShowActiveProjectsOnly, SettingsConstants.defaultShowActiveProjectsOnly);
   bool get enableRandomTask =>
-      _get(AppConstants.keyEnableRandomTask, AppConstants.defaultEnableRandomTask.toString()) == 'true';
-
-  // Filter Interaction Method
-  FilterInteractionMethod get filterInteractionMethod {
-    final methodStr = _get(AppConstants.keyFilterInteractionMethod, AppConstants.defaultFilterInteractionMethod);
-    return FilterInteractionMethod.fromString(methodStr);
-  }
-
+      _getBool(SettingsConstants.keyEnableRandomTask, SettingsConstants.defaultEnableRandomTask);
+  FilterInteractionMethod get filterInteractionMethod => _getEnum(
+    SettingsConstants.keyFilterInteractionMethod,
+    FilterInteractionMethod.values,
+    FilterInteractionMethod.cycle,
+  );
   bool get persistentFilter =>
-      _get(AppConstants.keyPersistentFilter, AppConstants.defaultPersistentFilter.toString()) == 'true';
-
+      _getBool(SettingsConstants.keyPersistentFilter, SettingsConstants.defaultPersistentFilter);
   Map<String, dynamic> get persistentFilterValues =>
-      Map.from(jsonDecode(_get(AppConstants.keyPersistentFilterValues, '{}')));
-
-  Absorption get tagAbsorption {
-    final absorptionStr = _get(AppConstants.keyTagAbsorption, AppConstants.defaultTagAbsorption.name);
-    return Absorption.fromString(absorptionStr);
-  }
-
-  bool get keepTagsInTitle =>
-      _get(AppConstants.keyKeepTagsInTitle, AppConstants.defaultKeepTagsInTitle.toString()) == 'true';
-
+      Map.from(jsonDecode(_get(SettingsConstants.keyPersistentFilterValues, '{}')));
+  Absorption get tagAbsorption =>
+      _getEnum(SettingsConstants.keyTagAbsorption, Absorption.values, SettingsConstants.defaultTagAbsorption);
+  bool get keepTagsInTitle => _getBool(SettingsConstants.keyKeepTagsInTitle, SettingsConstants.defaultKeepTagsInTitle);
   bool get showHashtagInTitle =>
-      _get(AppConstants.keyShowHashtagInTitle, AppConstants.defaultShowHashtagInTitle.toString()) == 'true';
+      _getBool(SettingsConstants.keyShowHashtagInTitle, SettingsConstants.defaultShowHashtagInTitle);
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
   late final ISettingsRepository _repo;
+  final Map<String, Future<void>> _writeQueues = {};
 
   @override
   SettingsState build() {
@@ -133,43 +79,81 @@ class SettingsNotifier extends Notifier<SettingsState> {
   }
 
   Future<void> loadSettings() async {
-    final map = await _repo.getAll();
-    state = SettingsState(map);
+    try {
+      final map = await _repo.getAll();
+      state = SettingsState(map);
+    } catch (e) {
+      debugPrint('Failed to load settings: $e');
+      state = const SettingsState({});
+    }
   }
 
-  Future<void> _set(String key, String value) async {
+  Future<void> _set(String key, Object value) async {
+    String stringValue;
+
+    switch (value) {
+      case String():
+        stringValue = value;
+        break;
+      case Enum():
+        stringValue = value.name;
+        break;
+      case Map():
+        stringValue = jsonEncode(value);
+        break;
+      default:
+        stringValue = value.toString();
+        break;
+    }
+
     final updatedMap = Map<String, String>.from(state._map);
-    updatedMap[key] = value;
+    updatedMap[key] = stringValue;
     state = SettingsState(updatedMap);
-    await _repo.set(key, value);
+
+    final queue = _writeQueues[key] ?? Future.value();
+    final writeTask = queue.catchError((_) {}).then((_) => _repo.set(key, stringValue));
+    _writeQueues[key] = writeTask;
+    await writeTask;
   }
 
-  Future<void> setTaskLayout(TaskLayout layout) => _set('task_layout', layout.name);
-  Future<void> setMaxPlanningDays(int days) => _set(AppConstants.keyMaxPlanningDays, days.toString());
-  Future<void> setFirstDayOfWeek(int day) => _set(AppConstants.keyFirstDayOfWeek, day.toString());
-  Future<void> setTaskCompletionDelay(int seconds) => _set(AppConstants.keyTaskDelay, seconds.toString());
-  Future<void> setInheritParentDeadline(bool value) => _set(AppConstants.keyInheritParentDeadline, value.toString());
-  Future<void> setPrioritizeDeadlines(bool value) => _set(AppConstants.keyPrioritizeDeadlines, value.toString());
-  Future<void> setPrioritizeOverdue(bool value) => _set(AppConstants.keyPrioritizeOverdue, value.toString());
-  Future<void> setInheritProjectDeadline(bool value) => _set(AppConstants.keyInheritProjectDeadline, value.toString());
-  Future<void> setThemeMode(ThemeMode mode) => _set(AppConstants.keyThemeMode, mode.name);
-  Future<void> setTaskGradientWidth(double value) => _set(AppConstants.keyTaskGradientWidth, value.toString());
-  Future<void> setCompactMode(bool value) => _set(AppConstants.keyCompactMode, value.toString());
-  Future<void> setShowDescriptionOnCard(bool value) => _set(AppConstants.keyShowDescriptionOnCard, value.toString());
-  Future<void> setDefaultPriority(String priority) => _set(AppConstants.keyDefaultPriority, priority);
-  Future<void> setDefaultProjectId(String? projectId) => _set(AppConstants.keyDefaultProjectId, projectId ?? 'null');
-  Future<void> setHistoryRetention(int days) => _set(AppConstants.keyHistoryRetention, days.toString());
-  Future<void> setDefaultStatsPeriod(String period) => _set(AppConstants.keyDefaultStatsPeriod, period);
-  Future<void> setShowActiveProjectsOnly(bool value) => _set(AppConstants.keyShowActiveProjectsOnly, value.toString());
-  Future<void> setEnableRandomTask(bool value) => _set(AppConstants.keyEnableRandomTask, value.toString());
+  Future<void> _delete(String key) async {
+    final updatedMap = Map<String, String>.from(state._map);
+    updatedMap.remove(key);
+    state = SettingsState(updatedMap);
+
+    final queue = _writeQueues[key] ?? Future.value();
+    final writeTask = queue.catchError((_) {}).then((_) => _repo.delete(key));
+    _writeQueues[key] = writeTask;
+    await writeTask;
+  }
+
+  Future<void> setTaskLayout(TaskLayout layout) => _set(SettingsConstants.keyTaskLayout, layout);
+  Future<void> setMaxPlanningDays(int days) => _set(SettingsConstants.keyMaxPlanningDays, days);
+  Future<void> setFirstDayOfWeek(int day) => _set(SettingsConstants.keyFirstDayOfWeek, day);
+  Future<void> setTaskCompletionDelay(int seconds) => _set(SettingsConstants.keyTaskDelay, seconds);
+  Future<void> setInheritParentDeadline(bool value) => _set(SettingsConstants.keyInheritParentDeadline, value);
+  Future<void> setPrioritizeDeadlines(bool value) => _set(SettingsConstants.keyPrioritizeDeadlines, value);
+  Future<void> setPrioritizeOverdue(bool value) => _set(SettingsConstants.keyPrioritizeOverdue, value);
+  Future<void> setInheritProjectDeadline(bool value) => _set(SettingsConstants.keyInheritProjectDeadline, value);
+  Future<void> setThemeMode(ThemeMode mode) => _set(SettingsConstants.keyThemeMode, mode);
+  Future<void> setTaskGradientWidth(double value) => _set(SettingsConstants.keyTaskGradientWidth, value);
+  Future<void> setCompactMode(bool value) => _set(SettingsConstants.keyCompactMode, value);
+  Future<void> setShowDescriptionOnCard(bool value) => _set(SettingsConstants.keyShowDescriptionOnCard, value);
+  Future<void> setDefaultPriority(String priority) => _set(SettingsConstants.keyDefaultPriority, priority);
+  Future<void> setDefaultProjectId(String? projectId) =>
+      projectId == null ? _delete(SettingsConstants.keyDefaultProjectId) : _set(SettingsConstants.keyDefaultProjectId, projectId);
+  Future<void> setHistoryRetention(int days) => _set(SettingsConstants.keyHistoryRetention, days);
+  Future<void> setDefaultStatsPeriod(String period) => _set(SettingsConstants.keyDefaultStatsPeriod, period);
+  Future<void> setShowActiveProjectsOnly(bool value) => _set(SettingsConstants.keyShowActiveProjectsOnly, value);
+  Future<void> setEnableRandomTask(bool value) => _set(SettingsConstants.keyEnableRandomTask, value);
   Future<void> setFilterInteractionMethod(FilterInteractionMethod method) =>
-      _set(AppConstants.keyFilterInteractionMethod, method.name);
-  Future<void> setPersistentFilter(bool value) => _set(AppConstants.keyPersistentFilter, value.toString());
+      _set(SettingsConstants.keyFilterInteractionMethod, method);
+  Future<void> setPersistentFilter(bool value) => _set(SettingsConstants.keyPersistentFilter, value);
   Future<void> setPersistentFilterValues(Map<String, dynamic> values) =>
-      _set(AppConstants.keyPersistentFilterValues, jsonEncode(values));
-  Future<void> setTagAbsorption(Absorption absorption) => _set(AppConstants.keyTagAbsorption, absorption.name);
-  Future<void> setKeepTagsInTitle(bool value) => _set(AppConstants.keyKeepTagsInTitle, value.toString());
-  Future<void> setShowHashtagInTitle(bool value) => _set(AppConstants.keyShowHashtagInTitle, value.toString());
+      _set(SettingsConstants.keyPersistentFilterValues, values);
+  Future<void> setTagAbsorption(Absorption absorption) => _set(SettingsConstants.keyTagAbsorption, absorption);
+  Future<void> setKeepTagsInTitle(bool value) => _set(SettingsConstants.keyKeepTagsInTitle, value);
+  Future<void> setShowHashtagInTitle(bool value) => _set(SettingsConstants.keyShowHashtagInTitle, value);
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

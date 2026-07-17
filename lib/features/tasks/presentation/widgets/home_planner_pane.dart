@@ -50,7 +50,7 @@ class HomePlannerPane extends ConsumerWidget {
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
-    if (settings.getTaskLayout() == TaskLayout.kanban) {
+    if (settings.taskLayout == TaskLayout.kanban) {
       return KanbanBoard(
         tasks: [...(isToday ? overdue : []), ...allTasks],
         onStatusChange: (task, status) => ref.read(taskProvider.notifier).updateTaskStatus(task, status),

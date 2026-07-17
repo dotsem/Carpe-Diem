@@ -1,4 +1,4 @@
-import 'package:carpe_diem/core/constants/app_constants.dart';
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_sync_utils.dart';

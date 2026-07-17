@@ -23,4 +23,9 @@ class SettingsRepository implements ISettingsRepository {
     final maps = await _db.query('settings');
     return {for (var map in maps) map['key'] as String: map['value'] as String};
   }
+
+  @override
+  Future<void> delete(String key) async {
+    await _db.delete('settings', where: 'key = ?', whereArgs: [key]);
+  }
 }
