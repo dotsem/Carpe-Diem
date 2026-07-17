@@ -75,6 +75,8 @@ The focus of this version is enhancing functionality and user experience.
 - [ ] **Advanced Filtering:** Filter tasks by priority and date range.
 - [✅] **Undo & Redo:** Undo and redo recent actions.
 - [✅] **Tags:** Support adding tags to tasks.
+- [ ] **Sub-tasks:** Support sub-tasks.
+- [ ] **Dialog overhaul:** Overhaul the dialogs to be more user friendly. Try to use the sidebar for more settings and less dialogs.
 
 ---
 
