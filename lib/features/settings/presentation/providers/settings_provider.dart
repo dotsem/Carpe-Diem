@@ -145,44 +145,57 @@ class SettingsNotifier extends Notifier<SettingsState> {
     state = SettingsState(map);
   }
 
-  Future<void> _set(String key, String value) async {
+  Future<void> _set(String key, Object value) async {
+    String stringValue;
+
+    switch (value) {
+      case String():
+        stringValue = value;
+        break;
+      case Enum():
+        stringValue = value.name;
+        break;
+      case Map():
+        stringValue = jsonEncode(value);
+        break;
+      default:
+        stringValue = value.toString();
+        break;
+    }
+
     final updatedMap = Map<String, String>.from(state._map);
-    updatedMap[key] = value;
+    updatedMap[key] = stringValue;
     state = SettingsState(updatedMap);
-    await _repo.set(key, value);
+    await _repo.set(key, stringValue);
   }
 
-  Future<void> setTaskLayout(TaskLayout layout) => _set('task_layout', layout.name);
-  Future<void> setMaxPlanningDays(int days) => _set(SettingsConstants.keyMaxPlanningDays, days.toString());
-  Future<void> setFirstDayOfWeek(int day) => _set(SettingsConstants.keyFirstDayOfWeek, day.toString());
-  Future<void> setTaskCompletionDelay(int seconds) => _set(SettingsConstants.keyTaskDelay, seconds.toString());
-  Future<void> setInheritParentDeadline(bool value) =>
-      _set(SettingsConstants.keyInheritParentDeadline, value.toString());
-  Future<void> setPrioritizeDeadlines(bool value) => _set(SettingsConstants.keyPrioritizeDeadlines, value.toString());
-  Future<void> setPrioritizeOverdue(bool value) => _set(SettingsConstants.keyPrioritizeOverdue, value.toString());
-  Future<void> setInheritProjectDeadline(bool value) =>
-      _set(SettingsConstants.keyInheritProjectDeadline, value.toString());
-  Future<void> setThemeMode(ThemeMode mode) => _set(SettingsConstants.keyThemeMode, mode.name);
-  Future<void> setTaskGradientWidth(double value) => _set(SettingsConstants.keyTaskGradientWidth, value.toString());
-  Future<void> setCompactMode(bool value) => _set(SettingsConstants.keyCompactMode, value.toString());
-  Future<void> setShowDescriptionOnCard(bool value) =>
-      _set(SettingsConstants.keyShowDescriptionOnCard, value.toString());
+  Future<void> setTaskLayout(TaskLayout layout) => _set('task_layout', layout);
+  Future<void> setMaxPlanningDays(int days) => _set(SettingsConstants.keyMaxPlanningDays, days);
+  Future<void> setFirstDayOfWeek(int day) => _set(SettingsConstants.keyFirstDayOfWeek, day);
+  Future<void> setTaskCompletionDelay(int seconds) => _set(SettingsConstants.keyTaskDelay, seconds);
+  Future<void> setInheritParentDeadline(bool value) => _set(SettingsConstants.keyInheritParentDeadline, value);
+  Future<void> setPrioritizeDeadlines(bool value) => _set(SettingsConstants.keyPrioritizeDeadlines, value);
+  Future<void> setPrioritizeOverdue(bool value) => _set(SettingsConstants.keyPrioritizeOverdue, value);
+  Future<void> setInheritProjectDeadline(bool value) => _set(SettingsConstants.keyInheritProjectDeadline, value);
+  Future<void> setThemeMode(ThemeMode mode) => _set(SettingsConstants.keyThemeMode, mode);
+  Future<void> setTaskGradientWidth(double value) => _set(SettingsConstants.keyTaskGradientWidth, value);
+  Future<void> setCompactMode(bool value) => _set(SettingsConstants.keyCompactMode, value);
+  Future<void> setShowDescriptionOnCard(bool value) => _set(SettingsConstants.keyShowDescriptionOnCard, value);
   Future<void> setDefaultPriority(String priority) => _set(SettingsConstants.keyDefaultPriority, priority);
   Future<void> setDefaultProjectId(String? projectId) =>
       _set(SettingsConstants.keyDefaultProjectId, projectId ?? 'null');
-  Future<void> setHistoryRetention(int days) => _set(SettingsConstants.keyHistoryRetention, days.toString());
+  Future<void> setHistoryRetention(int days) => _set(SettingsConstants.keyHistoryRetention, days);
   Future<void> setDefaultStatsPeriod(String period) => _set(SettingsConstants.keyDefaultStatsPeriod, period);
-  Future<void> setShowActiveProjectsOnly(bool value) =>
-      _set(SettingsConstants.keyShowActiveProjectsOnly, value.toString());
-  Future<void> setEnableRandomTask(bool value) => _set(SettingsConstants.keyEnableRandomTask, value.toString());
+  Future<void> setShowActiveProjectsOnly(bool value) => _set(SettingsConstants.keyShowActiveProjectsOnly, value);
+  Future<void> setEnableRandomTask(bool value) => _set(SettingsConstants.keyEnableRandomTask, value);
   Future<void> setFilterInteractionMethod(FilterInteractionMethod method) =>
-      _set(SettingsConstants.keyFilterInteractionMethod, method.name);
-  Future<void> setPersistentFilter(bool value) => _set(SettingsConstants.keyPersistentFilter, value.toString());
+      _set(SettingsConstants.keyFilterInteractionMethod, method);
+  Future<void> setPersistentFilter(bool value) => _set(SettingsConstants.keyPersistentFilter, value);
   Future<void> setPersistentFilterValues(Map<String, dynamic> values) =>
-      _set(SettingsConstants.keyPersistentFilterValues, jsonEncode(values));
-  Future<void> setTagAbsorption(Absorption absorption) => _set(SettingsConstants.keyTagAbsorption, absorption.name);
-  Future<void> setKeepTagsInTitle(bool value) => _set(SettingsConstants.keyKeepTagsInTitle, value.toString());
-  Future<void> setShowHashtagInTitle(bool value) => _set(SettingsConstants.keyShowHashtagInTitle, value.toString());
+      _set(SettingsConstants.keyPersistentFilterValues, values);
+  Future<void> setTagAbsorption(Absorption absorption) => _set(SettingsConstants.keyTagAbsorption, absorption);
+  Future<void> setKeepTagsInTitle(bool value) => _set(SettingsConstants.keyKeepTagsInTitle, value);
+  Future<void> setShowHashtagInTitle(bool value) => _set(SettingsConstants.keyShowHashtagInTitle, value);
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {
