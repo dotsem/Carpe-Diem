@@ -7,7 +7,10 @@ import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/data/models/tag_profile.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/set_tag_icon_command.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/update_tag_command.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/delete_tag_command.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -55,22 +58,44 @@ class TagNotifier extends Notifier<TagState> {
     state = state.copyWith(tags: labels, isLoading: false);
   }
 
-  Future<Tag> addTag(String name) async {
+  Future<Tag> addTag(String name, {IconData? icon}) async {
     final tag = Tag(id: _uuid.v4(), name: name);
-    await ref
-        .read(undoRedoProvider.notifier)
-        .execute(CreateCommand(repo: _repo, item: tag, id: tag.id, displayName: tag.name));
+    final commands = <Command>[
+      CreateCommand(repo: _repo, item: tag, id: tag.id, displayName: tag.name),
+    ];
+    if (icon != null) {
+      commands.add(SetTagIconCommand(
+        repo: ref.read(tagIconRepositoryProvider),
+        tagName: name,
+        iconData: icon,
+      ));
+    }
+    final compound = CompoundCommand(commands, 'Create Tag: "#$name"');
+    await ref.read(undoRedoProvider.notifier).execute(compound);
     await loadTags();
+    if (icon != null) {
+      await ref.read(tagIconProvider.notifier).loadIcons();
+    }
     return tag;
   }
 
-  Future<void> updateTag(Tag tag) async {
+  Future<void> updateTag(Tag tag, {IconData? icon}) async {
     final oldTag = await _repo.getById(tag.id);
     if (oldTag == null) return;
-    await ref
-        .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: oldTag, next: tag, displayName: tag.name));
+    final iconRepo = ref.read(tagIconRepositoryProvider);
+    final taskRepo = ref.read(taskRepositoryProvider);
+
+    final command = UpdateTagCommand(
+      tagRepo: _repo,
+      iconRepo: iconRepo,
+      taskRepo: taskRepo,
+      previousTag: oldTag,
+      nextTag: tag,
+      newIcon: icon,
+    );
+    await ref.read(undoRedoProvider.notifier).execute(command);
     await loadTags();
+    await ref.read(tagIconProvider.notifier).loadIcons();
     await ref.read(projectProvider.notifier).loadProjects();
     await ref.read(taskProvider.notifier).refreshTasks();
   }
@@ -78,10 +103,18 @@ class TagNotifier extends Notifier<TagState> {
   Future<void> deleteTag(String id) async {
     final tag = await _repo.getById(id);
     if (tag == null) return;
-    await ref
-        .read(undoRedoProvider.notifier)
-        .execute(DeleteCommand(repo: _repo, item: tag, id: tag.id, displayName: tag.name));
+    final iconRepo = ref.read(tagIconRepositoryProvider);
+    final taskRepo = ref.read(taskRepositoryProvider);
+
+    final command = DeleteTagCommand(
+      tagRepo: _repo,
+      iconRepo: iconRepo,
+      taskRepo: taskRepo,
+      tag: tag,
+    );
+    await ref.read(undoRedoProvider.notifier).execute(command);
     await loadTags();
+    await ref.read(tagIconProvider.notifier).loadIcons();
     await ref.read(projectProvider.notifier).loadProjects();
     await ref.read(taskProvider.notifier).refreshTasks();
   }

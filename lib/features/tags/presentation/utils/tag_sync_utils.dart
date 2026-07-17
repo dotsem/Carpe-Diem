@@ -35,4 +35,30 @@ class TagSyncUtils {
 
     return currentSelectedIds;
   }
+
+  /// Syncs picker changes back to title text.
+  /// If a tag ID is removed in [newSelectedIds] compared to [oldSelectedIds]:
+  ///   - Any matching inline hashtags in [currentText] are removed.
+  /// Returns the updated title text.
+  static String syncPickerToTitle({
+    required String currentText,
+    required List<String> oldSelectedIds,
+    required List<String> newSelectedIds,
+    required List<Tag> allTags,
+  }) {
+    final removedIds = oldSelectedIds.where((id) => !newSelectedIds.contains(id)).toList();
+    final tagNamesToStrip = removedIds
+        .map(
+          (id) => allTags
+              .firstWhere(
+                (t) => t.id == id,
+                orElse: () => const Tag(id: '', name: ''),
+              )
+              .name,
+        )
+        .where((name) => name.isNotEmpty)
+        .toList();
+
+    return TagParser.stripSpecificTags(currentText, tagNamesToStrip);
+  }
 }

@@ -34,7 +34,7 @@ class CreateTagsPromptDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'The following ${newTagNames.length} tag${newTagNames.length > 1 ? 's' : ''} do${newTagNames.length > 1 ? '' : 'es'} not exist yet. Would you like to create them${newTagNames.length > 1 ? '' : 'se'}?',
+            'The following ${newTagNames.length > 1 ? newTagNames.length : ""} tag${newTagNames.length > 1 ? 's' : ''} do${newTagNames.length > 1 ? '' : 'es'} not exist yet. Would you like to create ${newTagNames.length > 1 ? 'them' : 'it'}?',
             style: const TextStyle(fontSize: 14),
           ),
           const SizedBox(height: 16),

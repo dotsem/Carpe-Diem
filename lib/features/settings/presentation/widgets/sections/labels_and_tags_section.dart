@@ -66,6 +66,13 @@ class LabelsSection extends ConsumerWidget {
                 settingsNotifier.setTagAbsorption(absorption);
               },
             ),
+            SettingsSwitchTile(
+              icon: Icons.title,
+              title: "Keep tags in title",
+              subtitle: "Preserve hashtags inside the task title. If disabled, hashtags are stripped upon saving.",
+              value: settings.keepTagsInTitle,
+              onChanged: (value) => settingsNotifier.setKeepTagsInTitle(value),
+            ),
           ],
         ),
       ],

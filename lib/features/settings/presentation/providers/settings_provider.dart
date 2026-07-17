@@ -115,6 +115,9 @@ class SettingsState {
     final absorptionStr = _get(AppConstants.keyTagAbsorption, AppConstants.defaultTagAbsorption.name);
     return Absorption.fromString(absorptionStr);
   }
+
+  bool get keepTagsInTitle =>
+      _get(AppConstants.keyKeepTagsInTitle, AppConstants.defaultKeepTagsInTitle.toString()) == 'true';
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -162,6 +165,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> setPersistentFilterValues(Map<String, dynamic> values) =>
       _set(AppConstants.keyPersistentFilterValues, jsonEncode(values));
   Future<void> setTagAbsorption(Absorption absorption) => _set(AppConstants.keyTagAbsorption, absorption.name);
+  Future<void> setKeepTagsInTitle(bool value) => _set(AppConstants.keyKeepTagsInTitle, value.toString());
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

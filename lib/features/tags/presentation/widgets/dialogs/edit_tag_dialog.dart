@@ -90,8 +90,7 @@ class _EditTagDialogState extends ConsumerState<EditTagDialog> {
     final name = nameController.text.trim();
     if (name.isEmpty) return;
 
-    ref.read(tagProvider.notifier).updateTag(widget.tag.copyWith(name: name));
-    ref.read(tagIconProvider.notifier).setIcon(name, selectedIcon);
+    ref.read(tagProvider.notifier).updateTag(widget.tag.copyWith(name: name), icon: selectedIcon);
     Navigator.of(context).pop();
   }
 }

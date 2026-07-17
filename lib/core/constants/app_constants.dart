@@ -23,6 +23,7 @@ class AppConstants {
   static const String defaultFilterInteractionMethod = 'cycle';
   static const bool defaultPersistentFilter = false;
   static const Absorption defaultTagAbsorption = Absorption.replace;
+  static const bool defaultKeepTagsInTitle = true;
 
   // Setting keys
   static const String keyMaxPlanningDays = 'max_planning_days';
@@ -47,6 +48,7 @@ class AppConstants {
   static const String keyPersistentFilter = 'persistent_filter';
   static const String keyPersistentFilterValues = 'persistent_filter_values';
   static const String keyTagAbsorption = 'tag_absorption';
+  static const String keyKeepTagsInTitle = 'keep_tags_in_title';
 }
 
 enum Absorption {

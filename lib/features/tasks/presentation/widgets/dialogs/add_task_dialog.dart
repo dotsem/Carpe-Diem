@@ -226,6 +226,13 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
               TagPicker(
                 selectedTagIds: _selectedTagIds,
                 onSelected: (ids) {
+                  final newText = TagSyncUtils.syncPickerToTitle(
+                    currentText: _titleController.text,
+                    oldSelectedIds: _selectedTagIds,
+                    newSelectedIds: ids,
+                    allTags: ref.read(tagProvider).tags,
+                  );
+                  _titleController.text = newText;
                   setState(() {
                     _selectedTagIds = ids;
                   });
@@ -259,6 +266,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     final newTagNames = parsedTagNames.where((name) => !existingNamesSet.contains(name.toLowerCase())).toList();
 
     List<String> finalTagIds = List.from(_selectedTagIds);
+    final List<String> tagsToStrip = [];
 
     if (newTagNames.isNotEmpty) {
       final result = await showDialog<CreateTagsPromptResult>(
@@ -275,15 +283,21 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
           final newTag = await ref.read(tagProvider.notifier).addTag(name);
           finalTagIds.add(newTag.id);
         }
+      } else if (result == CreateTagsPromptResult.saveWithoutTags) {
+        tagsToStrip.addAll(newTagNames);
       }
     }
 
-    final cleanTitle = TagParser.stripTags(rawTitle);
+    final settings = ref.read(settingsProvider);
+    var titleToSave = settings.keepTagsInTitle ? rawTitle : TagParser.stripTags(rawTitle);
+    if (settings.keepTagsInTitle && tagsToStrip.isNotEmpty) {
+      titleToSave = TagParser.stripSpecificTags(titleToSave, tagsToStrip);
+    }
 
     ref
         .read(taskProvider.notifier)
         .addTask(
-          title: cleanTitle,
+          title: titleToSave,
           description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
           scheduledDate: _selectedDate,
           projectId: _selectedProjectId,

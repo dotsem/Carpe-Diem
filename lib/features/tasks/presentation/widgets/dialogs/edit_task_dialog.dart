@@ -260,6 +260,13 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
               TagPicker(
                 selectedTagIds: _selectedTagIds,
                 onSelected: (ids) {
+                  final newText = TagSyncUtils.syncPickerToTitle(
+                    currentText: _nameController.text,
+                    oldSelectedIds: _selectedTagIds,
+                    newSelectedIds: ids,
+                    allTags: ref.read(tagProvider).tags,
+                  );
+                  _nameController.text = newText;
                   setState(() {
                     _selectedTagIds = ids;
                   });
@@ -290,6 +297,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
     final newTagNames = parsedTagNames.where((name) => !existingNamesSet.contains(name.toLowerCase())).toList();
 
     List<String> finalTagIds = List.from(_selectedTagIds);
+    final List<String> tagsToStrip = [];
 
     if (newTagNames.isNotEmpty) {
       final result = await showDialog<CreateTagsPromptResult>(
@@ -306,16 +314,22 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
           final newTag = await ref.read(tagProvider.notifier).addTag(name);
           finalTagIds.add(newTag.id);
         }
+      } else if (result == CreateTagsPromptResult.saveWithoutTags) {
+        tagsToStrip.addAll(newTagNames);
       }
     }
 
-    final cleanTitle = TagParser.stripTags(rawTitle);
+    final settings = ref.read(settingsProvider);
+    var titleToSave = settings.keepTagsInTitle ? rawTitle : TagParser.stripTags(rawTitle);
+    if (settings.keepTagsInTitle && tagsToStrip.isNotEmpty) {
+      titleToSave = TagParser.stripSpecificTags(titleToSave, tagsToStrip);
+    }
 
     ref
         .read(taskProvider.notifier)
         .updateTask(
           widget.task.copyWith(
-            title: cleanTitle,
+            title: titleToSave,
             description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),
             priority: _priority,
             scheduledDate: _scheduledDate,
