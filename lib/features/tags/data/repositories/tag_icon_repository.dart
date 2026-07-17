@@ -13,8 +13,8 @@ class TagIconRepository implements ITagIconRepository {
     final Map<String, IconData> result = {};
     for (final map in maps) {
       final name = map['tag_name'] as String;
-      // ignore: non_const_argument_for_const_parameter
       final codePoint = map['icon_code_point'] as int;
+      // ignore: non_const_argument_for_const_parameter
       result[name] = IconData(codePoint, fontFamily: 'MaterialIcons');
     }
     return result;
