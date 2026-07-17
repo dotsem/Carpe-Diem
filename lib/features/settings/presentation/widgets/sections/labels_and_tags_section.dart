@@ -44,10 +44,7 @@ class LabelsSection extends ConsumerWidget {
               subtitle: 'Import predefined tags and icons for specific interests',
               trailing: FilledButton.tonal(
                 onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => const TagProfileSelectionDialog(),
-                  );
+                  showDialog(context: context, builder: (context) => const TagProfileSelectionDialog());
                 },
                 child: const Text('Select Profile'),
               ),
@@ -69,7 +66,7 @@ class LabelsSection extends ConsumerWidget {
             SettingsSwitchTile(
               icon: Icons.title,
               title: "Keep tags in title",
-              subtitle: "Preserve hashtags inside the task title. If disabled, hashtags are stripped upon saving.",
+              subtitle: "Preserve tags within the task title.",
               value: settings.keepTagsInTitle,
               onChanged: (value) => settingsNotifier.setKeepTagsInTitle(value),
             ),

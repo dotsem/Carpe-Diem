@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 
 class TagAutocompleteTextField extends ConsumerStatefulWidget {
   final TextEditingController controller;
@@ -12,6 +13,7 @@ class TagAutocompleteTextField extends ConsumerStatefulWidget {
   final InputDecoration decoration;
   final TextStyle? style;
   final bool autofocus;
+  final void Function(Tag)? onTagSelected;
 
   const TagAutocompleteTextField({
     super.key,
@@ -20,6 +22,7 @@ class TagAutocompleteTextField extends ConsumerStatefulWidget {
     this.decoration = const InputDecoration(),
     this.style,
     this.autofocus = false,
+    this.onTagSelected,
   });
 
   @override
@@ -149,13 +152,26 @@ class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextFi
     final text = widget.controller.text;
     final before = text.substring(0, start);
     final after = text.substring(end);
-    final newText = '$before#${tag.name} $after';
+
+    final keepTagsInTitle = ref.read(settingsProvider).keepTagsInTitle;
+    String newText;
+    int newCursorOffset;
+
+    if (keepTagsInTitle) {
+      newText = '$before#${tag.name} $after';
+      newCursorOffset = start + tag.name.length + 2;
+    } else {
+      newText = '$before $after'.replaceAll(RegExp(r'\s+'), ' ').trimLeft();
+      newCursorOffset = before.length;
+      if (newCursorOffset > newText.length) newCursorOffset = newText.length;
+    }
 
     widget.controller.text = newText;
-    final newCursorOffset = start + tag.name.length + 2;
     widget.controller.selection = TextSelection.fromPosition(
       TextPosition(offset: newCursorOffset.clamp(0, newText.length)),
     );
+
+    widget.onTagSelected?.call(tag);
 
     setState(() {
       _activeQuery = null;

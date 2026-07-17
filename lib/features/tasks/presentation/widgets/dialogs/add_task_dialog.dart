@@ -162,6 +162,15 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
                 autofocus: true,
                 decoration: const InputDecoration(hintText: 'Task title'),
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                onTagSelected: (tag) {
+                  if (!ref.read(settingsProvider).keepTagsInTitle) {
+                    setState(() {
+                      if (!_selectedTagIds.contains(tag.id)) {
+                        _selectedTagIds.add(tag.id);
+                      }
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               TextField(
