@@ -133,7 +133,7 @@ void main() {
 
       await Future.delayed(Duration.zero);
 
-      verify(() => mockRepo.set('persistent_filter_values', '{}')).called(1);
+      verify(() => mockRepo.set('persistent_filter_values', jsonEncode(const TaskFilter().toMap()))).called(1);
     });
   });
 }

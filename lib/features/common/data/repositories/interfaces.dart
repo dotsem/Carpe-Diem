@@ -92,6 +92,7 @@ abstract class ITagRepository implements ICrudRepository<Tag> {
 abstract class ISettingsRepository {
   Future<void> set(String key, String value);
   Future<String?> get(String key);
+  Future<void> delete(String key);
   Future<Map<String, String>> getAll();
 }
 

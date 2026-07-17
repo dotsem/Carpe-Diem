@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
 import 'package:mocktail/mocktail.dart';
 import '../../../../helpers/mock_repositories.dart';
@@ -31,7 +32,7 @@ void main() {
     test('should load settings from repository into state', () async {
       when(
         () => mockRepo.getAll(),
-      ).thenAnswer((_) async => {'theme_mode': 'dark', 'compact_mode': 'true', 'task_layout': 'kanban'});
+      ).thenAnswer((_) async => {'theme_mode': 'dark', 'compact_mode': 'true', SettingsConstants.keyTaskLayout: 'kanban'});
 
       await container.read(settingsProvider.notifier).loadSettings();
 

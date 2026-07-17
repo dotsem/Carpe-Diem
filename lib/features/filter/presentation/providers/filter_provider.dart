@@ -26,13 +26,16 @@ class FilterNotifier extends Notifier<FilterState> {
     return const FilterState();
   }
 
+  void _persistIfEnabled() {
+    if (ref.read(settingsProvider).persistentFilter) {
+      ref.read(settingsProvider.notifier).setPersistentFilterValues(state.filter.toMap());
+    }
+  }
+
   void setFilter(TaskFilter filter) {
     if (state.filter == filter) return;
     state = state.copyWith(filter: filter);
-
-    if (ref.read(settingsProvider).persistentFilter) {
-      ref.read(settingsProvider.notifier).setPersistentFilterValues(filter.toMap());
-    }
+    _persistIfEnabled();
   }
 
   void toggleBypass() {
@@ -42,10 +45,7 @@ class FilterNotifier extends Notifier<FilterState> {
   void clearFilter() {
     if (state.filter.isEmpty) return;
     state = const FilterState(filter: TaskFilter(), isBypassed: false);
-
-    if (ref.read(settingsProvider).persistentFilter) {
-      ref.read(settingsProvider.notifier).setPersistentFilterValues({});
-    }
+    _persistIfEnabled();
   }
 
   void removeLabelFilter(String labelId) {
@@ -55,12 +55,14 @@ class FilterNotifier extends Notifier<FilterState> {
           labelIdsIncluded: Set<String>.from(state.filter.labelIdsIncluded)..remove(labelId),
         ),
       );
+      _persistIfEnabled();
     } else if (state.filter.labelIdsExcluded.contains(labelId)) {
       state = state.copyWith(
         filter: state.filter.copyWith(
           labelIdsExcluded: Set<String>.from(state.filter.labelIdsExcluded)..remove(labelId),
         ),
       );
+      _persistIfEnabled();
     }
   }
 
@@ -71,12 +73,14 @@ class FilterNotifier extends Notifier<FilterState> {
           projectIdsIncluded: Set<String>.from(state.filter.projectIdsIncluded)..remove(projectId),
         ),
       );
+      _persistIfEnabled();
     } else if (state.filter.projectIdsExcluded.contains(projectId)) {
       state = state.copyWith(
         filter: state.filter.copyWith(
           projectIdsExcluded: Set<String>.from(state.filter.projectIdsExcluded)..remove(projectId),
         ),
       );
+      _persistIfEnabled();
     }
   }
 
@@ -87,12 +91,14 @@ class FilterNotifier extends Notifier<FilterState> {
           prioritiesIncluded: Set<Priority>.from(state.filter.prioritiesIncluded)..remove(priority),
         ),
       );
+      _persistIfEnabled();
     } else if (state.filter.prioritiesExcluded.contains(priority)) {
       state = state.copyWith(
         filter: state.filter.copyWith(
           prioritiesExcluded: Set<Priority>.from(state.filter.prioritiesExcluded)..remove(priority),
         ),
       );
+      _persistIfEnabled();
     }
   }
 }

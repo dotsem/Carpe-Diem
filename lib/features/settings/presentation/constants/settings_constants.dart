@@ -22,6 +22,7 @@ class SettingsConstants {
   static const bool defaultShowHashtagInTitle = false;
 
   // Setting keys
+  static const String keyTaskLayout = 'task_layout';
   static const String keyMaxPlanningDays = 'max_planning_days';
   static const String keyFirstDayOfWeek = 'first_day_of_week';
   static const String keyTaskDelay = 'task_delay';

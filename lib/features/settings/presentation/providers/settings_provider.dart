@@ -26,7 +26,7 @@ class SettingsState {
     return values.firstWhere((e) => e.name == valueStr, orElse: () => defaultValue);
   }
 
-  TaskLayout get taskLayout => _getEnum('task_layout', TaskLayout.values, TaskLayout.list);
+  TaskLayout get taskLayout => _getEnum(SettingsConstants.keyTaskLayout, TaskLayout.values, TaskLayout.list);
   int get maxPlanningDays => _getInt(SettingsConstants.keyMaxPlanningDays, SettingsConstants.maxPlanningDaysAhead);
   int get firstDayOfWeek => _getInt(SettingsConstants.keyFirstDayOfWeek, SettingsConstants.firstDayOfWeek);
   int get taskCompletionDelay => _getInt(SettingsConstants.keyTaskDelay, SettingsConstants.taskCompletionDelaySeconds);
@@ -44,10 +44,7 @@ class SettingsState {
   bool get showDescriptionOnCard =>
       _getBool(SettingsConstants.keyShowDescriptionOnCard, SettingsConstants.defaultShowDescriptionOnCard);
   String get defaultPriority => _get(SettingsConstants.keyDefaultPriority, SettingsConstants.defaultTaskPriority);
-  String? get defaultProjectId {
-    final id = _get(SettingsConstants.keyDefaultProjectId, 'null');
-    return id == 'null' ? null : id;
-  }
+  String? get defaultProjectId => _map[SettingsConstants.keyDefaultProjectId];
 
   int get historyRetention => _getInt(SettingsConstants.keyHistoryRetention, SettingsConstants.defaultHistoryRetention);
   String get defaultStatsPeriod => _get(SettingsConstants.keyDefaultStatsPeriod, SettingsConstants.defaultStatsPeriod);
@@ -73,6 +70,7 @@ class SettingsState {
 
 class SettingsNotifier extends Notifier<SettingsState> {
   late final ISettingsRepository _repo;
+  final Map<String, Future<void>> _writeQueues = {};
 
   @override
   SettingsState build() {
@@ -81,8 +79,13 @@ class SettingsNotifier extends Notifier<SettingsState> {
   }
 
   Future<void> loadSettings() async {
-    final map = await _repo.getAll();
-    state = SettingsState(map);
+    try {
+      final map = await _repo.getAll();
+      state = SettingsState(map);
+    } catch (e) {
+      debugPrint('Failed to load settings: $e');
+      state = const SettingsState({});
+    }
   }
 
   Future<void> _set(String key, Object value) async {
@@ -106,10 +109,25 @@ class SettingsNotifier extends Notifier<SettingsState> {
     final updatedMap = Map<String, String>.from(state._map);
     updatedMap[key] = stringValue;
     state = SettingsState(updatedMap);
-    await _repo.set(key, stringValue);
+
+    final queue = _writeQueues[key] ?? Future.value();
+    final writeTask = queue.catchError((_) {}).then((_) => _repo.set(key, stringValue));
+    _writeQueues[key] = writeTask;
+    await writeTask;
   }
 
-  Future<void> setTaskLayout(TaskLayout layout) => _set('task_layout', layout);
+  Future<void> _delete(String key) async {
+    final updatedMap = Map<String, String>.from(state._map);
+    updatedMap.remove(key);
+    state = SettingsState(updatedMap);
+
+    final queue = _writeQueues[key] ?? Future.value();
+    final writeTask = queue.catchError((_) {}).then((_) => _repo.delete(key));
+    _writeQueues[key] = writeTask;
+    await writeTask;
+  }
+
+  Future<void> setTaskLayout(TaskLayout layout) => _set(SettingsConstants.keyTaskLayout, layout);
   Future<void> setMaxPlanningDays(int days) => _set(SettingsConstants.keyMaxPlanningDays, days);
   Future<void> setFirstDayOfWeek(int day) => _set(SettingsConstants.keyFirstDayOfWeek, day);
   Future<void> setTaskCompletionDelay(int seconds) => _set(SettingsConstants.keyTaskDelay, seconds);
@@ -123,7 +141,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> setShowDescriptionOnCard(bool value) => _set(SettingsConstants.keyShowDescriptionOnCard, value);
   Future<void> setDefaultPriority(String priority) => _set(SettingsConstants.keyDefaultPriority, priority);
   Future<void> setDefaultProjectId(String? projectId) =>
-      _set(SettingsConstants.keyDefaultProjectId, projectId ?? 'null');
+      projectId == null ? _delete(SettingsConstants.keyDefaultProjectId) : _set(SettingsConstants.keyDefaultProjectId, projectId);
   Future<void> setHistoryRetention(int days) => _set(SettingsConstants.keyHistoryRetention, days);
   Future<void> setDefaultStatsPeriod(String period) => _set(SettingsConstants.keyDefaultStatsPeriod, period);
   Future<void> setShowActiveProjectsOnly(bool value) => _set(SettingsConstants.keyShowActiveProjectsOnly, value);
