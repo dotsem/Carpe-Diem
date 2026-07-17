@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import '../../../../helpers/mock_repositories.dart';
 void main() {
   setUpAll(() {
     registerFallbackValue(const Tag(id: '', name: ''));
+    registerFallbackValue(Icons.add);
   });
 
   group('tags', () {
@@ -17,6 +19,7 @@ void main() {
     late MockTaskRepository mockTaskRepo;
     late MockHistoryRepository mockHistoryRepo;
     late MockSettingsRepository mockSettingsRepo;
+    late MockTagIconRepository mockTagIconRepo;
     late ProviderContainer container;
 
     setUp(() {
@@ -25,14 +28,24 @@ void main() {
       mockTaskRepo = MockTaskRepository();
       mockHistoryRepo = MockHistoryRepository();
       mockSettingsRepo = MockSettingsRepository();
+      mockTagIconRepo = MockTagIconRepository();
 
       when(() => mockRepo.repositoryName).thenReturn('tags');
       when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
-      when(() => mockTaskRepo.getAll()).thenAnswer((_) async => []);
-      when(() => mockTaskRepo.getByDate(any(), prioritizeDeadlines: any(named: 'prioritizeDeadlines'))).thenAnswer((_) async => []);
+      when(
+        () => mockTaskRepo.getAll(prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
+      ).thenAnswer((_) async => []);
+      when(
+        () => mockTaskRepo.getByDate(any(), prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
+      ).thenAnswer((_) async => []);
       when(() => mockTaskRepo.getOverdue(any())).thenAnswer((_) async => []);
-      when(() => mockTaskRepo.getUnscheduled(prioritizeDeadlines: any(named: 'prioritizeDeadlines'))).thenAnswer((_) async => []);
+      when(
+        () => mockTaskRepo.getUnscheduled(prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
+      ).thenAnswer((_) async => []);
       when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
+      when(() => mockTagIconRepo.getAllIconDatas()).thenAnswer((_) async => {});
+      when(() => mockTagIconRepo.deleteIconDataForTag(any())).thenAnswer((_) async => {});
+      when(() => mockTagIconRepo.setIconDataForTag(any(), any())).thenAnswer((_) async => {});
 
       container = ProviderContainer(
         overrides: [
@@ -41,6 +54,7 @@ void main() {
           taskRepositoryProvider.overrideWithValue(mockTaskRepo),
           historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
           settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+          tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
         ],
       );
     });
