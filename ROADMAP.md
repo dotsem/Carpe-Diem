@@ -77,6 +77,8 @@ The focus of this version is enhancing functionality and user experience.
 - [✅] **Tags:** Support adding tags to tasks.
 - [ ] **Sub-tasks:** Support sub-tasks.
 - [ ] **Dialog overhaul:** Overhaul the dialogs to be more user friendly. Try to use the sidebar for more settings and less dialogs.
+- [ ] **Sorting overhaul:** Overhaul the sorting to step away from the 5 stage priority sorting and allow more flexibility.
+- [ ] **Desktop overhaul:** Overhaul the desktop UI to be more user friendly. Try to use the sidebar for more settings and less dialogs.
 
 ---
 
