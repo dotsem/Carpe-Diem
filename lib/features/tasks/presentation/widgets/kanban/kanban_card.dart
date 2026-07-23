@@ -7,8 +7,9 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
-import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
 
 class KanbanCard extends ConsumerWidget {
   final TaskNode node;
@@ -34,23 +35,13 @@ class KanbanCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
 
-    return Draggable<Task>(
+    return PlatformDraggable<Task>(
       data: task,
-      feedback: Material(
-        elevation: 8,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: 250,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            settings.showHashtagInTitle ? task.title : TagParser.hideHashtagSymbols(task.title),
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
-          ),
-        ),
+      delay: const Duration(milliseconds: 150),
+      feedback: TaskDragProxy(
+        task: task,
+        selectedCount: 1, // Kanban board doesn't currently support multi-select drag, so just 1
+        showHashtagInTitle: settings.showHashtagInTitle,
       ),
       childWhenDragging: Opacity(
         opacity: 0.3,

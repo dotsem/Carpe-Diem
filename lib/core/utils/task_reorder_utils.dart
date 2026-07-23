@@ -22,29 +22,22 @@ class TaskReorderUtils {
 
   static String? handleReorder({
     required List<TaskHierarchyNode> nodes,
-    required int oldIndex,
+    required Task draggedTask,
     required int newIndex,
     required SettingsState settings,
   }) {
-    if (oldIndex >= nodes.length) return null;
-    final node = nodes[oldIndex];
-    if (node is! TaskNode) return null;
-
-    final movedTask = node.task;
-    
     final sameGroupTasks = nodes
         .whereType<TaskNode>()
         .map((n) => n.task)
-        .where((t) => inSameGroup(t, movedTask, settings))
+        .where((t) => inSameGroup(t, draggedTask, settings))
         .toList();
 
-    final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == movedTask.id);
-    if (taskOldIndex == -1) return null;
+    final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == draggedTask.id);
 
     int targetCount = 0;
     for (int i = 0; i < newIndex && i < nodes.length; i++) {
       final n = nodes[i];
-      if (n is TaskNode && inSameGroup(n.task, movedTask, settings)) {
+      if (n is TaskNode && inSameGroup(n.task, draggedTask, settings)) {
         targetCount++;
       }
     }
@@ -59,17 +52,11 @@ class TaskReorderUtils {
 
   static Map<String, String>? handleMultiReorder({
     required List<TaskHierarchyNode> nodes,
-    required int oldIndex,
+    required Task draggedTask,
     required int newIndex,
     required Set<String> selectedTaskIds,
     required SettingsState settings,
   }) {
-    if (oldIndex >= nodes.length) return null;
-    final node = nodes[oldIndex];
-    if (node is! TaskNode) return null;
-
-    final draggedTask = node.task;
-    
     if (!selectedTaskIds.contains(draggedTask.id)) return null;
 
     final sameGroupTasks = nodes

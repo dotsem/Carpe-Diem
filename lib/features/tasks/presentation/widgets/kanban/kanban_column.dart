@@ -12,8 +12,9 @@ import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
 
-class KanbanColumn extends ConsumerWidget {
+class KanbanColumn extends ConsumerStatefulWidget {
   final String title;
   final Color titleColor;
   final List<Task> tasks;
@@ -46,32 +47,39 @@ class KanbanColumn extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<KanbanColumn> createState() => _KanbanColumnState();
+}
+
+class _KanbanColumnState extends ConsumerState<KanbanColumn> {
+  int _hoveredChildren = 0;
+
+  @override
+  Widget build(BuildContext context) {
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
-        if (details.data.status != acceptedStatus) {
-          onDragEntering?.call();
+        if (details.data.status != widget.acceptedStatus) {
+          widget.onDragEntering?.call();
           return true;
         }
         return false;
       },
-      onLeave: (details) => onDragExiting?.call(),
+      onLeave: (details) => widget.onDragExiting?.call(),
       onAcceptWithDetails: (details) {
-        onDragExiting?.call();
-        onStatusChange(details.data, acceptedStatus);
+        widget.onDragExiting?.call();
+        widget.onStatusChange(details.data, widget.acceptedStatus);
       },
       builder: (context, candidateData, rejectedData) {
-        if (isCollapsed) {
+        if (widget.isCollapsed) {
           return _buildCollapsed(context);
         }
-        return _buildFull(context, ref, candidateData.isNotEmpty);
+        return _buildFull(context, candidateData.isNotEmpty || _hoveredChildren > 0);
       },
     );
   }
 
   Widget _buildCollapsed(BuildContext context) {
     return GestureDetector(
-      onTap: onToggle,
+      onTap: widget.onToggle,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Container(
@@ -83,26 +91,30 @@ class KanbanColumn extends ConsumerWidget {
           ),
           child: Column(
             children: [
-              const SizedBox(height: 12),
-              SmallChip(
-                padding: const EdgeInsets.all(2.0),
-                borderRadius: 10,
-                color: titleColor.withValues(alpha: 0.15),
-                child: Text(
-                  '${tasks.length}',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: titleColor),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: widget.titleColor,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
-              RotatedBox(
-                quarterTurns: 1,
-                child: Text(
-                  title.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                    color: titleColor.withValues(alpha: 0.7),
+              Expanded(
+                child: Center(
+                  child: RotatedBox(
+                    quarterTurns: 1,
+                    child: Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: widget.titleColor,
+                        letterSpacing: 2,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -113,15 +125,15 @@ class KanbanColumn extends ConsumerWidget {
     );
   }
 
-  Widget _buildFull(BuildContext context, WidgetRef ref, bool isHighlighted) {
-    final projectNotifier = ref.read(projectProvider.notifier);
+  Widget _buildFull(BuildContext context, bool isHighlighted) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: isHighlighted ? titleColor.withValues(alpha: 0.1) : Theme.of(context).scaffoldBackgroundColor,
+        color: isHighlighted ? widget.titleColor.withValues(alpha: 0.1) : Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isHighlighted ? titleColor.withValues(alpha: 0.4) : Theme.of(context).colorScheme.surfaceContainerHigh,
+          color: isHighlighted ? widget.titleColor.withValues(alpha: 0.4) : Theme.of(context).colorScheme.surfaceContainerHigh,
           width: isHighlighted ? 2 : 1,
         ),
       ),
@@ -134,25 +146,25 @@ class KanbanColumn extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    title,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: titleColor),
+                    widget.title,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: widget.titleColor),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),
                 SmallChip(
                   borderRadius: 10,
-                  color: titleColor.withValues(alpha: 0.15),
+                  color: widget.titleColor.withValues(alpha: 0.15),
                   child: Text(
-                    '${tasks.length}',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: titleColor),
+                    '${widget.tasks.length}',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: widget.titleColor),
                   ),
                 ),
-                if (onToggle != null && isNarrow) ...[
+                if (widget.onToggle != null && widget.isNarrow) ...[
                   const SizedBox(width: 4),
                   IconButton(
                     icon: const Icon(Icons.chevron_right, size: 16),
-                    onPressed: onToggle,
+                    onPressed: widget.onToggle,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     visualDensity: VisualDensity.compact,
@@ -164,58 +176,46 @@ class KanbanColumn extends ConsumerWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            child: tasks.isEmpty
+            child: widget.tasks.isEmpty
                 ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(
-                        'Drop tasks here',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
-                      ),
+                    child: Text(
+                      'No tasks',
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   )
-                : Builder(
-                    builder: (context) {
+                : Consumer(
+                    builder: (context, ref, child) {
                       final taskState = ref.watch(taskProvider);
                       final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
                         ..addAll({for (var t in taskState.overdueTasks) t.id: t})
                         ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
 
-                      final hierarchical = TaskHierarchyUtils.buildHierarchy(tasks, allTasks: allAvailableTasks);
-                      return ReorderableListView.builder(
+                      final projectNotifier = ref.read(projectProvider.notifier);
+                      final hierarchical = TaskHierarchyUtils.buildHierarchy(widget.tasks, allTasks: allAvailableTasks);
+                      return ListView.builder(
                         padding: const EdgeInsets.all(8),
                         itemCount: hierarchical.length,
-                        onReorder: (oldIndex, newIndex) {
-                          final settings = ref.read(settingsProvider);
-                          final newSortOrder = TaskReorderUtils.handleReorder(
-                            nodes: hierarchical,
-                            oldIndex: oldIndex,
-                            newIndex: newIndex,
-                            settings: settings,
-                          );
-                          if (newSortOrder != null) {
-                            final movedTask = (hierarchical[oldIndex] as TaskNode).task;
-                            ref.read(taskProvider.notifier).reorderTask(movedTask, newSortOrder);
-                          }
-                        },
                         itemBuilder: (context, index) {
                           final node = hierarchical[index];
+                          
+                          Widget childWidget = const SizedBox.shrink();
+
                           if (node is TaskNode) {
                             final task = node.task;
-                            final focusNode = itemFocusNodes?.putIfAbsent(
+                            final focusNode = widget.itemFocusNodes?.putIfAbsent(
                               task.id,
                               () => FocusNode(debugLabel: 'KanbanTask_${task.id}'),
                             );
-                            return KanbanCard(
+                            childWidget = KanbanCard(
                               key: ValueKey(task.id),
                               node: node,
                               projectNotifier: projectNotifier,
-                              onContextMenu: onContextMenu,
-                              onEdit: onEdit,
+                              onContextMenu: widget.onContextMenu,
+                              onEdit: widget.onEdit,
                               focusNode: focusNode,
                             );
                           } else if (node is BlockerIndicatorNode) {
-                            return TaskHierarchyIndicator(
+                            childWidget = TaskHierarchyIndicator(
                               depth: node.depth,
                               child: BlockerIndicator(
                                 blockerId: node.blockerId,
@@ -224,7 +224,35 @@ class KanbanColumn extends ConsumerWidget {
                               ),
                             );
                           }
-                          return const SizedBox.shrink();
+
+                          return TaskDropZoneWrapper(
+                            index: index,
+                            onHover: (hovered) {
+                              setState(() {
+                                if (hovered) {
+                                  _hoveredChildren++;
+                                } else {
+                                  _hoveredChildren--;
+                                }
+                              });
+                            },
+                            onDrop: (task, newIndex) {
+                              final settings = ref.read(settingsProvider);
+                              final newSortOrder = TaskReorderUtils.handleReorder(
+                                nodes: hierarchical,
+                                draggedTask: task,
+                                newIndex: newIndex,
+                                settings: settings,
+                              );
+                              if (newSortOrder != null) {
+                                ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
+                              }
+                              if (task.status != widget.acceptedStatus) {
+                                widget.onStatusChange(task, widget.acceptedStatus);
+                              }
+                            },
+                            child: childWidget,
+                          );
                         },
                       );
                     },

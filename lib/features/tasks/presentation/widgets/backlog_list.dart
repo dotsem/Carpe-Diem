@@ -6,6 +6,9 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -173,52 +176,67 @@ class BacklogList extends ConsumerWidget {
       return TaskHierarchyIndicator(depth: n.depth, child: child);
     }
 
-    return ReorderableListView.builder(
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 16),
       itemCount: activeHierarchical.length,
-      onReorder: (oldIndex, newIndex) {
-        final settings = ref.read(settingsProvider);
-        if (selectedTaskIds.isNotEmpty) {
-          final newSortOrders = TaskReorderUtils.handleMultiReorder(
-            nodes: activeHierarchical,
-            oldIndex: oldIndex,
-            newIndex: newIndex,
-            selectedTaskIds: selectedTaskIds.toSet(),
-            settings: settings,
-          );
-          if (newSortOrders != null && newSortOrders.isNotEmpty) {
-            ref.read(taskProvider.notifier).bulkReorderTasks(newSortOrders);
-          } else {
-            final newSortOrder = TaskReorderUtils.handleReorder(
-              nodes: activeHierarchical,
-              oldIndex: oldIndex,
-              newIndex: newIndex,
-              settings: settings,
-            );
-            if (newSortOrder != null) {
-              final movedTask = (activeHierarchical[oldIndex] as TaskNode).task;
-              ref.read(taskProvider.notifier).reorderTask(movedTask, newSortOrder);
-            }
-          }
-        } else {
-          final newSortOrder = TaskReorderUtils.handleReorder(
-            nodes: activeHierarchical,
-            oldIndex: oldIndex,
-            newIndex: newIndex,
-            settings: settings,
-          );
-          if (newSortOrder != null) {
-            final movedTask = (activeHierarchical[oldIndex] as TaskNode).task;
-            ref.read(taskProvider.notifier).reorderTask(movedTask, newSortOrder);
-          }
-        }
-      },
       itemBuilder: (context, index) {
-        return Container(
-          key: ValueKey(activeHierarchical[index] is TaskNode
-              ? (activeHierarchical[index] as TaskNode).task.id
-              : 'indicator_${(activeHierarchical[index] as BlockerIndicatorNode).blockerId}'),
-          child: buildNode(activeHierarchical[index]),
+        final node = activeHierarchical[index];
+        final child = buildNode(node);
+
+        Widget draggableChild = child;
+        if (node is TaskNode) {
+          final isSelected = selectedTaskIds.contains(node.task.id);
+          final settings = ref.read(settingsProvider);
+          draggableChild = PlatformDraggable<Task>(
+            data: node.task,
+            feedback: TaskDragProxy(
+              task: node.task,
+              selectedCount: isSelected ? selectedTaskIds.length : 1,
+              showHashtagInTitle: settings.showHashtagInTitle,
+            ),
+            childWhenDragging: Opacity(opacity: 0.3, child: child),
+            child: child,
+          );
+        }
+
+        return TaskDropZoneWrapper(
+          index: index,
+          onDrop: (task, newIndex) {
+            final settings = ref.read(settingsProvider);
+            if (selectedTaskIds.isNotEmpty) {
+              final newSortOrders = TaskReorderUtils.handleMultiReorder(
+                nodes: activeHierarchical,
+                draggedTask: task,
+                newIndex: newIndex,
+                selectedTaskIds: selectedTaskIds.toSet(),
+                settings: settings,
+              );
+              if (newSortOrders != null && newSortOrders.isNotEmpty) {
+                ref.read(taskProvider.notifier).bulkReorderTasks(newSortOrders);
+              } else {
+                final newSortOrder = TaskReorderUtils.handleReorder(
+                  nodes: activeHierarchical,
+                  draggedTask: task,
+                  newIndex: newIndex,
+                  settings: settings,
+                );
+                if (newSortOrder != null) {
+                  ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
+                }
+              }
+            } else {
+              final newSortOrder = TaskReorderUtils.handleReorder(
+                nodes: activeHierarchical,
+                draggedTask: task,
+                newIndex: newIndex,
+                settings: settings,
+              );
+              if (newSortOrder != null) {
+                ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
+              }
+            }
+          },
+          child: draggableChild,
         );
       },
     );
