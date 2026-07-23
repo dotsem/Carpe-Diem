@@ -32,7 +32,6 @@ class TaskReorderUtils {
 
     final movedTask = node.task;
     
-    // Filter to only tasks in the same sorting group
     final sameGroupTasks = nodes
         .whereType<TaskNode>()
         .map((n) => n.task)
@@ -42,7 +41,6 @@ class TaskReorderUtils {
     final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == movedTask.id);
     if (taskOldIndex == -1) return null;
 
-    // Count how many same-group tasks appear before the new index
     int targetCount = 0;
     for (int i = 0; i < newIndex && i < nodes.length; i++) {
       final n = nodes[i];
@@ -57,5 +55,60 @@ class TaskReorderUtils {
       targetCount,
       (t) => t.sortOrder,
     );
+  }
+
+  static Map<String, String>? handleMultiReorder({
+    required List<TaskHierarchyNode> nodes,
+    required int oldIndex,
+    required int newIndex,
+    required Set<String> selectedTaskIds,
+    required SettingsState settings,
+  }) {
+    if (oldIndex >= nodes.length) return null;
+    final node = nodes[oldIndex];
+    if (node is! TaskNode) return null;
+
+    final draggedTask = node.task;
+    
+    if (!selectedTaskIds.contains(draggedTask.id)) return null;
+
+    final sameGroupTasks = nodes
+        .whereType<TaskNode>()
+        .map((n) => n.task)
+        .where((t) => inSameGroup(t, draggedTask, settings))
+        .toList();
+
+    final selectedSameGroupTasks = sameGroupTasks
+        .where((t) => selectedTaskIds.contains(t.id))
+        .toList();
+
+    if (selectedSameGroupTasks.isEmpty) return null;
+
+    final remaining = List<Task>.from(sameGroupTasks)
+      ..removeWhere((t) => selectedTaskIds.contains(t.id));
+
+    int targetCount = 0;
+    for (int i = 0; i < newIndex && i < nodes.length; i++) {
+      final n = nodes[i];
+      if (n is TaskNode &&
+          inSameGroup(n.task, draggedTask, settings) &&
+          !selectedTaskIds.contains(n.task.id)) {
+        targetCount++;
+      }
+    }
+
+    final String? prev = targetCount == 0 ? null : remaining[targetCount - 1].sortOrder;
+    final String? next = targetCount >= remaining.length ? null : remaining[targetCount].sortOrder;
+
+    final Map<String, String> newSortOrders = {};
+    String? currentPrev = prev;
+
+    for (final task in selectedSameGroupTasks) {
+      final newSortOrder = LexoRankUtils.generateBetween(currentPrev, next);
+      newSortOrders[task.id] = newSortOrder;
+      currentPrev = newSortOrder;
+    }
+
+    return newSortOrders;
   }
 }

@@ -178,15 +178,39 @@ class BacklogList extends ConsumerWidget {
       itemCount: activeHierarchical.length,
       onReorder: (oldIndex, newIndex) {
         final settings = ref.read(settingsProvider);
-        final newSortOrder = TaskReorderUtils.handleReorder(
-          nodes: activeHierarchical,
-          oldIndex: oldIndex,
-          newIndex: newIndex,
-          settings: settings,
-        );
-        if (newSortOrder != null) {
-          final movedTask = (activeHierarchical[oldIndex] as TaskNode).task;
-          ref.read(taskProvider.notifier).reorderTask(movedTask, newSortOrder);
+        if (selectedTaskIds.isNotEmpty) {
+          final newSortOrders = TaskReorderUtils.handleMultiReorder(
+            nodes: activeHierarchical,
+            oldIndex: oldIndex,
+            newIndex: newIndex,
+            selectedTaskIds: selectedTaskIds.toSet(),
+            settings: settings,
+          );
+          if (newSortOrders != null && newSortOrders.isNotEmpty) {
+            ref.read(taskProvider.notifier).bulkReorderTasks(newSortOrders);
+          } else {
+            final newSortOrder = TaskReorderUtils.handleReorder(
+              nodes: activeHierarchical,
+              oldIndex: oldIndex,
+              newIndex: newIndex,
+              settings: settings,
+            );
+            if (newSortOrder != null) {
+              final movedTask = (activeHierarchical[oldIndex] as TaskNode).task;
+              ref.read(taskProvider.notifier).reorderTask(movedTask, newSortOrder);
+            }
+          }
+        } else {
+          final newSortOrder = TaskReorderUtils.handleReorder(
+            nodes: activeHierarchical,
+            oldIndex: oldIndex,
+            newIndex: newIndex,
+            settings: settings,
+          );
+          if (newSortOrder != null) {
+            final movedTask = (activeHierarchical[oldIndex] as TaskNode).task;
+            ref.read(taskProvider.notifier).reorderTask(movedTask, newSortOrder);
+          }
         }
       },
       itemBuilder: (context, index) {

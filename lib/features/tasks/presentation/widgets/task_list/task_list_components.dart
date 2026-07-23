@@ -201,13 +201,17 @@ class TaskListKeyboardShortcuts extends StatelessWidget {
 class ActiveTaskReorderableList extends ConsumerWidget {
   final List<TaskHierarchyNode> nodes;
   final List<Widget> widgets;
+  final Set<String> selectedTaskIds;
   final void Function(Task task, String newSortOrder) onReorder;
+  final void Function(Map<String, String> newSortOrders)? onMultiReorder;
 
   const ActiveTaskReorderableList({
     super.key,
     required this.nodes,
     required this.widgets,
+    this.selectedTaskIds = const {},
     required this.onReorder,
+    this.onMultiReorder,
   });
 
   @override
@@ -218,15 +222,39 @@ class ActiveTaskReorderableList extends ConsumerWidget {
       itemCount: widgets.length,
       onReorder: (oldIndex, newIndex) {
         final settings = ref.read(settingsProvider);
-        final newSortOrder = TaskReorderUtils.handleReorder(
-          nodes: nodes,
-          oldIndex: oldIndex,
-          newIndex: newIndex,
-          settings: settings,
-        );
-        if (newSortOrder != null) {
-          final movedTask = (nodes[oldIndex] as TaskNode).task;
-          onReorder(movedTask, newSortOrder);
+        if (selectedTaskIds.isNotEmpty) {
+          final newSortOrders = TaskReorderUtils.handleMultiReorder(
+            nodes: nodes,
+            oldIndex: oldIndex,
+            newIndex: newIndex,
+            selectedTaskIds: selectedTaskIds,
+            settings: settings,
+          );
+          if (newSortOrders != null && newSortOrders.isNotEmpty) {
+            onMultiReorder?.call(newSortOrders);
+          } else {
+            final newSortOrder = TaskReorderUtils.handleReorder(
+              nodes: nodes,
+              oldIndex: oldIndex,
+              newIndex: newIndex,
+              settings: settings,
+            );
+            if (newSortOrder != null) {
+              final movedTask = (nodes[oldIndex] as TaskNode).task;
+              onReorder(movedTask, newSortOrder);
+            }
+          }
+        } else {
+          final newSortOrder = TaskReorderUtils.handleReorder(
+            nodes: nodes,
+            oldIndex: oldIndex,
+            newIndex: newIndex,
+            settings: settings,
+          );
+          if (newSortOrder != null) {
+            final movedTask = (nodes[oldIndex] as TaskNode).task;
+            onReorder(movedTask, newSortOrder);
+          }
         }
       },
       itemBuilder: (context, index) {

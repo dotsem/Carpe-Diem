@@ -261,7 +261,9 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
                 return ActiveTaskReorderableList(
                   nodes: activeNodes,
                   widgets: activeNodes.map((n) => buildNode(n, isOverdue)).toList(),
+                  selectedTaskIds: widget.selectedTaskIds,
                   onReorder: (task, newSortOrder) => taskNotifier.reorderTask(task, newSortOrder),
+                  onMultiReorder: (newSortOrders) => taskNotifier.bulkReorderTasks(newSortOrders),
                 );
               }),
             if (doneCategory.isNotEmpty) ...[

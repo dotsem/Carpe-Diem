@@ -160,8 +160,6 @@ class TaskNotifier extends Notifier<TaskState> {
 
   Future<void> reorderTask(Task task, String newSortOrder) async {
     final updated = task.copyWith(sortOrder: newSortOrder);
-    
-    // Optimistic UI update to prevent drag-and-drop snap-back
     state = state.copyWith(
       tasks: _optimisticallyReorder(state.tasks, updated),
       overdueTasks: _optimisticallyReorder(state.overdueTasks, updated),
@@ -172,11 +170,55 @@ class TaskNotifier extends Notifier<TaskState> {
     await _refreshAll();
   }
 
+  Future<void> bulkReorderTasks(Map<String, String> updates) async {
+    if (updates.isEmpty) return;
+    var currentTasks = List<Task>.from(state.tasks);
+    var currentOverdue = List<Task>.from(state.overdueTasks);
+    var currentUnscheduled = List<Task>.from(state.unscheduledTasks);
+
+    for (final entry in updates.entries) {
+      final taskId = entry.key;
+      final newSortOrder = entry.value;
+
+      Task? findAndApply(List<Task> list) {
+        final idx = list.indexWhere((t) => t.id == taskId);
+        if (idx != -1) {
+          final updated = list[idx].copyWith(sortOrder: newSortOrder);
+          list[idx] = updated;
+          return updated;
+        }
+        return null;
+      }
+
+      final updatedTask = findAndApply(currentTasks) ??
+          findAndApply(currentOverdue) ??
+          findAndApply(currentUnscheduled);
+
+      if (updatedTask != null) {
+        currentTasks = _optimisticallyReorder(currentTasks, updatedTask);
+        currentOverdue = _optimisticallyReorder(currentOverdue, updatedTask);
+        currentUnscheduled = _optimisticallyReorder(currentUnscheduled, updatedTask);
+      }
+    }
+
+    state = state.copyWith(
+      tasks: currentTasks,
+      overdueTasks: currentOverdue,
+      unscheduledTasks: currentUnscheduled,
+    );
+    for (final entry in updates.entries) {
+      final task = await _repo.getById(entry.key);
+      if (task != null) {
+        await _repo.update(task.copyWith(sortOrder: entry.value));
+      }
+    }
+    await _refreshAll();
+  }
+
   List<Task> _optimisticallyReorder(List<Task> currentList, Task updatedTask) {
     if (!currentList.any((t) => t.id == updatedTask.id)) return currentList;
     
     final updatedList = currentList.map((t) => t.id == updatedTask.id ? updatedTask : t).toList();
-    // Re-apply the same sort algorithm used in the UI/DB to ensure it matches exactly
     updatedList.sort((a, b) {
       if (a.priority == Priority.urgent && b.priority != Priority.urgent) return -1;
       if (a.priority != Priority.urgent && b.priority == Priority.urgent) return 1;
