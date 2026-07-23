@@ -16,6 +16,8 @@ import 'package:carpe_diem/features/common/presentation/providers/repository_pro
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_markdown_parser.dart';
+import 'package:carpe_diem/core/utils/lexorank_utils.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 
 part 'task_provider_extensions.dart';
 
@@ -113,9 +115,24 @@ class TaskNotifier extends Notifier<TaskState> {
     Priority priority = Priority.none,
     DateTime? deadline,
     String? blockedById,
+    TaskPlacement placement = TaskPlacement.bottom,
     List<String> labelIds = const [],
     List<String> tagIds = const [],
   }) async {
+    String computedSortOrder;
+    final activeList = state.tasks;
+    switch (placement) {
+      case TaskPlacement.top:
+        computedSortOrder = LexoRankUtils.generateTop(activeList.firstOrNull?.sortOrder);
+      case TaskPlacement.middle:
+        computedSortOrder = LexoRankUtils.generateMiddle(
+          activeList.firstOrNull?.sortOrder,
+          activeList.lastOrNull?.sortOrder,
+        );
+      default:
+        computedSortOrder = LexoRankUtils.generateBottom(activeList.lastOrNull?.sortOrder);
+    }
+
     final task = Task(
       id: _uuid.v4(),
       title: title,
@@ -126,6 +143,7 @@ class TaskNotifier extends Notifier<TaskState> {
       deadline: deadline != null ? _normalizeDate(deadline) : null,
       createdAt: DateTime.now(),
       blockedById: blockedById,
+      sortOrder: computedSortOrder,
       labelIds: labelIds,
       tagIds: tagIds,
     );
@@ -138,6 +156,55 @@ class TaskNotifier extends Notifier<TaskState> {
       await _propagateDeadline(task);
     }
     await _refreshAll();
+  }
+
+  Future<void> reorderTask(Task task, String newSortOrder) async {
+    final updated = task.copyWith(sortOrder: newSortOrder);
+    
+    // Optimistic UI update to prevent drag-and-drop snap-back
+    state = state.copyWith(
+      tasks: _optimisticallyReorder(state.tasks, updated),
+      overdueTasks: _optimisticallyReorder(state.overdueTasks, updated),
+      unscheduledTasks: _optimisticallyReorder(state.unscheduledTasks, updated),
+    );
+
+    await _repo.update(updated);
+    await _refreshAll();
+  }
+
+  List<Task> _optimisticallyReorder(List<Task> currentList, Task updatedTask) {
+    if (!currentList.any((t) => t.id == updatedTask.id)) return currentList;
+    
+    final updatedList = currentList.map((t) => t.id == updatedTask.id ? updatedTask : t).toList();
+    // Re-apply the same sort algorithm used in the UI/DB to ensure it matches exactly
+    updatedList.sort((a, b) {
+      if (a.priority == Priority.urgent && b.priority != Priority.urgent) return -1;
+      if (a.priority != Priority.urgent && b.priority == Priority.urgent) return 1;
+
+      final settings = ref.read(settingsProvider);
+      
+      if (settings.prioritizeOverdue) {
+        if (a.isOverdue && !b.isOverdue) return -1;
+        if (!a.isOverdue && b.isOverdue) return 1;
+      }
+
+      final deadlineComp = () {
+        if (a.deadline == b.deadline) return 0;
+        if (a.deadline == null) return 1;
+        if (b.deadline == null) return -1;
+        return a.deadline!.compareTo(b.deadline!);
+      }();
+
+      if (settings.prioritizeDeadlines && deadlineComp != 0) {
+        return deadlineComp;
+      }
+
+      final sortComp = a.sortOrder.compareTo(b.sortOrder);
+      if (sortComp != 0) return sortComp;
+
+      return b.createdAt.compareTo(a.createdAt);
+    });
+    return updatedList;
   }
 
   Future<void> updateTaskStatus(Task task, TaskStatus status) async {

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
+import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
+import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
-import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 
 class BacklogList extends ConsumerWidget {
@@ -171,23 +173,30 @@ class BacklogList extends ConsumerWidget {
       return TaskHierarchyIndicator(depth: n.depth, child: child);
     }
 
-    return ListView(
+    return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      children: [
-        ...activeHierarchical.map((n) => buildNode(n)),
-        if (completedHierarchical.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text(
-            'Completed',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 8),
-          ...completedHierarchical.map((n) => buildNode(n)),
-        ],
-      ],
+      itemCount: activeHierarchical.length,
+      onReorder: (oldIndex, newIndex) {
+        final settings = ref.read(settingsProvider);
+        final newSortOrder = TaskReorderUtils.handleReorder(
+          nodes: activeHierarchical,
+          oldIndex: oldIndex,
+          newIndex: newIndex,
+          settings: settings,
+        );
+        if (newSortOrder != null) {
+          final movedTask = (activeHierarchical[oldIndex] as TaskNode).task;
+          ref.read(taskProvider.notifier).reorderTask(movedTask, newSortOrder);
+        }
+      },
+      itemBuilder: (context, index) {
+        return Container(
+          key: ValueKey(activeHierarchical[index] is TaskNode
+              ? (activeHierarchical[index] as TaskNode).task.id
+              : 'indicator_${(activeHierarchical[index] as BlockerIndicatorNode).blockerId}'),
+          child: buildNode(activeHierarchical[index]),
+        );
+      },
     );
   }
 }

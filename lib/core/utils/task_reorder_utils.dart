@@ -1,0 +1,61 @@
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/core/utils/lexorank_utils.dart';
+
+class TaskReorderUtils {
+  static bool inSameGroup(Task a, Task b, SettingsState settings) {
+    if (a.priority == Priority.urgent || b.priority == Priority.urgent) {
+      return a.priority == Priority.urgent && b.priority == Priority.urgent;
+    }
+
+    if (settings.prioritizeOverdue && a.isOverdue != b.isOverdue) return false;
+
+    if (settings.prioritizeDeadlines) {
+      if (a.deadline == null && b.deadline != null) return false;
+      if (a.deadline != null && b.deadline == null) return false;
+      if (a.deadline != null && b.deadline != null && a.deadline != b.deadline) return false;
+    }
+    return true;
+  }
+
+  static String? handleReorder({
+    required List<TaskHierarchyNode> nodes,
+    required int oldIndex,
+    required int newIndex,
+    required SettingsState settings,
+  }) {
+    if (oldIndex >= nodes.length) return null;
+    final node = nodes[oldIndex];
+    if (node is! TaskNode) return null;
+
+    final movedTask = node.task;
+    
+    // Filter to only tasks in the same sorting group
+    final sameGroupTasks = nodes
+        .whereType<TaskNode>()
+        .map((n) => n.task)
+        .where((t) => inSameGroup(t, movedTask, settings))
+        .toList();
+
+    final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == movedTask.id);
+    if (taskOldIndex == -1) return null;
+
+    // Count how many same-group tasks appear before the new index
+    int targetCount = 0;
+    for (int i = 0; i < newIndex && i < nodes.length; i++) {
+      final n = nodes[i];
+      if (n is TaskNode && inSameGroup(n.task, movedTask, settings)) {
+        targetCount++;
+      }
+    }
+
+    return LexoRankUtils.computeReorderSortOrder(
+      sameGroupTasks,
+      taskOldIndex,
+      targetCount,
+      (t) => t.sortOrder,
+    );
+  }
+}

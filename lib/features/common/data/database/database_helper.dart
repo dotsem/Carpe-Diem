@@ -93,6 +93,7 @@ class DatabaseHelper {
         createdAt TEXT NOT NULL,
         completedAt TEXT,
         blockedById TEXT,
+        sortOrder TEXT NOT NULL DEFAULT '',
         FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE SET NULL,
         FOREIGN KEY (blockedById) REFERENCES tasks(id) ON DELETE SET NULL
       )
@@ -219,6 +220,10 @@ class DatabaseHelper {
         )
       ''');
       await _seedTagIcons(db);
+    }
+    if (oldVersion < 15) {
+      await db.execute("ALTER TABLE tasks ADD COLUMN sortOrder TEXT NOT NULL DEFAULT ''");
+      await db.execute("UPDATE tasks SET sortOrder = createdAt WHERE sortOrder = ''");
     }
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
@@ -8,6 +10,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hi
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 
 class TaskListSectionHeader extends StatelessWidget {
   final String title;
@@ -151,6 +154,90 @@ class TaskListEmptyPlaceholder extends StatelessWidget {
           Text('No tasks found', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16)),
         ],
       ),
+    );
+  }
+}
+
+class TaskListKeyboardShortcuts extends StatelessWidget {
+  final bool enablePlanShortcut;
+  final VoidCallback onMoveNext;
+  final VoidCallback onMovePrev;
+  final VoidCallback onPlanToday;
+  final VoidCallback onPlanTomorrow;
+  final Widget child;
+
+  const TaskListKeyboardShortcuts({
+    super.key,
+    required this.enablePlanShortcut,
+    required this.onMoveNext,
+    required this.onMovePrev,
+    required this.onPlanToday,
+    required this.onPlanTomorrow,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: Map.fromEntries([
+        if (enablePlanShortcut) ...[
+          const MapEntry(SingleActivator(TodayKeys.keyboardKey, control: true), PlanTaskIntent()),
+          const MapEntry(SingleActivator(TodayKeys.keyboardKey, control: true, shift: true), PlanTaskTomorrowIntent()),
+        ],
+      ]),
+      child: Actions(
+        actions: {
+          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) => onMoveNext()),
+          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) => onMovePrev()),
+          PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) => onPlanToday()),
+          PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) => onPlanTomorrow()),
+        },
+        child: child,
+      ),
+    );
+  }
+}
+
+class ActiveTaskReorderableList extends ConsumerWidget {
+  final List<TaskHierarchyNode> nodes;
+  final List<Widget> widgets;
+  final void Function(Task task, String newSortOrder) onReorder;
+
+  const ActiveTaskReorderableList({
+    super.key,
+    required this.nodes,
+    required this.widgets,
+    required this.onReorder,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: widgets.length,
+      onReorder: (oldIndex, newIndex) {
+        final settings = ref.read(settingsProvider);
+        final newSortOrder = TaskReorderUtils.handleReorder(
+          nodes: nodes,
+          oldIndex: oldIndex,
+          newIndex: newIndex,
+          settings: settings,
+        );
+        if (newSortOrder != null) {
+          final movedTask = (nodes[oldIndex] as TaskNode).task;
+          onReorder(movedTask, newSortOrder);
+        }
+      },
+      itemBuilder: (context, index) {
+        final node = index < nodes.length ? nodes[index] : null;
+        final itemKey = node is TaskNode
+            ? ValueKey(node.task.id)
+            : node is BlockerIndicatorNode
+                ? ValueKey('indicator_${node.blockerId}')
+                : ValueKey('widget_$index');
+        return Container(key: itemKey, child: widgets[index]);
+      },
     );
   }
 }

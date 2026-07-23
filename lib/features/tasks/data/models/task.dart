@@ -13,6 +13,7 @@ class Task {
   final DateTime createdAt;
   final DateTime? completedAt;
   final String? blockedById;
+  final String sortOrder;
   final List<String> labelIds;
   final List<String> tagIds;
 
@@ -45,6 +46,7 @@ class Task {
     required this.createdAt,
     this.completedAt,
     this.blockedById,
+    this.sortOrder = '',
     this.labelIds = const [],
     this.tagIds = const [],
   });
@@ -62,6 +64,7 @@ class Task {
     'createdAt': createdAt.toIso8601String(),
     'completedAt': completedAt?.toIso8601String(),
     'blockedById': blockedById,
+    'sortOrder': sortOrder,
   };
 
   factory Task.fromMap(Map<String, dynamic> map, {List<String> labelIds = const [], List<String> tagIds = const []}) =>
@@ -77,6 +80,7 @@ class Task {
         createdAt: DateTime.parse(map['createdAt'] as String),
         completedAt: map['completedAt'] != null ? DateTime.parse(map['completedAt'] as String) : null,
         blockedById: map['blockedById'] as String?,
+        sortOrder: (map['sortOrder'] as String?) ?? '',
         labelIds: labelIds,
         tagIds: tagIds,
       );
@@ -95,6 +99,7 @@ class Task {
     DateTime? completedAt,
     String? blockedById,
     bool clearBlockedBy = false,
+    String? sortOrder,
     List<String>? labelIds,
     List<String>? tagIds,
   }) => Task(
@@ -111,6 +116,7 @@ class Task {
         ? (completedAt ?? DateTime.now())
         : (status != null && !status.isDone ? null : this.completedAt),
     blockedById: clearBlockedBy ? null : (blockedById ?? this.blockedById),
+    sortOrder: sortOrder ?? this.sortOrder,
     labelIds: labelIds ?? this.labelIds,
     tagIds: tagIds ?? this.tagIds,
   );

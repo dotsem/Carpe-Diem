@@ -4,7 +4,7 @@ class SettingsConstants {
   static const int taskCompletionDelaySeconds = 5;
   static const bool inheritParentDeadline = true;
   static const bool prioritizeDeadlines = true;
-  static const bool prioritizeOverdue = true;
+  static const bool prioritizeOverdue = false;
   static const bool inheritProjectDeadline = false;
   static const double defaultTaskGradientWidth = 0.5;
   static const bool defaultCompactMode = false;

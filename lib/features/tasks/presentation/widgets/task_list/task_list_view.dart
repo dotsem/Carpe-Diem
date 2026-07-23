@@ -1,4 +1,3 @@
-import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
@@ -7,8 +6,8 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_components.dart';
+import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 
 class TaskListView extends ConsumerStatefulWidget {
@@ -115,6 +114,9 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       );
     } else {
       allTasks.sort((a, b) {
+        if (a.priority == Priority.urgent && b.priority != Priority.urgent) return -1;
+        if (a.priority != Priority.urgent && b.priority == Priority.urgent) return 1;
+
         final settings = ref.read(settingsProvider);
 
         if (settings.prioritizeOverdue) {
@@ -129,25 +131,21 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
           return a.deadline!.compareTo(b.deadline!);
         }();
 
-        final priorityComp = b.priority.index.compareTo(a.priority.index);
-
-        if (settings.prioritizeDeadlines) {
-          if (deadlineComp != 0) return deadlineComp;
-          if (priorityComp != 0) return priorityComp;
-        } else {
-          if (priorityComp != 0) return priorityComp;
-          if (deadlineComp != 0) return deadlineComp;
+        if (settings.prioritizeDeadlines && deadlineComp != 0) {
+          return deadlineComp;
         }
+
+        final sortComp = a.sortOrder.compareTo(b.sortOrder);
+        if (sortComp != 0) return sortComp;
+
         return b.createdAt.compareTo(a.createdAt);
       });
     }
 
-    final inProgressCategory = allTasks.where((t) => t.status.isInProgress).toList();
-    final overdueCategory = allTasks.where((t) => t.status.isTodo && isOverdue(t)).toList();
-    final todoCategory = allTasks.where((t) => t.status.isTodo && !isOverdue(t)).toList();
+    final activeTasks = allTasks.where((t) => !t.status.isDone).toList();
     final doneCategory = allTasks.where((t) => t.status.isDone).toList();
 
-    if (inProgressCategory.isEmpty && overdueCategory.isEmpty && todoCategory.isEmpty && doneCategory.isEmpty) {
+    if (activeTasks.isEmpty && doneCategory.isEmpty) {
       return TaskListEmptyPlaceholder(customPlaceholder: widget.emptyPlaceholder);
     }
 
@@ -164,19 +162,13 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
           ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
         final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
         for (final n in flattened) {
-          if (n is TaskNode) {
-            _orderedItemIds.add(n.task.id);
-          }
+          if (n is TaskNode) _orderedItemIds.add(n.task.id);
         }
       }
     }
 
-    addTasksToOrder(inProgressCategory);
-    addTasksToOrder(overdueCategory);
-    addTasksToOrder(todoCategory);
-    if (_isDoneExpanded) {
-      addTasksToOrder(doneCategory);
-    }
+    addTasksToOrder(activeTasks);
+    if (_isDoneExpanded) addTasksToOrder(doneCategory);
 
     if (widget.onOrderedIdsChanged != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -231,70 +223,47 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       return flattened.map((n) => buildNode(n, overdueFn)).toList();
     }
 
-    return Shortcuts(
-      shortcuts: Map.fromEntries([
-        if (widget.enablePlanShortcut) ...[
-          const MapEntry(SingleActivator(TodayKeys.keyboardKey, control: true), PlanTaskIntent()),
-          const MapEntry(SingleActivator(TodayKeys.keyboardKey, control: true, shift: true), PlanTaskTomorrowIntent()),
-        ],
-      ]),
-      child: Actions(
-        actions: {
-          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) {
-            _moveFocus(1);
-          }),
-          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) {
-            _moveFocus(-1);
-          }),
-          PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) {
-            if (widget.selectedTaskIds.isNotEmpty) {
-              taskNotifier.scheduleTasksForToday(widget.selectedTaskIds.toList()).then((_) {
-                widget.onClearSelection?.call();
-              });
-            } else {
-              final taskId = _getFocusedTaskId();
-              if (taskId != null) {
-                taskNotifier.scheduleTasksForToday([taskId]);
-              }
-            }
-          }),
-          PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) {
-            if (widget.selectedTaskIds.isNotEmpty) {
-              taskNotifier.scheduleTasksForTomorrow(widget.selectedTaskIds.toList()).then((_) {
-                widget.onClearSelection?.call();
-              });
-            } else {
-              final taskId = _getFocusedTaskId();
-              if (taskId != null) {
-                taskNotifier.scheduleTasksForTomorrow([taskId]);
-              }
-            }
-          }),
-        },
-        child: ListView(
+    return TaskListKeyboardShortcuts(
+      enablePlanShortcut: widget.enablePlanShortcut,
+      onMoveNext: () => _moveFocus(1),
+      onMovePrev: () => _moveFocus(-1),
+      onPlanToday: () {
+        if (widget.selectedTaskIds.isNotEmpty) {
+          taskNotifier.scheduleTasksForToday(widget.selectedTaskIds.toList()).then((_) {
+            widget.onClearSelection?.call();
+          });
+        } else {
+          final taskId = _getFocusedTaskId();
+          if (taskId != null) taskNotifier.scheduleTasksForToday([taskId]);
+        }
+      },
+      onPlanTomorrow: () {
+        if (widget.selectedTaskIds.isNotEmpty) {
+          taskNotifier.scheduleTasksForTomorrow(widget.selectedTaskIds.toList()).then((_) {
+            widget.onClearSelection?.call();
+          });
+        } else {
+          final taskId = _getFocusedTaskId();
+          if (taskId != null) taskNotifier.scheduleTasksForTomorrow([taskId]);
+        }
+      },
+      child: ListView(
           padding: widget.padding,
           children: [
-            if (inProgressCategory.isNotEmpty) ...[
-              TaskListSectionHeader(title: 'In Progress', color: AppColors.accent, amount: inProgressCategory.length),
-              const SizedBox(height: 8),
-              ...buildHierarchy(inProgressCategory, isOverdue),
-              const SizedBox(height: 20),
-            ],
-            if (overdueCategory.isNotEmpty) ...[
-              TaskListSectionHeader(title: 'Overdue', color: AppColors.error, amount: overdueCategory.length),
-              const SizedBox(height: 8),
-              ...buildHierarchy(overdueCategory, (_) => true),
-              const SizedBox(height: 20),
-            ],
-            if (todoCategory.isNotEmpty) ...[
-              TaskListSectionHeader(
-                title: 'Todo',
-                amount: todoCategory.length,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 8),
-              ...buildHierarchy(todoCategory, (_) => false),
-            ],
+            if (activeTasks.isNotEmpty)
+              Builder(builder: (context) {
+                final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
+                  ..addAll({for (var t in taskState.overdueTasks) t.id: t})
+                  ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+                final activeNodes = widget.searchQuery != null && widget.searchQuery!.isNotEmpty
+                    ? activeTasks.map((t) => TaskNode(t, 0)).toList()
+                    : TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
+                return ActiveTaskReorderableList(
+                  nodes: activeNodes,
+                  widgets: activeNodes.map((n) => buildNode(n, isOverdue)).toList(),
+                  onReorder: (task, newSortOrder) => taskNotifier.reorderTask(task, newSortOrder),
+                );
+              }),
             if (doneCategory.isNotEmpty) ...[
               const SizedBox(height: 20),
               TaskListSectionHeader(
@@ -319,23 +288,12 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
             ],
           ],
         ),
-      ),
     );
   }
 
-  String? _getFocusedTaskId() {
-    if (_orderedItemIds.isEmpty) return null;
-    for (int i = 0; i < _orderedItemIds.length; i++) {
-      FocusNode? node;
-      if (i == 0 && widget.firstNode != null) {
-        node = widget.firstNode;
-      } else {
-        node = _itemFocusNodes[_orderedItemIds[i]];
-      }
-      if (node?.hasFocus ?? false) {
-        return _orderedItemIds[i];
-      }
-    }
-    return null;
-  }
+  String? _getFocusedTaskId() => FocusUtils.getFocusedId(
+        orderedItemIds: _orderedItemIds,
+        itemFocusNodes: _itemFocusNodes,
+        firstItemFocusNode: widget.firstNode,
+      );
 }

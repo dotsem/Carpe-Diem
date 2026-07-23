@@ -8,6 +8,8 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
+import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_card.dart';
 
@@ -180,9 +182,22 @@ class KanbanColumn extends ConsumerWidget {
                         ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
 
                       final hierarchical = TaskHierarchyUtils.buildHierarchy(tasks, allTasks: allAvailableTasks);
-                      return ListView.builder(
+                      return ReorderableListView.builder(
                         padding: const EdgeInsets.all(8),
                         itemCount: hierarchical.length,
+                        onReorder: (oldIndex, newIndex) {
+                          final settings = ref.read(settingsProvider);
+                          final newSortOrder = TaskReorderUtils.handleReorder(
+                            nodes: hierarchical,
+                            oldIndex: oldIndex,
+                            newIndex: newIndex,
+                            settings: settings,
+                          );
+                          if (newSortOrder != null) {
+                            final movedTask = (hierarchical[oldIndex] as TaskNode).task;
+                            ref.read(taskProvider.notifier).reorderTask(movedTask, newSortOrder);
+                          }
+                        },
                         itemBuilder: (context, index) {
                           final node = hierarchical[index];
                           if (node is TaskNode) {
