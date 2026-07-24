@@ -6,7 +6,7 @@ import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/create_tag
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_autocomplete_text_field.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_highlighting_controller.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -14,7 +14,7 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_picker.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
+
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
@@ -34,7 +34,7 @@ class EditTaskDialog extends ConsumerStatefulWidget {
 class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
   late final TagHighlightingController _nameController;
   final _descController = TextEditingController();
-  late Priority _priority;
+  TaskPlacement? _placement;
   DateTime? _scheduledDate;
   DateTime? _deadline;
   String? _selectedProjectId;
@@ -51,7 +51,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
   void initState() {
     super.initState();
     _descController.text = widget.task.description ?? '';
-    _priority = widget.task.priority;
+    _placement = widget.task.isUrgent ? TaskPlacement.urgent : null;
     _scheduledDate = widget.task.scheduledDate;
     _deadline = widget.task.deadline;
     _selectedProjectId = widget.task.projectId;
@@ -177,14 +177,13 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
         child: CallbackShortcuts(
           bindings: {
             const SingleActivator(AppKeyBindings.digit1, control: true): () =>
-                setState(() => _priority = Priority.none),
-            const SingleActivator(AppKeyBindings.digit2, control: true): () => setState(() => _priority = Priority.low),
+                setState(() => _placement = TaskPlacement.bottom),
+            const SingleActivator(AppKeyBindings.digit2, control: true): () =>
+                setState(() => _placement = TaskPlacement.middle),
             const SingleActivator(AppKeyBindings.digit3, control: true): () =>
-                setState(() => _priority = Priority.medium),
+                setState(() => _placement = TaskPlacement.top),
             const SingleActivator(AppKeyBindings.digit4, control: true): () =>
-                setState(() => _priority = Priority.high),
-            const SingleActivator(AppKeyBindings.digit5, control: true): () =>
-                setState(() => _priority = Priority.urgent),
+                setState(() => _placement = TaskPlacement.urgent),
             const SingleActivator(ProjectsKeys.keyboardKey, control: true): () => _projectMenuController.open(),
           },
           child: Column(
@@ -214,9 +213,24 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
-              Text('Priority', style: Theme.of(context).textTheme.labelLarge),
+              Text('Placement & Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
+              SegmentedButton<TaskPlacement>(
+                expandedInsets: EdgeInsets.zero,
+                emptySelectionAllowed: true,
+                segments: const [
+                  ButtonSegment(value: TaskPlacement.bottom, label: Text('Bottom')),
+                  ButtonSegment(value: TaskPlacement.middle, label: Text('Middle')),
+                  ButtonSegment(value: TaskPlacement.top, label: Text('Top')),
+                  ButtonSegment(value: TaskPlacement.urgent, label: Text('Urgent')),
+                ],
+                selected: _placement != null ? {_placement!} : const {},
+                onSelectionChanged: (Set<TaskPlacement> newSelection) {
+                  setState(() {
+                    _placement = newSelection.firstOrNull;
+                  });
+                },
+              ), // TODO: make widget
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -340,7 +354,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
           widget.task.copyWith(
             title: titleToSave,
             description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),
-            priority: _priority,
+
             scheduledDate: _scheduledDate,
             clearScheduledDate: _scheduledDate == null,
             deadline: _deadline,
@@ -350,6 +364,7 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
             projectId: _selectedProjectId,
             labelIds: _selectedLabelIds,
             tagIds: finalTagIds,
+            isUrgent: _placement == TaskPlacement.urgent,
           ),
         );
 

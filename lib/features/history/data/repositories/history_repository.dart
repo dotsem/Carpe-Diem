@@ -25,11 +25,11 @@ class HistoryRepository implements IHistoryRepository {
     List<dynamic> whereArgs = [TaskStatus.done.index, startStr, endStr];
 
     if (filter != null && !filter.isEmpty) {
-      if (filter.prioritiesIncluded.isNotEmpty) {
-        where += ' AND t.priority IN (${filter.prioritiesIncluded.map((p) => p.index).join(',')})';
+      if (filter.isUrgent == true) {
+        where += ' AND t.isUrgent = 1';
       }
-      if (filter.prioritiesExcluded.isNotEmpty) {
-        where += ' AND t.priority NOT IN (${filter.prioritiesExcluded.map((p) => p.index).join(',')})';
+      if (filter.isUrgent == false) {
+        where += ' AND t.isUrgent = 0';
       }
       if (filter.projectIdsIncluded.isNotEmpty) {
         where += ' AND t.projectId IN (${filter.projectIdsIncluded.map((id) => "'$id'").join(',')})';
@@ -90,11 +90,11 @@ class HistoryRepository implements IHistoryRepository {
 
     String filterWhere = '';
     if (filter != null && !filter.isEmpty) {
-      if (filter.prioritiesIncluded.isNotEmpty) {
-        filterWhere += ' AND t.priority IN (${filter.prioritiesIncluded.map((p) => p.index).join(',')})';
+      if (filter.isUrgent == true) {
+        filterWhere += ' AND t.isUrgent = 1';
       }
-      if (filter.prioritiesExcluded.isNotEmpty) {
-        filterWhere += ' AND t.priority NOT IN (${filter.prioritiesExcluded.map((p) => p.index).join(',')})';
+      if (filter.isUrgent == false) {
+        filterWhere += ' AND t.isUrgent = 0';
       }
       if (filter.projectIdsIncluded.isNotEmpty) {
         filterWhere += ' AND t.projectId IN (${filter.projectIdsIncluded.map((id) => "'$id'").join(',')})';

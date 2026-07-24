@@ -63,8 +63,8 @@ class BacklogDialogHandlers {
     if (result != null && context.mounted) {
       await ref.read(taskProvider.notifier).bulkUpdateTasks(
         taskIds: selectedTaskIds,
-        priority: result.priority,
-        updatePriority: result.updatePriority,
+        isUrgent: result.isUrgent,
+        updateUrgent: result.updateUrgent,
         scheduledDate: result.scheduledDate,
         updateScheduledDate: result.updateScheduledDate,
         clearScheduledDate: result.clearScheduledDate,

@@ -1,6 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:flutter/material.dart';
@@ -100,20 +99,6 @@ class ScheduledChip extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class PriorityChip extends StatelessWidget {
-  final Priority priority;
-
-  const PriorityChip({super.key, required this.priority});
-
-  @override
-  Widget build(BuildContext context) {
-    return SmallChip(
-      color: priority.color.withValues(alpha: 0.2),
-      child: Text(priority.name, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface)),
     );
   }
 }

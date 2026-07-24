@@ -164,14 +164,14 @@ final projectShortcutEntries = [
 ];
 
 final taskDialogShortcutEntries = [
-  const ShortcutEntry(key: 'Ctrl + 1..5', description: 'Set priority', category: 'Task Editor'),
+  const ShortcutEntry(key: 'Ctrl + 1..4', description: 'Set Placement / Urgency', category: 'Task Editor'),
   const ShortcutEntry(key: 'Ctrl + P', description: 'Open project menu', category: 'Task Editor'),
   const ShortcutEntry(key: 'Ctrl + Enter', description: 'Save changes', category: 'Task Editor'),
   const ShortcutEntry(key: 'Esc', description: 'Cancel / Close', category: 'Task Editor'),
 ];
 
 final projectDialogShortcutEntries = [
-  const ShortcutEntry(key: 'Ctrl + 1..5', description: 'Set priority', category: 'Project Editor'),
+  const ShortcutEntry(key: 'Ctrl + 1..4', description: 'Set Placement / Urgency', category: 'Project Editor'),
   const ShortcutEntry(key: 'Ctrl + Enter', description: 'Save changes', category: 'Project Editor'),
   const ShortcutEntry(key: 'Esc', description: 'Cancel / Close', category: 'Project Editor'),
 ];

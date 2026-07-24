@@ -7,7 +7,7 @@ import 'package:carpe_diem/features/labels/presentation/providers/label_provider
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
@@ -61,7 +61,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
     required String name,
     String? description,
     required Color color,
-    Priority priority = Priority.none,
+    bool isUrgent = false,
     List<String> labelIds = const [],
     DateTime? deadline,
   }) async {
@@ -70,7 +70,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
       name: name,
       description: description,
       color: color,
-      priority: priority,
+      isUrgent: isUrgent,
       labelIds: labelIds,
       deadline: deadline,
       createdAt: DateTime.now(),

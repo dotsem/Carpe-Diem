@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 
 class Project {
   final String id;
   final String name;
   final String? description;
   final Color color;
-  final Priority priority;
+  final bool isUrgent;
   final List<String> labelIds;
   final DateTime? deadline;
   final DateTime createdAt;
@@ -19,7 +19,7 @@ class Project {
     required this.name,
     this.description,
     required this.color,
-    this.priority = Priority.none,
+    this.isUrgent = false,
     this.labelIds = const [],
     this.deadline,
     required this.createdAt,
@@ -32,7 +32,7 @@ class Project {
     'name': name,
     'description': description,
     'color': color.toARGB32(),
-    'priority': priority.index,
+    'isUrgent': isUrgent ? 1 : 0,
     'deadline': deadline?.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'isActive': isActive ? 1 : 0,
@@ -43,7 +43,7 @@ class Project {
     name: map['name'] as String,
     description: map['description'] as String?,
     color: Color(map['color'] as int),
-    priority: Priority.values[map['priority'] as int],
+    isUrgent: map['isUrgent'] == 1,
     labelIds: labelIds,
     deadline: map['deadline'] != null ? DateTime.parse(map['deadline'] as String) : null,
     createdAt: DateTime.parse(map['createdAt'] as String),
@@ -55,7 +55,7 @@ class Project {
     String? name,
     String? description,
     Color? color,
-    Priority? priority,
+    bool? isUrgent,
     List<String>? labelIds,
     DateTime? deadline,
     bool? isActive,
@@ -64,7 +64,7 @@ class Project {
     name: name ?? this.name,
     description: description ?? this.description,
     color: color ?? this.color,
-    priority: priority ?? this.priority,
+    isUrgent: isUrgent ?? this.isUrgent,
     labelIds: labelIds ?? this.labelIds,
     deadline: deadline ?? this.deadline,
     createdAt: createdAt,

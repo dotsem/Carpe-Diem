@@ -4,7 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/database/database_helper.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/data/repositories/project_repository.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 
 void main() {
   setUpAll(() {
@@ -36,7 +36,7 @@ void main() {
         name: 'Launch App',
         description: 'Prepare and deploy',
         color: Colors.blue,
-        priority: Priority.high,
+        isUrgent: true,
         labelIds: const ['label-1'],
         createdAt: DateTime(2026, 6, 1),
       );
@@ -47,7 +47,7 @@ void main() {
       expect(fetched, isNotNull);
       expect(fetched!.name, equals('Launch App'));
       expect(fetched.description, equals('Prepare and deploy'));
-      expect(fetched.priority, equals(Priority.high));
+      expect(fetched.isUrgent, isTrue);
       expect(fetched.labelIds, contains('label-1'));
       expect(fetched.isActive, isTrue);
     });
@@ -69,7 +69,7 @@ void main() {
         name: 'V1.0 Launch',
         description: 'New Description',
         color: Colors.red,
-        priority: Priority.urgent,
+        isUrgent: true,
         labelIds: const ['label-2'],
         isActive: false,
       );
@@ -79,7 +79,7 @@ void main() {
       expect(fetched!.name, equals('V1.0 Launch'));
       expect(fetched.description, equals('New Description'));
       expect(fetched.color.toARGB32(), equals(Colors.red.toARGB32()));
-      expect(fetched.priority, equals(Priority.urgent));
+      expect(fetched.isUrgent, isTrue);
       expect(fetched.labelIds, contains('label-2'));
       expect(fetched.labelIds, isNot(contains('label-1')));
       expect(fetched.isActive, isFalse);
@@ -110,14 +110,14 @@ void main() {
         id: 'pA',
         name: 'A_Project',
         color: Colors.blue,
-        priority: Priority.medium,
+        isUrgent: false,
         createdAt: DateTime.now(),
       );
       final pB = Project(
         id: 'pB',
         name: 'B_Project',
         color: Colors.blue,
-        priority: Priority.high, // Higher priority than A
+        isUrgent: true, // Higher priority than A
         createdAt: DateTime.now(),
       );
       final pC = Project(

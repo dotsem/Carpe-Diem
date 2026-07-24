@@ -9,7 +9,7 @@ class ProjectRepository extends IProjectRepository {
 
   @override
   Future<List<Project>> getAll() async {
-    final maps = await _db.query('projects', orderBy: '(deadline IS NULL), deadline ASC, priority DESC, name ASC');
+    final maps = await _db.query('projects', orderBy: '(deadline IS NULL), deadline ASC, isUrgent DESC, name ASC');
 
     List<Project> projects = [];
     for (final map in maps) {

@@ -1,5 +1,5 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 
@@ -84,22 +84,11 @@ class FilterNotifier extends Notifier<FilterState> {
     }
   }
 
-  void removePriorityFilter(Priority priority) {
-    if (state.filter.prioritiesIncluded.contains(priority)) {
-      state = state.copyWith(
-        filter: state.filter.copyWith(
-          prioritiesIncluded: Set<Priority>.from(state.filter.prioritiesIncluded)..remove(priority),
-        ),
-      );
-      _persistIfEnabled();
-    } else if (state.filter.prioritiesExcluded.contains(priority)) {
-      state = state.copyWith(
-        filter: state.filter.copyWith(
-          prioritiesExcluded: Set<Priority>.from(state.filter.prioritiesExcluded)..remove(priority),
-        ),
-      );
-      _persistIfEnabled();
-    }
+  void setUrgentFilter(bool? isUrgent) {
+    state = state.copyWith(
+      filter: state.filter.copyWith(isUrgent: isUrgent, clearIsUrgent: isUrgent == null),
+    );
+    _persistIfEnabled();
   }
 }
 

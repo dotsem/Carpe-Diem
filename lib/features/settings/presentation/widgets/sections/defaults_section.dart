@@ -2,7 +2,7 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,18 +21,7 @@ class DefaultsSection extends ConsumerWidget {
         SettingsSection(
           title: 'Defaults',
           children: [
-            SettingsDropdownTile<String>(
-              icon: Icons.flag_outlined,
-              title: 'Default Priority',
-              subtitle: 'Priority for new tasks',
-              value: settings.defaultPriority,
-              items: Priority.values
-                  .map((p) => DropdownMenuItem(value: p.name, child: Text(p.label)))
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) settingsNotifier.setDefaultPriority(value);
-              },
-            ),
+
             SettingsCustomWidgetTile(
               icon: Icons.folder_outlined,
               title: 'Default Project',

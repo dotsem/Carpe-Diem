@@ -65,7 +65,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                     ? BorderSide(color: AppColors.accent, width: 2)
                     : BorderSide(
                         color: widget.project.isActive
-                            ? widget.project.priority.color.themeDependentColor(context)
+                            ? (widget.project.isUrgent ? AppColors.error : Colors.transparent)
                             : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                       ),
               ),
@@ -108,20 +108,21 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                              shape: BoxShape.circle,
+                          if (widget.project.isUrgent)
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.warning_amber_rounded,
+                                size: 16,
+                                color: AppColors.error,
+                                semanticLabel: 'Urgent',
+                              ),
                             ),
-                            child: Icon(
-                              widget.project.priority.icon,
-                              size: 16,
-                              color: widget.project.priority.color.themeDependentColor(context),
-                              semanticLabel: widget.project.priority.name,
-                            ),
-                          ),
                         ],
                       ),
                       if (widget.project.description != null && widget.project.description!.isNotEmpty) ...[

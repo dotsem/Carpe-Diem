@@ -6,7 +6,7 @@ import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_indicator.dart';
+
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 
 class ProjectDetailHeader extends ConsumerWidget {
@@ -32,9 +32,21 @@ class ProjectDetailHeader extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(0, 28, 0, 16),
       child: Stack(
         children: [
-          Positioned(left: 0, top: 0, bottom: 0, child: PriorityIndicator(priority: project.priority)),
+          if (project.isUrgent)
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 6,
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
           Padding(
-            padding: const EdgeInsets.only(left: 22),
+            padding: EdgeInsets.only(left: project.isUrgent ? 22 : 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

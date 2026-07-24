@@ -112,10 +112,9 @@ class AppKeyBindings {
   static const arrowUp = LogicalKeyboardKey.arrowUp;
   static const arrowRight = LogicalKeyboardKey.arrowRight;
 
-  // Priority Digits
+  // Placement / Urgency Digits
   static const digit1 = LogicalKeyboardKey.digit1;
   static const digit2 = LogicalKeyboardKey.digit2;
   static const digit3 = LogicalKeyboardKey.digit3;
   static const digit4 = LogicalKeyboardKey.digit4;
-  static const digit5 = LogicalKeyboardKey.digit5;
 }

@@ -14,8 +14,8 @@ extension TaskNotifierExtension on TaskNotifier {
 
   Future<void> bulkUpdateTasks({
     required List<String> taskIds,
-    Priority? priority,
-    bool updatePriority = false,
+    bool? isUrgent,
+    bool updateUrgent = false,
     DateTime? scheduledDate,
     bool updateScheduledDate = false,
     bool clearScheduledDate = false,
@@ -56,7 +56,7 @@ extension TaskNotifierExtension on TaskNotifier {
 
       if (task != null) {
         final updated = task.copyWith(
-          priority: updatePriority ? priority : null,
+          isUrgent: updateUrgent ? isUrgent : null,
           scheduledDate: updateScheduledDate ? scheduledDate : null,
           clearScheduledDate: clearScheduledDate,
           projectId: updateProjectId ? projectId : null,

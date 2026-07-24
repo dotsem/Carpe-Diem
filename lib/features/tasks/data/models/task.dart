@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 
 class Task {
@@ -8,7 +8,7 @@ class Task {
   final DateTime? scheduledDate;
   final TaskStatus status;
   final String? projectId;
-  final Priority priority;
+  final bool isUrgent;
   final DateTime? deadline;
   final DateTime createdAt;
   final DateTime? completedAt;
@@ -41,7 +41,7 @@ class Task {
     this.scheduledDate,
     this.status = TaskStatus.todo,
     this.projectId,
-    this.priority = Priority.none,
+    this.isUrgent = false,
     this.deadline,
     required this.createdAt,
     this.completedAt,
@@ -59,7 +59,7 @@ class Task {
     'isCompleted': isCompleted ? 1 : 0,
     'status': status.index,
     'projectId': projectId,
-    'priority': priority.index,
+    'isUrgent': isUrgent ? 1 : 0,
     'deadline': deadline?.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'completedAt': completedAt?.toIso8601String(),
@@ -75,7 +75,7 @@ class Task {
         scheduledDate: map['scheduledDate'] != null ? DateTime.parse(map['scheduledDate'] as String) : null,
         status: TaskStatus.values[map['status'] as int],
         projectId: map['projectId'] as String?,
-        priority: Priority.values[map['priority'] as int],
+        isUrgent: map['isUrgent'] == 1,
         deadline: map['deadline'] != null ? DateTime.parse(map['deadline'] as String) : null,
         createdAt: DateTime.parse(map['createdAt'] as String),
         completedAt: map['completedAt'] != null ? DateTime.parse(map['completedAt'] as String) : null,
@@ -93,7 +93,7 @@ class Task {
     TaskStatus? status,
     String? projectId,
     bool clearProjectId = false,
-    Priority? priority,
+    bool? isUrgent,
     DateTime? deadline,
     bool clearDeadline = false,
     DateTime? completedAt,
@@ -109,7 +109,7 @@ class Task {
     scheduledDate: clearScheduledDate ? null : (scheduledDate ?? this.scheduledDate),
     status: status ?? this.status,
     projectId: clearProjectId ? null : (projectId ?? this.projectId),
-    priority: priority ?? this.priority,
+    isUrgent: isUrgent ?? this.isUrgent,
     deadline: clearDeadline ? null : (deadline ?? this.deadline),
     createdAt: createdAt,
     completedAt: status == TaskStatus.done

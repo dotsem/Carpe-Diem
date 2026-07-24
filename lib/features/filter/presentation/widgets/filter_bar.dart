@@ -77,12 +77,9 @@ class FilterBar extends ConsumerWidget {
             side: BorderSide(color: isBypassed ? Colors.red : AppColors.accent.withAlpha(50)),
           ),
           const SizedBox(width: 8),
-          if (filter.prioritiesIncluded.isNotEmpty)
-            ...filter.prioritiesIncluded.map((p) => _buildChip(context, p.label, p.color, isBypassed: isBypassed)),
-          if (filter.prioritiesExcluded.isNotEmpty)
-            ...filter.prioritiesExcluded.map(
-              (p) => _buildChip(context, p.label, p.color, isExcluded: true, isBypassed: isBypassed),
-            ),
+          if (filter.isUrgent == true) _buildChip(context, 'Urgent', AppColors.error, isBypassed: isBypassed),
+          if (filter.isUrgent == false)
+            _buildChip(context, 'Urgent', AppColors.error, isExcluded: true, isBypassed: isBypassed),
           if (filter.projectIdsIncluded.isNotEmpty)
             Row(
               children: filter.projectIdsIncluded.map((id) {
@@ -146,6 +143,7 @@ class FilterBar extends ConsumerWidget {
   }
 
   Widget _buildChip(
+    // TODO: make class widget
     BuildContext context,
     String label,
     Color color, {

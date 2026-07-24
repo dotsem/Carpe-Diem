@@ -3,7 +3,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/database/database_helper.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart';
 
 void main() {
@@ -34,7 +34,7 @@ void main() {
         id: 'task-1',
         title: 'Review PR',
         description: 'Read and verify',
-        priority: Priority.high,
+        isUrgent: true,
         labelIds: const ['label-1'],
         createdAt: DateTime.now(),
       );
@@ -45,7 +45,7 @@ void main() {
       expect(fetched, isNotNull);
       expect(fetched!.title, equals('Review PR'));
       expect(fetched.description, equals('Read and verify'));
-      expect(fetched.priority, equals(Priority.high));
+      expect(fetched.isUrgent, isTrue);
       expect(fetched.labelIds, contains('label-1'));
     });
 
@@ -56,7 +56,7 @@ void main() {
         id: 'task-2',
         title: 'Fix issue',
         description: 'Read and fix',
-        priority: Priority.high,
+        isUrgent: true,
         tagIds: const ['tag-1'],
         createdAt: DateTime.now(),
       );

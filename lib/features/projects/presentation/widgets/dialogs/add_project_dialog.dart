@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
+
 import 'package:carpe_diem/features/common/presentation/widgets/color_picker.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
@@ -22,7 +22,7 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   Color _selectedColor = AppColors.accent;
-  Priority _priority = Priority.none;
+  bool _isUrgent = false;
   List<String> _selectedLabelIds = [];
   DateTime? _deadline;
 
@@ -43,16 +43,8 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
         submitText: 'Create Project',
         child: CallbackShortcuts(
           bindings: {
-            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () =>
-                setState(() => _priority = Priority.none),
-            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () =>
-                setState(() => _priority = Priority.low),
-            const SingleActivator(LogicalKeyboardKey.digit3, control: true): () =>
-                setState(() => _priority = Priority.medium),
-            const SingleActivator(LogicalKeyboardKey.digit4, control: true): () =>
-                setState(() => _priority = Priority.high),
-            const SingleActivator(LogicalKeyboardKey.digit5, control: true): () =>
-                setState(() => _priority = Priority.urgent),
+            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => setState(() => _isUrgent = false),
+            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => setState(() => _isUrgent = true),
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -76,9 +68,22 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
               const SizedBox(height: 8),
               ProjectColorPicker(selected: _selectedColor, onChanged: (c) => setState(() => _selectedColor = c)),
               const SizedBox(height: 16),
-              Text('Priority', style: Theme.of(context).textTheme.labelLarge),
+              Text('Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
+              SegmentedButton<bool>(
+                // TODO: make widget
+                expandedInsets: EdgeInsets.zero,
+                segments: const [
+                  ButtonSegment(value: true, label: Text('Urgent')),
+                  ButtonSegment(value: false, label: Text('Non-Urgent')),
+                ],
+                selected: {_isUrgent},
+                onSelectionChanged: (Set<bool> newSelection) {
+                  setState(() {
+                    _isUrgent = newSelection.first;
+                  });
+                },
+              ),
               const SizedBox(height: 16),
               Text('Labels', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
@@ -99,14 +104,16 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
 
-    ref.read(projectProvider.notifier).addProject(
-      name: name,
-      description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
-      color: _selectedColor,
-      priority: _priority,
-      labelIds: _selectedLabelIds,
-      deadline: _deadline,
-    );
+    ref
+        .read(projectProvider.notifier)
+        .addProject(
+          name: name,
+          description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+          color: _selectedColor,
+          isUrgent: _isUrgent,
+          labelIds: _selectedLabelIds,
+          deadline: _deadline,
+        );
     Navigator.of(context).pop();
   }
 }

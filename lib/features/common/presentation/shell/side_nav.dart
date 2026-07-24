@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
@@ -121,17 +120,17 @@ class ProjectList extends ConsumerWidget {
     final projectState = ref.watch(projectProvider);
     final projects = projectState.projects.where((p) => p.isActive).toList()
       ..sort((a, b) {
-        final pComp = b.priority.index.compareTo(a.priority.index);
-        if (pComp != 0) return pComp;
+        if (a.isUrgent && !b.isUrgent) return -1;
+        if (!a.isUrgent && b.isUrgent) return 1;
         return a.name.compareTo(b.name);
       });
 
-    final groups = <Priority, List<Project>>{};
+    final groups = <bool, List<Project>>{};
     for (final project in projects) {
-      groups.putIfAbsent(project.priority, () => []).add(project);
+      groups.putIfAbsent(project.isUrgent, () => []).add(project);
     }
 
-    final priorities = groups.keys.toList()..sort((a, b) => b.index.compareTo(a.index));
+    final urgencies = groups.keys.toList()..sort((a, b) => (a == b) ? 0 : (a ? -1 : 1));
 
     if (projects.isEmpty) {
       return Center(
@@ -148,10 +147,10 @@ class ProjectList extends ConsumerWidget {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      itemCount: priorities.length,
+      itemCount: urgencies.length,
       itemBuilder: (context, pIndex) {
-        final priority = priorities[pIndex];
-        final groupProjects = groups[priority]!;
+        final isUrgent = urgencies[pIndex];
+        final groupProjects = groups[isUrgent]!;
 
         return Padding(
           padding: const EdgeInsets.only(left: 8, bottom: 8),
@@ -175,15 +174,16 @@ class ProjectList extends ConsumerWidget {
                   }).toList(),
                 ),
               ),
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: 3,
-                child: Container(
-                  decoration: BoxDecoration(color: priority.color, borderRadius: BorderRadius.circular(2)),
+              if (isUrgent)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 3,
+                  child: Container(
+                    decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(2)),
+                  ),
                 ),
-              ),
             ],
           ),
         );

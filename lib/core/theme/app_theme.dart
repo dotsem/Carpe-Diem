@@ -24,13 +24,6 @@ class AppColors {
   static const info = Color(0xFF2196F3);
   static const warning = Color.fromARGB(255, 231, 209, 4);
 
-  // Priority Colors
-  static const priorityUrgent = Color(0xFF8800FF);
-  static const priorityHigh = Color(0xFFE53935);
-  static const priorityMedium = Color(0xFFFFA726);
-  static const priorityLow = Color(0xFF66BB6A);
-  static const priorityNone = Color(0xFF757575);
-
   // Helper getters (backwards compatibility or default)
   static Color get background => backgroundDark;
   static Color get surface => surfaceDark;

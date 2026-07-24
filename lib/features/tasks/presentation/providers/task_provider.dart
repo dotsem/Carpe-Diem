@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
@@ -112,17 +112,18 @@ class TaskNotifier extends Notifier<TaskState> {
     String? description,
     DateTime? scheduledDate,
     String? projectId,
-    Priority priority = Priority.none,
+    bool isUrgent = false,
     DateTime? deadline,
     String? blockedById,
     TaskPlacement placement = TaskPlacement.bottom,
     List<String> labelIds = const [],
     List<String> tagIds = const [],
   }) async {
+
     String computedSortOrder;
     final activeList = state.tasks;
     switch (placement) {
-      case TaskPlacement.top:
+      case TaskPlacement.top || TaskPlacement.urgent:
         computedSortOrder = LexoRankUtils.generateTop(activeList.firstOrNull?.sortOrder);
       case TaskPlacement.middle:
         computedSortOrder = LexoRankUtils.generateMiddle(
@@ -133,13 +134,14 @@ class TaskNotifier extends Notifier<TaskState> {
         computedSortOrder = LexoRankUtils.generateBottom(activeList.lastOrNull?.sortOrder);
     }
 
+    final resolvedIsUrgent = isUrgent || placement == TaskPlacement.urgent;
     final task = Task(
       id: _uuid.v4(),
       title: title,
       description: description,
       scheduledDate: scheduledDate != null ? _normalizeDate(scheduledDate) : null,
       projectId: projectId,
-      priority: priority,
+      isUrgent: resolvedIsUrgent,
       deadline: deadline != null ? _normalizeDate(deadline) : null,
       createdAt: DateTime.now(),
       blockedById: blockedById,
@@ -190,9 +192,8 @@ class TaskNotifier extends Notifier<TaskState> {
         return null;
       }
 
-      final updatedTask = findAndApply(currentTasks) ??
-          findAndApply(currentOverdue) ??
-          findAndApply(currentUnscheduled);
+      final updatedTask =
+          findAndApply(currentTasks) ?? findAndApply(currentOverdue) ?? findAndApply(currentUnscheduled);
 
       if (updatedTask != null) {
         currentTasks = _optimisticallyReorder(currentTasks, updatedTask);
@@ -201,11 +202,7 @@ class TaskNotifier extends Notifier<TaskState> {
       }
     }
 
-    state = state.copyWith(
-      tasks: currentTasks,
-      overdueTasks: currentOverdue,
-      unscheduledTasks: currentUnscheduled,
-    );
+    state = state.copyWith(tasks: currentTasks, overdueTasks: currentOverdue, unscheduledTasks: currentUnscheduled);
     for (final entry in updates.entries) {
       final task = await _repo.getById(entry.key);
       if (task != null) {
@@ -217,14 +214,14 @@ class TaskNotifier extends Notifier<TaskState> {
 
   List<Task> _optimisticallyReorder(List<Task> currentList, Task updatedTask) {
     if (!currentList.any((t) => t.id == updatedTask.id)) return currentList;
-    
+
     final updatedList = currentList.map((t) => t.id == updatedTask.id ? updatedTask : t).toList();
     updatedList.sort((a, b) {
-      if (a.priority == Priority.urgent && b.priority != Priority.urgent) return -1;
-      if (a.priority != Priority.urgent && b.priority == Priority.urgent) return 1;
+      if (a.isUrgent && !b.isUrgent) return -1;
+      if (!a.isUrgent && b.isUrgent) return 1;
 
       final settings = ref.read(settingsProvider);
-      
+
       if (settings.prioritizeOverdue) {
         if (a.isOverdue && !b.isOverdue) return -1;
         if (!a.isOverdue && b.isOverdue) return 1;
@@ -303,15 +300,34 @@ class TaskNotifier extends Notifier<TaskState> {
     }
   }
 
-  Future<void> updateTask(Task task) async {
+  Future<void> updateTask(Task task, {TaskPlacement? placement}) async {
     final oldTask = await _repo.getById(task.id);
     if (oldTask == null) return;
+
+    var updatedTask = task;
+    if (placement != null) {
+      String computedSortOrder;
+      final activeList = state.tasks.where((t) => t.id != task.id).toList();
+      switch (placement) {
+        case TaskPlacement.top || TaskPlacement.urgent:
+          computedSortOrder = LexoRankUtils.generateTop(activeList.firstOrNull?.sortOrder);
+        case TaskPlacement.middle:
+          computedSortOrder = LexoRankUtils.generateMiddle(
+            activeList.firstOrNull?.sortOrder,
+            activeList.lastOrNull?.sortOrder,
+          );
+        default:
+          computedSortOrder = LexoRankUtils.generateBottom(activeList.lastOrNull?.sortOrder);
+      }
+      final resolvedIsUrgent = task.isUrgent || placement == TaskPlacement.urgent;
+      updatedTask = task.copyWith(isUrgent: resolvedIsUrgent, sortOrder: computedSortOrder);
+    }
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: oldTask, next: task, displayName: task.title));
+        .execute(UpdateCommand(repo: _repo, previous: oldTask, next: updatedTask, displayName: task.title));
     final settings = ref.read(settingsProvider);
     if (settings.inheritParentDeadline && task.deadline != null) {
-      await _propagateDeadline(task);
+      await _propagateDeadline(updatedTask);
     }
     await _refreshAll();
   }

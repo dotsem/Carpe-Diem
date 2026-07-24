@@ -1,8 +1,7 @@
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_picker.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/priority_filter_picker.dart';
+
 import 'package:carpe_diem/features/filter/presentation/widgets/project_filter_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,14 +10,14 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 class FilterDialog extends ConsumerStatefulWidget {
   final TaskFilter initialFilter;
   final bool showProjectFilter;
-  final bool showPriorityFilter;
+  final bool showUrgencyFilter;
   final bool showLabelFilter;
 
   const FilterDialog({
     super.key,
     required this.initialFilter,
     this.showProjectFilter = true,
-    this.showPriorityFilter = true,
+    this.showUrgencyFilter = true,
     this.showLabelFilter = true,
   });
 
@@ -27,8 +26,7 @@ class FilterDialog extends ConsumerStatefulWidget {
 }
 
 class _FilterDialogState extends ConsumerState<FilterDialog> {
-  late Set<Priority> _prioritiesIncluded;
-  late Set<Priority> _prioritiesExcluded;
+  bool? _isUrgent;
   late Set<String> _projectIdsIncluded;
   late Set<String> _projectIdsExcluded;
   late Set<String> _labelIdsIncluded;
@@ -37,8 +35,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
   @override
   void initState() {
     super.initState();
-    _prioritiesIncluded = Set.from(widget.initialFilter.prioritiesIncluded);
-    _prioritiesExcluded = Set.from(widget.initialFilter.prioritiesExcluded);
+    _isUrgent = widget.initialFilter.isUrgent;
     _projectIdsIncluded = Set.from(widget.initialFilter.projectIdsIncluded);
     _projectIdsExcluded = Set.from(widget.initialFilter.projectIdsExcluded);
     _labelIdsIncluded = Set.from(widget.initialFilter.labelIdsIncluded);
@@ -56,8 +53,8 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
       onCancel: () => Navigator.pop(context),
       onSubmit: () {
         final filter = widget.initialFilter.copyWith(
-          prioritiesIncluded: _prioritiesIncluded,
-          prioritiesExcluded: _prioritiesExcluded,
+          isUrgent: _isUrgent,
+          clearIsUrgent: _isUrgent == null,
           projectIdsIncluded: _projectIdsIncluded,
           projectIdsExcluded: _projectIdsExcluded,
           labelIdsIncluded: _labelIdsIncluded,
@@ -69,8 +66,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
         TextButton(
           onPressed: () {
             setState(() {
-              _prioritiesIncluded.clear();
-              _prioritiesExcluded.clear();
+              _isUrgent = null;
               _projectIdsIncluded.clear();
               _projectIdsExcluded.clear();
               _labelIdsIncluded.clear();
@@ -85,16 +81,21 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.showPriorityFilter) ...[
-              _sectionHeader('Priority'),
-              PriorityFilterPicker(
-                included: _prioritiesIncluded,
-                excluded: _prioritiesExcluded,
-                onChanged: (inc, exc) => setState(() {
-                  _prioritiesIncluded = inc;
-                  _prioritiesExcluded = exc;
-                }),
-                interactionMethod: interactionMethod,
+            if (widget.showUrgencyFilter) ...[
+              _sectionHeader('Urgency'),
+              SegmentedButton<bool?>(
+                expandedInsets: EdgeInsets.zero,
+                segments: const [
+                  ButtonSegment<bool?>(value: null, label: Text('Any')),
+                  ButtonSegment<bool?>(value: true, label: Text('Urgent Only')),
+                  ButtonSegment<bool?>(value: false, label: Text('Non-Urgent')),
+                ],
+                selected: {_isUrgent},
+                onSelectionChanged: (Set<bool?> newSelection) {
+                  setState(() {
+                    _isUrgent = newSelection.first;
+                  });
+                },
               ),
               const SizedBox(height: 16),
             ],

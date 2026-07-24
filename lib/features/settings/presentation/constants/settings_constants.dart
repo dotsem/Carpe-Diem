@@ -9,7 +9,7 @@ class SettingsConstants {
   static const double defaultTaskGradientWidth = 0.5;
   static const bool defaultCompactMode = false;
   static const bool defaultShowDescriptionOnCard = true;
-  static const String defaultTaskPriority = 'low';
+
   static const String? defaultProjectId = null;
   static const int defaultHistoryRetention = 0; // 0 = forever
   static const String defaultStatsPeriod = 'weekly';
@@ -34,7 +34,7 @@ class SettingsConstants {
   static const String keyTaskGradientWidth = 'task_gradient_width';
   static const String keyCompactMode = 'compact_mode';
   static const String keyShowDescriptionOnCard = 'show_description_on_card';
-  static const String keyDefaultPriority = 'default_task_priority';
+
   static const String keyDefaultProjectId = 'default_project_id';
   static const String keyHistoryRetention = 'history_retention';
   static const String keyDefaultStatsPeriod = 'default_stats_period';

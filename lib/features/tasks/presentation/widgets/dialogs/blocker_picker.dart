@@ -212,7 +212,7 @@ class _BlockerPickerState extends State<BlockerPicker> {
             Icon(
               task == null ? Icons.block : Icons.task_alt,
               size: 14,
-              color: task?.priority.color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+              color: task != null && task.isUrgent ? AppColors.error : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 8),
             Expanded(

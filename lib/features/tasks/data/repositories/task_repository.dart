@@ -1,6 +1,5 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 
@@ -102,7 +101,7 @@ class TaskRepository extends ITaskRepository {
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE (t.scheduledDate IS NOT NULL AND t.scheduledDate < ? AND t.status != ?)
       AND (p.isActive IS NULL OR p.isActive = 1)
-      ORDER BY t.priority DESC, t.scheduledDate ASC
+      ORDER BY t.isUrgent DESC, t.scheduledDate ASC
     ''',
       [dateStr, TaskStatus.done.index],
     );
@@ -249,7 +248,7 @@ class TaskRepository extends ITaskRepository {
 
   String _getOrderBy({bool useScheduledDate = false, String? tableAlias, bool prioritizeDeadlines = true}) {
     final prefix = tableAlias != null ? '$tableAlias.' : '';
-    final urgentPart = '(${prefix}priority = ${Priority.urgent.index}) DESC';
+    final urgentPart = '(${prefix}isUrgent = 1) DESC';
     final sortOrderPart = '${prefix}sortOrder ASC, ${prefix}createdAt DESC';
     final deadlinePart = '(${prefix}deadline IS NULL), ${prefix}deadline ASC';
 

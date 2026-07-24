@@ -1,12 +1,12 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/color_picker.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
+
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +25,7 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   late Color _selectedColor;
-  late Priority _priority;
+  late bool _isUrgent;
   List<String> _selectedLabelIds = [];
   DateTime? _deadline;
   late bool _isActive;
@@ -36,7 +36,7 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
     _nameController.text = widget.project.name;
     _descController.text = widget.project.description ?? '';
     _selectedColor = widget.project.color;
-    _priority = widget.project.priority;
+    _isUrgent = widget.project.isUrgent;
     _selectedLabelIds = List<String>.from(widget.project.labelIds);
     _deadline = widget.project.deadline;
     _isActive = widget.project.isActive;
@@ -80,16 +80,8 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
         ],
         child: CallbackShortcuts(
           bindings: {
-            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () =>
-                setState(() => _priority = Priority.none),
-            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () =>
-                setState(() => _priority = Priority.low),
-            const SingleActivator(LogicalKeyboardKey.digit3, control: true): () =>
-                setState(() => _priority = Priority.medium),
-            const SingleActivator(LogicalKeyboardKey.digit4, control: true): () =>
-                setState(() => _priority = Priority.high),
-            const SingleActivator(LogicalKeyboardKey.digit5, control: true): () =>
-                setState(() => _priority = Priority.urgent),
+            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => setState(() => _isUrgent = false),
+            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => setState(() => _isUrgent = true),
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -113,9 +105,22 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
               const SizedBox(height: 8),
               ProjectColorPicker(selected: _selectedColor, onChanged: (c) => setState(() => _selectedColor = c)),
               const SizedBox(height: 16),
-              Text('Priority', style: Theme.of(context).textTheme.labelLarge),
+              Text('Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
+              SegmentedButton<bool>(
+                // TODO: make widget
+                expandedInsets: EdgeInsets.zero,
+                segments: const [
+                  ButtonSegment(value: true, label: Text('Urgent')),
+                  ButtonSegment(value: false, label: Text('Non-Urgent')),
+                ],
+                selected: {_isUrgent},
+                onSelectionChanged: (Set<bool> newSelection) {
+                  setState(() {
+                    _isUrgent = newSelection.first;
+                  });
+                },
+              ),
               const SizedBox(height: 16),
               Text('Labels', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
@@ -148,7 +153,7 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
       name: name,
       description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
       color: _selectedColor,
-      priority: _priority,
+      isUrgent: _isUrgent,
       labelIds: _selectedLabelIds,
       deadline: _deadline,
       createdAt: widget.project.createdAt,

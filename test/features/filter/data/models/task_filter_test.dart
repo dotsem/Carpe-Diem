@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 
 void main() {
@@ -11,14 +11,14 @@ void main() {
 
     Task createTask({
       required String id,
-      Priority priority = Priority.medium,
+      bool isUrgent = false,
       String? projectId,
       List<String> labelIds = const [],
     }) {
       return Task(
         id: id,
         title: 'Task $id',
-        priority: priority,
+        isUrgent: isUrgent,
         projectId: projectId,
         labelIds: labelIds,
         createdAt: now,
@@ -27,14 +27,14 @@ void main() {
 
     Project createProject({
       required String id,
-      Priority priority = Priority.medium,
+      bool isUrgent = false,
       List<String> labelIds = const [],
     }) {
       return Project(
         id: id,
         name: 'Project $id',
         color: Colors.blue,
-        priority: priority,
+        isUrgent: isUrgent,
         labelIds: labelIds,
         createdAt: now,
       );
@@ -43,17 +43,13 @@ void main() {
     test('TaskFilter is empty by default and identifies constraints correctly', () {
       const filter = TaskFilter();
       expect(filter.isEmpty, isTrue);
-      expect(filter.hasPriorityFilter, isFalse);
+      expect(filter.hasUrgencyFilter, isFalse);
       expect(filter.hasProjectFilter, isFalse);
       expect(filter.hasLabelFilter, isFalse);
 
-      const priorityIncFilter = TaskFilter(prioritiesIncluded: {Priority.high});
+      const priorityIncFilter = TaskFilter(isUrgent: true);
       expect(priorityIncFilter.isEmpty, isFalse);
-      expect(priorityIncFilter.hasPriorityFilter, isTrue);
-
-      const priorityExcFilter = TaskFilter(prioritiesExcluded: {Priority.high});
-      expect(priorityExcFilter.isEmpty, isFalse);
-      expect(priorityExcFilter.hasPriorityFilter, isTrue);
+      expect(priorityIncFilter.hasUrgencyFilter, isTrue);
 
       const projectIncFilter = TaskFilter(projectIdsIncluded: {'p1'});
       expect(projectIncFilter.isEmpty, isFalse);
@@ -78,31 +74,15 @@ void main() {
       expect(filter.applyToTask(task, []), isTrue);
     });
 
-    test('applyToTask priority matching handles inclusion and exclusion correctly', () {
-      // Priority Inclusion Filter
-      const incFilter = TaskFilter(prioritiesIncluded: {Priority.high, Priority.urgent});
-      final highTask = createTask(id: '1', priority: Priority.high);
-      final urgentTask = createTask(id: '2', priority: Priority.urgent);
-      final lowTask = createTask(id: '3', priority: Priority.low);
+    test('applyToTask urgency matching handles it correctly', () {
+      const incFilter = TaskFilter(isUrgent: true);
+      final highTask = createTask(id: '1', isUrgent: false);
+      final urgentTask = createTask(id: '2', isUrgent: true);
+      final lowTask = createTask(id: '3', isUrgent: false);
 
-      expect(incFilter.applyToTask(highTask, []), isTrue);
+      expect(incFilter.applyToTask(highTask, []), isFalse);
       expect(incFilter.applyToTask(urgentTask, []), isTrue);
       expect(incFilter.applyToTask(lowTask, []), isFalse);
-
-      // Priority Exclusion Filter
-      const excFilter = TaskFilter(prioritiesExcluded: {Priority.low});
-      expect(excFilter.applyToTask(highTask, []), isTrue);
-      expect(excFilter.applyToTask(urgentTask, []), isTrue);
-      expect(excFilter.applyToTask(lowTask, []), isFalse);
-
-      // Priority Inlusion and Exclusion combination (Exclusion takes precedence)
-      const comboFilter = TaskFilter(
-        prioritiesIncluded: {Priority.high, Priority.urgent},
-        prioritiesExcluded: {Priority.high},
-      );
-      expect(comboFilter.applyToTask(highTask, []), isFalse); // High is excluded, so false
-      expect(comboFilter.applyToTask(urgentTask, []), isTrue);  // Urgent is included, true
-      expect(comboFilter.applyToTask(lowTask, []), isFalse);    // Low not in included set, false
     });
 
     test('applyToTask project matching handles inclusion and exclusion correctly', () {
@@ -160,15 +140,14 @@ void main() {
 
     test('applyToProject matches correctly based on priority and labels (inc/exc)', () {
       const filter = TaskFilter(
-        prioritiesIncluded: {Priority.medium},
+        isUrgent: true,
         labelIdsIncluded: {'l1'},
         labelIdsExcluded: {'l2'},
       );
-
-      final matchProject = createProject(id: 'p1', priority: Priority.medium, labelIds: ['l1']);
-      final wrongPriority = createProject(id: 'p2', priority: Priority.high, labelIds: ['l1']);
-      final wrongLabel = createProject(id: 'p3', priority: Priority.medium, labelIds: ['l3']);
-      final excludedLabel = createProject(id: 'p4', priority: Priority.medium, labelIds: ['l1', 'l2']);
+      final matchProject = createProject(id: 'p1', isUrgent: true, labelIds: ['l1']);
+      final wrongPriority = createProject(id: 'p2', isUrgent: false, labelIds: ['l1']);
+      final wrongLabel = createProject(id: 'p3', isUrgent: true, labelIds: []);
+      final excludedLabel = createProject(id: 'p4', isUrgent: true, labelIds: ['l1', 'l2']);
 
       expect(filter.applyToProject(matchProject), isTrue);
       expect(filter.applyToProject(wrongPriority), isFalse);
@@ -177,28 +156,25 @@ void main() {
     });
 
     test('copyWith updates fields correctly or defaults to current values', () {
-      const filter = TaskFilter(prioritiesIncluded: {Priority.low});
-      final copied = filter.copyWith(projectIdsIncluded: {'p1'}, prioritiesExcluded: {Priority.high});
+      const filter = TaskFilter(isUrgent: false);
+      final copied = filter.copyWith(projectIdsIncluded: {'p1'}, clearIsUrgent: true);
 
-      expect(copied.prioritiesIncluded, {Priority.low});
+      expect(copied.isUrgent, isNull);
       expect(copied.projectIdsIncluded, {'p1'});
-      expect(copied.prioritiesExcluded, {Priority.high});
       expect(copied.labelIdsIncluded, isEmpty);
     });
 
     test('limitTo limits constraints appropriately', () {
       const filter = TaskFilter(
-        prioritiesIncluded: {Priority.high},
+        isUrgent: true,
         projectIdsIncluded: {'p1'},
         labelIdsIncluded: {'l1'},
-        prioritiesExcluded: {Priority.low},
         projectIdsExcluded: {'p2'},
         labelIdsExcluded: {'l2'},
       );
 
       final limitPriorityOnly = filter.limitTo(projects: false, labels: false);
-      expect(limitPriorityOnly.prioritiesIncluded, {Priority.high});
-      expect(limitPriorityOnly.prioritiesExcluded, {Priority.low});
+      expect(limitPriorityOnly.isUrgent, true);
       expect(limitPriorityOnly.projectIdsIncluded, isEmpty);
       expect(limitPriorityOnly.projectIdsExcluded, isEmpty);
       expect(limitPriorityOnly.labelIdsIncluded, isEmpty);

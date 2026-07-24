@@ -7,7 +7,6 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_column.dart';
 
 class KanbanBoard extends ConsumerStatefulWidget {
@@ -48,8 +47,8 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   Widget build(BuildContext context) {
     final tasks = List<Task>.from(widget.tasks);
     tasks.sort((a, b) {
-      if (a.priority == Priority.urgent && b.priority != Priority.urgent) return -1;
-      if (a.priority != Priority.urgent && b.priority == Priority.urgent) return 1;
+      if (a.isUrgent && !b.isUrgent) return -1;
+      if (!a.isUrgent && b.isUrgent) return 1;
 
       final settings = ref.read(settingsProvider);
 

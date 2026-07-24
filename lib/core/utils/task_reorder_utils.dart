@@ -1,13 +1,12 @@
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/core/utils/lexorank_utils.dart';
 
 class TaskReorderUtils {
   static bool inSameGroup(Task a, Task b, SettingsState settings) {
-    if (a.priority == Priority.urgent || b.priority == Priority.urgent) {
-      return a.priority == Priority.urgent && b.priority == Priority.urgent;
+    if (a.isUrgent || b.isUrgent) {
+      return a.isUrgent && b.isUrgent;
     }
 
     if (settings.prioritizeOverdue && a.isOverdue != b.isOverdue) return false;

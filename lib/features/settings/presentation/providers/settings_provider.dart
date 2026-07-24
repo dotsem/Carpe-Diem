@@ -43,7 +43,6 @@ class SettingsState {
   bool get compactMode => _getBool(SettingsConstants.keyCompactMode, SettingsConstants.defaultCompactMode);
   bool get showDescriptionOnCard =>
       _getBool(SettingsConstants.keyShowDescriptionOnCard, SettingsConstants.defaultShowDescriptionOnCard);
-  String get defaultPriority => _get(SettingsConstants.keyDefaultPriority, SettingsConstants.defaultTaskPriority);
   String? get defaultProjectId => _map[SettingsConstants.keyDefaultProjectId];
 
   int get historyRetention => _getInt(SettingsConstants.keyHistoryRetention, SettingsConstants.defaultHistoryRetention);
@@ -139,7 +138,6 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> setTaskGradientWidth(double value) => _set(SettingsConstants.keyTaskGradientWidth, value);
   Future<void> setCompactMode(bool value) => _set(SettingsConstants.keyCompactMode, value);
   Future<void> setShowDescriptionOnCard(bool value) => _set(SettingsConstants.keyShowDescriptionOnCard, value);
-  Future<void> setDefaultPriority(String priority) => _set(SettingsConstants.keyDefaultPriority, priority);
   Future<void> setDefaultProjectId(String? projectId) =>
       projectId == null ? _delete(SettingsConstants.keyDefaultProjectId) : _set(SettingsConstants.keyDefaultProjectId, projectId);
   Future<void> setHistoryRetention(int days) => _set(SettingsConstants.keyHistoryRetention, days);

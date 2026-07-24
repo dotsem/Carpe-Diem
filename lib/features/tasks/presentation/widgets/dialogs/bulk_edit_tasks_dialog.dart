@@ -4,17 +4,17 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_p
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
+
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 
 class BulkEditResult {
-  final Priority? priority;
-  final bool updatePriority;
+  final bool? isUrgent;
+  final bool updateUrgent;
   final DateTime? scheduledDate;
   final bool updateScheduledDate;
   final bool clearScheduledDate;
@@ -29,8 +29,8 @@ class BulkEditResult {
   final bool clearBlockedById;
 
   BulkEditResult({
-    this.priority,
-    this.updatePriority = false,
+    this.isUrgent,
+    this.updateUrgent = false,
     this.scheduledDate,
     this.updateScheduledDate = false,
     this.clearScheduledDate = false,
@@ -56,8 +56,8 @@ class BulkEditTasksDialog extends ConsumerStatefulWidget {
 }
 
 class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
-  bool _enablePriority = false;
-  Priority _priority = Priority.none;
+  bool _enableUrgent = false;
+  bool _isUrgent = false;
 
   bool _enableScheduledDate = false;
   DateTime? _scheduledDate;
@@ -148,10 +148,23 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildFieldRow(
-              'Priority',
-              _enablePriority,
-              (v) => setState(() => _enablePriority = v ?? false),
-              PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
+              'Urgency',
+              _enableUrgent,
+              (v) => setState(() => _enableUrgent = v ?? false),
+              SegmentedButton<bool>(
+                // TODO: make widget
+                expandedInsets: EdgeInsets.zero,
+                segments: const [
+                  ButtonSegment(value: true, label: Text('Urgent')),
+                  ButtonSegment(value: false, label: Text('Non-Urgent')),
+                ],
+                selected: {_isUrgent},
+                onSelectionChanged: (Set<bool> newSelection) {
+                  setState(() {
+                    _isUrgent = newSelection.first;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 16),
             _buildFieldRow(
@@ -217,8 +230,8 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
 
   void _submit() {
     final result = BulkEditResult(
-      priority: _priority,
-      updatePriority: _enablePriority,
+      isUrgent: _isUrgent,
+      updateUrgent: _enableUrgent,
       scheduledDate: _scheduledDate,
       updateScheduledDate: _enableScheduledDate,
       clearScheduledDate: _enableScheduledDate && _scheduledDate == null,

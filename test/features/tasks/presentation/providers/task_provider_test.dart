@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import '../../../../helpers/mock_repositories.dart';
 
@@ -82,7 +82,7 @@ void main() {
       ).thenAnswer((_) async => []);
 
       final notifier = container.read(taskProvider.notifier);
-      await notifier.addTask(title: 'Learn Riverpod Testing', description: 'Read the docs', priority: Priority.high);
+      await notifier.addTask(title: 'Learn Riverpod Testing', description: 'Read the docs', isUrgent: true);
 
       verify(() => mockTaskRepo.insert(any())).called(1);
     });

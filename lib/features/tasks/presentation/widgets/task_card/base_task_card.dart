@@ -1,5 +1,4 @@
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_chips_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
@@ -12,20 +11,20 @@ class BaseTaskCard extends StatelessWidget {
   final Project? project;
   final Widget? leading;
   final Widget? trailing;
-  
+
   final bool isOverdue;
   final bool selectionMode;
   final bool showDone;
   final bool showScheduleDate;
   final bool showStrikeThroughOnCompleted;
-  
+
   final bool isFocused;
-  
+
   final bool compactMode;
   final bool showDescriptionOnCard;
   final bool showHashtagInTitle;
   final double taskGradientWidth;
-  
+
   final VoidCallback? onTap;
   final void Function(Offset, RenderBox)? onContextMenu;
   final void Function(bool)? onFocusChange;
@@ -95,9 +94,19 @@ class BaseTaskCard extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: compactMode ? 4 : 8),
             child: Stack(
               children: [
-                Positioned(left: 0, top: 0, bottom: 0, child: PriorityIndicator(priority: task.priority)),
+                if (task.isUrgent)
+                  Positioned(
+                    // TODO: make widget
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 6,
+                      decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 14),
+                  padding: EdgeInsets.only(left: task.isUrgent ? 14 : 0),
                   child: Row(
                     children: [
                       ?leading,
@@ -107,9 +116,7 @@ class BaseTaskCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              showHashtagInTitle
-                                  ? task.title
-                                  : TagParser.hideHashtagSymbols(task.title),
+                              showHashtagInTitle ? task.title : TagParser.hideHashtagSymbols(task.title),
                               style: TextStyle(
                                 fontSize: compactMode ? 14 : 15,
                                 fontWeight: FontWeight.w500,
@@ -121,9 +128,7 @@ class BaseTaskCard extends StatelessWidget {
                                     : Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                            if (showDescriptionOnCard &&
-                                task.description != null &&
-                                task.description!.isNotEmpty)
+                            if (showDescriptionOnCard && task.description != null && task.description!.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 1),
                                 child: Text(

@@ -71,7 +71,7 @@ class ToastUtils {
       type: ToastificationType.warning,
       style: style,
       alignment: alignment,
-      primaryColor: AppColors.priorityMedium,
+      primaryColor: AppColors.warning,
       backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
       foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
       borderRadius: borderRadius,

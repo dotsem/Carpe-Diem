@@ -12,10 +12,10 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_p
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
+
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
@@ -36,7 +36,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   final _descController = TextEditingController();
   DateTime? _selectedDate;
   String? _selectedProjectId;
-  Priority _priority = Priority.none;
+  TaskPlacement _placement = TaskPlacement.bottom;
   DateTime? _deadline;
   String? _blockedById;
   List<Task> _projectTasks = [];
@@ -53,7 +53,6 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     final settings = ref.read(settingsProvider);
     _selectedDate = widget.initialDate;
     _selectedProjectId = widget.initialProjectId ?? settings.defaultProjectId;
-    _priority = Priority.fromName(settings.defaultPriority) ?? Priority.none;
 
     _titleController = TagHighlightingController(
       getExistingTagNames: () => ref.read(tagProvider).tags.map((t) => t.name).toList(),
@@ -143,14 +142,13 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
         child: CallbackShortcuts(
           bindings: {
             const SingleActivator(AppKeyBindings.digit1, control: true): () =>
-                setState(() => _priority = Priority.none),
-            const SingleActivator(AppKeyBindings.digit2, control: true): () => setState(() => _priority = Priority.low),
+                setState(() => _placement = TaskPlacement.bottom),
+            const SingleActivator(AppKeyBindings.digit2, control: true): () =>
+                setState(() => _placement = TaskPlacement.middle),
             const SingleActivator(AppKeyBindings.digit3, control: true): () =>
-                setState(() => _priority = Priority.medium),
+                setState(() => _placement = TaskPlacement.top),
             const SingleActivator(AppKeyBindings.digit4, control: true): () =>
-                setState(() => _priority = Priority.high),
-            const SingleActivator(AppKeyBindings.digit5, control: true): () =>
-                setState(() => _priority = Priority.urgent),
+                setState(() => _placement = TaskPlacement.urgent),
             const SingleActivator(ProjectsKeys.keyboardKey, control: true): () => _projectMenuController.open(),
           },
           child: Column(
@@ -180,9 +178,23 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
-              Text('Priority', style: Theme.of(context).textTheme.labelLarge),
+              Text('Placement & Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
+              SegmentedButton<TaskPlacement>(
+                expandedInsets: EdgeInsets.zero,
+                segments: const [
+                  ButtonSegment(value: TaskPlacement.bottom, label: Text('Bottom')),
+                  ButtonSegment(value: TaskPlacement.middle, label: Text('Middle')),
+                  ButtonSegment(value: TaskPlacement.top, label: Text('Top')),
+                  ButtonSegment(value: TaskPlacement.urgent, label: Text('Urgent')),
+                ],
+                selected: {_placement},
+                onSelectionChanged: (Set<TaskPlacement> newSelection) {
+                  setState(() {
+                    _placement = newSelection.first;
+                  });
+                },
+              ), // TODO: make widget
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -310,7 +322,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
           description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
           scheduledDate: _selectedDate,
           projectId: _selectedProjectId,
-          priority: _priority,
+          placement: _placement,
           deadline: _deadline,
           blockedById: _blockedById,
           labelIds: _selectedLabelIds,

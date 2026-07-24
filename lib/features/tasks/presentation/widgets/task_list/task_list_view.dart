@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_components.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 
 class TaskListView extends ConsumerStatefulWidget {
@@ -114,8 +113,8 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       );
     } else {
       allTasks.sort((a, b) {
-        if (a.priority == Priority.urgent && b.priority != Priority.urgent) return -1;
-        if (a.priority != Priority.urgent && b.priority == Priority.urgent) return 1;
+        if (a.isUrgent && !b.isUrgent) return -1;
+        if (!a.isUrgent && b.isUrgent) return 1;
 
         final settings = ref.read(settingsProvider);
 
