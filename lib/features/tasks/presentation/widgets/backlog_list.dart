@@ -73,11 +73,7 @@ class BacklogList extends ConsumerWidget {
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.filter_list_alt,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  Icon(Icons.filter_list_alt, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(height: 16),
                   const Text('No items found'),
                   const SizedBox(height: 8),
@@ -92,18 +88,11 @@ class BacklogList extends ConsumerWidget {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.inbox_rounded,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  Icon(Icons.inbox_rounded, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(height: 16),
                   Text(
                     'No backlog tasks',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
                   ),
                 ],
               ),
@@ -164,11 +153,7 @@ class BacklogList extends ConsumerWidget {
           trailing: trailingBuilder(context, n.task),
         );
       } else if (n is BlockerIndicatorNode) {
-        child = BlockerIndicator(
-          blockerId: n.blockerId,
-          blockerTitle: n.blockerTitle,
-          blockedTaskId: n.blockedTaskId,
-        );
+        child = BlockerIndicator(blockerId: n.blockerId, blockerTitle: n.blockerTitle, blockedTaskId: n.blockedTaskId);
       } else {
         return const SizedBox.shrink();
       }
@@ -176,67 +161,70 @@ class BacklogList extends ConsumerWidget {
       return TaskHierarchyIndicator(depth: n.depth, child: child);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      itemCount: activeHierarchical.length,
-      itemBuilder: (context, index) {
-        final node = activeHierarchical[index];
-        final child = buildNode(node);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          itemCount: activeHierarchical.length,
+          itemBuilder: (context, index) {
+            final node = activeHierarchical[index];
+            final child = buildNode(node);
 
-        Widget draggableChild = child;
-        if (node is TaskNode) {
-          final isSelected = selectedTaskIds.contains(node.task.id);
-          final settings = ref.read(settingsProvider);
-          draggableChild = PlatformDraggable<Task>(
-            data: node.task,
-            feedback: TaskDragProxy(
-              task: node.task,
-              selectedCount: isSelected ? selectedTaskIds.length : 1,
-              showHashtagInTitle: settings.showHashtagInTitle,
-            ),
-            childWhenDragging: Opacity(opacity: 0.3, child: child),
-            child: child,
-          );
-        }
-
-        return TaskDropZoneWrapper(
-          index: index,
-          onDrop: (task, newIndex) {
-            final settings = ref.read(settingsProvider);
-            if (selectedTaskIds.isNotEmpty) {
-              final newSortOrders = TaskReorderUtils.handleMultiReorder(
-                nodes: activeHierarchical,
-                draggedTask: task,
-                newIndex: newIndex,
-                selectedTaskIds: selectedTaskIds.toSet(),
-                settings: settings,
+            Widget draggableChild = child;
+            if (node is TaskNode) {
+              final isSelected = selectedTaskIds.contains(node.task.id);
+              draggableChild = PlatformDraggable<Task>(
+                data: node.task,
+                feedback: TaskDragProxy(
+                  task: node.task,
+                  selectedCount: isSelected ? selectedTaskIds.length : 1,
+                  width: constraints.maxWidth - 32,
+                ),
+                childWhenDragging: Opacity(opacity: 0.3, child: child),
+                child: child,
               );
-              if (newSortOrders != null && newSortOrders.isNotEmpty) {
-                ref.read(taskProvider.notifier).bulkReorderTasks(newSortOrders);
-              } else {
-                final newSortOrder = TaskReorderUtils.handleReorder(
-                  nodes: activeHierarchical,
-                  draggedTask: task,
-                  newIndex: newIndex,
-                  settings: settings,
-                );
-                if (newSortOrder != null) {
-                  ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
-                }
-              }
-            } else {
-              final newSortOrder = TaskReorderUtils.handleReorder(
-                nodes: activeHierarchical,
-                draggedTask: task,
-                newIndex: newIndex,
-                settings: settings,
-              );
-              if (newSortOrder != null) {
-                ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
-              }
             }
+
+            return TaskDropZoneWrapper(
+              index: index,
+              onDrop: (task, newIndex) {
+                final settings = ref.read(settingsProvider);
+                if (selectedTaskIds.isNotEmpty) {
+                  final newSortOrders = TaskReorderUtils.handleMultiReorder(
+                    nodes: activeHierarchical,
+                    draggedTask: task,
+                    newIndex: newIndex,
+                    selectedTaskIds: selectedTaskIds.toSet(),
+                    settings: settings,
+                  );
+                  if (newSortOrders != null && newSortOrders.isNotEmpty) {
+                    ref.read(taskProvider.notifier).bulkReorderTasks(newSortOrders);
+                  } else {
+                    final newSortOrder = TaskReorderUtils.handleReorder(
+                      nodes: activeHierarchical,
+                      draggedTask: task,
+                      newIndex: newIndex,
+                      settings: settings,
+                    );
+                    if (newSortOrder != null) {
+                      ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
+                    }
+                  }
+                } else {
+                  final newSortOrder = TaskReorderUtils.handleReorder(
+                    nodes: activeHierarchical,
+                    draggedTask: task,
+                    newIndex: newIndex,
+                    settings: settings,
+                  );
+                  if (newSortOrder != null) {
+                    ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
+                  }
+                }
+              },
+              child: draggableChild,
+            );
           },
-          child: draggableChild,
         );
       },
     );

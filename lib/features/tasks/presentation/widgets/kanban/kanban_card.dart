@@ -7,7 +7,6 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
 
@@ -33,21 +32,24 @@ class KanbanCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
 
-    return PlatformDraggable<Task>(
-      data: task,
-      delay: const Duration(milliseconds: 150),
-      feedback: TaskDragProxy(
-        task: task,
-        selectedCount: 1, // Kanban board doesn't currently support multi-select drag, so just 1
-        showHashtagInTitle: settings.showHashtagInTitle,
-      ),
-      childWhenDragging: Opacity(
-        opacity: 0.3,
-        child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
-      ),
-      child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return PlatformDraggable<Task>(
+          data: task,
+          delay: const Duration(milliseconds: 150),
+          feedback: TaskDragProxy(
+            task: task,
+            selectedCount: 1, // Kanban board doesn't currently support multi-select drag, so just 1
+            width: constraints.maxWidth,
+          ),
+          childWhenDragging: Opacity(
+            opacity: 0.3,
+            child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
+          ),
+          child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
+        );
+      },
     );
   }
 
