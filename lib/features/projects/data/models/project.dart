@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class Project {
+class Project implements Comparable<Project> {
   final String id;
   final String name;
   final String? description;
@@ -83,4 +83,17 @@ class Project {
     isActive: isActive ?? this.isActive,
     sortOrder: sortOrder ?? this.sortOrder,
   );
+
+  @override
+  int compareTo(Project other) {
+    if (isUrgent && !other.isUrgent) return -1;
+    if (!isUrgent && other.isUrgent) return 1;
+
+    final aSort = sortOrder.isEmpty ? '~' : sortOrder;
+    final bSort = other.sortOrder.isEmpty ? '~' : other.sortOrder;
+    final sortComp = aSort.compareTo(bSort);
+    if (sortComp != 0) return sortComp;
+
+    return other.createdAt.compareTo(createdAt);
+  }
 }

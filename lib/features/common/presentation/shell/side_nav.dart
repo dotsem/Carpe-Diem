@@ -130,17 +130,7 @@ class ProjectList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final projectState = ref.watch(projectProvider);
     final projects = projectState.projects.where((p) => p.isActive).toList()
-      ..sort((a, b) {
-        if (a.isUrgent && !b.isUrgent) return -1;
-        if (!a.isUrgent && b.isUrgent) return 1;
-
-        final aSort = a.sortOrder.isEmpty ? '~' : a.sortOrder;
-        final bSort = b.sortOrder.isEmpty ? '~' : b.sortOrder;
-        final sortComp = aSort.compareTo(bSort);
-        if (sortComp != 0) return sortComp;
-
-        return b.createdAt.compareTo(a.createdAt);
-      });
+      ..sort((a, b) => a.compareTo(b));
 
     final groups = <bool, List<Project>>{};
     for (final project in projects) {
