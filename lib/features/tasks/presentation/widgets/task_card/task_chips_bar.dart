@@ -41,12 +41,19 @@ class TaskChipsBar extends ConsumerWidget {
     if (project != null) {
       allLabelIds.addAll(project!.labelIds);
     }
-    final labels = allLabelIds.map((id) => labelNotifier.getById(id)).whereType<Label>().toList();
+    final labels = allLabelIds
+        .map((id) => labelNotifier.getById(id))
+        .whereType<Label>()
+        .toList();
 
     // Tags
-    final tags = task.tagIds.map((id) => tagNotifier.getById(id)).whereType<Tag>().toList();
+    final tags = task.tagIds
+        .map((id) => tagNotifier.getById(id))
+        .whereType<Tag>()
+        .toList();
 
-    final hasChips = project != null ||
+    final hasChips =
+        project != null ||
         isOverdue ||
         task.status.isInProgress ||
         task.deadline != null ||

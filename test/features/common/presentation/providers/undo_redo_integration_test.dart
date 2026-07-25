@@ -15,7 +15,9 @@ import '../../../../helpers/mock_repositories.dart';
 void main() {
   setUpAll(() {
     registerFallbackValue(Task(id: '', title: '', createdAt: DateTime.now()));
-    registerFallbackValue(Project(id: '', name: '', color: Colors.blue, createdAt: DateTime.now()));
+    registerFallbackValue(
+      Project(id: '', name: '', color: Colors.blue, createdAt: DateTime.now()),
+    );
     registerFallbackValue(const Label(id: '', name: '', color: Colors.blue));
   });
 
@@ -48,11 +50,16 @@ void main() {
 
       // Default mock responses
       when(
-        () => mockTaskRepo.getByDate(any(), prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
+        () => mockTaskRepo.getByDate(
+          any(),
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+        ),
       ).thenAnswer((_) async => []);
       when(() => mockTaskRepo.getOverdue(any())).thenAnswer((_) async => []);
       when(
-        () => mockTaskRepo.getUnscheduled(prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
+        () => mockTaskRepo.getUnscheduled(
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+        ),
       ).thenAnswer((_) async => []);
       when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
       when(() => mockLabelRepo.getAll()).thenAnswer((_) async => []);
@@ -62,73 +69,150 @@ void main() {
       container.dispose();
     });
 
-    test('TaskNotifier should refresh UI list state on undo and redo of addTask', () async {
-      when(() => mockTaskRepo.insert(any())).thenAnswer((_) async => {});
-      when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
+    test(
+      'TaskNotifier should refresh UI list state on undo and redo of addTask',
+      () async {
+        when(() => mockTaskRepo.insert(any())).thenAnswer((_) async => {});
+        when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
 
-      final taskNotifier = container.read(taskProvider.notifier);
-      final undoRedo = container.read(undoRedoProvider.notifier);
+        final taskNotifier = container.read(taskProvider.notifier);
+        final undoRedo = container.read(undoRedoProvider.notifier);
 
-      // 1. Add task (executes CreateCommand)
-      await taskNotifier.addTask(title: 'Integrated Task');
-      verify(() => mockTaskRepo.insert(any())).called(1);
+        // 1. Add task (executes CreateCommand)
+        await taskNotifier.addTask(title: 'Integrated Task');
+        verify(() => mockTaskRepo.insert(any())).called(1);
 
-      // 2. Undo task creation
-      await undoRedo.undo();
-      await Future.delayed(Duration.zero);
-      verify(() => mockTaskRepo.delete(any())).called(1);
-      verify(
-        () => mockTaskRepo.getByDate(any(), prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
-      ).called(greaterThan(0));
+        // 2. Undo task creation
+        await undoRedo.undo();
+        await Future.delayed(Duration.zero);
+        verify(() => mockTaskRepo.delete(any())).called(1);
+        verify(
+          () => mockTaskRepo.getByDate(
+            any(),
+            prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          ),
+        ).called(greaterThan(0));
 
-      // 3. Redo task creation
-      await undoRedo.redo();
-      await Future.delayed(Duration.zero);
-      verify(() => mockTaskRepo.insert(any())).called(1);
-    });
+        // 3. Redo task creation
+        await undoRedo.redo();
+        await Future.delayed(Duration.zero);
+        verify(() => mockTaskRepo.insert(any())).called(1);
+      },
+    );
 
-    test('ProjectNotifier should refresh UI state on undo and redo of addProject', () async {
-      when(() => mockProjectRepo.insert(any())).thenAnswer((_) async => {});
-      when(() => mockProjectRepo.delete(any())).thenAnswer((_) async => {});
+    test(
+      'ProjectNotifier should refresh UI state on undo and redo of addProject',
+      () async {
+        when(() => mockProjectRepo.insert(any())).thenAnswer((_) async => {});
+        when(() => mockProjectRepo.delete(any())).thenAnswer((_) async => {});
 
-      final projectNotifier = container.read(projectProvider.notifier);
+        final projectNotifier = container.read(projectProvider.notifier);
 
-      // 1. Add project (executes CreateCommand)
-      await projectNotifier.addProject(name: 'New Project', color: Colors.red);
-      verify(() => mockProjectRepo.insert(any())).called(1);
+        // 1. Add project (executes CreateCommand)
+        await projectNotifier.addProject(
+          name: 'New Project',
+          color: Colors.red,
+        );
+        verify(() => mockProjectRepo.insert(any())).called(1);
 
-      // 2. Undo project creation
-      await container.read(undoRedoProvider.notifier).undo();
-      await Future.delayed(Duration.zero);
-      verify(() => mockProjectRepo.delete(any())).called(1);
-      verify(() => mockProjectRepo.getAll()).called(greaterThan(0));
+        // 2. Undo project creation
+        await container.read(undoRedoProvider.notifier).undo();
+        await Future.delayed(Duration.zero);
+        verify(() => mockProjectRepo.delete(any())).called(1);
+        verify(() => mockProjectRepo.getAll()).called(greaterThan(0));
 
-      // 3. Redo project creation
-      await container.read(undoRedoProvider.notifier).redo();
-      await Future.delayed(Duration.zero);
-      verify(() => mockProjectRepo.insert(any())).called(1);
-    });
+        // 3. Redo project creation
+        await container.read(undoRedoProvider.notifier).redo();
+        await Future.delayed(Duration.zero);
+        verify(() => mockProjectRepo.insert(any())).called(1);
+      },
+    );
 
-    test('LabelNotifier should refresh UI state on undo and redo of addLabel', () async {
-      when(() => mockLabelRepo.insert(any())).thenAnswer((_) async => {});
-      when(() => mockLabelRepo.delete(any())).thenAnswer((_) async => {});
+    test(
+      'LabelNotifier should refresh UI state on undo and redo of addLabel',
+      () async {
+        when(() => mockLabelRepo.insert(any())).thenAnswer((_) async => {});
+        when(() => mockLabelRepo.delete(any())).thenAnswer((_) async => {});
 
-      final labelNotifier = container.read(labelProvider.notifier);
+        final labelNotifier = container.read(labelProvider.notifier);
 
-      // 1. Add label (executes CreateCommand)
-      await labelNotifier.addLabel(name: 'New Label', color: Colors.green);
-      verify(() => mockLabelRepo.insert(any())).called(1);
+        // 1. Add label (executes CreateCommand)
+        await labelNotifier.addLabel(name: 'New Label', color: Colors.green);
+        verify(() => mockLabelRepo.insert(any())).called(1);
 
-      // 2. Undo label creation
-      await container.read(undoRedoProvider.notifier).undo();
-      await Future.delayed(Duration.zero);
-      verify(() => mockLabelRepo.delete(any())).called(1);
-      verify(() => mockLabelRepo.getAll()).called(greaterThan(0));
+        // 2. Undo label creation
+        await container.read(undoRedoProvider.notifier).undo();
+        await Future.delayed(Duration.zero);
+        verify(() => mockLabelRepo.delete(any())).called(1);
+        verify(() => mockLabelRepo.getAll()).called(greaterThan(0));
 
-      // 3. Redo label creation
-      await container.read(undoRedoProvider.notifier).redo();
-      await Future.delayed(Duration.zero);
-      verify(() => mockLabelRepo.insert(any())).called(1);
-    });
+        // 3. Redo label creation
+        await container.read(undoRedoProvider.notifier).redo();
+        await Future.delayed(Duration.zero);
+        verify(() => mockLabelRepo.insert(any())).called(1);
+      },
+    );
+
+    test(
+      'TaskNotifier reorderTask should register in undo/redo stack and revert on undo',
+      () async {
+        final task = Task(
+          id: 't1',
+          title: 'Task to Reorder',
+          sortOrder: '0|i00000:',
+          createdAt: DateTime.now(),
+        );
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+
+        final taskNotifier = container.read(taskProvider.notifier);
+        final undoRedo = container.read(undoRedoProvider.notifier);
+
+        await taskNotifier.reorderTask(task, '0|i00001:');
+        verify(() => mockTaskRepo.update(any())).called(1);
+        expect(undoRedo.state.canUndo, isTrue);
+        expect(undoRedo.state.undoDescription, contains('Reorder task'));
+
+        await undoRedo.undo();
+        await Future.delayed(Duration.zero);
+        verify(() => mockTaskRepo.update(any())).called(1);
+      },
+    );
+
+    test(
+      'TaskNotifier bulkReorderTasks should register compound command in undo/redo stack',
+      () async {
+        final task1 = Task(
+          id: 't1',
+          title: 'Task 1',
+          sortOrder: '0|i00000:',
+          createdAt: DateTime.now(),
+        );
+        final task2 = Task(
+          id: 't2',
+          title: 'Task 2',
+          sortOrder: '0|i00001:',
+          createdAt: DateTime.now(),
+        );
+
+        when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => task1);
+        when(() => mockTaskRepo.getById('t2')).thenAnswer((_) async => task2);
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+
+        final taskNotifier = container.read(taskProvider.notifier);
+        final undoRedo = container.read(undoRedoProvider.notifier);
+
+        await taskNotifier.bulkReorderTasks({
+          't1': '0|i00002:',
+          't2': '0|i00003:',
+        });
+        verify(() => mockTaskRepo.update(any())).called(2);
+        expect(undoRedo.state.canUndo, isTrue);
+        expect(undoRedo.state.undoDescription, equals('Reorder 2 tasks'));
+
+        await undoRedo.undo();
+        await Future.delayed(Duration.zero);
+        verify(() => mockTaskRepo.update(any())).called(2);
+      },
+    );
   });
 }

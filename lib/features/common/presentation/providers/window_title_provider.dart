@@ -8,7 +8,11 @@ class WindowTitleState {
   final String? baseSubtitle;
   final List<String> subtitleStack;
 
-  const WindowTitleState({required this.baseTitle, this.baseSubtitle, required this.subtitleStack});
+  const WindowTitleState({
+    required this.baseTitle,
+    this.baseSubtitle,
+    required this.subtitleStack,
+  });
 
   String get title => baseTitle;
 
@@ -34,7 +38,9 @@ class WindowTitleState {
   }) {
     return WindowTitleState(
       baseTitle: baseTitle ?? this.baseTitle,
-      baseSubtitle: clearBaseSubtitle ? null : (baseSubtitle ?? this.baseSubtitle),
+      baseSubtitle: clearBaseSubtitle
+          ? null
+          : (baseSubtitle ?? this.baseSubtitle),
       subtitleStack: subtitleStack ?? this.subtitleStack,
     );
   }
@@ -43,11 +49,18 @@ class WindowTitleState {
 class WindowTitleNotifier extends Notifier<WindowTitleState> {
   @override
   WindowTitleState build() {
-    return const WindowTitleState(baseTitle: AppConstants.appName, subtitleStack: []);
+    return const WindowTitleState(
+      baseTitle: AppConstants.appName,
+      subtitleStack: [],
+    );
   }
 
   void updateTitle({String? title, String? subtitle}) {
-    state = state.copyWith(baseTitle: title, baseSubtitle: subtitle, clearBaseSubtitle: subtitle == null);
+    state = state.copyWith(
+      baseTitle: title,
+      baseSubtitle: subtitle,
+      clearBaseSubtitle: subtitle == null,
+    );
     _applyToWindow();
   }
 
@@ -66,7 +79,10 @@ class WindowTitleNotifier extends Notifier<WindowTitleState> {
   }
 
   void reset() {
-    state = const WindowTitleState(baseTitle: AppConstants.appName, subtitleStack: []);
+    state = const WindowTitleState(
+      baseTitle: AppConstants.appName,
+      subtitleStack: [],
+    );
     _applyToWindow();
   }
 
@@ -84,6 +100,7 @@ class WindowTitleNotifier extends Notifier<WindowTitleState> {
   }
 }
 
-final windowTitleProvider = NotifierProvider<WindowTitleNotifier, WindowTitleState>(() {
-  return WindowTitleNotifier();
-});
+final windowTitleProvider =
+    NotifierProvider<WindowTitleNotifier, WindowTitleState>(() {
+      return WindowTitleNotifier();
+    });

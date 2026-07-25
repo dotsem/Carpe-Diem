@@ -23,7 +23,9 @@ void main() {
   Widget buildTestWidget(ProviderContainer container) {
     return UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: Scaffold(bottomNavigationBar: UndoRedoPanel())),
+      child: const MaterialApp(
+        home: Scaffold(bottomNavigationBar: UndoRedoPanel()),
+      ),
     );
   }
 
@@ -38,23 +40,32 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('should render with height 0 when empty and 56 when populated', (tester) async {
-      await tester.pumpWidget(buildTestWidget(container));
+    testWidgets(
+      'should render with height 0 when empty and 56 when populated',
+      (tester) async {
+        await tester.pumpWidget(buildTestWidget(container));
 
-      // verify initial height is 0
-      var animatedContainer = tester.widget<AnimatedContainer>(find.byType(AnimatedContainer));
-      expect(animatedContainer.constraints?.maxHeight, equals(0.0));
+        // verify initial height is 0
+        var animatedContainer = tester.widget<AnimatedContainer>(
+          find.byType(AnimatedContainer),
+        );
+        expect(animatedContainer.constraints?.maxHeight, equals(0.0));
 
-      // execute a command to trigger panel visibility
-      final cmd = TestCommand('First Action');
-      await container.read(undoRedoProvider.notifier).execute(cmd);
-      await tester.pumpAndSettle();
+        // execute a command to trigger panel visibility
+        final cmd = TestCommand('First Action');
+        await container.read(undoRedoProvider.notifier).execute(cmd);
+        await tester.pumpAndSettle();
 
-      animatedContainer = tester.widget<AnimatedContainer>(find.byType(AnimatedContainer));
-      expect(animatedContainer.constraints?.maxHeight, equals(56.0));
-    });
+        animatedContainer = tester.widget<AnimatedContainer>(
+          find.byType(AnimatedContainer),
+        );
+        expect(animatedContainer.constraints?.maxHeight, equals(56.0));
+      },
+    );
 
-    testWidgets('Undo and Redo button states and click handlers work', (tester) async {
+    testWidgets('Undo and Redo button states and click handlers work', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget(container));
 
       final cmd = TestCommand('Action 1');
@@ -62,8 +73,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Undo should be enabled, Redo disabled
-      final undoFinder = find.byWidgetPredicate((w) => w is IconButton && w.tooltip == 'Undo');
-      final redoFinder = find.byWidgetPredicate((w) => w is IconButton && w.tooltip == 'Redo');
+      final undoFinder = find.byWidgetPredicate(
+        (w) => w is IconButton && w.tooltip == 'Undo',
+      );
+      final redoFinder = find.byWidgetPredicate(
+        (w) => w is IconButton && w.tooltip == 'Redo',
+      );
 
       IconButton undoButton = tester.widget<IconButton>(undoFinder);
       IconButton redoButton = tester.widget<IconButton>(redoFinder);
@@ -93,7 +108,9 @@ void main() {
       expect(redoButton.onPressed, isNull);
     });
 
-    testWidgets('History button should open ActionHistoryDialog', (tester) async {
+    testWidgets('History button should open ActionHistoryDialog', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget(container));
 
       final cmd = TestCommand('Historical Action');

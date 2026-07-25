@@ -5,7 +5,9 @@ import 'package:carpe_diem/features/common/presentation/widgets/dialogs/destruct
 
 void main() {
   group('common', () {
-    testWidgets('DeleteDialog renders text and triggers callback', (WidgetTester tester) async {
+    testWidgets('DeleteDialog renders text and triggers callback', (
+      WidgetTester tester,
+    ) async {
       bool confirmed = false;
 
       await tester.pumpWidget(
@@ -43,7 +45,9 @@ void main() {
       expect(find.text('Delete Item'), findsNothing);
     });
 
-    testWidgets('DestructiveDialog cancel dismisses without confirm', (WidgetTester tester) async {
+    testWidgets('DestructiveDialog cancel dismisses without confirm', (
+      WidgetTester tester,
+    ) async {
       bool confirmed = false;
 
       await tester.pumpWidget(

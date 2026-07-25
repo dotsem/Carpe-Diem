@@ -50,7 +50,9 @@ class SizedDialog extends StatefulWidget {
 }
 
 class _SizedDialogState extends State<SizedDialog> {
-  final FocusScopeNode _focusScopeNode = FocusScopeNode(debugLabel: 'SizedDialogScope');
+  final FocusScopeNode _focusScopeNode = FocusScopeNode(
+    debugLabel: 'SizedDialogScope',
+  );
 
   @override
   void dispose() {
@@ -61,7 +63,10 @@ class _SizedDialogState extends State<SizedDialog> {
   @override
   Widget build(BuildContext context) {
     Widget content = ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: widget.maxWidth, minWidth: widget.minWidth ?? 0),
+      constraints: BoxConstraints(
+        maxWidth: widget.maxWidth,
+        minWidth: widget.minWidth ?? 0,
+      ),
       child: Padding(padding: widget.padding!, child: widget.child),
     );
 
@@ -76,7 +81,10 @@ class _SizedDialogState extends State<SizedDialog> {
               child: content,
             )
           : content,
-      actions: (widget.actions != null || widget.onCancel != null || widget.onSubmit != null)
+      actions:
+          (widget.actions != null ||
+              widget.onCancel != null ||
+              widget.onSubmit != null)
           ? [
               Padding(
                 padding: const EdgeInsets.only(top: 16),
@@ -87,12 +95,14 @@ class _SizedDialogState extends State<SizedDialog> {
                     if (widget.showDefaultActions) ...[
                       const Spacer(),
                       TextButton(
-                        onPressed: widget.onCancel ?? () => Navigator.pop(context),
+                        onPressed:
+                            widget.onCancel ?? () => Navigator.pop(context),
                         child: const Text('Cancel'),
                       ),
                       const SizedBox(width: 12),
                       FilledButton(
-                        onPressed: widget.onSubmit ?? () => Navigator.pop(context),
+                        onPressed:
+                            widget.onSubmit ?? () => Navigator.pop(context),
                         style: widget.submitStyle,
                         child: Text(widget.submitText),
                       ),
@@ -108,12 +118,18 @@ class _SizedDialogState extends State<SizedDialog> {
 
     return Shortcuts(
       shortcuts: {
-        const SingleActivator(LogicalKeyboardKey.enter, control: true): const _SubmitIntent(),
-        const SingleActivator(LogicalKeyboardKey.numpadEnter, control: true): const _SubmitIntent(),
+        const SingleActivator(LogicalKeyboardKey.enter, control: true):
+            const _SubmitIntent(),
+        const SingleActivator(LogicalKeyboardKey.numpadEnter, control: true):
+            const _SubmitIntent(),
       },
       child: Actions(
         actions: {_SubmitIntent: _SubmitAction(widget.onSubmit!)},
-        child: FocusScope(node: _focusScopeNode, autofocus: true, child: dialog),
+        child: FocusScope(
+          node: _focusScopeNode,
+          autofocus: true,
+          child: dialog,
+        ),
       ),
     );
   }

@@ -18,7 +18,10 @@ class LabelState {
   const LabelState({this.labels = const [], this.isLoading = false});
 
   LabelState copyWith({List<Label>? labels, bool? isLoading}) {
-    return LabelState(labels: labels ?? this.labels, isLoading: isLoading ?? this.isLoading);
+    return LabelState(
+      labels: labels ?? this.labels,
+      isLoading: isLoading ?? this.isLoading,
+    );
   }
 
   Label? getById(String? id) {
@@ -61,7 +64,14 @@ class LabelNotifier extends Notifier<LabelState> {
     final label = Label(id: _uuid.v4(), name: name, color: color);
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(CreateCommand(repo: _repo, item: label, id: label.id, displayName: label.name));
+        .execute(
+          CreateCommand(
+            repo: _repo,
+            item: label,
+            id: label.id,
+            displayName: label.name,
+          ),
+        );
     await loadLabels();
   }
 
@@ -70,7 +80,14 @@ class LabelNotifier extends Notifier<LabelState> {
     if (oldLabel == null) return;
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: oldLabel, next: label, displayName: label.name));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: oldLabel,
+            next: label,
+            displayName: label.name,
+          ),
+        );
     await loadLabels();
     await ref.read(projectProvider.notifier).loadProjects();
     await ref.read(taskProvider.notifier).refreshTasks();
@@ -81,9 +98,18 @@ class LabelNotifier extends Notifier<LabelState> {
     if (label == null) return;
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(DeleteCommand(repo: _repo, item: label, id: label.id, displayName: label.name));
+        .execute(
+          DeleteCommand(
+            repo: _repo,
+            item: label,
+            id: label.id,
+            displayName: label.name,
+          ),
+        );
     ref.read(filterProvider.notifier).removeLabelFilter(id);
-    await ref.read(settingsProvider.notifier).setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
+    await ref
+        .read(settingsProvider.notifier)
+        .setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadLabels();
     await ref.read(projectProvider.notifier).loadProjects();
     await ref.read(taskProvider.notifier).refreshTasks();

@@ -4,16 +4,18 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
-import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
 
 class KanbanCard extends ConsumerWidget {
   final TaskNode node;
   final ProjectNotifier projectNotifier;
-  final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
+  final List<Task> tasks;
+  final void Function(Task task, Offset localPosition, RenderBox renderBox)
+  onContextMenu;
   final void Function(Task task) onEdit;
   final FocusNode? focusNode;
 
@@ -21,6 +23,7 @@ class KanbanCard extends ConsumerWidget {
     super.key,
     required this.node,
     required this.projectNotifier,
+    required this.tasks,
     required this.onContextMenu,
     required this.onEdit,
     this.focusNode,
@@ -32,31 +35,36 @@ class KanbanCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-
-    return Draggable<Task>(
-      data: task,
-      feedback: Material(
-        elevation: 8,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: 250,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return PlatformDraggable<Task>(
+          data: task,
+          delay: const Duration(milliseconds: 150),
+          feedback: TaskDragProxy(
+            task: task,
+            selectedCount:
+                1, // Kanban board doesn't currently support multi-select drag, so just 1
+            width: constraints.maxWidth,
           ),
-          child: Text(
-            settings.showHashtagInTitle ? task.title : TagParser.hideHashtagSymbols(task.title),
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+          childWhenDragging: Opacity(
+            opacity: 0.3,
+            child: _wrapHierarchy(
+              context,
+              ref,
+              task,
+              projectNotifier,
+              isOverdue: isOverdue,
+            ),
           ),
-        ),
-      ),
-      childWhenDragging: Opacity(
-        opacity: 0.3,
-        child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
-      ),
-      child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
+          child: _wrapHierarchy(
+            context,
+            ref,
+            task,
+            projectNotifier,
+            isOverdue: isOverdue,
+          ),
+        );
+      },
     );
   }
 
@@ -67,7 +75,13 @@ class KanbanCard extends ConsumerWidget {
     ProjectNotifier projectNotifier, {
     bool isOverdue = false,
   }) {
-    final card = _buildTaskCard(context, ref, task, projectNotifier, isOverdue: isOverdue);
+    final card = _buildTaskCard(
+      context,
+      ref,
+      task,
+      projectNotifier,
+      isOverdue: isOverdue,
+    );
     return TaskHierarchyIndicator(depth: depth, child: card);
   }
 
@@ -82,15 +96,23 @@ class KanbanCard extends ConsumerWidget {
     return TaskCard(
       key: ValueKey(task.id),
       task: task,
-      project: task.projectId != null ? projectNotifier.getById(task.projectId!) : null,
+      project: task.projectId != null
+          ? projectNotifier.getById(task.projectId!)
+          : null,
       isOverdue: isOverdue,
       useTimer: false,
       leading: Container(),
       focusNode: focusNode,
       onToggle: (_) => taskNotifier.toggleComplete(task),
       onTap: () => onEdit(task),
-      onContextMenu: (localPosition, renderBox) =>
-          showTaskCardContextMenu(context, ref, task, localPosition, renderBox),
+      onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
+        context,
+        ref,
+        task,
+        tasks,
+        localPosition,
+        renderBox,
+      ),
     );
   }
 }

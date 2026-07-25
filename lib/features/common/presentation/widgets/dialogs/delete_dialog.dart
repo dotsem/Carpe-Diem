@@ -5,10 +5,20 @@ class DeleteDialog extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback onConfirm;
-  const DeleteDialog({super.key, required this.title, required this.message, required this.onConfirm});
+  const DeleteDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.onConfirm,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return DestructiveDialog(title: title, message: message, destructiveText: 'Delete', onConfirm: onConfirm);
+    return DestructiveDialog(
+      title: title,
+      message: message,
+      destructiveText: 'Delete',
+      onConfirm: onConfirm,
+    );
   }
 }

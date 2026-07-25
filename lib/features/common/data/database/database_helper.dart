@@ -54,10 +54,11 @@ class DatabaseHelper {
         name TEXT NOT NULL,
         description TEXT,
         color INTEGER NOT NULL,
-        priority INTEGER NOT NULL DEFAULT 0,
+        isUrgent INTEGER NOT NULL DEFAULT 0,
         deadline TEXT,
         createdAt TEXT NOT NULL,
-        isActive INTEGER NOT NULL DEFAULT 1
+        isActive INTEGER NOT NULL DEFAULT 1,
+        sortOrder TEXT NOT NULL DEFAULT ''
       )
     ''');
 
@@ -88,11 +89,12 @@ class DatabaseHelper {
         isCompleted INTEGER NOT NULL DEFAULT 0,
         status INTEGER NOT NULL DEFAULT 0,
         projectId TEXT,
-        priority INTEGER NOT NULL DEFAULT 0,
+        isUrgent INTEGER NOT NULL DEFAULT 0,
         deadline TEXT,
         createdAt TEXT NOT NULL,
         completedAt TEXT,
         blockedById TEXT,
+        sortOrder TEXT NOT NULL DEFAULT '',
         FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE SET NULL,
         FOREIGN KEY (blockedById) REFERENCES tasks(id) ON DELETE SET NULL
       )
@@ -190,9 +192,15 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
-  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  static Future<void> _onUpgrade(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
     if (oldVersion < 11) {
-      await db.execute('ALTER TABLE projects ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1');
+      await db.execute(
+        'ALTER TABLE projects ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1',
+      );
     }
     if (oldVersion < 12) {
       await db.execute('''
@@ -219,6 +227,40 @@ class DatabaseHelper {
         )
       ''');
       await _seedTagIcons(db);
+    }
+    if (oldVersion < 15) {
+      await db.execute(
+        "ALTER TABLE tasks ADD COLUMN sortOrder TEXT NOT NULL DEFAULT ''",
+      );
+      await db.execute(
+        "UPDATE tasks SET sortOrder = createdAt WHERE sortOrder = ''",
+      );
+    }
+    if (oldVersion < 16) {
+      await db.execute(
+        'ALTER TABLE tasks ADD COLUMN isUrgent INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute('UPDATE tasks SET isUrgent = 1 WHERE priority = 4');
+
+      try {
+        await db.execute('ALTER TABLE tasks DROP COLUMN priority');
+      } catch (_) {}
+
+      await db.execute(
+        'ALTER TABLE projects ADD COLUMN isUrgent INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute('UPDATE projects SET isUrgent = 1 WHERE priority = 4');
+      try {
+        await db.execute('ALTER TABLE projects DROP COLUMN priority');
+      } catch (_) {}
+    }
+    if (oldVersion < 17) {
+      await db.execute(
+        "ALTER TABLE projects ADD COLUMN sortOrder TEXT NOT NULL DEFAULT ''",
+      );
+      await db.execute(
+        "UPDATE projects SET sortOrder = createdAt WHERE sortOrder = ''",
+      );
     }
   }
 }

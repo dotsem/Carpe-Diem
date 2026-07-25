@@ -30,12 +30,15 @@ void main() {
       expect(value, equals('dark'));
     });
 
-    test('should overwrite an existing setting value with conflict replacement', () async {
-      await repository.set('theme', 'dark');
-      await repository.set('theme', 'light');
-      final value = await repository.get('theme');
-      expect(value, equals('light'));
-    });
+    test(
+      'should overwrite an existing setting value with conflict replacement',
+      () async {
+        await repository.set('theme', 'dark');
+        await repository.set('theme', 'light');
+        final value = await repository.get('theme');
+        expect(value, equals('light'));
+      },
+    );
 
     test('should return null for non-existent keys', () async {
       final value = await repository.get('non_existent');

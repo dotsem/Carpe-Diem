@@ -6,7 +6,11 @@ class SideBar extends StatelessWidget {
   final Section? section;
   final ValueChanged<Section> onTabSelected;
 
-  const SideBar({super.key, required this.section, required this.onTabSelected});
+  const SideBar({
+    super.key,
+    required this.section,
+    required this.onTabSelected,
+  });
 
   @override
   Widget build(BuildContext context) {

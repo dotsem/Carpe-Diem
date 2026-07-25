@@ -26,9 +26,13 @@ class NavigationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: outerPadding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      padding:
+          outerPadding ??
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Material(
-        color: isSelected ? AppColors.accent.withValues(alpha: 0.15) : Colors.transparent,
+        color: isSelected
+            ? AppColors.accent.withValues(alpha: 0.15)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: onTap,
@@ -39,7 +43,11 @@ class NavigationItem extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color: iconColor ?? (isSelected ? AppColors.accent : Theme.of(context).colorScheme.onSurfaceVariant),
+                  color:
+                      iconColor ??
+                      (isSelected
+                          ? AppColors.accent
+                          : Theme.of(context).colorScheme.onSurfaceVariant),
                   size: iconSize,
                 ),
                 const SizedBox(width: 12),
@@ -48,22 +56,33 @@ class NavigationItem extends StatelessWidget {
                     label,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: isSelected ? AppColors.accent : Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected
+                          ? AppColors.accent
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
                 if (shortcutHint != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.8),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHigh.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       shortcutHint!,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),

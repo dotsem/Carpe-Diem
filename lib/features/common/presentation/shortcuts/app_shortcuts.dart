@@ -21,14 +21,18 @@ bool isTypingInTextField() {
 
   // Check if the focused widget itself is a text input
   final widget = context.widget;
-  if (widget is EditableText || widget is TextField || widget is TextFormField) {
+  if (widget is EditableText ||
+      widget is TextField ||
+      widget is TextFormField) {
     return true;
   }
 
   // Visit ancestors to find if we're inside a text input widget
   context.visitAncestorElements((element) {
     final ancestorWidget = element.widget;
-    if (ancestorWidget is EditableText || ancestorWidget is TextField || ancestorWidget is TextFormField) {
+    if (ancestorWidget is EditableText ||
+        ancestorWidget is TextField ||
+        ancestorWidget is TextFormField) {
       isTextInput = true;
       return false;
     }
@@ -97,7 +101,8 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
     if (_helpVisible) _overlayKey.currentState?.updateContent();
   }
 
-  List<ShortcutEntry> get contextualShortcuts => _contextualShortcuts.values.expand((e) => e).toList();
+  List<ShortcutEntry> get contextualShortcuts =>
+      _contextualShortcuts.values.expand((e) => e).toList();
 
   void toggleHelp() {
     setState(() => _helpVisible = !_helpVisible);
@@ -118,7 +123,9 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
   }
 
   void _handleKeyEvent(KeyEvent event) {
-    final isAlt = event.logicalKey == LogicalKeyboardKey.altLeft || event.logicalKey == LogicalKeyboardKey.altRight;
+    final isAlt =
+        event.logicalKey == LogicalKeyboardKey.altLeft ||
+        event.logicalKey == LogicalKeyboardKey.altRight;
 
     if (isAlt) {
       if (event is KeyDownEvent && !_isAltPressed) {
@@ -138,50 +145,74 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
       onKeyEvent: _handleKeyEvent,
       child: Shortcuts(
         shortcuts: {
-          const CharacterActivator(TodayKeys.upper): const NavigateToTodayIntent(),
-          const CharacterActivator(BacklogKeys.upper): const NavigateToBacklogIntent(),
-          const CharacterActivator(ProjectsKeys.upper): const NavigateToProjectsIntent(),
-          const CharacterActivator(HistoryKeys.upper): const NavigateToHistoryIntent(),
-          const CharacterActivator(TodayKeys.char): const NavigateToTodayIntent(),
-          const CharacterActivator(BacklogKeys.char): const NavigateToBacklogIntent(),
-          const CharacterActivator(ProjectsKeys.char): const NavigateToProjectsIntent(),
-          const CharacterActivator(HistoryKeys.char): const NavigateToHistoryIntent(),
+          const CharacterActivator(TodayKeys.upper):
+              const NavigateToTodayIntent(),
+          const CharacterActivator(BacklogKeys.upper):
+              const NavigateToBacklogIntent(),
+          const CharacterActivator(ProjectsKeys.upper):
+              const NavigateToProjectsIntent(),
+          const CharacterActivator(HistoryKeys.upper):
+              const NavigateToHistoryIntent(),
+          const CharacterActivator(TodayKeys.char):
+              const NavigateToTodayIntent(),
+          const CharacterActivator(BacklogKeys.char):
+              const NavigateToBacklogIntent(),
+          const CharacterActivator(ProjectsKeys.char):
+              const NavigateToProjectsIntent(),
+          const CharacterActivator(HistoryKeys.char):
+              const NavigateToHistoryIntent(),
           const CharacterActivator(HelpKeys.char): const ToggleHelpIntent(),
-          const CharacterActivator(FilterKeys.upper): const ToggleFilterBypassIntent(),
+          const CharacterActivator(FilterKeys.upper):
+              const ToggleFilterBypassIntent(),
           const SingleActivator(AppKeyBindings.escape): const CloseHelpIntent(),
           const CharacterActivator(DownKeys.char): const MoveNextIntent(),
           const CharacterActivator(UpKeys.char): const MovePrevIntent(),
           const CharacterActivator(DownKeys.upper): const MoveNextIntent(),
           const CharacterActivator(UpKeys.upper): const MovePrevIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+          const SingleActivator(AppKeyBindings.arrowDown):
+              const MoveNextIntent(),
           const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
 
-          const CharacterActivator(UndoKeys.char, control: true): const UndoIntent(),
-          const CharacterActivator(RedoKeys.char, control: true): const RedoIntent(),
+          const CharacterActivator(UndoKeys.char, control: true):
+              const UndoIntent(),
+          const CharacterActivator(RedoKeys.char, control: true):
+              const RedoIntent(),
         },
         child: Actions(
           actions: {
             MoveNextIntent: NonTypingAction<MoveNextIntent>((intent) {
               debugPrint('Shortcut: MoveNext');
-              FocusManager.instance.primaryFocus?.focusInDirection(TraversalDirection.down);
+              FocusManager.instance.primaryFocus?.focusInDirection(
+                TraversalDirection.down,
+              );
             }),
             MovePrevIntent: NonTypingAction<MovePrevIntent>((intent) {
               debugPrint('Shortcut: MovePrev');
-              FocusManager.instance.primaryFocus?.focusInDirection(TraversalDirection.up);
+              FocusManager.instance.primaryFocus?.focusInDirection(
+                TraversalDirection.up,
+              );
             }),
-            NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((intent) {
+            NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((
+              intent,
+            ) {
               debugPrint('Shortcut: NavigateToToday');
               appRouter.go('/');
             }),
-            NavigateToBacklogIntent: NonTypingAction<NavigateToBacklogIntent>((intent) {
+            NavigateToBacklogIntent: NonTypingAction<NavigateToBacklogIntent>((
+              intent,
+            ) {
               debugPrint('Shortcut: NavigateToBacklog');
               appRouter.go('/tasks');
             }),
-            NavigateToProjectsIntent: NonTypingAction<NavigateToProjectsIntent>((intent) {
-              debugPrint('Shortcut: NavigateToProjects');
-              appRouter.go('/projects');
-            }),
-            NavigateToHistoryIntent: NonTypingAction<NavigateToHistoryIntent>((intent) {
+            NavigateToProjectsIntent: NonTypingAction<NavigateToProjectsIntent>(
+              (intent) {
+                debugPrint('Shortcut: NavigateToProjects');
+                appRouter.go('/projects');
+              },
+            ),
+            NavigateToHistoryIntent: NonTypingAction<NavigateToHistoryIntent>((
+              intent,
+            ) {
               debugPrint('Shortcut: NavigateToHistory');
               appRouter.go('/history');
             }),
@@ -190,10 +221,12 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
               toggleHelp();
             }),
             CloseHelpIntent: _CloseHelpAction(this),
-            ToggleFilterBypassIntent: NonTypingAction<ToggleFilterBypassIntent>((intent) {
-              debugPrint('Shortcut: ToggleFilterBypass');
-              ref.read(filterProvider.notifier).toggleBypass();
-            }),
+            ToggleFilterBypassIntent: NonTypingAction<ToggleFilterBypassIntent>(
+              (intent) {
+                debugPrint('Shortcut: ToggleFilterBypass');
+                ref.read(filterProvider.notifier).toggleBypass();
+              },
+            ),
             UndoIntent: NonTypingAction<UndoIntent>((intent) {
               debugPrint('Shortcut: Undo');
               ref.read(undoRedoProvider.notifier).undo();
@@ -223,7 +256,11 @@ class AppShortcutRegistrar extends StatefulWidget {
   final List<ShortcutEntry> shortcuts;
   final Widget child;
 
-  const AppShortcutRegistrar({super.key, required this.shortcuts, required this.child});
+  const AppShortcutRegistrar({
+    super.key,
+    required this.shortcuts,
+    required this.child,
+  });
 
   @override
   State<AppShortcutRegistrar> createState() => _AppShortcutRegistrarState();

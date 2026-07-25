@@ -23,7 +23,8 @@ class TagProfile {
   static const List<TagProfile> predefinedProfiles = [
     TagProfile(
       name: 'Work / Professional',
-      description: 'For meetings, projects, admin tasks, and career development.',
+      description:
+          'For meetings, projects, admin tasks, and career development.',
       icon: Icons.business_center,
       tags: [
         TagProfileItem(name: 'meeting', icon: Icons.people),
@@ -40,7 +41,8 @@ class TagProfile {
     ),
     TagProfile(
       name: 'Academic / Study',
-      description: 'For tracking classes, lectures, exams, research, and homework.',
+      description:
+          'For tracking classes, lectures, exams, research, and homework.',
       icon: Icons.school,
       tags: [
         TagProfileItem(name: 'lecture', icon: Icons.co_present),
@@ -56,7 +58,8 @@ class TagProfile {
     ),
     TagProfile(
       name: 'Personal Life / Routine',
-      description: 'For daily chores, home management, shopping, and family time.',
+      description:
+          'For daily chores, home management, shopping, and family time.',
       icon: Icons.home,
       tags: [
         TagProfileItem(name: 'chore', icon: Icons.cleaning_services),
@@ -71,7 +74,8 @@ class TagProfile {
     ),
     TagProfile(
       name: 'Health / Wellness',
-      description: 'For tracking workouts, diet, sleep, and self-care routines.',
+      description:
+          'For tracking workouts, diet, sleep, and self-care routines.',
       icon: Icons.favorite_border,
       tags: [
         TagProfileItem(name: 'workout', icon: Icons.fitness_center),
@@ -87,7 +91,8 @@ class TagProfile {
     ),
     TagProfile(
       name: 'Hobbies / Leisure',
-      description: 'For creative writing, arts, gaming, music, and movie logging.',
+      description:
+          'For creative writing, arts, gaming, music, and movie logging.',
       icon: Icons.palette,
       tags: [
         TagProfileItem(name: 'hobby', icon: Icons.sports_esports),

@@ -45,23 +45,36 @@ class BacklogShortcuts extends ConsumerWidget {
       child: Shortcuts(
         shortcuts: {
           const CharacterActivator(SearchKeys.char): const FocusSearchIntent(),
-          const SingleActivator(AppKeyBindings.escape): const UnfocusSearchIntent(),
+          const SingleActivator(AppKeyBindings.escape):
+              const UnfocusSearchIntent(),
           const CharacterActivator(AddKeys.char): const NewTaskIntent(),
           const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
           const CharacterActivator(DownKeys.char): const MoveNextIntent(),
           const CharacterActivator(UpKeys.char): const MovePrevIntent(),
           const CharacterActivator(FilterKeys.char): const FilterIntent(),
-          const SingleActivator(TodayKeys.keyboardKey, control: true): const PlanTaskIntent(),
-          const SingleActivator(TodayKeys.keyboardKey, control: true, shift: true): const PlanTaskTomorrowIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+          const SingleActivator(TodayKeys.keyboardKey, control: true):
+              const PlanTaskIntent(),
+          const SingleActivator(
+            TodayKeys.keyboardKey,
+            control: true,
+            shift: true,
+          ): const PlanTaskTomorrowIntent(),
+          const SingleActivator(AppKeyBindings.arrowDown):
+              const MoveNextIntent(),
           const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
         },
         child: Actions(
           actions: {
-            MoveNextIntent: NonTypingAction<MoveNextIntent>((_) => onMoveNext()),
-            MovePrevIntent: NonTypingAction<MovePrevIntent>((_) => onMovePrev()),
+            MoveNextIntent: NonTypingAction<MoveNextIntent>(
+              (_) => onMoveNext(),
+            ),
+            MovePrevIntent: NonTypingAction<MovePrevIntent>(
+              (_) => onMovePrev(),
+            ),
             FilterIntent: NonTypingAction<FilterIntent>((_) => onShowFilter()),
-            FocusSearchIntent: NonTypingAction<FocusSearchIntent>((_) => onFocusSearch()),
+            FocusSearchIntent: NonTypingAction<FocusSearchIntent>(
+              (_) => onFocusSearch(),
+            ),
             UnfocusSearchIntent: CallbackAction<UnfocusSearchIntent>(
               onInvoke: (intent) {
                 onUnfocusSearch();
@@ -69,8 +82,12 @@ class BacklogShortcuts extends ConsumerWidget {
               },
             ),
             NewTaskIntent: NonTypingAction<NewTaskIntent>((_) => onNewTask()),
-            PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) => onPlanTask()),
-            PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) => onPlanTaskTomorrow()),
+            PlanTaskIntent: NonTypingAction<PlanTaskIntent>(
+              (_) => onPlanTask(),
+            ),
+            PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>(
+              (_) => onPlanTaskTomorrow(),
+            ),
           },
           child: child,
         ),

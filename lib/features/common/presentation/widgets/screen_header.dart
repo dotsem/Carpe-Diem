@@ -6,12 +6,19 @@ class ScreenHeader extends StatelessWidget {
   final List<Widget>? actions;
   final EdgeInsets? padding;
 
-  const ScreenHeader({super.key, required this.title, this.subtitle, this.actions, this.padding});
+  const ScreenHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.actions,
+    this.padding,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
+      padding:
+          padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -33,7 +40,12 @@ class ScreenHeader extends StatelessWidget {
                 if (subtitle != null) ...[
                   const SizedBox(height: 4),
                   if (subtitle is String)
-                    Text(subtitle as String, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
+                    Text(
+                      subtitle as String,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    )
                   else if (subtitle is Widget)
                     subtitle as Widget,
                 ],

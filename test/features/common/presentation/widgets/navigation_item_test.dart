@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('common', () {
-    testWidgets('renders icon, label, and optional shortcutHint', (WidgetTester tester) async {
+    testWidgets('renders icon, label, and optional shortcutHint', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -25,7 +27,9 @@ void main() {
       expect(find.text('Ctrl+S'), findsOneWidget);
     });
 
-    testWidgets('triggers onTap callback when tapped', (WidgetTester tester) async {
+    testWidgets('triggers onTap callback when tapped', (
+      WidgetTester tester,
+    ) async {
       var tapped = false;
 
       await tester.pumpWidget(
@@ -47,7 +51,9 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('applies active theme color and background when selected', (WidgetTester tester) async {
+    testWidgets('applies active theme color and background when selected', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -66,7 +72,7 @@ void main() {
         matching: find.byType(Material),
       );
       expect(materialFinder, findsOneWidget);
-      
+
       final material = tester.widget<Material>(materialFinder);
       expect(material.color, AppColors.accent.withValues(alpha: 0.15));
 
@@ -75,29 +81,34 @@ void main() {
       expect(textWidget.style?.color, AppColors.accent);
     });
 
-    testWidgets('applies transparent background and default color when unselected', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NavigationItem(
-              icon: Icons.settings,
-              label: 'Settings',
-              isSelected: false,
-              onTap: () {},
+    testWidgets(
+      'applies transparent background and default color when unselected',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: NavigationItem(
+                icon: Icons.settings,
+                label: 'Settings',
+                isSelected: false,
+                onTap: () {},
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      final materialFinder = find.descendant(
-        of: find.byType(NavigationItem),
-        matching: find.byType(Material),
-      );
-      final material = tester.widget<Material>(materialFinder);
-      expect(material.color, Colors.transparent);
-    });
+        final materialFinder = find.descendant(
+          of: find.byType(NavigationItem),
+          matching: find.byType(Material),
+        );
+        final material = tester.widget<Material>(materialFinder);
+        expect(material.color, Colors.transparent);
+      },
+    );
 
-    testWidgets('respects custom iconColor and iconSize', (WidgetTester tester) async {
+    testWidgets('respects custom iconColor and iconSize', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

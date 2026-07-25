@@ -24,13 +24,6 @@ class AppColors {
   static const info = Color(0xFF2196F3);
   static const warning = Color.fromARGB(255, 231, 209, 4);
 
-  // Priority Colors
-  static const priorityUrgent = Color(0xFF8800FF);
-  static const priorityHigh = Color(0xFFE53935);
-  static const priorityMedium = Color(0xFFFFA726);
-  static const priorityLow = Color(0xFF66BB6A);
-  static const priorityNone = Color(0xFF757575);
-
   // Helper getters (backwards compatibility or default)
   static Color get background => backgroundDark;
   static Color get surface => surfaceDark;
@@ -87,21 +80,34 @@ class AppTheme {
     return _buildTheme(base, colorScheme, textTheme, Brightness.dark);
   }
 
-  static ThemeData _buildTheme(ThemeData base, ColorScheme colorScheme, TextTheme textTheme, Brightness brightness) {
+  static ThemeData _buildTheme(
+    ThemeData base,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    Brightness brightness,
+  ) {
     final isDark = brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
-    final surfaceLightColor = isDark ? AppColors.surfaceLightDark : AppColors.surfaceLightLight;
+    final surfaceColor = isDark
+        ? AppColors.surfaceDark
+        : AppColors.surfaceLight;
+    final surfaceLightColor = isDark
+        ? AppColors.surfaceLightDark
+        : AppColors.surfaceLightLight;
 
     return base.copyWith(
       colorScheme: colorScheme,
       textTheme: textTheme,
-      scaffoldBackgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      scaffoldBackgroundColor: isDark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: isDark ? AppColors.textDark : AppColors.textLight,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
       ),
       cardTheme: CardThemeData(
         color: surfaceColor,
@@ -111,7 +117,9 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? AppColors.surfaceLightDark : const Color(0xFFFBFBFB),
+        fillColor: isDark
+            ? AppColors.surfaceLightDark
+            : const Color(0xFFFBFBFB),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.outlineVariant),
@@ -124,11 +132,20 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
-      dividerTheme: DividerThemeData(color: surfaceLightColor, thickness: 1, space: 1),
+      dividerTheme: DividerThemeData(
+        color: surfaceLightColor,
+        thickness: 1,
+        space: 1,
+      ),
       navigationDrawerTheme: NavigationDrawerThemeData(
-        backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+        backgroundColor: isDark
+            ? AppColors.backgroundDark
+            : AppColors.backgroundLight,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.1),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(

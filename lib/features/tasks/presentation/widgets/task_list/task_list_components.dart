@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
@@ -8,6 +13,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hi
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 
 class TaskListSectionHeader extends StatelessWidget {
   final String title;
@@ -31,7 +37,10 @@ class TaskListSectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(width: 8),
         SmallChip(
@@ -39,7 +48,11 @@ class TaskListSectionHeader extends StatelessWidget {
           borderRadius: 10,
           child: Text(
             '$amount',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
         ),
         if (trailing != null) ...[const Spacer(), trailing!],
@@ -50,7 +63,10 @@ class TaskListSectionHeader extends StatelessWidget {
       return InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
-        child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: content),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: content,
+        ),
       );
     }
     return content;
@@ -98,7 +114,9 @@ class TaskHierarchyItem extends ConsumerWidget {
       child = TaskCard(
         key: ValueKey(taskNode.task.id),
         task: taskNode.task,
-        project: taskNode.task.projectId != null ? projectState.getById(taskNode.task.projectId!) : null,
+        project: taskNode.task.projectId != null
+            ? projectState.getById(taskNode.task.projectId!)
+            : null,
         isOverdue: taskIsOverdue,
         autofocus: autofocus,
         focusNode: focusNode,
@@ -107,7 +125,9 @@ class TaskHierarchyItem extends ConsumerWidget {
             : selectionMode
             ? (value) => onSelectedChanged?.call(taskNode.task)
             : (_) => taskNotifier.toggleComplete(taskNode.task),
-        isChecked: selectionMode ? selectedTaskIds.contains(taskNode.task.id) : null,
+        isChecked: selectionMode
+            ? selectedTaskIds.contains(taskNode.task.id)
+            : null,
         selectionMode: selectionMode,
         onTap: isReadOnly ? () {} : () => onEdit?.call(taskNode.task),
         showScheduleDate: showScheduleDate,
@@ -117,7 +137,9 @@ class TaskHierarchyItem extends ConsumerWidget {
             ? (pos, box) => onContextMenu!(context, taskNode.task, pos, box)
             : null,
         leading: isReadOnly ? const SizedBox.shrink() : null,
-        trailing: isReadOnly ? const SizedBox.shrink() : trailingBuilder?.call(context, taskNode.task),
+        trailing: isReadOnly
+            ? const SizedBox.shrink()
+            : trailingBuilder?.call(context, taskNode.task),
       );
     } else if (node is BlockerIndicatorNode) {
       final blockerNode = node as BlockerIndicatorNode;
@@ -146,11 +168,158 @@ class TaskListEmptyPlaceholder extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle_outline, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.check_circle_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
-          Text('No tasks found', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16)),
+          Text(
+            'No tasks found',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class TaskListKeyboardShortcuts extends StatelessWidget {
+  final bool enablePlanShortcut;
+  final VoidCallback onMoveNext;
+  final VoidCallback onMovePrev;
+  final VoidCallback onPlanToday;
+  final VoidCallback onPlanTomorrow;
+  final Widget child;
+
+  const TaskListKeyboardShortcuts({
+    super.key,
+    required this.enablePlanShortcut,
+    required this.onMoveNext,
+    required this.onMovePrev,
+    required this.onPlanToday,
+    required this.onPlanTomorrow,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: Map.fromEntries([
+        if (enablePlanShortcut) ...[
+          const MapEntry(
+            SingleActivator(TodayKeys.keyboardKey, control: true),
+            PlanTaskIntent(),
+          ),
+          const MapEntry(
+            SingleActivator(TodayKeys.keyboardKey, control: true, shift: true),
+            PlanTaskTomorrowIntent(),
+          ),
+        ],
+      ]),
+      child: Actions(
+        actions: {
+          MoveNextIntent: NonTypingAction<MoveNextIntent>((_) => onMoveNext()),
+          MovePrevIntent: NonTypingAction<MovePrevIntent>((_) => onMovePrev()),
+          PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) => onPlanToday()),
+          PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>(
+            (_) => onPlanTomorrow(),
+          ),
+        },
+        child: child,
+      ),
+    );
+  }
+}
+
+class ActiveTaskReorderableList extends ConsumerWidget {
+  final List<TaskHierarchyNode> nodes;
+  final List<Widget> widgets;
+  final Set<String> selectedTaskIds;
+  final void Function(Task task, String newSortOrder) onReorder;
+  final void Function(Map<String, String> newSortOrders)? onMultiReorder;
+
+  const ActiveTaskReorderableList({
+    super.key,
+    required this.nodes,
+    required this.widgets,
+    this.selectedTaskIds = const {},
+    required this.onReorder,
+    this.onMultiReorder,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: widgets.length,
+          itemBuilder: (context, index) {
+            final node = index < nodes.length ? nodes[index] : null;
+            final child = widgets[index];
+
+            Widget draggableChild = child;
+            if (node is TaskNode) {
+              final isSelected = selectedTaskIds.contains(node.task.id);
+              draggableChild = PlatformDraggable<Task>(
+                data: node.task,
+                feedback: TaskDragProxy(
+                  task: node.task,
+                  selectedCount: isSelected ? selectedTaskIds.length : 1,
+                  width: constraints.maxWidth,
+                ),
+                childWhenDragging: Opacity(opacity: 0.3, child: child),
+                child: child,
+              );
+            }
+
+            return TaskDropZoneWrapper(
+              index: index,
+              onDrop: (task, newIndex) {
+                final settings = ref.read(settingsProvider);
+                if (selectedTaskIds.isNotEmpty) {
+                  final newSortOrders = TaskReorderUtils.handleMultiReorder(
+                    nodes: nodes,
+                    draggedTask: task,
+                    newIndex: newIndex,
+                    selectedTaskIds: selectedTaskIds.toSet(),
+                    settings: settings,
+                  );
+                  if (newSortOrders != null && newSortOrders.isNotEmpty) {
+                    onMultiReorder?.call(newSortOrders);
+                  } else {
+                    final newSortOrder = TaskReorderUtils.handleReorder(
+                      nodes: nodes,
+                      draggedTask: task,
+                      newIndex: newIndex,
+                      settings: settings,
+                    );
+                    if (newSortOrder != null) {
+                      onReorder(task, newSortOrder);
+                    }
+                  }
+                } else {
+                  final newSortOrder = TaskReorderUtils.handleReorder(
+                    nodes: nodes,
+                    draggedTask: task,
+                    newIndex: newIndex,
+                    settings: settings,
+                  );
+                  if (newSortOrder != null) {
+                    onReorder(task, newSortOrder);
+                  }
+                }
+              },
+              child: draggableChild,
+            );
+          },
+        );
+      },
     );
   }
 }

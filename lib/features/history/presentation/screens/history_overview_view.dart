@@ -13,7 +13,9 @@ class HistoryOverviewView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (overview == null) return const Center(child: CircularProgressIndicator());
+    if (overview == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -74,14 +76,20 @@ class HistoryOverviewView extends ConsumerWidget {
 
   List<Widget> _buildProjectBreakdown(BuildContext context, WidgetRef ref) {
     final projectState = ref.read(projectProvider);
-    final sortedProjects = overview!.tasksByProject.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedProjects = overview!.tasksByProject.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     if (sortedProjects.isEmpty) {
       return [
         Padding(
           padding: EdgeInsets.only(top: 16.0),
           child: Center(
-            child: Text('No project data', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            child: Text(
+              'No project data',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
         ),
       ];
@@ -90,9 +98,13 @@ class HistoryOverviewView extends ConsumerWidget {
     final maxTasks = sortedProjects.first.value;
 
     return sortedProjects.map((entry) {
-      final project = entry.key != 'none' ? projectState.getById(entry.key) : null;
+      final project = entry.key != 'none'
+          ? projectState.getById(entry.key)
+          : null;
       final projectName = project?.name ?? 'No Project';
-      final projectColor = project != null ? project.color : Theme.of(context).colorScheme.onSurfaceVariant;
+      final projectColor = project != null
+          ? project.color
+          : Theme.of(context).colorScheme.onSurfaceVariant;
 
       return ProjectBreakdownItem(
         projectName: projectName,

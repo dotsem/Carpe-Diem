@@ -173,59 +173,68 @@ void main() {
       expect(notifier.state.redoStack, isEmpty);
     });
 
-    test('should handle exception during execute and leave state clean', () async {
-      final cmd = MockCommand();
-      when(() => cmd.execute()).thenThrow(Exception('execution failed'));
-      when(() => cmd.description).thenReturn('Mock Action');
+    test(
+      'should handle exception during execute and leave state clean',
+      () async {
+        final cmd = MockCommand();
+        when(() => cmd.execute()).thenThrow(Exception('execution failed'));
+        when(() => cmd.description).thenReturn('Mock Action');
 
-      expect(() => notifier.execute(cmd), throwsA(isA<Exception>()));
+        expect(() => notifier.execute(cmd), throwsA(isA<Exception>()));
 
-      final state = notifier.state;
-      expect(state.canUndo, isFalse);
-      expect(state.isProcessing, isFalse);
-      expect(state.lastOperationType, equals(UndoRedoOperationType.none));
-      expect(state.undoStack, isEmpty);
-    });
+        final state = notifier.state;
+        expect(state.canUndo, isFalse);
+        expect(state.isProcessing, isFalse);
+        expect(state.lastOperationType, equals(UndoRedoOperationType.none));
+        expect(state.undoStack, isEmpty);
+      },
+    );
 
-    test('should handle exception during undo and restore command to undoStack', () async {
-      final cmd = MockCommand();
-      when(() => cmd.execute()).thenAnswer((_) async => {});
-      when(() => cmd.undo()).thenThrow(Exception('undo failed'));
-      when(() => cmd.description).thenReturn('Mock Action');
+    test(
+      'should handle exception during undo and restore command to undoStack',
+      () async {
+        final cmd = MockCommand();
+        when(() => cmd.execute()).thenAnswer((_) async => {});
+        when(() => cmd.undo()).thenThrow(Exception('undo failed'));
+        when(() => cmd.description).thenReturn('Mock Action');
 
-      await notifier.execute(cmd);
-      expect(() => notifier.undo(), throwsA(isA<Exception>()));
+        await notifier.execute(cmd);
+        expect(() => notifier.undo(), throwsA(isA<Exception>()));
 
-      final state = notifier.state;
-      expect(state.canUndo, isTrue);
-      expect(state.canRedo, isFalse);
-      expect(state.undoStack, equals([cmd]));
-      expect(state.redoStack, isEmpty);
-      expect(state.isProcessing, isFalse);
-      expect(state.lastOperationType, equals(UndoRedoOperationType.none));
-    });
+        final state = notifier.state;
+        expect(state.canUndo, isTrue);
+        expect(state.canRedo, isFalse);
+        expect(state.undoStack, equals([cmd]));
+        expect(state.redoStack, isEmpty);
+        expect(state.isProcessing, isFalse);
+        expect(state.lastOperationType, equals(UndoRedoOperationType.none));
+      },
+    );
 
-    test('should handle exception during redo and restore command to redoStack', () async {
-      final cmd = MockCommand();
-      when(() => cmd.execute()).thenAnswer((_) async => {});
-      when(() => cmd.undo()).thenAnswer((_) async => {});
-      when(() => cmd.description).thenReturn('Mock Action');
+    test(
+      'should handle exception during redo and restore command to redoStack',
+      () async {
+        final cmd = MockCommand();
+        when(() => cmd.execute()).thenAnswer((_) async => {});
+        when(() => cmd.undo()).thenAnswer((_) async => {});
+        when(() => cmd.description).thenReturn('Mock Action');
 
-      await notifier.execute(cmd);
-      await notifier.undo();
+        await notifier.execute(cmd);
+        await notifier.undo();
 
-      when(() => cmd.execute()).thenThrow(Exception('redo failed'));
+        when(() => cmd.execute()).thenThrow(Exception('redo failed'));
 
-      expect(() => notifier.redo(), throwsA(isA<Exception>()));
+        expect(() => notifier.redo(), throwsA(isA<Exception>()));
 
-      final state = notifier.state;
-      expect(state.canUndo, isFalse);
-      expect(state.canRedo, isTrue);
-      expect(state.undoStack, isEmpty);
-      expect(state.redoStack, equals([cmd]));
-      expect(state.isProcessing, isFalse);
-      expect(state.lastOperationType, equals(UndoRedoOperationType.none));
-    });
+        final state = notifier.state;
+        expect(state.canUndo, isFalse);
+        expect(state.canRedo, isTrue);
+        expect(state.undoStack, isEmpty);
+        expect(state.redoStack, equals([cmd]));
+        expect(state.isProcessing, isFalse);
+        expect(state.lastOperationType, equals(UndoRedoOperationType.none));
+      },
+    );
   });
 
   group('Commands Class Tests', () {
@@ -240,7 +249,12 @@ void main() {
       when(() => mockRepo.insert(any())).thenAnswer((_) async => {});
       when(() => mockRepo.delete(any())).thenAnswer((_) async => {});
 
-      final cmd = CreateCommand<String>(repo: mockRepo, item: 'item1', id: '1', displayName: 'Item One');
+      final cmd = CreateCommand<String>(
+        repo: mockRepo,
+        item: 'item1',
+        id: '1',
+        displayName: 'Item One',
+      );
 
       expect(cmd.description, equals('Create TestItem: "Item One"'));
 
@@ -274,7 +288,12 @@ void main() {
       when(() => mockRepo.delete(any())).thenAnswer((_) async => {});
       when(() => mockRepo.insert(any())).thenAnswer((_) async => {});
 
-      final cmd = DeleteCommand<String>(repo: mockRepo, item: 'item1', id: '1', displayName: 'Item One');
+      final cmd = DeleteCommand<String>(
+        repo: mockRepo,
+        item: 'item1',
+        id: '1',
+        displayName: 'Item One',
+      );
 
       expect(cmd.description, equals('Delete TestItem: "Item One"'));
 

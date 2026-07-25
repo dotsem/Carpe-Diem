@@ -32,7 +32,9 @@ class ToastUtils {
       style: style,
       alignment: alignment,
       primaryColor: AppColors.accent,
-      backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
+      backgroundColor: Theme.of(
+        effectiveContext,
+      ).colorScheme.surfaceContainerHigh,
       foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
       borderRadius: borderRadius,
       showProgressBar: showProgressBar,
@@ -52,7 +54,9 @@ class ToastUtils {
       style: style,
       alignment: alignment,
       primaryColor: AppColors.info,
-      backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
+      backgroundColor: Theme.of(
+        effectiveContext,
+      ).colorScheme.surfaceContainerHigh,
       foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
       borderRadius: borderRadius,
       showProgressBar: showProgressBar,
@@ -71,8 +75,10 @@ class ToastUtils {
       type: ToastificationType.warning,
       style: style,
       alignment: alignment,
-      primaryColor: AppColors.priorityMedium,
-      backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
+      primaryColor: AppColors.warning,
+      backgroundColor: Theme.of(
+        effectiveContext,
+      ).colorScheme.surfaceContainerHigh,
       foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
       borderRadius: borderRadius,
       showProgressBar: showProgressBar,
@@ -81,7 +87,11 @@ class ToastUtils {
     );
   }
 
-  static void showUndoable(String message, VoidCallback onUndo, {BuildContext? context}) {
+  static void showUndoable(
+    String message,
+    VoidCallback onUndo, {
+    BuildContext? context,
+  }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
 
@@ -104,7 +114,10 @@ class ToastUtils {
             ),
             child: Text(
               'Undo',
-              style: TextStyle(color: Theme.of(effectiveContext).colorScheme.primary, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Theme.of(effectiveContext).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -114,7 +127,9 @@ class ToastUtils {
       style: style,
       alignment: alignment,
       primaryColor: AppColors.accent,
-      backgroundColor: Theme.of(effectiveContext).colorScheme.surfaceContainerHigh,
+      backgroundColor: Theme.of(
+        effectiveContext,
+      ).colorScheme.surfaceContainerHigh,
       foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
       borderRadius: borderRadius,
       showProgressBar: showProgressBar,

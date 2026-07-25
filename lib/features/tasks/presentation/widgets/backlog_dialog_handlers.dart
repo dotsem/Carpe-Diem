@@ -25,17 +25,11 @@ class BacklogDialogHandlers {
   }
 
   static void showAddTask(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const AddTaskDialog(),
-    );
+    showDialog(context: context, builder: (_) => const AddTaskDialog());
   }
 
   static void showImportFromMD(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const ImportFromMDDialog(),
-    );
+    showDialog(context: context, builder: (_) => const ImportFromMDDialog());
   }
 
   static void showFilterDialog(BuildContext context, WidgetRef ref) async {
@@ -61,23 +55,25 @@ class BacklogDialogHandlers {
     );
 
     if (result != null && context.mounted) {
-      await ref.read(taskProvider.notifier).bulkUpdateTasks(
-        taskIds: selectedTaskIds,
-        priority: result.priority,
-        updatePriority: result.updatePriority,
-        scheduledDate: result.scheduledDate,
-        updateScheduledDate: result.updateScheduledDate,
-        clearScheduledDate: result.clearScheduledDate,
-        projectId: result.projectId,
-        updateProjectId: result.updateProjectId,
-        clearProjectId: result.clearProjectId,
-        deadline: result.deadline,
-        updateDeadline: result.updateDeadline,
-        clearDeadline: result.clearDeadline,
-        blockedById: result.blockedById,
-        updateBlockedById: result.updateBlockedById,
-        clearBlockedById: result.clearBlockedById,
-      );
+      await ref
+          .read(taskProvider.notifier)
+          .bulkUpdateTasks(
+            taskIds: selectedTaskIds,
+            isUrgent: result.isUrgent,
+            updateUrgent: result.updateUrgent,
+            scheduledDate: result.scheduledDate,
+            updateScheduledDate: result.updateScheduledDate,
+            clearScheduledDate: result.clearScheduledDate,
+            projectId: result.projectId,
+            updateProjectId: result.updateProjectId,
+            clearProjectId: result.clearProjectId,
+            deadline: result.deadline,
+            updateDeadline: result.updateDeadline,
+            clearDeadline: result.clearDeadline,
+            blockedById: result.blockedById,
+            updateBlockedById: result.updateBlockedById,
+            clearBlockedById: result.clearBlockedById,
+          );
       onCompleted();
     }
   }
@@ -92,19 +88,26 @@ class BacklogDialogHandlers {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm Deletion'),
-        content: Text('Are you sure you want to delete ${selectedTaskIds.length} tasks?'),
+        content: Text(
+          'Are you sure you want to delete ${selectedTaskIds.length} tasks?',
+        ),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         titleTextStyle: Theme.of(context).textTheme.titleLarge,
         contentTextStyle: Theme.of(context).textTheme.bodyMedium,
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () async {
-              await ref.read(taskProvider.notifier).bulkDeleteTasks(selectedTaskIds);
+              await ref
+                  .read(taskProvider.notifier)
+                  .bulkDeleteTasks(selectedTaskIds);
               onCompleted();
               if (ctx.mounted) {
                 Navigator.of(ctx).pop();
@@ -127,7 +130,9 @@ class BacklogDialogHandlers {
     final filter = ref.read(filterProvider).activeFilter;
 
     var availableTasks = taskProviderVal.unscheduledTasks.where((t) {
-      final project = t.projectId != null ? projectProviderVal.getById(t.projectId!) : null;
+      final project = t.projectId != null
+          ? projectProviderVal.getById(t.projectId!)
+          : null;
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
@@ -140,7 +145,9 @@ class BacklogDialogHandlers {
       );
     }
 
-    final randomTask = await ref.read(taskProvider.notifier).pickAndScheduleRandomTask(availableTasks);
+    final randomTask = await ref
+        .read(taskProvider.notifier)
+        .pickAndScheduleRandomTask(availableTasks);
 
     if (randomTask == null) {
       ToastUtils.showInfo('No available tasks to pick from');
@@ -154,13 +161,20 @@ class BacklogDialogHandlers {
       builder: (ctx) => SizedDialog(
         title: 'We\'ve picked this task for you:',
         showDefaultActions: false,
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Great!'))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Great!'),
+          ),
+        ],
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TaskCard(
               task: randomTask,
-              project: randomTask.projectId != null ? projectProviderVal.getById(randomTask.projectId!) : null,
+              project: randomTask.projectId != null
+                  ? projectProviderVal.getById(randomTask.projectId!)
+                  : null,
               onToggle: (_) {},
               onTap: () {},
               leading: const SizedBox.shrink(),

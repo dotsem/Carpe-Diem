@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/custom_date_picker_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -19,8 +20,8 @@ class DatePickerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveFirstDate = firstDate ?? DateTime(2025); // who whats to travel in time?
-    final effectiveLastDate = lastDate ?? DateTime(2100);
+    final effectiveFirstDate = firstDate ?? AppConstants.appFirstDate;
+    final effectiveLastDate = lastDate ?? AppConstants.appLastDate;
 
     return InkWell(
       onTap: () async {
@@ -45,7 +46,11 @@ class DatePickerButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: InputDecorator(
         decoration: InputDecoration(
-          prefixIcon: Icon(Icons.calendar_today, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          prefixIcon: Icon(
+            Icons.calendar_today,
+            size: 16,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           suffixIcon: date != null
               ? IconButton(
                   icon: const Icon(Icons.close, size: 16),
@@ -54,12 +59,17 @@ class DatePickerButton extends StatelessWidget {
                   constraints: const BoxConstraints(),
                 )
               : null,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
         ),
         child: Text(
           date != null ? '${date!.day}/${date!.month}/${date!.year}' : label,
           style: TextStyle(
-            color: date != null ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant,
+            color: date != null
+                ? Theme.of(context).colorScheme.onSurface
+                : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ),

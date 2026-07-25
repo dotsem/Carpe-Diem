@@ -6,7 +6,7 @@ import 'package:carpe_diem/features/common/presentation/providers/repository_pro
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
@@ -20,9 +20,7 @@ void main() {
       when(() => mockRepo.set(any(), any())).thenAnswer((_) async => {});
 
       container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWithValue(mockRepo),
-        ],
+        overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
       );
     });
 
@@ -38,35 +36,38 @@ void main() {
     });
 
     test('setFilter updates the state filter', () {
-      const newFilter = TaskFilter(prioritiesIncluded: {Priority.high});
+      const newFilter = TaskFilter(isUrgent: true);
 
       container.read(filterProvider.notifier).setFilter(newFilter);
 
       final state = container.read(filterProvider);
-      expect(state.filter.prioritiesIncluded, {Priority.high});
-      expect(state.activeFilter.prioritiesIncluded, {Priority.high});
+      expect(state.filter.isUrgent, true);
+      expect(state.activeFilter.isUrgent, true);
     });
 
-    test('toggleBypass hides the active filter but preserves the original filter config', () {
-      const filter = TaskFilter(prioritiesIncluded: {Priority.urgent});
-      final notifier = container.read(filterProvider.notifier);
+    test(
+      'toggleBypass hides the active filter but preserves the original filter config',
+      () {
+        const filter = TaskFilter(isUrgent: true);
+        final notifier = container.read(filterProvider.notifier);
 
-      notifier.setFilter(filter);
-      notifier.toggleBypass();
+        notifier.setFilter(filter);
+        notifier.toggleBypass();
 
-      final state = container.read(filterProvider);
-      expect(state.isBypassed, true);
-      expect(state.filter.prioritiesIncluded, {Priority.urgent});
-      expect(state.activeFilter.isEmpty, true);
+        final state = container.read(filterProvider);
+        expect(state.isBypassed, true);
+        expect(state.filter.isUrgent, true);
+        expect(state.activeFilter.isEmpty, true);
 
-      notifier.toggleBypass();
-      final stateAfterSecondToggle = container.read(filterProvider);
-      expect(stateAfterSecondToggle.isBypassed, false);
-      expect(stateAfterSecondToggle.activeFilter.prioritiesIncluded, {Priority.urgent});
-    });
+        notifier.toggleBypass();
+        final stateAfterSecondToggle = container.read(filterProvider);
+        expect(stateAfterSecondToggle.isBypassed, false);
+        expect(stateAfterSecondToggle.activeFilter.isUrgent, true);
+      },
+    );
 
     test('clearFilter resets the filter and bypass settings', () {
-      const filter = TaskFilter(prioritiesIncluded: {Priority.low});
+      const filter = TaskFilter(isUrgent: false);
       final notifier = container.read(filterProvider.notifier);
 
       notifier.setFilter(filter);
@@ -79,61 +80,87 @@ void main() {
       expect(state.activeFilter.isEmpty, true);
     });
 
-    test('initializes with persisted filter when persistentFilter is true', () async {
-      final persistedFilter = const TaskFilter(prioritiesIncluded: {Priority.high});
-      when(() => mockRepo.getAll()).thenAnswer((_) async => {
-        'persistent_filter': 'true',
-        'persistent_filter_values': jsonEncode(persistedFilter.toMap()),
-      });
+    test(
+      'initializes with persisted filter when persistentFilter is true',
+      () async {
+        final persistedFilter = const TaskFilter(isUrgent: true);
+        when(() => mockRepo.getAll()).thenAnswer(
+          (_) async => {
+            'persistent_filter': 'true',
+            'persistent_filter_values': jsonEncode(persistedFilter.toMap()),
+          },
+        );
 
-      await container.read(settingsProvider.notifier).loadSettings();
+        await container.read(settingsProvider.notifier).loadSettings();
 
-      final state = container.read(filterProvider);
-      expect(state.filter.prioritiesIncluded, {Priority.high});
-    });
+        final state = container.read(filterProvider);
+        expect(state.filter.isUrgent, true);
+      },
+    );
 
-    test('does not initialize with persisted filter when persistentFilter is false', () async {
-      final persistedFilter = const TaskFilter(prioritiesIncluded: {Priority.high});
-      when(() => mockRepo.getAll()).thenAnswer((_) async => {
-        'persistent_filter': 'false',
-        'persistent_filter_values': jsonEncode(persistedFilter.toMap()),
-      });
+    test(
+      'does not initialize with persisted filter when persistentFilter is false',
+      () async {
+        final persistedFilter = const TaskFilter(isUrgent: true);
+        when(() => mockRepo.getAll()).thenAnswer(
+          (_) async => {
+            'persistent_filter': 'false',
+            'persistent_filter_values': jsonEncode(persistedFilter.toMap()),
+          },
+        );
 
-      await container.read(settingsProvider.notifier).loadSettings();
+        await container.read(settingsProvider.notifier).loadSettings();
 
-      final state = container.read(filterProvider);
-      expect(state.filter.isEmpty, true);
-    });
+        final state = container.read(filterProvider);
+        expect(state.filter.isEmpty, true);
+      },
+    );
 
-    test('setFilter updates repository when persistentFilter is true', () async {
-      when(() => mockRepo.getAll()).thenAnswer((_) async => {
-        'persistent_filter': 'true',
-      });
-      await container.read(settingsProvider.notifier).loadSettings();
+    test(
+      'setFilter updates repository when persistentFilter is true',
+      () async {
+        when(
+          () => mockRepo.getAll(),
+        ).thenAnswer((_) async => {'persistent_filter': 'true'});
+        await container.read(settingsProvider.notifier).loadSettings();
 
-      const newFilter = TaskFilter(prioritiesIncluded: {Priority.low});
-      container.read(filterProvider.notifier).setFilter(newFilter);
+        const newFilter = TaskFilter(isUrgent: false);
+        container.read(filterProvider.notifier).setFilter(newFilter);
 
-      // Wait a microtask to allow async database write to trigger
-      await Future.delayed(Duration.zero);
+        // Wait a microtask to allow async database write to trigger
+        await Future.delayed(Duration.zero);
 
-      verify(() => mockRepo.set('persistent_filter_values', jsonEncode(newFilter.toMap()))).called(1);
-    });
+        verify(
+          () => mockRepo.set(
+            'persistent_filter_values',
+            jsonEncode(newFilter.toMap()),
+          ),
+        ).called(1);
+      },
+    );
 
-    test('clearFilter clears repository when persistentFilter is true', () async {
-      when(() => mockRepo.getAll()).thenAnswer((_) async => {
-        'persistent_filter': 'true',
-      });
-      await container.read(settingsProvider.notifier).loadSettings();
+    test(
+      'clearFilter clears repository when persistentFilter is true',
+      () async {
+        when(
+          () => mockRepo.getAll(),
+        ).thenAnswer((_) async => {'persistent_filter': 'true'});
+        await container.read(settingsProvider.notifier).loadSettings();
 
-      const filter = TaskFilter(prioritiesIncluded: {Priority.low});
-      final notifier = container.read(filterProvider.notifier);
-      notifier.setFilter(filter);
-      notifier.clearFilter();
+        const filter = TaskFilter(isUrgent: false);
+        final notifier = container.read(filterProvider.notifier);
+        notifier.setFilter(filter);
+        notifier.clearFilter();
 
-      await Future.delayed(Duration.zero);
+        await Future.delayed(Duration.zero);
 
-      verify(() => mockRepo.set('persistent_filter_values', jsonEncode(const TaskFilter().toMap()))).called(1);
-    });
+        verify(
+          () => mockRepo.set(
+            'persistent_filter_values',
+            jsonEncode(const TaskFilter().toMap()),
+          ),
+        ).called(1);
+      },
+    );
   });
 }

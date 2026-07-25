@@ -36,7 +36,10 @@ class _AddTagDialogState extends ConsumerState<AddTagDialog> {
         children: [
           TextField(
             controller: nameController,
-            decoration: const InputDecoration(labelText: 'Tag Name', hintText: 'Tag name'),
+            decoration: const InputDecoration(
+              labelText: 'Tag Name',
+              hintText: 'Tag name',
+            ),
             autofocus: true,
           ),
           const SizedBox(height: 16),
@@ -65,13 +68,22 @@ class _AddTagDialogState extends ConsumerState<AddTagDialog> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: isSelected ? colorScheme.primaryContainer : colorScheme.surfaceContainerHigh,
+                    color: isSelected
+                        ? colorScheme.primaryContainer
+                        : colorScheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: isSelected ? colorScheme.primary : Colors.transparent, width: 2),
+                    border: Border.all(
+                      color: isSelected
+                          ? colorScheme.primary
+                          : Colors.transparent,
+                      width: 2,
+                    ),
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+                    color: isSelected
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurfaceVariant,
                   ),
                 ),
               );

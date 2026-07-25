@@ -37,7 +37,11 @@ class ProjectDetailDialogHandlers {
     );
   }
 
-  static void showDeleteProject(BuildContext context, WidgetRef ref, Project project) {
+  static void showDeleteProject(
+    BuildContext context,
+    WidgetRef ref,
+    Project project,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => DeleteDialog(
@@ -59,7 +63,10 @@ class ProjectDetailDialogHandlers {
     final filterNotifier = ref.read(filterProvider.notifier);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) => FilterDialog(initialFilter: ref.read(filterProvider).filter, showProjectFilter: false),
+      builder: (_) => FilterDialog(
+        initialFilter: ref.read(filterProvider).filter,
+        showProjectFilter: false,
+      ),
     );
     if (result != null) {
       filterNotifier.setFilter(result);
@@ -82,8 +89,8 @@ class ProjectDetailDialogHandlers {
           .read(taskProvider.notifier)
           .bulkUpdateTasks(
             taskIds: selectedTaskIds,
-            priority: result.priority,
-            updatePriority: result.updatePriority,
+            isUrgent: result.isUrgent,
+            updateUrgent: result.updateUrgent,
             scheduledDate: result.scheduledDate,
             updateScheduledDate: result.updateScheduledDate,
             clearScheduledDate: result.clearScheduledDate,
@@ -111,17 +118,24 @@ class ProjectDetailDialogHandlers {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm Deletion'),
-        content: Text('Are you sure you want to delete ${selectedTaskIds.length} tasks?'),
+        content: Text(
+          'Are you sure you want to delete ${selectedTaskIds.length} tasks?',
+        ),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () async {
-              await ref.read(taskProvider.notifier).bulkDeleteTasks(selectedTaskIds);
+              await ref
+                  .read(taskProvider.notifier)
+                  .bulkDeleteTasks(selectedTaskIds);
               onCompleted();
               if (ctx.mounted) {
                 Navigator.of(ctx).pop();

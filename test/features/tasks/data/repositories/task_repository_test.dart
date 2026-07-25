@@ -3,7 +3,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/database/database_helper.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart';
 
 void main() {
@@ -28,13 +28,17 @@ void main() {
     });
 
     test('should insert and fetch a task with label mappings', () async {
-      await db.insert('labels', {'id': 'label-1', 'name': 'Work', 'color': 0xFFFFFFFF});
+      await db.insert('labels', {
+        'id': 'label-1',
+        'name': 'Work',
+        'color': 0xFFFFFFFF,
+      });
 
       final task = Task(
         id: 'task-1',
         title: 'Review PR',
         description: 'Read and verify',
-        priority: Priority.high,
+        isUrgent: true,
         labelIds: const ['label-1'],
         createdAt: DateTime.now(),
       );
@@ -45,7 +49,7 @@ void main() {
       expect(fetched, isNotNull);
       expect(fetched!.title, equals('Review PR'));
       expect(fetched.description, equals('Read and verify'));
-      expect(fetched.priority, equals(Priority.high));
+      expect(fetched.isUrgent, isTrue);
       expect(fetched.labelIds, contains('label-1'));
     });
 
@@ -56,7 +60,7 @@ void main() {
         id: 'task-2',
         title: 'Fix issue',
         description: 'Read and fix',
-        priority: Priority.high,
+        isUrgent: true,
         tagIds: const ['tag-1'],
         createdAt: DateTime.now(),
       );
@@ -96,43 +100,46 @@ void main() {
       expect(fetched.tagIds, contains('tag-2'));
     });
 
-    test('should retrieve tasks by scheduled date or completion date range', () async {
-      final date = DateTime(2026, 6, 1);
-      final task1 = Task(
-        id: 't1',
-        title: 'Scheduled Task',
-        scheduledDate: date,
-        createdAt: DateTime.now(),
-      );
-      final task2 = Task(
-        id: 't2',
-        title: 'Completed Today Task',
-        status: TaskStatus.done,
-        completedAt: DateTime(2026, 6, 1, 10, 0),
-        createdAt: DateTime.now(),
-      );
-      final task3 = Task(
-        id: 't3',
-        title: 'Other Task',
-        scheduledDate: DateTime(2026, 6, 2),
-        createdAt: DateTime.now(),
-      );
+    test(
+      'should retrieve tasks by scheduled date or completion date range',
+      () async {
+        final date = DateTime(2026, 6, 1);
+        final task1 = Task(
+          id: 't1',
+          title: 'Scheduled Task',
+          scheduledDate: date,
+          createdAt: DateTime.now(),
+        );
+        final task2 = Task(
+          id: 't2',
+          title: 'Completed Today Task',
+          status: TaskStatus.done,
+          completedAt: DateTime(2026, 6, 1, 10, 0),
+          createdAt: DateTime.now(),
+        );
+        final task3 = Task(
+          id: 't3',
+          title: 'Other Task',
+          scheduledDate: DateTime(2026, 6, 2),
+          createdAt: DateTime.now(),
+        );
 
-      await repository.insert(task1);
-      await repository.insert(task2);
-      await repository.insert(task3);
+        await repository.insert(task1);
+        await repository.insert(task2);
+        await repository.insert(task3);
 
-      final tasks = await repository.getByDate(date);
-      expect(tasks.length, equals(2));
-      final ids = tasks.map((t) => t.id).toList();
-      expect(ids, contains('t1'));
-      expect(ids, contains('t2'));
-      expect(ids, isNot(contains('t3')));
-    });
+        final tasks = await repository.getByDate(date);
+        expect(tasks.length, equals(2));
+        final ids = tasks.map((t) => t.id).toList();
+        expect(ids, contains('t1'));
+        expect(ids, contains('t2'));
+        expect(ids, isNot(contains('t3')));
+      },
+    );
 
     test('should query overdue tasks excluding completed ones', () async {
       final today = DateTime(2026, 6, 15);
-      
+
       final task1 = Task(
         id: 't1',
         title: 'Overdue Todo',
@@ -165,7 +172,11 @@ void main() {
     });
 
     test('should query unscheduled backlog tasks', () async {
-      final task1 = Task(id: 't1', title: 'Unscheduled', createdAt: DateTime.now());
+      final task1 = Task(
+        id: 't1',
+        title: 'Unscheduled',
+        createdAt: DateTime.now(),
+      );
       final task2 = Task(
         id: 't2',
         title: 'Scheduled',
@@ -181,39 +192,51 @@ void main() {
       expect(unscheduled.first.id, equals('t1'));
     });
 
-    test('should resolve hierarchical dependencies and query blockedBy', () async {
-      final parent = Task(id: 't-parent', title: 'Parent PR', createdAt: DateTime.now());
-      final blocker = Task(
-        id: 't-blocker',
-        title: 'Blocker Bug',
-        blockedById: 't-parent',
-        createdAt: DateTime.now(),
-      );
+    test(
+      'should resolve hierarchical dependencies and query blockedBy',
+      () async {
+        final parent = Task(
+          id: 't-parent',
+          title: 'Parent PR',
+          createdAt: DateTime.now(),
+        );
+        final blocker = Task(
+          id: 't-blocker',
+          title: 'Blocker Bug',
+          blockedById: 't-parent',
+          createdAt: DateTime.now(),
+        );
 
-      await repository.insert(parent);
-      await repository.insert(blocker);
+        await repository.insert(parent);
+        await repository.insert(blocker);
 
-      final blockedTasks = await repository.getByBlockedBy('t-parent');
-      expect(blockedTasks.length, equals(1));
-      expect(blockedTasks.first.id, equals('t-blocker'));
-    });
+        final blockedTasks = await repository.getByBlockedBy('t-parent');
+        expect(blockedTasks.length, equals(1));
+        expect(blockedTasks.first.id, equals('t-blocker'));
+      },
+    );
 
-    test('should cleanup task history completed past threshold retention limit', () async {
-      final oldCompletedDate = DateTime.now().subtract(const Duration(days: 10));
-      final task = Task(
-        id: 't-old',
-        title: 'Old Task',
-        status: TaskStatus.done,
-        completedAt: oldCompletedDate,
-        createdAt: DateTime.now(),
-      );
-      await repository.insert(task);
+    test(
+      'should cleanup task history completed past threshold retention limit',
+      () async {
+        final oldCompletedDate = DateTime.now().subtract(
+          const Duration(days: 10),
+        );
+        final task = Task(
+          id: 't-old',
+          title: 'Old Task',
+          status: TaskStatus.done,
+          completedAt: oldCompletedDate,
+          createdAt: DateTime.now(),
+        );
+        await repository.insert(task);
 
-      final cleanedCount = await repository.cleanupHistory(5);
-      expect(cleanedCount, equals(1));
+        final cleanedCount = await repository.cleanupHistory(5);
+        expect(cleanedCount, equals(1));
 
-      final fetched = await repository.getById('t-old');
-      expect(fetched, isNull);
-    });
+        final fetched = await repository.getById('t-old');
+        expect(fetched, isNull);
+      },
+    );
   });
 }

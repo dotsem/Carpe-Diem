@@ -54,7 +54,9 @@ class DeleteTagCommand implements Command {
         }
         final newTagIds = List<String>.from(task.tagIds)..remove(tag.id);
 
-        await taskRepo.update(task.copyWith(title: newTitle, tagIds: newTagIds));
+        await taskRepo.update(
+          task.copyWith(title: newTitle, tagIds: newTagIds),
+        );
       }
     }
 
@@ -78,7 +80,9 @@ class DeleteTagCommand implements Command {
         if (!newTagIds.contains(tag.id)) {
           newTagIds.add(tag.id);
         }
-        await taskRepo.update(task.copyWith(title: originalTitle, tagIds: newTagIds));
+        await taskRepo.update(
+          task.copyWith(title: originalTitle, tagIds: newTagIds),
+        );
       }
     }
   }

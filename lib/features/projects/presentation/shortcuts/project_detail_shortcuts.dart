@@ -44,20 +44,30 @@ class ProjectDetailShortcuts extends ConsumerWidget {
       child: Shortcuts(
         shortcuts: {
           const CharacterActivator(SearchKeys.char): const FocusSearchIntent(),
-          const SingleActivator(AppKeyBindings.escape): const UnfocusSearchIntent(),
-          if (project.isActive) const CharacterActivator(AddKeys.char): const NewTaskIntent(),
-          if (project.isActive) const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
+          const SingleActivator(AppKeyBindings.escape):
+              const UnfocusSearchIntent(),
+          if (project.isActive)
+            const CharacterActivator(AddKeys.char): const NewTaskIntent(),
+          if (project.isActive)
+            const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
           const CharacterActivator(DownKeys.char): const MoveNextIntent(),
           const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+          const SingleActivator(AppKeyBindings.arrowDown):
+              const MoveNextIntent(),
           const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
           const CharacterActivator(FilterKeys.char): const FilterIntent(),
         },
         child: Actions(
           actions: {
-            MoveNextIntent: NonTypingAction<MoveNextIntent>((_) => onMoveNext()),
-            MovePrevIntent: NonTypingAction<MovePrevIntent>((_) => onMovePrev()),
-            FocusSearchIntent: NonTypingAction<FocusSearchIntent>((_) => onFocusSearch()),
+            MoveNextIntent: NonTypingAction<MoveNextIntent>(
+              (_) => onMoveNext(),
+            ),
+            MovePrevIntent: NonTypingAction<MovePrevIntent>(
+              (_) => onMovePrev(),
+            ),
+            FocusSearchIntent: NonTypingAction<FocusSearchIntent>(
+              (_) => onFocusSearch(),
+            ),
             UnfocusSearchIntent: CallbackAction<UnfocusSearchIntent>(
               onInvoke: (intent) {
                 onUnfocusSearch();

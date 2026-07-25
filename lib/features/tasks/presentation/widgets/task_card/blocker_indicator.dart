@@ -8,12 +8,19 @@ class BlockerIndicator extends ConsumerWidget {
   final String blockerTitle;
   final String blockedTaskId;
 
-  const BlockerIndicator({super.key, required this.blockerId, required this.blockerTitle, required this.blockedTaskId});
+  const BlockerIndicator({
+    super.key,
+    required this.blockerId,
+    required this.blockerTitle,
+    required this.blockedTaskId,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showHashtags = ref.watch(settingsProvider).showHashtagInTitle;
-    final title = showHashtags ? blockerTitle : TagParser.hideHashtagSymbols(blockerTitle);
+    final title = showHashtags
+        ? blockerTitle
+        : TagParser.hideHashtagSymbols(blockerTitle);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -22,14 +29,23 @@ class BlockerIndicator extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHigh, width: 1),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              width: 1,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.lock_outline, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.lock_outline,
+                size: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Task is blocked',

@@ -16,7 +16,10 @@ class HomeDaySelector extends ConsumerWidget {
 
     final today = DateTime.now();
     final todayNormalized = DateTime(today.year, today.month, today.day);
-    final days = List.generate(settings.maxPlanningDays + 1, (i) => todayNormalized.add(Duration(days: i)));
+    final days = List.generate(
+      settings.maxPlanningDays + 1,
+      (i) => todayNormalized.add(Duration(days: i)),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -39,7 +42,9 @@ class HomeDaySelector extends ConsumerWidget {
                 duration: const Duration(milliseconds: 200),
                 width: 52,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.accent : Theme.of(context).colorScheme.surface,
+                  color: isSelected
+                      ? AppColors.accent
+                      : Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -49,7 +54,9 @@ class HomeDaySelector extends ConsumerWidget {
                       dayOfWeek,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: isSelected
+                            ? Colors.white
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -58,7 +65,9 @@ class HomeDaySelector extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                        color: isSelected
+                            ? Colors.white
+                            : Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],

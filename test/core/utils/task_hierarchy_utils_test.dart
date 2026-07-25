@@ -8,7 +8,12 @@ void main() {
   group('core', () {
     final now = DateTime.now();
 
-    Task createTask({required String id, String? blockedById, TaskStatus status = TaskStatus.todo, String title = ''}) {
+    Task createTask({
+      required String id,
+      String? blockedById,
+      TaskStatus status = TaskStatus.todo,
+      String title = '',
+    }) {
       return Task(
         id: id,
         title: title.isEmpty ? 'Task $id' : title,
@@ -38,47 +43,69 @@ void main() {
       expect(result[1].depth, 0);
     });
 
-    test('buildHierarchy nesting builds correct internal parent-child tree hierarchy', () {
-      // 1 <- 2 (2 is blocked by 1)
-      final tasks = [createTask(id: '2', blockedById: '1'), createTask(id: '1')];
+    test(
+      'buildHierarchy nesting builds correct internal parent-child tree hierarchy',
+      () {
+        // 1 <- 2 (2 is blocked by 1)
+        final tasks = [
+          createTask(id: '2', blockedById: '1'),
+          createTask(id: '1'),
+        ];
 
-      final result = TaskHierarchyUtils.buildHierarchy(tasks);
+        final result = TaskHierarchyUtils.buildHierarchy(tasks);
 
-      expect(result.length, 2);
-      expect((result[0] as TaskNode).task.id, '1');
-      expect(result[0].depth, 0);
+        expect(result.length, 2);
+        expect((result[0] as TaskNode).task.id, '1');
+        expect(result[0].depth, 0);
 
-      expect((result[1] as TaskNode).task.id, '2');
-      expect(result[1].depth, 1);
-    });
+        expect((result[1] as TaskNode).task.id, '2');
+        expect(result[1].depth, 1);
+      },
+    );
 
-    test('buildHierarchy with external incomplete blocker builds BlockerIndicatorNode', () {
-      final tasks = [createTask(id: '2', blockedById: '1')];
-      final allTasks = {
-        '1': createTask(id: '1', status: TaskStatus.todo, title: 'Blocker Title'),
-        '2': createTask(id: '2', blockedById: '1'),
-      };
+    test(
+      'buildHierarchy with external incomplete blocker builds BlockerIndicatorNode',
+      () {
+        final tasks = [createTask(id: '2', blockedById: '1')];
+        final allTasks = {
+          '1': createTask(
+            id: '1',
+            status: TaskStatus.todo,
+            title: 'Blocker Title',
+          ),
+          '2': createTask(id: '2', blockedById: '1'),
+        };
 
-      final result = TaskHierarchyUtils.buildHierarchy(tasks, allTasks: allTasks);
+        final result = TaskHierarchyUtils.buildHierarchy(
+          tasks,
+          allTasks: allTasks,
+        );
 
-      expect(result.length, 2);
-      expect(result[0], isA<BlockerIndicatorNode>());
-      final indicator = result[0] as BlockerIndicatorNode;
-      expect(indicator.blockerId, '1');
-      expect(indicator.blockerTitle, 'Blocker Title');
-      expect(indicator.blockedTaskId, '2');
-      expect(indicator.depth, 0);
+        expect(result.length, 2);
+        expect(result[0], isA<BlockerIndicatorNode>());
+        final indicator = result[0] as BlockerIndicatorNode;
+        expect(indicator.blockerId, '1');
+        expect(indicator.blockerTitle, 'Blocker Title');
+        expect(indicator.blockedTaskId, '2');
+        expect(indicator.depth, 0);
 
-      expect(result[1], isA<TaskNode>());
-      expect((result[1] as TaskNode).task.id, '2');
-      expect(result[1].depth, 1);
-    });
+        expect(result[1], isA<TaskNode>());
+        expect((result[1] as TaskNode).task.id, '2');
+        expect(result[1].depth, 1);
+      },
+    );
 
     test('buildHierarchy ignores completed external blocker', () {
       final tasks = [createTask(id: '2', blockedById: '1')];
-      final allTasks = {'1': createTask(id: '1', status: TaskStatus.done), '2': createTask(id: '2', blockedById: '1')};
+      final allTasks = {
+        '1': createTask(id: '1', status: TaskStatus.done),
+        '2': createTask(id: '2', blockedById: '1'),
+      };
 
-      final result = TaskHierarchyUtils.buildHierarchy(tasks, allTasks: allTasks);
+      final result = TaskHierarchyUtils.buildHierarchy(
+        tasks,
+        allTasks: allTasks,
+      );
 
       // Blocker is done, so it should not render as a BlockerIndicatorNode
       expect(result.length, 1);
@@ -90,7 +117,10 @@ void main() {
     test(
       'buildHierarchy handles cycle dependencies gracefully by emitting them starting from the first node as root',
       () {
-        final tasks = [createTask(id: '1', blockedById: '2'), createTask(id: '2', blockedById: '1')];
+        final tasks = [
+          createTask(id: '1', blockedById: '2'),
+          createTask(id: '2', blockedById: '1'),
+        ];
 
         final result = TaskHierarchyUtils.buildHierarchy(tasks);
 

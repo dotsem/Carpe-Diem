@@ -12,16 +12,19 @@ void main() {
     ];
 
     group('syncTitleToPicker', () {
-      test('should replace all selected tags when in replace mode and a tag is added', () {
-        final result = TagSyncUtils.syncTitleToPicker(
-          text: 'Do tasks #work',
-          allTags: mockTags,
-          currentSelectedIds: ['2', '3'],
-          previousParsedIds: [],
-          mode: Absorption.replace,
-        );
-        expect(result, equals(['1']));
-      });
+      test(
+        'should replace all selected tags when in replace mode and a tag is added',
+        () {
+          final result = TagSyncUtils.syncTitleToPicker(
+            text: 'Do tasks #work',
+            allTags: mockTags,
+            currentSelectedIds: ['2', '3'],
+            previousParsedIds: [],
+            mode: Absorption.replace,
+          );
+          expect(result, equals(['1']));
+        },
+      );
 
       test('should append tag when in append mode and a tag is added', () {
         final result = TagSyncUtils.syncTitleToPicker(

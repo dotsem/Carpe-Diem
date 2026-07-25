@@ -10,7 +10,9 @@ import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart
 import 'package:carpe_diem/features/history/data/repositories/history_repository.dart';
 
 final databaseProvider = Provider<Database>((ref) {
-  throw UnimplementedError('databaseProvider must be overridden in ProviderScope');
+  throw UnimplementedError(
+    'databaseProvider must be overridden in ProviderScope',
+  );
 });
 
 final settingsRepositoryProvider = Provider<ISettingsRepository>((ref) {

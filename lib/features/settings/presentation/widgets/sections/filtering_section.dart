@@ -31,7 +31,9 @@ class FilteringSection extends ConsumerWidget {
                 ),
                 DropdownMenuItem(
                   value: FilterInteractionMethod.leftRightClick,
-                  child: Text('Left/Right Click (Left to Include, Right to Exclude)'),
+                  child: Text(
+                    'Left/Right Click (Left to Include, Right to Exclude)',
+                  ),
                 ),
               ],
               onChanged: (value) {

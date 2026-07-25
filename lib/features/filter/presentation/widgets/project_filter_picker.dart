@@ -24,7 +24,10 @@ class ProjectFilterPicker extends ConsumerWidget {
       return Center(
         child: Text(
           'No projects available',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 13,
+          ),
         ),
       );
     }
@@ -47,7 +50,11 @@ class ProjectFilterPicker extends ConsumerWidget {
 
         if (isIncluded) {
           labelText = '+ ${p.name}';
-          labelStyle = TextStyle(color: includedColor, fontSize: 13, fontWeight: FontWeight.bold);
+          labelStyle = TextStyle(
+            color: includedColor,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          );
           backgroundColor = includedColor.withAlpha(30);
           side = BorderSide(color: includedColor);
         } else if (isExcluded) {
@@ -61,7 +68,10 @@ class ProjectFilterPicker extends ConsumerWidget {
           backgroundColor = excludedColor.withAlpha(30);
           side = BorderSide(color: excludedColor);
         } else {
-          labelStyle = TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13);
+          labelStyle = TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 13,
+          );
           backgroundColor = Theme.of(context).colorScheme.surfaceContainerHigh;
           side = BorderSide(color: Theme.of(context).colorScheme.outline);
         }
@@ -125,7 +135,9 @@ class ProjectFilterPicker extends ConsumerWidget {
               avatar: CircleAvatar(backgroundColor: p.color, radius: 4),
               backgroundColor: backgroundColor,
               side: side,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               visualDensity: VisualDensity.compact,
             ),
           ),

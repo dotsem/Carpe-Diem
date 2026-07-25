@@ -5,7 +5,11 @@ class SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const SettingsSection({super.key, required this.title, required this.children});
+  const SettingsSection({
+    super.key,
+    required this.title,
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +20,12 @@ class SettingsSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(0, 24, 16, 8),
           child: Text(
             title.toUpperCase(),
-            style: TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+            style: TextStyle(
+              color: AppColors.accent,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
           ),
         ),
         Column(
@@ -77,17 +86,30 @@ class SettingsTile extends StatelessWidget {
     return _SettingsTileWrapper(
       enabled: enabled,
       child: ListTile(
-        leading: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        leading: Icon(
+          icon,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         title: Text(
           title,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         subtitle: subtitle != null
-            ? Text(subtitle!, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13))
+            ? Text(
+                subtitle!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              )
             : null,
         trailing: trailing,
         onTap: onTap,
-        contentPadding: padding ?? const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+        contentPadding:
+            padding ?? const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       ),
     );
   }
@@ -155,7 +177,10 @@ class SettingsDropdownTile<T> extends StatelessWidget {
         onChanged: onChanged,
         underline: const SizedBox(),
         dropdownColor: Theme.of(context).colorScheme.surface,
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 14,
+        ),
       ),
     );
   }
@@ -200,12 +225,21 @@ class SettingsSliderTile extends StatelessWidget {
             subtitle: subtitle,
             trailing: Text(
               labelBuilder?.call(value) ?? value.round().toString(),
-              style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: AppColors.accent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Slider(value: value, min: min, max: max, divisions: divisions, onChanged: onChanged),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              onChanged: onChanged,
+            ),
           ),
         ],
       ),
@@ -236,7 +270,10 @@ class SettingsCustomWidgetTile extends StatelessWidget {
       icon: icon,
       title: title,
       subtitle: subtitle,
-      trailing: Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: child),
+      trailing: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: child,
+      ),
     );
   }
 }

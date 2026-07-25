@@ -15,7 +15,9 @@ void main() {
 
     setUp(() {
       mockRepo = MockSettingsRepository();
-      container = ProviderContainer(overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)]);
+      container = ProviderContainer(
+        overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
+      );
     });
 
     tearDown(() {
@@ -30,9 +32,13 @@ void main() {
     });
 
     test('should load settings from repository into state', () async {
-      when(
-        () => mockRepo.getAll(),
-      ).thenAnswer((_) async => {'theme_mode': 'dark', 'compact_mode': 'true', SettingsConstants.keyTaskLayout: 'kanban'});
+      when(() => mockRepo.getAll()).thenAnswer(
+        (_) async => {
+          'theme_mode': 'dark',
+          'compact_mode': 'true',
+          SettingsConstants.keyTaskLayout: 'kanban',
+        },
+      );
 
       await container.read(settingsProvider.notifier).loadSettings();
 
@@ -43,15 +49,18 @@ void main() {
       verify(() => mockRepo.getAll()).called(1);
     });
 
-    test('should update setting in repository and trigger state mutation', () async {
-      when(() => mockRepo.set(any(), any())).thenAnswer((_) async => {});
+    test(
+      'should update setting in repository and trigger state mutation',
+      () async {
+        when(() => mockRepo.set(any(), any())).thenAnswer((_) async => {});
 
-      final notifier = container.read(settingsProvider.notifier);
-      await notifier.setThemeMode(ThemeMode.light);
+        final notifier = container.read(settingsProvider.notifier);
+        await notifier.setThemeMode(ThemeMode.light);
 
-      final state = container.read(settingsProvider);
-      expect(state.themeMode, equals(ThemeMode.light));
-      verify(() => mockRepo.set('theme_mode', 'light')).called(1);
-    });
+        final state = container.read(settingsProvider);
+        expect(state.themeMode, equals(ThemeMode.light));
+        verify(() => mockRepo.set('theme_mode', 'light')).called(1);
+      },
+    );
   });
 }

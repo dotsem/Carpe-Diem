@@ -37,9 +37,13 @@ void main() {
     });
 
     test('should retrieve all labels sorted by name', () async {
-      const labelB = Label(id: 'label-2', name: 'Personal', color: Colors.green);
+      const labelB = Label(
+        id: 'label-2',
+        name: 'Personal',
+        color: Colors.green,
+      );
       const labelA = Label(id: 'label-1', name: 'Family', color: Colors.red);
-      
+
       await repository.insert(labelB);
       await repository.insert(labelA);
 

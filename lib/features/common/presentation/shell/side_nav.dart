@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
@@ -39,9 +38,10 @@ class SideNav extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Carpe Diem',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(color: AppColors.accent, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -92,7 +92,10 @@ class SideNav extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: ProjectList(currentPath: currentPath, onProjectSelected: (path) => _navigateTo(context, path)),
+            child: ProjectList(
+              currentPath: currentPath,
+              onProjectSelected: (path) => _navigateTo(context, path),
+            ),
           ),
           const Divider(height: 1),
           const UndoRedoPanel(),
@@ -101,7 +104,10 @@ class SideNav extends ConsumerWidget {
             label: 'Settings',
             isSelected: currentPath == '/settings',
             onTap: () => _navigateTo(context, '/settings'),
-            outerPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            outerPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
           ),
           const SizedBox(height: 8),
         ],
@@ -114,31 +120,35 @@ class ProjectList extends ConsumerWidget {
   final String currentPath;
   final ValueChanged<String> onProjectSelected;
 
-  const ProjectList({super.key, required this.currentPath, required this.onProjectSelected});
+  const ProjectList({
+    super.key,
+    required this.currentPath,
+    required this.onProjectSelected,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final projectState = ref.watch(projectProvider);
     final projects = projectState.projects.where((p) => p.isActive).toList()
-      ..sort((a, b) {
-        final pComp = b.priority.index.compareTo(a.priority.index);
-        if (pComp != 0) return pComp;
-        return a.name.compareTo(b.name);
-      });
+      ..sort((a, b) => a.compareTo(b));
 
-    final groups = <Priority, List<Project>>{};
+    final groups = <bool, List<Project>>{};
     for (final project in projects) {
-      groups.putIfAbsent(project.priority, () => []).add(project);
+      groups.putIfAbsent(project.isUrgent, () => []).add(project);
     }
 
-    final priorities = groups.keys.toList()..sort((a, b) => b.index.compareTo(a.index));
+    final urgencies = groups.keys.toList()
+      ..sort((a, b) => (a == b) ? 0 : (a ? -1 : 1));
 
     if (projects.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton.icon(
-            onPressed: () => showDialog(context: context, builder: (context) => const AddProjectDialog()),
+            onPressed: () => showDialog(
+              context: context,
+              builder: (context) => const AddProjectDialog(),
+            ),
             icon: const Icon(Icons.add),
             label: const Text('Create a project'),
           ),
@@ -148,10 +158,10 @@ class ProjectList extends ConsumerWidget {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      itemCount: priorities.length,
+      itemCount: urgencies.length,
       itemBuilder: (context, pIndex) {
-        final priority = priorities[pIndex];
-        final groupProjects = groups[priority]!;
+        final isUrgent = urgencies[pIndex];
+        final groupProjects = groups[isUrgent]!;
 
         return Padding(
           padding: const EdgeInsets.only(left: 8, bottom: 8),
@@ -162,7 +172,9 @@ class ProjectList extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: groupProjects.map((project) {
-                    final isSelected = currentPath.startsWith('/projects/${project.id}');
+                    final isSelected = currentPath.startsWith(
+                      '/projects/${project.id}',
+                    );
                     return NavigationItem(
                       icon: Icons.circle,
                       iconColor: project.color.themeDependentColor(context),
@@ -170,20 +182,28 @@ class ProjectList extends ConsumerWidget {
                       label: project.name,
                       isSelected: isSelected,
                       onTap: () => onProjectSelected('/projects/${project.id}'),
-                      outerPadding: const EdgeInsets.only(right: 12, top: 2, bottom: 2),
+                      outerPadding: const EdgeInsets.only(
+                        right: 12,
+                        top: 2,
+                        bottom: 2,
+                      ),
                     );
                   }).toList(),
                 ),
               ),
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: 3,
-                child: Container(
-                  decoration: BoxDecoration(color: priority.color, borderRadius: BorderRadius.circular(2)),
+              if (isUrgent)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.error,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         );

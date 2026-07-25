@@ -5,7 +5,7 @@ import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.
 class BaseScreenShortcuts extends ConsumerWidget {
   final Widget child;
   final List<ShortcutEntry> helpEntries;
-  
+
   // Standard Callback Hooks
   final VoidCallback? onMoveNext;
   final VoidCallback? onMovePrev;
@@ -44,44 +44,69 @@ class BaseScreenShortcuts extends ConsumerWidget {
         shortcuts: {
           // Default Common Activators
           if (onFocusSearch != null)
-            const CharacterActivator(SearchKeys.char): const FocusSearchIntent(),
+            const CharacterActivator(SearchKeys.char):
+                const FocusSearchIntent(),
           if (onUnfocusSearch != null)
-            const SingleActivator(AppKeyBindings.escape): const UnfocusSearchIntent(),
+            const SingleActivator(AppKeyBindings.escape):
+                const UnfocusSearchIntent(),
           if (onNewItem != null) ...{
             const CharacterActivator(AddKeys.char): const NewItemIntent(),
             const CharacterActivator(AddKeys.upper): const NewItemIntent(),
           },
           if (onMoveNext != null) ...{
             const CharacterActivator(DownKeys.char): const MoveNextIntent(),
-            const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+            const SingleActivator(AppKeyBindings.arrowDown):
+                const MoveNextIntent(),
           },
           if (onMovePrev != null) ...{
             const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-            const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
+            const SingleActivator(AppKeyBindings.arrowUp):
+                const MovePrevIntent(),
           },
           if (onMoveLeft != null) ...{
             const CharacterActivator(LeftKeys.char): const MoveLeftIntent(),
-            const SingleActivator(AppKeyBindings.arrowLeft): const MoveLeftIntent(),
+            const SingleActivator(AppKeyBindings.arrowLeft):
+                const MoveLeftIntent(),
           },
           if (onMoveRight != null) ...{
             const CharacterActivator(RightKeys.char): const MoveRightIntent(),
-            const SingleActivator(AppKeyBindings.arrowRight): const MoveRightIntent(),
+            const SingleActivator(AppKeyBindings.arrowRight):
+                const MoveRightIntent(),
           },
           if (onFilter != null)
             const CharacterActivator(FilterKeys.char): const FilterIntent(),
-          
+
           // Inject custom screen-specific overrides
           ...?customShortcuts,
         },
         child: Actions(
           actions: {
-            if (onMoveNext != null) MoveNextIntent: NonTypingAction<MoveNextIntent>((_) => onMoveNext!()),
-            if (onMovePrev != null) MovePrevIntent: NonTypingAction<MovePrevIntent>((_) => onMovePrev!()),
-            if (onMoveLeft != null) MoveLeftIntent: NonTypingAction<MoveLeftIntent>((_) => onMoveLeft!()),
-            if (onMoveRight != null) MoveRightIntent: NonTypingAction<MoveRightIntent>((_) => onMoveRight!()),
-            if (onFilter != null) FilterIntent: NonTypingAction<FilterIntent>((_) => onFilter!()),
-            if (onFocusSearch != null) FocusSearchIntent: NonTypingAction<FocusSearchIntent>((_) => onFocusSearch!()),
-            if (onNewItem != null) NewItemIntent: NonTypingAction<NewItemIntent>((_) => onNewItem!()),
+            if (onMoveNext != null)
+              MoveNextIntent: NonTypingAction<MoveNextIntent>(
+                (_) => onMoveNext!(),
+              ),
+            if (onMovePrev != null)
+              MovePrevIntent: NonTypingAction<MovePrevIntent>(
+                (_) => onMovePrev!(),
+              ),
+            if (onMoveLeft != null)
+              MoveLeftIntent: NonTypingAction<MoveLeftIntent>(
+                (_) => onMoveLeft!(),
+              ),
+            if (onMoveRight != null)
+              MoveRightIntent: NonTypingAction<MoveRightIntent>(
+                (_) => onMoveRight!(),
+              ),
+            if (onFilter != null)
+              FilterIntent: NonTypingAction<FilterIntent>((_) => onFilter!()),
+            if (onFocusSearch != null)
+              FocusSearchIntent: NonTypingAction<FocusSearchIntent>(
+                (_) => onFocusSearch!(),
+              ),
+            if (onNewItem != null)
+              NewItemIntent: NonTypingAction<NewItemIntent>(
+                (_) => onNewItem!(),
+              ),
             if (onUnfocusSearch != null)
               UnfocusSearchIntent: CallbackAction<UnfocusSearchIntent>(
                 onInvoke: (intent) {
@@ -89,7 +114,7 @@ class BaseScreenShortcuts extends ConsumerWidget {
                   return null;
                 },
               ),
-            
+
             // Inject custom screen-specific actions
             ...?customActions,
           },

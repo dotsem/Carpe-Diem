@@ -23,11 +23,20 @@ abstract class ITaskRepository implements ICrudRepository<Task> {
   @override
   Future<Task?> getById(String id);
   Future<List<Task>> getByBlockedBy(String taskId);
-  Future<List<Task>> getByDate(DateTime date, {bool prioritizeDeadlines = true});
+  Future<List<Task>> getByDate(
+    DateTime date, {
+    bool prioritizeDeadlines = true,
+  });
   Future<List<Task>> getOverdue(DateTime today);
   Future<List<Task>> getUnscheduled({bool prioritizeDeadlines = true});
-  Future<List<Task>> getByProject(String projectId, {bool prioritizeDeadlines = true});
-  Future<List<Task>> getByLabel(String labelId, {bool prioritizeDeadlines = true});
+  Future<List<Task>> getByProject(
+    String projectId, {
+    bool prioritizeDeadlines = true,
+  });
+  Future<List<Task>> getByLabel(
+    String labelId, {
+    bool prioritizeDeadlines = true,
+  });
 
   @override
   Future<void> insert(Task task);
@@ -39,9 +48,19 @@ abstract class ITaskRepository implements ICrudRepository<Task> {
 }
 
 abstract class IHistoryRepository {
-  Future<List<Task>> getCompletedInRange(DateTime start, DateTime end, {int? limit, int? offset, TaskFilter? filter});
+  Future<List<Task>> getCompletedInRange(
+    DateTime start,
+    DateTime end, {
+    int? limit,
+    int? offset,
+    TaskFilter? filter,
+  });
   Future<DateTime?> getFirstCompletedDate();
-  Future<HistoryOverview> getHistoryOverview(DateTime start, DateTime end, {TaskFilter? filter});
+  Future<HistoryOverview> getHistoryOverview(
+    DateTime start,
+    DateTime end, {
+    TaskFilter? filter,
+  });
 }
 
 abstract class IProjectRepository implements ICrudRepository<Project> {

@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class TagHighlightingController extends TextEditingController {
   final List<String> Function() getExistingTagNames;
 
-  TagHighlightingController({
-    super.text,
-    required this.getExistingTagNames,
-  });
+  TagHighlightingController({super.text, required this.getExistingTagNames});
 
   @override
   TextSpan buildTextSpan({
@@ -23,7 +20,9 @@ class TagHighlightingController extends TextEditingController {
     final List<TextSpan> children = [];
     int start = 0;
 
-    final existingNames = getExistingTagNames().map((n) => n.toLowerCase()).toSet();
+    final existingNames = getExistingTagNames()
+        .map((n) => n.toLowerCase())
+        .toSet();
     final primaryColor = Theme.of(context).colorScheme.primary;
 
     for (final Match match in regExp.allMatches(text)) {
@@ -38,13 +37,12 @@ class TagHighlightingController extends TextEditingController {
           ? primaryColor
           : Colors.grey;
 
-      children.add(TextSpan(
-        text: fullMatch,
-        style: TextStyle(
-          color: tagColor,
-          fontWeight: FontWeight.bold,
+      children.add(
+        TextSpan(
+          text: fullMatch,
+          style: TextStyle(color: tagColor, fontWeight: FontWeight.bold),
         ),
-      ));
+      );
 
       start = match.end;
     }

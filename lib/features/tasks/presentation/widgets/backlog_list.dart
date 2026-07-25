@@ -1,17 +1,22 @@
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
+import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
+import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
-import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 
 class BacklogList extends ConsumerWidget {
   final String searchQuery;
@@ -33,7 +38,8 @@ class BacklogList extends ConsumerWidget {
     required this.trailingBuilder,
   });
 
-  bool _isFiltering(TaskFilter filter) => searchQuery.isNotEmpty || !filter.isEmpty;
+  bool _isFiltering(TaskFilter filter) =>
+      searchQuery.isNotEmpty || !filter.isEmpty;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +51,9 @@ class BacklogList extends ConsumerWidget {
     final projectState = ref.watch(projectProvider);
     final filter = ref.watch(filterProvider).activeFilter;
     var allTasks = provider.unscheduledTasks.where((t) {
-      final project = t.projectId != null ? projectState.getById(t.projectId!) : null;
+      final project = t.projectId != null
+          ? projectState.getById(t.projectId!)
+          : null;
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
@@ -109,8 +117,14 @@ class BacklogList extends ConsumerWidget {
       ..addAll({for (var t in provider.overdueTasks) t.id: t})
       ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
 
-    final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
-    final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks, allTasks: allAvailableTasks);
+    final activeHierarchical = TaskHierarchyUtils.buildHierarchy(
+      activeTasks,
+      allTasks: allAvailableTasks,
+    );
+    final completedHierarchical = TaskHierarchyUtils.buildHierarchy(
+      completedTasks,
+      allTasks: allAvailableTasks,
+    );
 
     final List<String> orderedIds = [];
     for (final n in activeHierarchical) {
@@ -131,12 +145,17 @@ class BacklogList extends ConsumerWidget {
     Widget buildNode(TaskHierarchyNode n) {
       Widget child;
       if (n is TaskNode) {
-        final focusNode = itemFocusNodes.putIfAbsent(n.task.id, () => FocusNode(debugLabel: 'Task_${n.task.id}'));
+        final focusNode = itemFocusNodes.putIfAbsent(
+          n.task.id,
+          () => FocusNode(debugLabel: 'Task_${n.task.id}'),
+        );
 
         child = TaskCard(
           key: ValueKey(n.task.id),
           task: n.task,
-          project: n.task.projectId != null ? projectState.getById(n.task.projectId!) : null,
+          project: n.task.projectId != null
+              ? projectState.getById(n.task.projectId!)
+              : null,
           isChecked: selectedTaskIds.contains(n.task.id),
           selectionMode: true,
           focusNode: focusNode,
@@ -144,10 +163,11 @@ class BacklogList extends ConsumerWidget {
             onSelectedChanged(n.task);
           },
           onTap: () => onEdit(n.task),
-          onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
+          onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
             context,
             ref,
             n.task,
+            allTasks,
             localPosition,
             renderBox,
             onAction: () {
@@ -171,23 +191,78 @@ class BacklogList extends ConsumerWidget {
       return TaskHierarchyIndicator(depth: n.depth, child: child);
     }
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      children: [
-        ...activeHierarchical.map((n) => buildNode(n)),
-        if (completedHierarchical.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text(
-            'Completed',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          itemCount: activeHierarchical.length,
+          itemBuilder: (context, index) {
+            final node = activeHierarchical[index];
+            final child = buildNode(node);
+
+            Widget draggableChild = child;
+            if (node is TaskNode) {
+              final isSelected = selectedTaskIds.contains(node.task.id);
+              draggableChild = PlatformDraggable<Task>(
+                data: node.task,
+                feedback: TaskDragProxy(
+                  task: node.task,
+                  selectedCount: isSelected ? selectedTaskIds.length : 1,
+                  width: constraints.maxWidth - 32,
                 ),
-          ),
-          const SizedBox(height: 8),
-          ...completedHierarchical.map((n) => buildNode(n)),
-        ],
-      ],
+                childWhenDragging: Opacity(opacity: 0.3, child: child),
+                child: child,
+              );
+            }
+
+            return TaskDropZoneWrapper(
+              index: index,
+              onDrop: (task, newIndex) {
+                final settings = ref.read(settingsProvider);
+                if (selectedTaskIds.isNotEmpty) {
+                  final newSortOrders = TaskReorderUtils.handleMultiReorder(
+                    nodes: activeHierarchical,
+                    draggedTask: task,
+                    newIndex: newIndex,
+                    selectedTaskIds: selectedTaskIds.toSet(),
+                    settings: settings,
+                  );
+                  if (newSortOrders != null && newSortOrders.isNotEmpty) {
+                    ref
+                        .read(taskProvider.notifier)
+                        .bulkReorderTasks(newSortOrders);
+                  } else {
+                    final newSortOrder = TaskReorderUtils.handleReorder(
+                      nodes: activeHierarchical,
+                      draggedTask: task,
+                      newIndex: newIndex,
+                      settings: settings,
+                    );
+                    if (newSortOrder != null) {
+                      ref
+                          .read(taskProvider.notifier)
+                          .reorderTask(task, newSortOrder);
+                    }
+                  }
+                } else {
+                  final newSortOrder = TaskReorderUtils.handleReorder(
+                    nodes: activeHierarchical,
+                    draggedTask: task,
+                    newIndex: newIndex,
+                    settings: settings,
+                  );
+                  if (newSortOrder != null) {
+                    ref
+                        .read(taskProvider.notifier)
+                        .reorderTask(task, newSortOrder);
+                  }
+                }
+              },
+              child: draggableChild,
+            );
+          },
+        );
+      },
     );
   }
 }

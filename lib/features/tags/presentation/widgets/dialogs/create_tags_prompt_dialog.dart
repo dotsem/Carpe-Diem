@@ -15,17 +15,20 @@ class CreateTagsPromptDialog extends StatelessWidget {
       showDefaultActions: false,
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(CreateTagsPromptResult.cancel),
+          onPressed: () =>
+              Navigator.of(context).pop(CreateTagsPromptResult.cancel),
           child: const Text('Cancel'),
         ),
         const SizedBox(width: 8),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(CreateTagsPromptResult.saveWithoutTags),
+          onPressed: () =>
+              Navigator.of(context).pop(CreateTagsPromptResult.saveWithoutTags),
           child: Text('Save Without Tag${newTagNames.length > 1 ? 's' : ''}'),
         ),
         const SizedBox(width: 8),
         FilledButton(
-          onPressed: () => Navigator.of(context).pop(CreateTagsPromptResult.createAndSave),
+          onPressed: () =>
+              Navigator.of(context).pop(CreateTagsPromptResult.createAndSave),
           child: Text('Create & Save${newTagNames.length > 1 ? 's' : ''}'),
         ),
       ],
@@ -43,9 +46,16 @@ class CreateTagsPromptDialog extends StatelessWidget {
             runSpacing: 8,
             children: newTagNames.map((name) {
               return Chip(
-                label: Text('#$name', style: const TextStyle(fontWeight: FontWeight.w600)),
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                label: Text(
+                  '#$name',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHigh,
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
                 visualDensity: VisualDensity.compact,
               );
             }).toList(),

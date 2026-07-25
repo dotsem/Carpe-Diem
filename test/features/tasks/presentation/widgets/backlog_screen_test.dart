@@ -33,48 +33,61 @@ void main() {
       when(() => mockTagRepo.getAll()).thenAnswer((_) async => []);
       when(() => mockTagIconRepo.getAllIconDatas()).thenAnswer((_) async => {});
       when(
-        () => mockTaskRepo.getByDate(any(), prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
+        () => mockTaskRepo.getByDate(
+          any(),
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+        ),
       ).thenAnswer((_) async => []);
       when(() => mockTaskRepo.getOverdue(any())).thenAnswer((_) async => []);
     });
 
-    testWidgets('should render Backlog Screen items and search inputs correctly', (tester) async {
-      final backlogTasks = [
-        Task(id: 't-backlog-1', title: 'Legacy code cleanup', status: TaskStatus.todo, createdAt: DateTime.now()),
-      ];
+    testWidgets(
+      'should render Backlog Screen items and search inputs correctly',
+      (tester) async {
+        final backlogTasks = [
+          Task(
+            id: 't-backlog-1',
+            title: 'Legacy code cleanup',
+            status: TaskStatus.todo,
+            createdAt: DateTime.now(),
+          ),
+        ];
 
-      when(
-        () => mockTaskRepo.getUnscheduled(prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
-      ).thenAnswer((_) async => backlogTasks);
+        when(
+          () => mockTaskRepo.getUnscheduled(
+            prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          ),
+        ).thenAnswer((_) async => backlogTasks);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            taskRepositoryProvider.overrideWithValue(mockTaskRepo),
-            projectRepositoryProvider.overrideWithValue(mockProjectRepo),
-            labelRepositoryProvider.overrideWithValue(mockLabelRepo),
-            historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
-            settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
-            tagRepositoryProvider.overrideWithValue(mockTagRepo),
-            tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
-          ],
-          child: const MaterialApp(home: Scaffold(body: BacklogScreen())),
-        ),
-      );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              taskRepositoryProvider.overrideWithValue(mockTaskRepo),
+              projectRepositoryProvider.overrideWithValue(mockProjectRepo),
+              labelRepositoryProvider.overrideWithValue(mockLabelRepo),
+              historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
+              settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+              tagRepositoryProvider.overrideWithValue(mockTagRepo),
+              tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
+            ],
+            child: const MaterialApp(home: Scaffold(body: BacklogScreen())),
+          ),
+        );
 
-      // Trigger initialization and loaders
-      await tester.pumpAndSettle();
+        // Trigger initialization and loaders
+        await tester.pumpAndSettle();
 
-      // Verify header texts are rendered
-      expect(find.text('Backlog'), findsOneWidget);
-      expect(find.text('Tasks without a scheduled date'), findsOneWidget);
+        // Verify header texts are rendered
+        expect(find.text('Backlog'), findsOneWidget);
+        expect(find.text('Tasks without a scheduled date'), findsOneWidget);
 
-      // Verify the task card is loaded from unscheduled tasks
-      expect(find.text('Legacy code cleanup'), findsOneWidget);
+        // Verify the task card is loaded from unscheduled tasks
+        expect(find.text('Legacy code cleanup'), findsOneWidget);
 
-      // Verify search and add buttons exist
-      expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('Add Task'), findsOneWidget);
-    });
+        // Verify search and add buttons exist
+        expect(find.byType(TextField), findsOneWidget);
+        expect(find.text('Add Task'), findsOneWidget);
+      },
+    );
   });
 }

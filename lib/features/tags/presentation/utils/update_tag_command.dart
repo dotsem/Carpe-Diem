@@ -57,7 +57,11 @@ class UpdateTagCommand implements Command {
           _associatedTaskIds.add(task.id);
           _originalTitles[task.id] = task.title;
 
-          final newTitle = TagParser.renameSpecificTag(task.title, previousTag.name, nextTag.name);
+          final newTitle = TagParser.renameSpecificTag(
+            task.title,
+            previousTag.name,
+            nextTag.name,
+          );
           await taskRepo.update(task.copyWith(title: newTitle));
         }
       }
@@ -86,5 +90,6 @@ class UpdateTagCommand implements Command {
   }
 
   @override
-  String get description => 'Rename tag: "#${previousTag.name}" to "#${nextTag.name}"';
+  String get description =>
+      'Rename tag: "#${previousTag.name}" to "#${nextTag.name}"';
 }

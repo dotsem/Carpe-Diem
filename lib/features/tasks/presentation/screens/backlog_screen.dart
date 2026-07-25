@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,6 @@ import 'package:carpe_diem/features/filter/presentation/providers/filter_provide
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_list.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_dialog_handlers.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
@@ -44,7 +44,8 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
 
     _searchFocusNode.onKeyEvent = (node, event) {
       if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.arrowDown || event.logicalKey == LogicalKeyboardKey.enter) {
+        if (event.logicalKey == LogicalKeyboardKey.arrowDown ||
+            event.logicalKey == LogicalKeyboardKey.enter) {
           if (_orderedItemIds.isNotEmpty) {
             final firstNode = _itemFocusNodes[_orderedItemIds.first];
             firstNode?.requestFocus();
@@ -83,19 +84,25 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     return null;
   }
 
-  Future<void> _scheduleTasks(Future<void> Function(List<String>) action) async {
+  Future<void> _scheduleTasks(
+    Future<void> Function(List<String>) action,
+  ) async {
     final List<String> ids = _selectedTaskIds.isNotEmpty
         ? List.from(_selectedTaskIds)
         : [_getFocusedTaskId()].whereType<String>().toList();
     if (ids.isNotEmpty) {
       await action(ids);
-      if (mounted && _selectedTaskIds.isNotEmpty) setState(() => _selectedTaskIds.clear());
+      if (mounted && _selectedTaskIds.isNotEmpty) {
+        setState(() => _selectedTaskIds.clear());
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
+    final provider = ref.watch(taskProvider);
+
     return BacklogShortcuts(
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
@@ -112,8 +119,11 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
         }
       },
       onNewTask: () => BacklogDialogHandlers.showAddTask(context),
-      onPlanTask: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForToday),
-      onPlanTaskTomorrow: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForTomorrow),
+      onPlanTask: () =>
+          _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForToday),
+      onPlanTaskTomorrow: () => _scheduleTasks(
+        ref.read(taskProvider.notifier).scheduleTasksForTomorrow,
+      ),
       child: Focus(
         focusNode: _mainFocusNode,
         autofocus: true,
@@ -129,14 +139,19 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                   actions: [
                     if (settings.enableRandomTask) ...[
                       IconButton(
-                        onPressed: () => BacklogDialogHandlers.pickRandomTask(context, ref, _searchQuery),
+                        onPressed: () => BacklogDialogHandlers.pickRandomTask(
+                          context,
+                          ref,
+                          _searchQuery,
+                        ),
                         icon: const Icon(Icons.casino_rounded),
                         tooltip: 'Give me a random task!',
                       ),
                       const SizedBox(width: 8),
                     ],
                     FilledButton.icon(
-                      onPressed: () => BacklogDialogHandlers.showAddTask(context),
+                      onPressed: () =>
+                          BacklogDialogHandlers.showAddTask(context),
                       icon: const Icon(Icons.add),
                       label: const Text('Add Task'),
                     ),
@@ -147,8 +162,10 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                 FilterBar(
                   filter: ref.watch(filterProvider).filter,
                   isBypassed: ref.watch(filterProvider).isBypassed,
-                  onFilterTap: () => BacklogDialogHandlers.showFilterDialog(context, ref),
-                  onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+                  onFilterTap: () =>
+                      BacklogDialogHandlers.showFilterDialog(context, ref),
+                  onClearFilter: () =>
+                      ref.read(filterProvider.notifier).clearFilter(),
                 ),
                 Divider(height: 1),
                 Padding(
@@ -177,13 +194,15 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                           ? _selectedTaskIds.remove(task.id)
                           : _selectedTaskIds.add(task.id);
                     }),
-                    onEdit: (task) => BacklogDialogHandlers.showEditTask(context, task),
+                    onEdit: (task) =>
+                        BacklogDialogHandlers.showEditTask(context, task),
                     itemFocusNodes: _itemFocusNodes,
                     onOrderedIdsChanged: (ids) {
                       _orderedItemIds.clear();
                       _orderedItemIds.addAll(ids);
                     },
-                    trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+                    trailingBuilder: (ctx, task) =>
+                        _taskTrailing(ctx, task, provider.unscheduledTasks),
                   ),
                 ),
               ],
@@ -194,24 +213,37 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
               bottom: 16,
               child: BulkPlanningBar(
                 selectedCount: _selectedTaskIds.length,
-                onClearSelection: () => setState(() => _selectedTaskIds.clear()),
-                onScheduleToday: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForToday),
-                onScheduleTomorrow: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForTomorrow),
+                onClearSelection: () =>
+                    setState(() => _selectedTaskIds.clear()),
+                onScheduleToday: () => _scheduleTasks(
+                  ref.read(taskProvider.notifier).scheduleTasksForToday,
+                ),
+                onScheduleTomorrow: () => _scheduleTasks(
+                  ref.read(taskProvider.notifier).scheduleTasksForTomorrow,
+                ),
                 onBulkEdit: () {
                   if (_selectedTaskIds.length == 1) {
-                    final provider = ref.read(taskProvider);
-                    final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                    final task = provider.unscheduledTasks.firstWhere(
+                      (t) => t.id == _selectedTaskIds.first,
+                    );
                     BacklogDialogHandlers.showEditTask(context, task);
                   } else {
-                    BacklogDialogHandlers.showBulkEdit(context, ref, _selectedTaskIds, () {
-                      setState(() => _selectedTaskIds.clear());
-                    });
+                    BacklogDialogHandlers.showBulkEdit(
+                      context,
+                      ref,
+                      _selectedTaskIds,
+                      () {
+                        setState(() => _selectedTaskIds.clear());
+                      },
+                    );
                   }
                 },
                 onBulkDelete: () {
                   if (_selectedTaskIds.length == 1) {
                     final provider = ref.read(taskProvider);
-                    final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                    final task = provider.unscheduledTasks.firstWhere(
+                      (t) => t.id == _selectedTaskIds.first,
+                    );
                     showDialog(
                       context: context,
                       builder: (ctx) => DeleteDialog(
@@ -224,9 +256,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                       ),
                     );
                   } else {
-                    BacklogDialogHandlers.showBulkDeleteConfirm(context, ref, _selectedTaskIds, () {
-                      setState(() => _selectedTaskIds.clear());
-                    });
+                    BacklogDialogHandlers.showBulkDeleteConfirm(
+                      context,
+                      ref,
+                      _selectedTaskIds,
+                      () {
+                        setState(() => _selectedTaskIds.clear());
+                      },
+                    );
                   }
                 },
               ),
@@ -240,7 +277,12 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
   Widget _buildHeaderActions(BuildContext context) {
     return BulkActionMenu(
       options: [
-        BulkActionOption(value: 'import', icon: Icons.download_rounded, label: 'Import from MD', enabled: true),
+        BulkActionOption(
+          value: 'import',
+          icon: Icons.download_rounded,
+          label: 'Import from MD',
+          enabled: true,
+        ),
       ],
       onOptionSelected: (value) {
         if (value == 'import') {
@@ -250,7 +292,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     );
   }
 
-  Widget _taskTrailing(BuildContext context, Task task) {
+  Widget _taskTrailing(BuildContext context, Task task, List<Task> tasks) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -260,12 +302,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
               icon: const Icon(Icons.more_vert, size: 18),
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               onPressed: () {
-                final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
+                final RenderBox renderBox =
+                    buttonContext.findRenderObject() as RenderBox;
                 final localPosition = Offset.zero;
-                showBacklogContextMenu(
+                showTaskCardContextMenu(
                   context,
                   ref,
                   task,
+                  tasks,
                   localPosition,
                   renderBox,
                   onAction: () {

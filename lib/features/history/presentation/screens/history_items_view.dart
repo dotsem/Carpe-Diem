@@ -39,7 +39,8 @@ class _HistoryItemsViewState extends ConsumerState<HistoryItemsView> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (widget.hasMore && !widget.isLoadingMore) {
         widget.onLoadMore();
       }
@@ -62,7 +63,8 @@ class _HistoryItemsViewState extends ConsumerState<HistoryItemsView> {
       groupedTasks.putIfAbsent(dateKey, () => []).add(task);
     }
 
-    final sortedKeys = groupedTasks.keys.toList()..sort((a, b) => b.compareTo(a));
+    final sortedKeys = groupedTasks.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
 
     return ListView.builder(
       controller: _scrollController,
@@ -71,7 +73,10 @@ class _HistoryItemsViewState extends ConsumerState<HistoryItemsView> {
       itemBuilder: (context, index) {
         if (index == sortedKeys.length) {
           return const Center(
-            child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator(strokeWidth: 2)),
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
           );
         }
 
@@ -95,7 +100,9 @@ class _HistoryItemsViewState extends ConsumerState<HistoryItemsView> {
               ),
             ),
             ...dayTasks.map((task) {
-              final project = task.projectId != null ? projectState.getById(task.projectId!) : null;
+              final project = task.projectId != null
+                  ? projectState.getById(task.projectId!)
+                  : null;
               return TaskCard(
                 task: task,
                 project: project,
@@ -127,16 +134,30 @@ class _HistoryItemsViewState extends ConsumerState<HistoryItemsView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.history, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.1)),
+          Icon(
+            Icons.history,
+            size: 64,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+          ),
           const SizedBox(height: 16),
           Text(
             'No completed tasks found',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Try selecting a different date range or clearing filters',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 14),
+            style: TextStyle(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              fontSize: 14,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

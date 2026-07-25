@@ -20,7 +20,11 @@ class _ImportFromMDDialogState extends ConsumerState<ImportFromMDDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
+    final projects = ref
+        .watch(projectProvider)
+        .projects
+        .where((p) => p.isActive)
+        .toList();
 
     return SizedDialog(
       maxWidth: 800,
@@ -51,7 +55,12 @@ class _ImportFromMDDialogState extends ConsumerState<ImportFromMDDialog> {
   }
 
   void _submit() {
-    ref.read(taskProvider.notifier).importTasksFromMarkdown(_controller.text, widget.project?.id ?? _selectedProjectId!);
+    ref
+        .read(taskProvider.notifier)
+        .importTasksFromMarkdown(
+          _controller.text,
+          widget.project?.id ?? _selectedProjectId!,
+        );
     Navigator.pop(context);
   }
 }

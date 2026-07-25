@@ -24,17 +24,27 @@ class TagParser {
 
   /// Removes the '#' character from tags in the text, keeping the word.
   static String hideHashtagSymbols(String text) {
-    return text.replaceAllMapped(_tagRegExp, (m) => '${m.group(1)}${m.group(2)}');
+    return text.replaceAllMapped(
+      _tagRegExp,
+      (m) => '${m.group(1)}${m.group(2)}',
+    );
   }
 
   /// Checks if a specific hashtag exists in the text.
   static bool containsTag(String text, String tagName) {
-    final RegExp tagRegex = RegExp(r'(^|\s)#' + RegExp.escape(tagName) + r'(?![a-zA-Z0-9_\-])', caseSensitive: false);
+    final RegExp tagRegex = RegExp(
+      r'(^|\s)#' + RegExp.escape(tagName) + r'(?![a-zA-Z0-9_\-])',
+      caseSensitive: false,
+    );
     return tagRegex.hasMatch(text);
   }
 
   /// Renames a specific hashtag in the text to a new name.
-  static String renameSpecificTag(String text, String oldTagName, String newTagName) {
+  static String renameSpecificTag(
+    String text,
+    String oldTagName,
+    String newTagName,
+  ) {
     final RegExp tagRegex = RegExp(
       r'(^|\s)#' + RegExp.escape(oldTagName) + r'(?![a-zA-Z0-9_\-])',
       caseSensitive: false,
@@ -46,7 +56,10 @@ class TagParser {
   static String stripSpecificTags(String text, List<String> tagNamesToStrip) {
     var cleaned = text;
     for (final name in tagNamesToStrip) {
-      final RegExp tagRegex = RegExp(r'(^|\s)#' + RegExp.escape(name) + r'(?![a-zA-Z0-9_\-])', caseSensitive: false);
+      final RegExp tagRegex = RegExp(
+        r'(^|\s)#' + RegExp.escape(name) + r'(?![a-zA-Z0-9_\-])',
+        caseSensitive: false,
+      );
       cleaned = cleaned.replaceAllMapped(tagRegex, (m) => m.group(1)!);
     }
     return cleaned.replaceAll(RegExp(r'\s+'), ' ').trim();
@@ -69,7 +82,11 @@ class TagParser {
 
     final word = text.substring(start, end);
     if (word.startsWith('#') && word.length > 1) {
-      return HashtagQuery(query: word.substring(1), startIndex: start, endIndex: end);
+      return HashtagQuery(
+        query: word.substring(1),
+        startIndex: start,
+        endIndex: end,
+      );
     }
     if (word == '#') {
       return HashtagQuery(query: '', startIndex: start, endIndex: end);
@@ -88,5 +105,9 @@ class HashtagQuery {
   final int startIndex;
   final int endIndex;
 
-  const HashtagQuery({required this.query, required this.startIndex, required this.endIndex});
+  const HashtagQuery({
+    required this.query,
+    required this.startIndex,
+    required this.endIndex,
+  });
 }

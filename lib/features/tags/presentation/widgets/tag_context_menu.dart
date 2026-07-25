@@ -6,22 +6,39 @@ import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void showTagContextMenu(BuildContext context, WidgetRef ref, Tag tag, Offset localPosition, RenderBox renderBox) {
+void showTagContextMenu(
+  BuildContext context,
+  WidgetRef ref,
+  Tag tag,
+  Offset localPosition,
+  RenderBox renderBox,
+) {
   final provider = ref.read(tagProvider.notifier);
-  final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+  final RenderBox overlay =
+      Overlay.of(context).context.findRenderObject() as RenderBox;
 
-  final Offset position = renderBox.localToGlobal(localPosition, ancestor: overlay);
+  final Offset position = renderBox.localToGlobal(
+    localPosition,
+    ancestor: overlay,
+  );
 
   showMenu(
     context: context,
-    position: RelativeRect.fromRect(Rect.fromLTWH(position.dx, position.dy, 0, 0), Offset.zero & overlay.size),
+    position: RelativeRect.fromRect(
+      Rect.fromLTWH(position.dx, position.dy, 0, 0),
+      Offset.zero & overlay.size,
+    ),
     items: [
       PopupMenuItem(
         onTap: () => showDialog(
           context: context,
           builder: (context) => EditTagDialog(tag: tag),
         ),
-        child: const ListTile(leading: Icon(Icons.edit), title: Text('Edit'), dense: true),
+        child: const ListTile(
+          leading: Icon(Icons.edit),
+          title: Text('Edit'),
+          dense: true,
+        ),
       ),
       PopupMenuItem(
         onTap: () => showDialog(

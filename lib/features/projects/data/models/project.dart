@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
 
-class Project {
+class Project implements Comparable<Project> {
   final String id;
   final String name;
   final String? description;
   final Color color;
-  final Priority priority;
+  final bool isUrgent;
   final List<String> labelIds;
   final DateTime? deadline;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
   final bool isActive;
+  final String sortOrder;
 
   const Project({
     required this.id,
     required this.name,
     this.description,
     required this.color,
-    this.priority = Priority.none,
+    this.isUrgent = false,
     this.labelIds = const [],
     this.deadline,
     required this.createdAt,
     this.updatedAt,
     this.isActive = true,
+    this.sortOrder = '',
   });
 
   Map<String, dynamic> toMap() => {
@@ -32,43 +33,67 @@ class Project {
     'name': name,
     'description': description,
     'color': color.toARGB32(),
-    'priority': priority.index,
+    'isUrgent': isUrgent ? 1 : 0,
     'deadline': deadline?.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'isActive': isActive ? 1 : 0,
+    'sortOrder': sortOrder,
   };
 
-  factory Project.fromMap(Map<String, dynamic> map, {List<String> labelIds = const []}) => Project(
+  factory Project.fromMap(
+    Map<String, dynamic> map, {
+    List<String> labelIds = const [],
+  }) => Project(
     id: map['id'] as String,
     name: map['name'] as String,
     description: map['description'] as String?,
     color: Color(map['color'] as int),
-    priority: Priority.values[map['priority'] as int],
+    isUrgent: map['isUrgent'] == 1,
     labelIds: labelIds,
-    deadline: map['deadline'] != null ? DateTime.parse(map['deadline'] as String) : null,
+    deadline: map['deadline'] != null
+        ? DateTime.parse(map['deadline'] as String)
+        : null,
     createdAt: DateTime.parse(map['createdAt'] as String),
-    updatedAt: map['updatedAt'] != null ? DateTime.parse(map['updatedAt'] as String) : null,
+    updatedAt: map['updatedAt'] != null
+        ? DateTime.parse(map['updatedAt'] as String)
+        : null,
     isActive: (map['isActive'] as int? ?? 1) == 1,
+    sortOrder: map['sortOrder'] as String? ?? '',
   );
 
   Project copyWith({
     String? name,
     String? description,
     Color? color,
-    Priority? priority,
+    bool? isUrgent,
     List<String>? labelIds,
     DateTime? deadline,
     bool? isActive,
+    String? sortOrder,
   }) => Project(
     id: id,
     name: name ?? this.name,
     description: description ?? this.description,
     color: color ?? this.color,
-    priority: priority ?? this.priority,
+    isUrgent: isUrgent ?? this.isUrgent,
     labelIds: labelIds ?? this.labelIds,
     deadline: deadline ?? this.deadline,
     createdAt: createdAt,
     updatedAt: updatedAt,
     isActive: isActive ?? this.isActive,
+    sortOrder: sortOrder ?? this.sortOrder,
   );
+
+  @override
+  int compareTo(Project other) {
+    if (isUrgent && !other.isUrgent) return -1;
+    if (!isUrgent && other.isUrgent) return 1;
+
+    final aSort = sortOrder.isEmpty ? '~' : sortOrder;
+    final bSort = other.sortOrder.isEmpty ? '~' : other.sortOrder;
+    final sortComp = aSort.compareTo(bSort);
+    if (sortComp != 0) return sortComp;
+
+    return other.createdAt.compareTo(createdAt);
+  }
 }

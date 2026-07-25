@@ -25,7 +25,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Column(
             children: [
               const ScreenHeader(title: 'Settings'),
-              Expanded(child: SideBar(section: null, onTabSelected: (tab) => setState(() => _selectedTab = tab))),
+              Expanded(
+                child: SideBar(
+                  section: null,
+                  onTabSelected: (tab) => setState(() => _selectedTab = tab),
+                ),
+              ),
             ],
           ),
         );
@@ -36,7 +41,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               ScreenHeader(
                 padding: const EdgeInsets.only(
-                  left: 48, // TODO: better to place the hamburger menu somewhere else
+                  left:
+                      48, // TODO: better to place the hamburger menu somewhere else
                   top: 16,
                   bottom: 16,
                 ),
@@ -50,7 +56,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     Text(_selectedTab!.label),
                   ],
                 ),
-                subtitle: 'Configure your ${_selectedTab!.label.toLowerCase()} settings',
+                subtitle:
+                    'Configure your ${_selectedTab!.label.toLowerCase()} settings',
               ),
               Expanded(child: SectionContent(section: _selectedTab!)),
             ],
@@ -67,7 +74,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             width: 240,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              child: SideBar(section: activeTab, onTabSelected: (tab) => setState(() => _selectedTab = tab)),
+              child: SideBar(
+                section: activeTab,
+                onTabSelected: (tab) => setState(() => _selectedTab = tab),
+              ),
             ),
           ),
           const VerticalDivider(width: 1),
@@ -78,7 +88,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   ScreenHeader(
                     title: activeTab.label,
-                    subtitle: 'Configure your ${activeTab.label.toLowerCase()} settings',
+                    subtitle:
+                        'Configure your ${activeTab.label.toLowerCase()} settings',
                   ),
                   Expanded(child: SectionContent(section: activeTab)),
                 ],

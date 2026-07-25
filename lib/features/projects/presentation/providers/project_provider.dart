@@ -7,7 +7,7 @@ import 'package:carpe_diem/features/labels/presentation/providers/label_provider
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
@@ -19,7 +19,10 @@ class ProjectState {
   const ProjectState({this.projects = const [], this.isLoading = false});
 
   ProjectState copyWith({List<Project>? projects, bool? isLoading}) {
-    return ProjectState(projects: projects ?? this.projects, isLoading: isLoading ?? this.isLoading);
+    return ProjectState(
+      projects: projects ?? this.projects,
+      isLoading: isLoading ?? this.isLoading,
+    );
   }
 
   Project? getById(String id) {
@@ -61,7 +64,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
     required String name,
     String? description,
     required Color color,
-    Priority priority = Priority.none,
+    bool isUrgent = false,
     List<String> labelIds = const [],
     DateTime? deadline,
   }) async {
@@ -70,14 +73,48 @@ class ProjectNotifier extends Notifier<ProjectState> {
       name: name,
       description: description,
       color: color,
-      priority: priority,
+      isUrgent: isUrgent,
       labelIds: labelIds,
       deadline: deadline,
       createdAt: DateTime.now(),
     );
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(CreateCommand(repo: _repo, item: project, id: project.id, displayName: project.name));
+        .execute(
+          CreateCommand(
+            repo: _repo,
+            item: project,
+            id: project.id,
+            displayName: project.name,
+          ),
+        );
+    await loadProjects();
+  }
+
+  Future<void> reorderProject(Project project, String newSortOrder) async {
+    if (project.sortOrder == newSortOrder) return;
+
+    final updated = project.copyWith(sortOrder: newSortOrder);
+
+    final currentProjects = state.projects.map((p) {
+      return p.id == project.id ? updated : p;
+    }).toList()..sort((a, b) => a.compareTo(b));
+    state = state.copyWith(projects: currentProjects);
+
+    final oldProject = await _repo.getById(project.id);
+    if (oldProject == null) return;
+
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: oldProject,
+            next: updated,
+            displayName: oldProject.name,
+            customDescription: 'Reorder project: "${oldProject.name}"',
+          ),
+        );
     await loadProjects();
   }
 
@@ -86,16 +123,32 @@ class ProjectNotifier extends Notifier<ProjectState> {
     if (oldProject == null) return;
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: oldProject, next: project, displayName: project.name));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: oldProject,
+            next: project,
+            displayName: project.name,
+          ),
+        );
     await loadProjects();
   }
 
   Future<void> deleteProject(Project project) async {
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(DeleteCommand(repo: _repo, item: project, id: project.id, displayName: project.name));
+        .execute(
+          DeleteCommand(
+            repo: _repo,
+            item: project,
+            id: project.id,
+            displayName: project.name,
+          ),
+        );
     ref.read(filterProvider.notifier).removeProjectFilter(project.id);
-    await ref.read(settingsProvider.notifier).setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
+    await ref
+        .read(settingsProvider.notifier)
+        .setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadProjects();
   }
 

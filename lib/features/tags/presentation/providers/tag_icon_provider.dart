@@ -30,4 +30,7 @@ class TagIconNotifier extends Notifier<Map<String, IconData>> {
   }
 }
 
-final tagIconProvider = NotifierProvider<TagIconNotifier, Map<String, IconData>>(() => TagIconNotifier());
+final tagIconProvider =
+    NotifierProvider<TagIconNotifier, Map<String, IconData>>(
+      () => TagIconNotifier(),
+    );

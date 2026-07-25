@@ -51,17 +51,22 @@ class HomeShortcuts extends ConsumerWidget {
           const CharacterActivator(LeftKeys.char): const PrevDayIntent(),
           const CharacterActivator(RightKeys.char): const NextDayIntent(),
           const CharacterActivator(AddKeys.char): const NewTaskIntent(),
-          const CharacterActivator(ToggleLayoutKeys.char): const ToggleLayoutIntent(),
+          const CharacterActivator(ToggleLayoutKeys.char):
+              const ToggleLayoutIntent(),
           const CharacterActivator(FilterKeys.char): const FilterIntent(),
           const CharacterActivator(LeftKeys.upper): const PrevDayIntent(),
           const CharacterActivator(RightKeys.upper): const NextDayIntent(),
           const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
-          const CharacterActivator(ToggleLayoutKeys.upper): const ToggleLayoutIntent(),
+          const CharacterActivator(ToggleLayoutKeys.upper):
+              const ToggleLayoutIntent(),
           const CharacterActivator(DownKeys.char): const MoveNextIntent(),
           const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-          const SingleActivator(AppKeyBindings.arrowLeft): const PrevDayIntent(),
-          const SingleActivator(AppKeyBindings.arrowRight): const NextDayIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown): const MoveNextIntent(),
+          const SingleActivator(AppKeyBindings.arrowLeft):
+              const PrevDayIntent(),
+          const SingleActivator(AppKeyBindings.arrowRight):
+              const NextDayIntent(),
+          const SingleActivator(AppKeyBindings.arrowDown):
+              const MoveNextIntent(),
           const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
         },
         child: Actions(
@@ -69,11 +74,19 @@ class HomeShortcuts extends ConsumerWidget {
             PrevDayIntent: NonTypingAction<PrevDayIntent>((_) => onPrevDay()),
             NextDayIntent: NonTypingAction<NextDayIntent>((_) => onNextDay()),
             NewTaskIntent: NonTypingAction<NewTaskIntent>((_) => onNewTask()),
-            ToggleLayoutIntent: NonTypingAction<ToggleLayoutIntent>((_) => onToggleLayout()),
+            ToggleLayoutIntent: NonTypingAction<ToggleLayoutIntent>(
+              (_) => onToggleLayout(),
+            ),
             FilterIntent: NonTypingAction<FilterIntent>((_) => onShowFilter()),
-            MoveNextIntent: NonTypingAction<MoveNextIntent>((_) => onMoveNext()),
-            MovePrevIntent: NonTypingAction<MovePrevIntent>((_) => onMovePrev()),
-            NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>((_) => onNavigateToToday()),
+            MoveNextIntent: NonTypingAction<MoveNextIntent>(
+              (_) => onMoveNext(),
+            ),
+            MovePrevIntent: NonTypingAction<MovePrevIntent>(
+              (_) => onMovePrev(),
+            ),
+            NavigateToTodayIntent: NonTypingAction<NavigateToTodayIntent>(
+              (_) => onNavigateToToday(),
+            ),
           },
           child: child,
         ),

@@ -24,12 +24,19 @@ class LabelChip extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(color: displayColor, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: displayColor,
+              shape: BoxShape.circle,
+            ),
           ),
           const SizedBox(width: 6),
           Text(
             label.name,
-            style: TextStyle(color: displayColor, fontSize: 11, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: displayColor,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),

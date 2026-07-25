@@ -8,12 +8,19 @@ class SettingsRepository implements ISettingsRepository {
 
   @override
   Future<void> set(String key, String value) async {
-    await _db.insert('settings', {'key': key, 'value': value}, conflictAlgorithm: ConflictAlgorithm.replace);
+    await _db.insert('settings', {
+      'key': key,
+      'value': value,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   @override
   Future<String?> get(String key) async {
-    final maps = await _db.query('settings', where: 'key = ?', whereArgs: [key]);
+    final maps = await _db.query(
+      'settings',
+      where: 'key = ?',
+      whereArgs: [key],
+    );
     if (maps.isEmpty) return null;
     return maps.first['value'] as String;
   }

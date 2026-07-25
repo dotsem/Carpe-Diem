@@ -25,7 +25,11 @@ class ProjectColorPicker extends StatelessWidget {
   final Color selected;
   final ValueChanged<Color> onChanged;
 
-  const ProjectColorPicker({super.key, required this.selected, required this.onChanged});
+  const ProjectColorPicker({
+    super.key,
+    required this.selected,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +49,16 @@ class ProjectColorPicker extends StatelessWidget {
             decoration: BoxDecoration(
               color: displayColor,
               shape: BoxShape.circle,
-              border: isSelected ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 2.5) : null,
+              border: isSelected
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 2.5,
+                    )
+                  : null,
             ),
-            child: isSelected ? Icon(Icons.check, size: 16, color: displayColor.contrastColor) : null,
+            child: isSelected
+                ? Icon(Icons.check, size: 16, color: displayColor.contrastColor)
+                : null,
           ),
         );
       }).toList(),

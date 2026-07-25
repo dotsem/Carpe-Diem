@@ -24,7 +24,10 @@ class AppearanceSection extends ConsumerWidget {
               subtitle: 'Choose your preferred theme',
               value: settings.themeMode,
               items: const [
-                DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
+                DropdownMenuItem(
+                  value: ThemeMode.system,
+                  child: Text('System'),
+                ),
                 DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
                 DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
               ],
@@ -44,7 +47,8 @@ class AppearanceSection extends ConsumerWidget {
               title: 'Show Descriptions',
               subtitle: 'Display task descriptions on cards',
               value: settings.showDescriptionOnCard,
-              onChanged: (value) => settingsNotifier.setShowDescriptionOnCard(value),
+              onChanged: (value) =>
+                  settingsNotifier.setShowDescriptionOnCard(value),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -69,7 +73,8 @@ class AppearanceSection extends ConsumerWidget {
                   const SizedBox(height: 12),
                   InteractiveTaskCard(
                     initialWidth: settings.taskGradientWidth,
-                    onChanged: (val) => settingsNotifier.setTaskGradientWidth(val),
+                    onChanged: (val) =>
+                        settingsNotifier.setTaskGradientWidth(val),
                   ),
                 ],
               ),

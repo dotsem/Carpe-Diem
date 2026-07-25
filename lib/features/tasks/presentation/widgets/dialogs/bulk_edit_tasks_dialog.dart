@@ -1,20 +1,21 @@
+import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/blocker_picker.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/priority.dart';
+
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/priority_picker.dart';
+
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 
 class BulkEditResult {
-  final Priority? priority;
-  final bool updatePriority;
+  final bool? isUrgent;
+  final bool updateUrgent;
   final DateTime? scheduledDate;
   final bool updateScheduledDate;
   final bool clearScheduledDate;
@@ -29,8 +30,8 @@ class BulkEditResult {
   final bool clearBlockedById;
 
   BulkEditResult({
-    this.priority,
-    this.updatePriority = false,
+    this.isUrgent,
+    this.updateUrgent = false,
     this.scheduledDate,
     this.updateScheduledDate = false,
     this.clearScheduledDate = false,
@@ -52,12 +53,13 @@ class BulkEditTasksDialog extends ConsumerStatefulWidget {
   const BulkEditTasksDialog({super.key, required this.taskIds});
 
   @override
-  ConsumerState<BulkEditTasksDialog> createState() => _BulkEditTasksDialogState();
+  ConsumerState<BulkEditTasksDialog> createState() =>
+      _BulkEditTasksDialogState();
 }
 
 class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
-  bool _enablePriority = false;
-  Priority _priority = Priority.none;
+  bool _enableUrgent = false;
+  bool _isUrgent = false;
 
   bool _enableScheduledDate = false;
   DateTime? _scheduledDate;
@@ -78,7 +80,9 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
     super.initState();
     _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _windowTitleNotifier.pushSubtitle('Bulk Editing ${widget.taskIds.length} Tasks');
+      _windowTitleNotifier.pushSubtitle(
+        'Bulk Editing ${widget.taskIds.length} Tasks',
+      );
     });
   }
 
@@ -102,15 +106,24 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
       }
       return;
     }
-    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
+    final tasks = await ref
+        .read(taskProvider.notifier)
+        .getTasksForProject(_selectedProjectId!);
     if (mounted) {
       setState(() => _projectTasks = tasks);
     }
   }
 
-  DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
+  DateTime get _maxDate => DateTime.now().add(
+    Duration(days: ref.read(settingsProvider).maxPlanningDays),
+  );
 
-  Widget _buildFieldRow(String label, bool value, ValueChanged<bool?> onChanged, Widget child) {
+  Widget _buildFieldRow(
+    String label,
+    bool value,
+    ValueChanged<bool?> onChanged,
+    Widget child,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -136,7 +149,11 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
+    final projects = ref
+        .watch(projectProvider)
+        .projects
+        .where((p) => p.isActive)
+        .toList();
 
     return SizedDialog(
       title: 'Bulk Edit ${widget.taskIds.length} Tasks',
@@ -148,10 +165,14 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildFieldRow(
-              'Priority',
-              _enablePriority,
-              (v) => setState(() => _enablePriority = v ?? false),
-              PriorityPicker(selected: _priority, onChanged: (p) => setState(() => _priority = p)),
+              'Urgency',
+              _enableUrgent,
+              (v) => setState(() => _enableUrgent = v ?? false),
+              UrgencySelector(
+                selected: _isUrgent,
+                onChanged: (v) => setState(() => _isUrgent = v!),
+                allowAll: false,
+              ),
             ),
             const SizedBox(height: 16),
             _buildFieldRow(
@@ -217,8 +238,8 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
 
   void _submit() {
     final result = BulkEditResult(
-      priority: _priority,
-      updatePriority: _enablePriority,
+      isUrgent: _isUrgent,
+      updateUrgent: _enableUrgent,
       scheduledDate: _scheduledDate,
       updateScheduledDate: _enableScheduledDate,
       clearScheduledDate: _enableScheduledDate && _scheduledDate == null,

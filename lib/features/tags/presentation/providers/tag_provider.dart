@@ -64,11 +64,13 @@ class TagNotifier extends Notifier<TagState> {
       CreateCommand(repo: _repo, item: tag, id: tag.id, displayName: tag.name),
     ];
     if (icon != null) {
-      commands.add(SetTagIconCommand(
-        repo: ref.read(tagIconRepositoryProvider),
-        tagName: name,
-        iconData: icon,
-      ));
+      commands.add(
+        SetTagIconCommand(
+          repo: ref.read(tagIconRepositoryProvider),
+          tagName: name,
+          iconData: icon,
+        ),
+      );
     }
     final compound = CompoundCommand(commands, 'Create Tag: "#$name"');
     await ref.read(undoRedoProvider.notifier).execute(compound);
@@ -132,14 +134,26 @@ class TagNotifier extends Notifier<TagState> {
 
       if (!existingTags.contains(name.toLowerCase())) {
         final tag = Tag(id: _uuid.v4(), name: name);
-        commands.add(CreateCommand(repo: tagRepo, item: tag, id: tag.id, displayName: tag.name));
+        commands.add(
+          CreateCommand(
+            repo: tagRepo,
+            item: tag,
+            id: tag.id,
+            displayName: tag.name,
+          ),
+        );
       }
 
-      commands.add(SetTagIconCommand(repo: iconRepo, tagName: name, iconData: icon));
+      commands.add(
+        SetTagIconCommand(repo: iconRepo, tagName: name, iconData: icon),
+      );
     }
 
     if (commands.isNotEmpty) {
-      final compound = CompoundCommand(commands, 'Populate "${profile.name}" Profile');
+      final compound = CompoundCommand(
+        commands,
+        'Populate "${profile.name}" Profile',
+      );
       await ref.read(undoRedoProvider.notifier).execute(compound);
       await loadTags();
       await ref.read(tagIconProvider.notifier).loadIcons();
@@ -156,4 +170,6 @@ class TagNotifier extends Notifier<TagState> {
   }
 }
 
-final tagProvider = NotifierProvider<TagNotifier, TagState>(() => TagNotifier());
+final tagProvider = NotifierProvider<TagNotifier, TagState>(
+  () => TagNotifier(),
+);

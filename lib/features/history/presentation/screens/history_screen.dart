@@ -52,14 +52,22 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         break;
       case 'monthly':
         _dateRange = DateTimeRange(
-          start: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 30)),
+          start: DateTime(
+            now.year,
+            now.month,
+            now.day,
+          ).subtract(const Duration(days: 30)),
           end: now,
         );
         break;
       case 'weekly':
       default:
         _dateRange = DateTimeRange(
-          start: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6)),
+          start: DateTime(
+            now.year,
+            now.month,
+            now.day,
+          ).subtract(const Duration(days: 6)),
           end: now,
         );
         break;
@@ -79,13 +87,34 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
     _minDate ??= await taskNotifier.getFirstTaskDate();
 
-    final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
-    final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day, 23, 59, 59);
+    final start = DateTime(
+      _dateRange.start.year,
+      _dateRange.start.month,
+      _dateRange.start.day,
+    );
+    final end = DateTime(
+      _dateRange.end.year,
+      _dateRange.end.month,
+      _dateRange.end.day,
+      23,
+      59,
+      59,
+    );
     if (!mounted) return;
     final filter = ref.read(filterProvider).activeFilter;
 
-    final tasksFuture = taskNotifier.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
-    final overviewFuture = taskNotifier.getHistoryOverview(start, end, filter: filter);
+    final tasksFuture = taskNotifier.getCompletedTasks(
+      start,
+      end,
+      limit: _limit,
+      offset: _offset,
+      filter: filter,
+    );
+    final overviewFuture = taskNotifier.getHistoryOverview(
+      start,
+      end,
+      filter: filter,
+    );
 
     final results = await Future.wait([tasksFuture, overviewFuture]);
     final tasks = results[0] as List<Task>;
@@ -107,11 +136,28 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     setState(() => _isLoadingMore = true);
     final taskNotifier = ref.read(taskProvider.notifier);
 
-    final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
-    final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day, 23, 59, 59);
+    final start = DateTime(
+      _dateRange.start.year,
+      _dateRange.start.month,
+      _dateRange.start.day,
+    );
+    final end = DateTime(
+      _dateRange.end.year,
+      _dateRange.end.month,
+      _dateRange.end.day,
+      23,
+      59,
+      59,
+    );
     final filter = ref.read(filterProvider).activeFilter;
 
-    final tasks = await taskNotifier.getCompletedTasks(start, end, limit: _limit, offset: _offset, filter: filter);
+    final tasks = await taskNotifier.getCompletedTasks(
+      start,
+      end,
+      limit: _limit,
+      offset: _offset,
+      filter: filter,
+    );
 
     if (mounted) {
       setState(() {
@@ -130,8 +176,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
     final picked = await showDialog<DateTimeRange>(
       context: context,
-      builder: (context) =>
-          PickDateRangeDialog(initialDateRange: initialDateRange, firstDate: firstDate, lastDate: now),
+      builder: (context) => PickDateRangeDialog(
+        initialDateRange: initialDateRange,
+        firstDate: firstDate,
+        lastDate: now,
+      ),
     );
 
     if (picked != null && picked != _dateRange) {
@@ -144,7 +193,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final filterProviderVal = ref.read(filterProvider);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (context) => FilterDialog(initialFilter: filterProviderVal.filter),
+      builder: (context) =>
+          FilterDialog(initialFilter: filterProviderVal.filter),
     );
 
     if (result != null) {
@@ -188,7 +238,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               ],
               indicatorColor: AppColors.accent,
               labelColor: Theme.of(context).colorScheme.onSurface,
-              unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+              unselectedLabelColor: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant,
               indicatorSize: TabBarIndicatorSize.tab,
             ),
             Expanded(
@@ -222,7 +274,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHigh),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -231,10 +285,16 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             const SizedBox(width: 8),
             Text(
               '${dateFormat.format(_dateRange.start)} - ${dateFormat.format(_dateRange.end)}',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(
+              Icons.arrow_drop_down,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),

@@ -9,7 +9,8 @@ class ShortcutsHelpOverlay extends StatefulWidget {
   State<ShortcutsHelpOverlay> createState() => ShortcutsHelpOverlayState();
 }
 
-class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleTickerProviderStateMixin {
+class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay>
+    with SingleTickerProviderStateMixin {
   bool _visible = false;
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -18,8 +19,14 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
-    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -86,7 +93,10 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHigh, width: 1),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          width: 1,
+        ),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -95,16 +105,30 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
           children: [
             Row(
               children: [
-                const Icon(Icons.keyboard_rounded, color: AppColors.accent, size: 24),
+                const Icon(
+                  Icons.keyboard_rounded,
+                  color: AppColors.accent,
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
                 Text(
                   'Keyboard Shortcuts',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 const Spacer(),
                 _KeyBadge(label: 'Esc'),
                 const SizedBox(width: 8),
-                Text('to close', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
+                Text(
+                  'to close',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -122,7 +146,11 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
                 ),
                 if (contextualShortcuts.isNotEmpty) ...[
                   const SizedBox(width: 32),
-                  Container(width: 1, height: 400, color: Theme.of(context).colorScheme.surfaceContainerHigh),
+                  Container(
+                    width: 1,
+                    height: 400,
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  ),
                   const SizedBox(width: 32),
                   Expanded(
                     child: Column(
@@ -148,7 +176,9 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
       child: Text(
         title,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -162,7 +192,9 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
     for (final entry in entries) {
       grouped.putIfAbsent(entry.category, () => []).add(entry);
     }
-    return grouped.entries.map((group) => _buildGroup(group.key, group.value)).toList();
+    return grouped.entries
+        .map((group) => _buildGroup(group.key, group.value))
+        .toList();
   }
 
   Widget _buildGroup(String title, List<ShortcutEntry> entries) {
@@ -196,14 +228,19 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay> with SingleT
           _KeyBadge(label: entry.key),
           const SizedBox(width: 12),
           Flexible(
-            child: Text(entry.description, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
+            child: Text(
+              entry.description,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 14,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 }
-
 
 class _KeyBadge extends StatelessWidget {
   final String label;
@@ -218,12 +255,19 @@ class _KeyBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHigh, width: 1),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          width: 1,
+        ),
       ),
       child: Text(
         label,
         textAlign: TextAlign.center,
-        style: const TextStyle(color: AppColors.accent, fontSize: 13, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          color: AppColors.accent,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

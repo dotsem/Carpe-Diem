@@ -16,7 +16,13 @@ class FuzzySearchUtils {
       items,
       options: FuzzyOptions(
         threshold: threshold,
-        keys: [WeightedKey(name: 'search_key', getter: (dynamic item) => itemToString(item as T), weight: 1)],
+        keys: [
+          WeightedKey(
+            name: 'search_key',
+            getter: (dynamic item) => itemToString(item as T),
+            weight: 1,
+          ),
+        ],
       ),
     );
 
