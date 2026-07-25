@@ -96,9 +96,20 @@ class ProjectNotifier extends Notifier<ProjectState> {
 
     final updated = project.copyWith(sortOrder: newSortOrder);
 
-    final currentProjects = state.projects.map((p) {
-      return p.id == project.id ? updated : p;
-    }).toList();
+    final currentProjects =
+        state.projects.map((p) {
+          return p.id == project.id ? updated : p;
+        }).toList()..sort((a, b) {
+          if (a.isUrgent && !b.isUrgent) return -1;
+          if (!a.isUrgent && b.isUrgent) return 1;
+
+          final aSort = a.sortOrder.isEmpty ? '~' : a.sortOrder;
+          final bSort = b.sortOrder.isEmpty ? '~' : b.sortOrder;
+          final sortComp = aSort.compareTo(bSort);
+          if (sortComp != 0) return sortComp;
+
+          return b.createdAt.compareTo(a.createdAt);
+        });
     state = state.copyWith(projects: currentProjects);
 
     final oldProject = await _repo.getById(project.id);
