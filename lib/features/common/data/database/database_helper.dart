@@ -57,7 +57,8 @@ class DatabaseHelper {
         isUrgent INTEGER NOT NULL DEFAULT 0,
         deadline TEXT,
         createdAt TEXT NOT NULL,
-        isActive INTEGER NOT NULL DEFAULT 1
+        isActive INTEGER NOT NULL DEFAULT 1,
+        sortOrder TEXT NOT NULL DEFAULT ''
       )
     ''');
 
@@ -252,6 +253,14 @@ class DatabaseHelper {
       try {
         await db.execute('ALTER TABLE projects DROP COLUMN priority');
       } catch (_) {}
+    }
+    if (oldVersion < 17) {
+      await db.execute(
+        "ALTER TABLE projects ADD COLUMN sortOrder TEXT NOT NULL DEFAULT ''",
+      );
+      await db.execute(
+        "UPDATE projects SET sortOrder = createdAt WHERE sortOrder = ''",
+      );
     }
   }
 }

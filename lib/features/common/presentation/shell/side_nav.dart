@@ -133,7 +133,13 @@ class ProjectList extends ConsumerWidget {
       ..sort((a, b) {
         if (a.isUrgent && !b.isUrgent) return -1;
         if (!a.isUrgent && b.isUrgent) return 1;
-        return a.name.compareTo(b.name);
+
+        final aSort = a.sortOrder.isEmpty ? '~' : a.sortOrder;
+        final bSort = b.sortOrder.isEmpty ? '~' : b.sortOrder;
+        final sortComp = aSort.compareTo(bSort);
+        if (sortComp != 0) return sortComp;
+
+        return b.createdAt.compareTo(a.createdAt);
       });
 
     final groups = <bool, List<Project>>{};

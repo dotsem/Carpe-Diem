@@ -27,7 +27,6 @@ void main() {
     });
 
     test('should insert and retrieve a project with label mappings', () async {
-      // First populate the labels table due to FOREIGN KEY constraints on project_labels
       await db.insert('labels', {
         'id': 'label-1',
         'name': 'Work',
@@ -125,28 +124,31 @@ void main() {
     });
 
     test(
-      'should sort projects logically: deadlines, priority, and then name',
+      'should sort projects logically: urgent first, then sortOrder, then createdAt',
       () async {
         final pA = Project(
           id: 'pA',
           name: 'A_Project',
           color: Colors.blue,
           isUrgent: false,
-          createdAt: DateTime.now(),
+          sortOrder: 'c',
+          createdAt: DateTime(2026, 1, 1),
         );
         final pB = Project(
           id: 'pB',
           name: 'B_Project',
           color: Colors.blue,
-          isUrgent: true, // Higher priority than A
-          createdAt: DateTime.now(),
+          isUrgent: false,
+          sortOrder: 'b',
+          createdAt: DateTime(2026, 1, 2),
         );
         final pC = Project(
           id: 'pC',
           name: 'C_Project',
           color: Colors.blue,
-          deadline: DateTime(2026, 6, 1), // Has a deadline (should come first)
-          createdAt: DateTime.now(),
+          isUrgent: true,
+          sortOrder: 'z',
+          createdAt: DateTime(2026, 1, 3),
         );
 
         await repository.insert(pA);
@@ -154,9 +156,9 @@ void main() {
         await repository.insert(pC);
 
         final sorted = await repository.getAll();
-        expect(sorted[0].id, equals('pC')); // Has deadline
-        expect(sorted[1].id, equals('pB')); // Higher priority
-        expect(sorted[2].id, equals('pA')); // Lower priority
+        expect(sorted[0].id, equals('pC'));
+        expect(sorted[1].id, equals('pB'));
+        expect(sorted[2].id, equals('pA'));
       },
     );
   });

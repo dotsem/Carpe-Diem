@@ -91,6 +91,33 @@ class ProjectNotifier extends Notifier<ProjectState> {
     await loadProjects();
   }
 
+  Future<void> reorderProject(Project project, String newSortOrder) async {
+    if (project.sortOrder == newSortOrder) return;
+
+    final updated = project.copyWith(sortOrder: newSortOrder);
+
+    final currentProjects = state.projects.map((p) {
+      return p.id == project.id ? updated : p;
+    }).toList();
+    state = state.copyWith(projects: currentProjects);
+
+    final oldProject = await _repo.getById(project.id);
+    if (oldProject == null) return;
+
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: oldProject,
+            next: updated,
+            displayName: oldProject.name,
+            customDescription: 'Reorder project: "${oldProject.name}"',
+          ),
+        );
+    await loadProjects();
+  }
+
   Future<void> updateProject(Project project) async {
     final oldProject = await _repo.getById(project.id);
     if (oldProject == null) return;

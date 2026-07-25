@@ -8,6 +8,8 @@ class PlatformDraggable<T extends Object> extends StatelessWidget {
   final Widget feedback;
   final Widget? childWhenDragging;
   final Duration? delay;
+  final VoidCallback? onDragStarted;
+  final DragEndCallback? onDragEnd;
 
   const PlatformDraggable({
     super.key,
@@ -16,6 +18,8 @@ class PlatformDraggable<T extends Object> extends StatelessWidget {
     required this.feedback,
     this.childWhenDragging,
     this.delay = const Duration(milliseconds: 150),
+    this.onDragStarted,
+    this.onDragEnd,
   });
 
   @override
@@ -26,6 +30,8 @@ class PlatformDraggable<T extends Object> extends StatelessWidget {
         delay: delay ?? const Duration(milliseconds: 150),
         feedback: feedback,
         childWhenDragging: childWhenDragging,
+        onDragStarted: onDragStarted,
+        onDragEnd: onDragEnd,
         child: child,
       );
     }
@@ -34,6 +40,8 @@ class PlatformDraggable<T extends Object> extends StatelessWidget {
       data: data,
       feedback: feedback,
       childWhenDragging: childWhenDragging,
+      onDragStarted: onDragStarted,
+      onDragEnd: onDragEnd,
       child: child,
     );
   }

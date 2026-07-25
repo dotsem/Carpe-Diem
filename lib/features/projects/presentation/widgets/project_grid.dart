@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_card.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/project_grid_section.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
 
 class ProjectGrid extends ConsumerStatefulWidget {
@@ -213,20 +213,15 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
         scrollDirection: Axis.vertical,
         children: [
           if (activeProjects.isNotEmpty)
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: activeProjects.map((p) {
-                final focusNode = _itemFocusNodes.putIfAbsent(
-                  p.id,
-                  () => FocusNode(debugLabel: 'Project_${p.id}'),
-                );
-                return ProjectCard(
-                  project: p,
-                  focusNode: focusNode,
-                  onTap: () => context.go('/projects/${p.id}'),
-                );
-              }).toList(),
+            ProjectGridSection(
+              projects: activeProjects,
+              itemFocusNodes: _itemFocusNodes,
+              onProjectTap: (id) => context.go('/projects/$id'),
+              onReorder: (project, newSortOrder) {
+                ref
+                    .read(projectProvider.notifier)
+                    .reorderProject(project, newSortOrder);
+              },
             ),
           if ((!showActiveOnly || _temporarilyShowArchived) &&
               inactiveProjects.isNotEmpty) ...[
@@ -244,20 +239,15 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
               ),
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: inactiveProjects.map((p) {
-                final focusNode = _itemFocusNodes.putIfAbsent(
-                  p.id,
-                  () => FocusNode(debugLabel: 'Project_${p.id}'),
-                );
-                return ProjectCard(
-                  project: p,
-                  focusNode: focusNode,
-                  onTap: () => context.go('/projects/${p.id}'),
-                );
-              }).toList(),
+            ProjectGridSection(
+              projects: inactiveProjects,
+              itemFocusNodes: _itemFocusNodes,
+              onProjectTap: (id) => context.go('/projects/$id'),
+              onReorder: (project, newSortOrder) {
+                ref
+                    .read(projectProvider.notifier)
+                    .reorderProject(project, newSortOrder);
+              },
             ),
           ],
           if (showActiveOnly &&

@@ -329,7 +329,8 @@ class TaskRepository extends ITaskRepository {
   }) {
     final prefix = tableAlias != null ? '$tableAlias.' : '';
     final urgentPart = '(${prefix}isUrgent = 1) DESC';
-    final sortOrderPart = '${prefix}sortOrder ASC, ${prefix}createdAt DESC';
+    final sortOrderPart =
+        "CASE WHEN ${prefix}sortOrder = '' THEN '~' ELSE ${prefix}sortOrder END ASC, ${prefix}createdAt DESC";
     final deadlinePart = '(${prefix}deadline IS NULL), ${prefix}deadline ASC';
 
     if (prioritizeDeadlines) {

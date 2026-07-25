@@ -12,6 +12,7 @@ class Project {
   final DateTime? updatedAt;
 
   final bool isActive;
+  final String sortOrder;
 
   const Project({
     required this.id,
@@ -24,6 +25,7 @@ class Project {
     required this.createdAt,
     this.updatedAt,
     this.isActive = true,
+    this.sortOrder = '',
   });
 
   Map<String, dynamic> toMap() => {
@@ -35,6 +37,7 @@ class Project {
     'deadline': deadline?.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'isActive': isActive ? 1 : 0,
+    'sortOrder': sortOrder,
   };
 
   factory Project.fromMap(
@@ -55,6 +58,7 @@ class Project {
         ? DateTime.parse(map['updatedAt'] as String)
         : null,
     isActive: (map['isActive'] as int? ?? 1) == 1,
+    sortOrder: map['sortOrder'] as String? ?? '',
   );
 
   Project copyWith({
@@ -65,6 +69,7 @@ class Project {
     List<String>? labelIds,
     DateTime? deadline,
     bool? isActive,
+    String? sortOrder,
   }) => Project(
     id: id,
     name: name ?? this.name,
@@ -76,5 +81,6 @@ class Project {
     createdAt: createdAt,
     updatedAt: updatedAt,
     isActive: isActive ?? this.isActive,
+    sortOrder: sortOrder ?? this.sortOrder,
   );
 }

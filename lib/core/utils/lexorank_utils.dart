@@ -4,13 +4,16 @@ class LexoRankUtils {
   static const String defaultRank = 'm';
 
   static String generateBetween(String? prev, String? next) {
-    if (prev == null || prev.isEmpty) {
-      if (next == null || next.isEmpty) {
+    if (prev != null && prev.isEmpty) prev = '~';
+    if (next != null && next.isEmpty) next = '~';
+
+    if (prev == null) {
+      if (next == null) {
         return defaultRank;
       }
       return _between('', next);
     }
-    if (next == null || next.isEmpty) {
+    if (next == null) {
       return _between(prev, '');
     }
     if (prev == next) {
@@ -72,6 +75,7 @@ class LexoRankUtils {
     String Function(T) getSortOrder,
   ) {
     if (list.isEmpty) return defaultRank;
+    if (oldIndex == newIndex) return getSortOrder(list[oldIndex]);
     final remaining = List<T>.from(list)..removeAt(oldIndex);
     int adjustedIndex = oldIndex < newIndex ? newIndex - 1 : newIndex;
 

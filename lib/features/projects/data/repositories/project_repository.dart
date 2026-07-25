@@ -11,7 +11,8 @@ class ProjectRepository extends IProjectRepository {
   Future<List<Project>> getAll() async {
     final maps = await _db.query(
       'projects',
-      orderBy: '(deadline IS NULL), deadline ASC, isUrgent DESC, name ASC',
+      orderBy:
+          "isUrgent DESC, CASE WHEN sortOrder = '' THEN '~' ELSE sortOrder END ASC, createdAt DESC",
     );
 
     List<Project> projects = [];
