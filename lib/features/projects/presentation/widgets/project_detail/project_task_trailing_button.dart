@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 
 class ProjectTaskTrailingButton extends ConsumerWidget {
   final Task task;
+  final List<Task> tasks;
 
-  const ProjectTaskTrailingButton({super.key, required this.task});
+  const ProjectTaskTrailingButton({super.key, required this.task, required this.tasks});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,11 +22,7 @@ class ProjectTaskTrailingButton extends ConsumerWidget {
               onPressed: () {
                 final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
                 final localPosition = Offset.zero;
-                if (task.scheduledDate != null) {
-                  showTaskCardContextMenu(context, ref, task, localPosition, renderBox);
-                } else {
-                  showBacklogContextMenu(context, ref, task, localPosition, renderBox);
-                }
+                showTaskCardContextMenu(context, ref, task, tasks, localPosition, renderBox);
               },
             );
           },

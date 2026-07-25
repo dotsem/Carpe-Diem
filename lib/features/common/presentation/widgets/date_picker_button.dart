@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/custom_date_picker_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -19,8 +20,8 @@ class DatePickerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveFirstDate = firstDate ?? DateTime(2025); // who whats to travel in time?
-    final effectiveLastDate = lastDate ?? DateTime(2100);
+    final effectiveFirstDate = firstDate ?? AppConstants.appFirstDate;
+    final effectiveLastDate = lastDate ?? AppConstants.appLastDate;
 
     return InkWell(
       onTap: () async {
@@ -59,7 +60,9 @@ class DatePickerButton extends StatelessWidget {
         child: Text(
           date != null ? '${date!.day}/${date!.month}/${date!.year}' : label,
           style: TextStyle(
-            color: date != null ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant,
+            color: date != null
+                ? Theme.of(context).colorScheme.onSurface
+                : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ),

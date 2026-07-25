@@ -96,10 +96,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                 child: Container(
                   width: 8,
                   height: 8,
-                  decoration: BoxDecoration(
-                    color: widget.titleColor,
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(color: widget.titleColor, shape: BoxShape.circle),
                 ),
               ),
               Expanded(
@@ -133,7 +130,9 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
         color: isHighlighted ? widget.titleColor.withValues(alpha: 0.1) : Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isHighlighted ? widget.titleColor.withValues(alpha: 0.4) : Theme.of(context).colorScheme.surfaceContainerHigh,
+          color: isHighlighted
+              ? widget.titleColor.withValues(alpha: 0.4)
+              : Theme.of(context).colorScheme.surfaceContainerHigh,
           width: isHighlighted ? 2 : 1,
         ),
       ),
@@ -178,10 +177,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
           Expanded(
             child: widget.tasks.isEmpty
                 ? Center(
-                    child: Text(
-                      'No tasks',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    ),
+                    child: Text('No tasks', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   )
                 : Consumer(
                     builder: (context, ref, child) {
@@ -197,7 +193,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                         itemCount: hierarchical.length,
                         itemBuilder: (context, index) {
                           final node = hierarchical[index];
-                          
+
                           Widget childWidget = const SizedBox.shrink();
 
                           if (node is TaskNode) {
@@ -209,6 +205,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                             childWidget = KanbanCard(
                               key: ValueKey(task.id),
                               node: node,
+                              tasks: widget.tasks,
                               projectNotifier: projectNotifier,
                               onContextMenu: widget.onContextMenu,
                               onEdit: widget.onEdit,

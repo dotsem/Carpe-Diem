@@ -2,8 +2,59 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/core/utils/lexorank_utils.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+
+class TaskPositionInfo {
+  final int indexInList;
+  final int indexInGroup;
+  final bool isFirstInGroup;
+  final bool isLastInGroup;
+  final bool isFirstInList;
+  final bool isLastInList;
+
+  const TaskPositionInfo({
+    required this.indexInList,
+    required this.indexInGroup,
+    required this.isFirstInGroup,
+    required this.isLastInGroup,
+    required this.isFirstInList,
+    required this.isLastInList,
+  });
+
+  const TaskPositionInfo.notFound()
+    : indexInList = -1,
+      indexInGroup = -1,
+      isFirstInGroup = false,
+      isLastInGroup = false,
+      isFirstInList = false,
+      isLastInList = false;
+}
 
 class TaskReorderUtils {
+  /// Get position info for a task in a list of tasks.
+  /// If task is not found, returns [TaskPositionInfo.notFound].
+  /// It considers task grouping based on [settings] (urgency, overdue, deadlines).
+  static TaskPositionInfo getTaskPosition({required Task task, required List<Task> tasks, SettingsState? settings}) {
+    final indexInList = tasks.indexWhere((t) => t.id == task.id);
+    if (indexInList == -1) return const TaskPositionInfo.notFound();
+
+    final sameGroup = tasks
+        .where((t) => settings != null ? inSameGroup(t, task, settings) : t.isUrgent == task.isUrgent)
+        .toList();
+
+    final indexInGroup = sameGroup.indexWhere((t) => t.id == task.id);
+
+    return TaskPositionInfo(
+      indexInList: indexInList,
+      indexInGroup: indexInGroup,
+      isFirstInGroup: indexInGroup == 0,
+      isLastInGroup: indexInGroup == sameGroup.length - 1,
+      isFirstInList: indexInList == 0,
+      isLastInList: indexInList == tasks.length - 1,
+    );
+  }
+
+  /// Check if two tasks are in the same group based on [settings] (urgency, overdue, deadlines).
   static bool inSameGroup(Task a, Task b, SettingsState settings) {
     if (a.isUrgent || b.isUrgent) {
       return a.isUrgent && b.isUrgent;
@@ -19,6 +70,8 @@ class TaskReorderUtils {
     return true;
   }
 
+  /// Calculate the new sort order for a single task when moved to a new position in a group.
+  /// Returns the new sort order for the task, or null if no change is needed.
   static String? handleReorder({
     required List<TaskHierarchyNode> nodes,
     required Task draggedTask,
@@ -41,14 +94,11 @@ class TaskReorderUtils {
       }
     }
 
-    return LexoRankUtils.computeReorderSortOrder(
-      sameGroupTasks,
-      taskOldIndex,
-      targetCount,
-      (t) => t.sortOrder,
-    );
+    return LexoRankUtils.computeReorderSortOrder(sameGroupTasks, taskOldIndex, targetCount, (t) => t.sortOrder);
   }
 
+  /// Calculate new sort orders for multiple tasks being moved together as a group.
+  /// Returns a map of task IDs to their new sort orders.
   static Map<String, String>? handleMultiReorder({
     required List<TaskHierarchyNode> nodes,
     required Task draggedTask,
@@ -64,21 +114,16 @@ class TaskReorderUtils {
         .where((t) => inSameGroup(t, draggedTask, settings))
         .toList();
 
-    final selectedSameGroupTasks = sameGroupTasks
-        .where((t) => selectedTaskIds.contains(t.id))
-        .toList();
+    final selectedSameGroupTasks = sameGroupTasks.where((t) => selectedTaskIds.contains(t.id)).toList();
 
     if (selectedSameGroupTasks.isEmpty) return null;
 
-    final remaining = List<Task>.from(sameGroupTasks)
-      ..removeWhere((t) => selectedTaskIds.contains(t.id));
+    final remaining = List<Task>.from(sameGroupTasks)..removeWhere((t) => selectedTaskIds.contains(t.id));
 
     int targetCount = 0;
     for (int i = 0; i < newIndex && i < nodes.length; i++) {
       final n = nodes[i];
-      if (n is TaskNode &&
-          inSameGroup(n.task, draggedTask, settings) &&
-          !selectedTaskIds.contains(n.task.id)) {
+      if (n is TaskNode && inSameGroup(n.task, draggedTask, settings) && !selectedTaskIds.contains(n.task.id)) {
         targetCount++;
       }
     }
@@ -96,5 +141,27 @@ class TaskReorderUtils {
     }
 
     return newSortOrders;
+  }
+
+  static void moveToTop(TaskNotifier provider, Task task, List<Task> tasks, SettingsState settings) {
+    final sameGroupTasks = tasks.where((t) => inSameGroup(t, task, settings)).toList();
+
+    final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == task.id);
+
+    if (taskOldIndex == 0) return;
+
+    final newSortOrder = LexoRankUtils.generateBetween(null, sameGroupTasks[0].sortOrder);
+    provider.updateTask(task.copyWith(sortOrder: newSortOrder));
+  }
+
+  static void moveToBottom(TaskNotifier provider, Task task, List<Task> tasks, SettingsState settings) {
+    final sameGroupTasks = tasks.where((t) => inSameGroup(t, task, settings)).toList();
+
+    final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == task.id);
+
+    if (taskOldIndex == sameGroupTasks.length - 1) return;
+
+    final newSortOrder = LexoRankUtils.generateBetween(sameGroupTasks[sameGroupTasks.length - 1].sortOrder, null);
+    provider.updateTask(task.copyWith(sortOrder: newSortOrder));
   }
 }

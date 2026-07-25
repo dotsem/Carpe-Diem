@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
@@ -13,6 +13,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/platform_draggab
 class KanbanCard extends ConsumerWidget {
   final TaskNode node;
   final ProjectNotifier projectNotifier;
+  final List<Task> tasks;
   final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
   final void Function(Task task) onEdit;
   final FocusNode? focusNode;
@@ -21,6 +22,7 @@ class KanbanCard extends ConsumerWidget {
     super.key,
     required this.node,
     required this.projectNotifier,
+    required this.tasks,
     required this.onContextMenu,
     required this.onEdit,
     this.focusNode,
@@ -32,7 +34,6 @@ class KanbanCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     return LayoutBuilder(
       builder: (context, constraints) {
         return PlatformDraggable<Task>(
@@ -83,7 +84,7 @@ class KanbanCard extends ConsumerWidget {
       onToggle: (_) => taskNotifier.toggleComplete(task),
       onTap: () => onEdit(task),
       onContextMenu: (localPosition, renderBox) =>
-          showTaskCardContextMenu(context, ref, task, localPosition, renderBox),
+          showTaskCardContextMenu(context, ref, task, tasks, localPosition, renderBox),
     );
   }
 }

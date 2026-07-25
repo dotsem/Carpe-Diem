@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,6 @@ import 'package:carpe_diem/features/filter/presentation/providers/filter_provide
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_list.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_dialog_handlers.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
@@ -96,6 +96,8 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
+    final provider = ref.watch(taskProvider);
+
     return BacklogShortcuts(
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
@@ -183,7 +185,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                       _orderedItemIds.clear();
                       _orderedItemIds.addAll(ids);
                     },
-                    trailingBuilder: (ctx, task) => _taskTrailing(ctx, task),
+                    trailingBuilder: (ctx, task) => _taskTrailing(ctx, task, provider.unscheduledTasks),
                   ),
                 ),
               ],
@@ -199,7 +201,6 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                 onScheduleTomorrow: () => _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForTomorrow),
                 onBulkEdit: () {
                   if (_selectedTaskIds.length == 1) {
-                    final provider = ref.read(taskProvider);
                     final task = provider.unscheduledTasks.firstWhere((t) => t.id == _selectedTaskIds.first);
                     BacklogDialogHandlers.showEditTask(context, task);
                   } else {
@@ -250,7 +251,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     );
   }
 
-  Widget _taskTrailing(BuildContext context, Task task) {
+  Widget _taskTrailing(BuildContext context, Task task, List<Task> tasks) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -262,10 +263,11 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
               onPressed: () {
                 final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
                 final localPosition = Offset.zero;
-                showBacklogContextMenu(
+                showTaskCardContextMenu(
                   context,
                   ref,
                   task,
+                  tasks,
                   localPosition,
                   renderBox,
                   onAction: () {

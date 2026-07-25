@@ -9,7 +9,7 @@ import 'package:carpe_diem/features/filter/presentation/providers/filter_provide
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_board.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
 
 class HomePlannerPane extends ConsumerWidget {
@@ -54,7 +54,7 @@ class HomePlannerPane extends ConsumerWidget {
       return KanbanBoard(
         tasks: [...(isToday ? overdue : []), ...allTasks],
         onStatusChange: (task, status) => ref.read(taskProvider.notifier).updateTaskStatus(task, status),
-        onContextMenu: (task, pos, box) => showTaskCardContextMenu(context, ref, task, pos, box),
+        onContextMenu: (task, pos, box) => showTaskCardContextMenu(context, ref, task, allTasks, pos, box),
         onEdit: onEdit,
         itemFocusNodes: itemFocusNodes,
         onOrderedIdsChanged: onOrderedIdsChanged,
@@ -64,8 +64,8 @@ class HomePlannerPane extends ConsumerWidget {
     return TaskListView(
       tasks: allTasks,
       overdueTasks: isToday ? overdue : [],
-      onContextMenu: (ctx, task, pos, box) => showTaskCardContextMenu(ctx, ref, task, pos, box),
-      trailingBuilder: (ctx, task) => _taskTrailing(ctx, ref, task),
+      onContextMenu: (ctx, task, pos, box) => showTaskCardContextMenu(ctx, ref, task, allTasks, pos, box),
+      trailingBuilder: (ctx, task) => _taskTrailing(ctx, ref, task, allTasks),
       onOrderedIdsChanged: onOrderedIdsChanged,
       itemFocusNodes: itemFocusNodes,
       onEdit: onEdit,
@@ -91,7 +91,7 @@ class HomePlannerPane extends ConsumerWidget {
     );
   }
 
-  Widget _taskTrailing(BuildContext context, WidgetRef ref, Task task) {
+  Widget _taskTrailing(BuildContext context, WidgetRef ref, Task task, List<Task> allTasks) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -103,7 +103,7 @@ class HomePlannerPane extends ConsumerWidget {
               onPressed: () {
                 final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
                 const localPosition = Offset.zero;
-                showTaskCardContextMenu(context, ref, task, localPosition, renderBox);
+                showTaskCardContextMenu(context, ref, task, allTasks, localPosition, renderBox);
               },
             );
           },

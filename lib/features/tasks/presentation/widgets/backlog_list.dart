@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -16,7 +17,6 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
 
 class BacklogList extends ConsumerWidget {
   final String searchQuery;
@@ -138,10 +138,11 @@ class BacklogList extends ConsumerWidget {
             onSelectedChanged(n.task);
           },
           onTap: () => onEdit(n.task),
-          onContextMenu: (localPosition, renderBox) => showBacklogContextMenu(
+          onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
             context,
             ref,
             n.task,
+            allTasks,
             localPosition,
             renderBox,
             onAction: () {

@@ -1,7 +1,6 @@
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:flutter/material.dart';
@@ -192,10 +191,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                               return TaskListView(
                                 tasks: filteredTasks,
                                 padding: const EdgeInsets.symmetric(vertical: 24),
-                                onContextMenu: (ctx, task, pos, box) => task.scheduledDate != null
-                                    ? showTaskCardContextMenu(ctx, ref, task, pos, box)
-                                    : showBacklogContextMenu(ctx, ref, task, pos, box),
-                                trailingBuilder: (ctx, task) => ProjectTaskTrailingButton(task: task),
+                                onContextMenu: (ctx, task, pos, box) =>
+                                    showTaskCardContextMenu(ctx, ref, task, filteredTasks, pos, box),
+                                trailingBuilder: (ctx, task) =>
+                                    ProjectTaskTrailingButton(task: task, tasks: filteredTasks),
                                 emptyPlaceholder: Center(
                                   child: Text(
                                     "No tasks in this project",
