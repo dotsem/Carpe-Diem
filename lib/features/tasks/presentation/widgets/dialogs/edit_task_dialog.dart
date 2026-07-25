@@ -18,6 +18,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/b
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/task_placement_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
@@ -215,22 +216,10 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
               const SizedBox(height: 16),
               Text('Placement & Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              SegmentedButton<TaskPlacement>(
-                expandedInsets: EdgeInsets.zero,
-                emptySelectionAllowed: true,
-                segments: const [
-                  ButtonSegment(value: TaskPlacement.bottom, label: Text('Bottom')),
-                  ButtonSegment(value: TaskPlacement.middle, label: Text('Middle')),
-                  ButtonSegment(value: TaskPlacement.top, label: Text('Top')),
-                  ButtonSegment(value: TaskPlacement.urgent, label: Text('Urgent')),
-                ],
-                selected: _placement != null ? {_placement!} : const {},
-                onSelectionChanged: (Set<TaskPlacement> newSelection) {
-                  setState(() {
-                    _placement = newSelection.firstOrNull;
-                  });
-                },
-              ), // TODO: make widget
+              TaskPlacementSelector(
+                selected: _placement ?? TaskPlacement.bottom,
+                onChanged: (p) => setState(() => _placement = p),
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [

@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
@@ -151,20 +152,7 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
               'Urgency',
               _enableUrgent,
               (v) => setState(() => _enableUrgent = v ?? false),
-              SegmentedButton<bool>(
-                // TODO: make widget
-                expandedInsets: EdgeInsets.zero,
-                segments: const [
-                  ButtonSegment(value: true, label: Text('Urgent')),
-                  ButtonSegment(value: false, label: Text('Non-Urgent')),
-                ],
-                selected: {_isUrgent},
-                onSelectionChanged: (Set<bool> newSelection) {
-                  setState(() {
-                    _isUrgent = newSelection.first;
-                  });
-                },
-              ),
+              UrgencySelector(selected: _isUrgent, onChanged: (v) => setState(() => _isUrgent = v!), allowAll: false),
             ),
             const SizedBox(height: 16),
             _buildFieldRow(

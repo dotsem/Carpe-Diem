@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_picker.dart';
@@ -83,20 +84,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
           children: [
             if (widget.showUrgencyFilter) ...[
               _sectionHeader('Urgency'),
-              SegmentedButton<bool?>(
-                expandedInsets: EdgeInsets.zero,
-                segments: const [
-                  ButtonSegment<bool?>(value: null, label: Text('Any')),
-                  ButtonSegment<bool?>(value: true, label: Text('Urgent Only')),
-                  ButtonSegment<bool?>(value: false, label: Text('Non-Urgent')),
-                ],
-                selected: {_isUrgent},
-                onSelectionChanged: (Set<bool?> newSelection) {
-                  setState(() {
-                    _isUrgent = newSelection.first;
-                  });
-                },
-              ),
+              UrgencySelector(selected: _isUrgent, onChanged: (v) => setState(() => _isUrgent = v), allowAll: true),
               const SizedBox(height: 16),
             ],
             if (widget.showProjectFilter) ...[

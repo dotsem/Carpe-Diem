@@ -9,6 +9,7 @@ import 'package:carpe_diem/features/tags/presentation/widgets/tag_autocomplete_t
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_highlighting_controller.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/task_placement_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -180,21 +181,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
               const SizedBox(height: 16),
               Text('Placement & Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              SegmentedButton<TaskPlacement>(
-                expandedInsets: EdgeInsets.zero,
-                segments: const [
-                  ButtonSegment(value: TaskPlacement.bottom, label: Text('Bottom')),
-                  ButtonSegment(value: TaskPlacement.middle, label: Text('Middle')),
-                  ButtonSegment(value: TaskPlacement.top, label: Text('Top')),
-                  ButtonSegment(value: TaskPlacement.urgent, label: Text('Urgent')),
-                ],
-                selected: {_placement},
-                onSelectionChanged: (Set<TaskPlacement> newSelection) {
-                  setState(() {
-                    _placement = newSelection.first;
-                  });
-                },
-              ), // TODO: make widget
+              TaskPlacementSelector(selected: _placement, onChanged: (p) => setState(() => _placement = p)),
               const SizedBox(height: 16),
               Row(
                 children: [

@@ -1,5 +1,6 @@
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -70,20 +71,7 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
               const SizedBox(height: 16),
               Text('Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              SegmentedButton<bool>(
-                // TODO: make widget
-                expandedInsets: EdgeInsets.zero,
-                segments: const [
-                  ButtonSegment(value: true, label: Text('Urgent')),
-                  ButtonSegment(value: false, label: Text('Non-Urgent')),
-                ],
-                selected: {_isUrgent},
-                onSelectionChanged: (Set<bool> newSelection) {
-                  setState(() {
-                    _isUrgent = newSelection.first;
-                  });
-                },
-              ),
+              UrgencySelector(selected: _isUrgent, onChanged: (v) => setState(() => _isUrgent = v!), allowAll: false),
               const SizedBox(height: 16),
               Text('Labels', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
