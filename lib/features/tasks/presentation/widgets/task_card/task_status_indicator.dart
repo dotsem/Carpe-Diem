@@ -43,10 +43,14 @@ class TaskStatusIndicator extends ConsumerWidget {
           height: 24,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isPending ? AppColors.accent.withValues(alpha: 0.5) : AppColors.accent.withValues(alpha: 0.3),
+            color: isPending
+                ? AppColors.accent.withValues(alpha: 0.5)
+                : AppColors.accent.withValues(alpha: 0.3),
             border: Border.all(color: AppColors.accent, width: 2),
           ),
-          child: isPending ? const Icon(Icons.close, size: 14, color: AppColors.accent) : null,
+          child: isPending
+              ? const Icon(Icons.close, size: 14, color: AppColors.accent)
+              : null,
         ),
       );
     }
@@ -62,7 +66,11 @@ class TaskStatusIndicator extends ConsumerWidget {
             color: AppColors.success.withValues(alpha: 0.1),
             border: Border.all(color: AppColors.success, width: 2),
           ),
-          child: const Icon(Icons.play_arrow_rounded, size: 16, color: AppColors.success),
+          child: const Icon(
+            Icons.play_arrow_rounded,
+            size: 16,
+            color: AppColors.success,
+          ),
         ),
       );
     }
@@ -70,7 +78,9 @@ class TaskStatusIndicator extends ConsumerWidget {
     return Checkbox(
       value: effectiveIsChecked,
       onChanged: (value) => onToggleAction(),
-      fillColor: isPending ? WidgetStateProperty.all(AppColors.accent.withValues(alpha: 0.5)) : null,
+      fillColor: isPending
+          ? WidgetStateProperty.all(AppColors.accent.withValues(alpha: 0.5))
+          : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
     );
   }

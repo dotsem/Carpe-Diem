@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class Project {
   final String id;
   final String name;
@@ -38,16 +37,23 @@ class Project {
     'isActive': isActive ? 1 : 0,
   };
 
-  factory Project.fromMap(Map<String, dynamic> map, {List<String> labelIds = const []}) => Project(
+  factory Project.fromMap(
+    Map<String, dynamic> map, {
+    List<String> labelIds = const [],
+  }) => Project(
     id: map['id'] as String,
     name: map['name'] as String,
     description: map['description'] as String?,
     color: Color(map['color'] as int),
     isUrgent: map['isUrgent'] == 1,
     labelIds: labelIds,
-    deadline: map['deadline'] != null ? DateTime.parse(map['deadline'] as String) : null,
+    deadline: map['deadline'] != null
+        ? DateTime.parse(map['deadline'] as String)
+        : null,
     createdAt: DateTime.parse(map['createdAt'] as String),
-    updatedAt: map['updatedAt'] != null ? DateTime.parse(map['updatedAt'] as String) : null,
+    updatedAt: map['updatedAt'] != null
+        ? DateTime.parse(map['updatedAt'] as String)
+        : null,
     isActive: (map['isActive'] as int? ?? 1) == 1,
   );
 

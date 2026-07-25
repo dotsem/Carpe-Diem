@@ -79,7 +79,8 @@ class TaskNotifier extends Notifier<TaskState> {
     return TaskState(currentDate: _normalizeDate(DateTime.now()));
   }
 
-  DateTime _normalizeDate(DateTime date) => DateTime(date.year, date.month, date.day);
+  DateTime _normalizeDate(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
 
   Future<void> loadTasksForDate(DateTime date, {bool silent = false}) async {
     if (!silent) {
@@ -91,10 +92,17 @@ class TaskNotifier extends Notifier<TaskState> {
     await _autoScheduleDeadlines();
 
     final settings = ref.read(settingsProvider);
-    final tasks = await _repo.getByDate(normalized, prioritizeDeadlines: settings.prioritizeDeadlines);
+    final tasks = await _repo.getByDate(
+      normalized,
+      prioritizeDeadlines: settings.prioritizeDeadlines,
+    );
     final overdue = await _repo.getOverdue(normalized);
 
-    state = state.copyWith(tasks: tasks, overdueTasks: overdue, isLoading: false);
+    state = state.copyWith(
+      tasks: tasks,
+      overdueTasks: overdue,
+      isLoading: false,
+    );
   }
 
   Future<void> loadUnscheduledTasks({bool silent = false}) async {
@@ -102,7 +110,9 @@ class TaskNotifier extends Notifier<TaskState> {
       state = state.copyWith(isLoading: true);
     }
     final settings = ref.read(settingsProvider);
-    final unscheduled = await _repo.getUnscheduled(prioritizeDeadlines: settings.prioritizeDeadlines);
+    final unscheduled = await _repo.getUnscheduled(
+      prioritizeDeadlines: settings.prioritizeDeadlines,
+    );
 
     state = state.copyWith(unscheduledTasks: unscheduled, isLoading: false);
   }
@@ -119,19 +129,22 @@ class TaskNotifier extends Notifier<TaskState> {
     List<String> labelIds = const [],
     List<String> tagIds = const [],
   }) async {
-
     String computedSortOrder;
     final activeList = state.tasks;
     switch (placement) {
       case TaskPlacement.top || TaskPlacement.urgent:
-        computedSortOrder = LexoRankUtils.generateTop(activeList.firstOrNull?.sortOrder);
+        computedSortOrder = LexoRankUtils.generateTop(
+          activeList.firstOrNull?.sortOrder,
+        );
       case TaskPlacement.middle:
         computedSortOrder = LexoRankUtils.generateMiddle(
           activeList.firstOrNull?.sortOrder,
           activeList.lastOrNull?.sortOrder,
         );
       default:
-        computedSortOrder = LexoRankUtils.generateBottom(activeList.lastOrNull?.sortOrder);
+        computedSortOrder = LexoRankUtils.generateBottom(
+          activeList.lastOrNull?.sortOrder,
+        );
     }
 
     final resolvedIsUrgent = isUrgent || placement == TaskPlacement.urgent;
@@ -139,7 +152,9 @@ class TaskNotifier extends Notifier<TaskState> {
       id: _uuid.v4(),
       title: title,
       description: description,
-      scheduledDate: scheduledDate != null ? _normalizeDate(scheduledDate) : null,
+      scheduledDate: scheduledDate != null
+          ? _normalizeDate(scheduledDate)
+          : null,
       projectId: projectId,
       isUrgent: resolvedIsUrgent,
       deadline: deadline != null ? _normalizeDate(deadline) : null,
@@ -152,7 +167,14 @@ class TaskNotifier extends Notifier<TaskState> {
 
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(CreateCommand(repo: _repo, item: task, id: task.id, displayName: task.title));
+        .execute(
+          CreateCommand(
+            repo: _repo,
+            item: task,
+            id: task.id,
+            displayName: task.title,
+          ),
+        );
     final settings = ref.read(settingsProvider);
     if (settings.inheritParentDeadline && task.deadline != null) {
       await _propagateDeadline(task);
@@ -168,7 +190,18 @@ class TaskNotifier extends Notifier<TaskState> {
       unscheduledTasks: _optimisticallyReorder(state.unscheduledTasks, updated),
     );
 
-    await _repo.update(updated);
+    await ref
+        .read(undoRedoProvider.notifier)
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: task,
+            next: updated,
+            displayName: task.title,
+            customDescription:
+                'Reorder ${_repo.repositoryName}: "${task.title}"',
+          ),
+        );
     await _refreshAll();
   }
 
@@ -177,6 +210,8 @@ class TaskNotifier extends Notifier<TaskState> {
     var currentTasks = List<Task>.from(state.tasks);
     var currentOverdue = List<Task>.from(state.overdueTasks);
     var currentUnscheduled = List<Task>.from(state.unscheduledTasks);
+
+    final commands = <Command>[];
 
     for (final entry in updates.entries) {
       final taskId = entry.key;
@@ -193,29 +228,62 @@ class TaskNotifier extends Notifier<TaskState> {
       }
 
       final updatedTask =
-          findAndApply(currentTasks) ?? findAndApply(currentOverdue) ?? findAndApply(currentUnscheduled);
+          findAndApply(currentTasks) ??
+          findAndApply(currentOverdue) ??
+          findAndApply(currentUnscheduled);
 
       if (updatedTask != null) {
         currentTasks = _optimisticallyReorder(currentTasks, updatedTask);
         currentOverdue = _optimisticallyReorder(currentOverdue, updatedTask);
-        currentUnscheduled = _optimisticallyReorder(currentUnscheduled, updatedTask);
+        currentUnscheduled = _optimisticallyReorder(
+          currentUnscheduled,
+          updatedTask,
+        );
+      }
+
+      final oldTask = await _repo.getById(taskId);
+      if (oldTask != null) {
+        final updated = oldTask.copyWith(sortOrder: newSortOrder);
+        commands.add(
+          UpdateCommand(
+            repo: _repo,
+            previous: oldTask,
+            next: updated,
+            displayName: oldTask.title,
+            customDescription:
+                'Reorder ${_repo.repositoryName}: "${oldTask.title}"',
+          ),
+        );
       }
     }
 
-    state = state.copyWith(tasks: currentTasks, overdueTasks: currentOverdue, unscheduledTasks: currentUnscheduled);
-    for (final entry in updates.entries) {
-      final task = await _repo.getById(entry.key);
-      if (task != null) {
-        await _repo.update(task.copyWith(sortOrder: entry.value));
+    state = state.copyWith(
+      tasks: currentTasks,
+      overdueTasks: currentOverdue,
+      unscheduledTasks: currentUnscheduled,
+    );
+
+    if (commands.isNotEmpty) {
+      if (commands.length == 1) {
+        await ref.read(undoRedoProvider.notifier).execute(commands.first);
+      } else {
+        final compound = CompoundCommand(
+          commands,
+          'Reorder ${commands.length} tasks',
+        );
+        await ref.read(undoRedoProvider.notifier).execute(compound);
       }
     }
+
     await _refreshAll();
   }
 
   List<Task> _optimisticallyReorder(List<Task> currentList, Task updatedTask) {
     if (!currentList.any((t) => t.id == updatedTask.id)) return currentList;
 
-    final updatedList = currentList.map((t) => t.id == updatedTask.id ? updatedTask : t).toList();
+    final updatedList = currentList
+        .map((t) => t.id == updatedTask.id ? updatedTask : t)
+        .toList();
     updatedList.sort((a, b) {
       if (a.isUrgent && !b.isUrgent) return -1;
       if (!a.isUrgent && b.isUrgent) return 1;
@@ -250,15 +318,32 @@ class TaskNotifier extends Notifier<TaskState> {
     final updated = task.copyWith(status: status);
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: task,
+            next: updated,
+            displayName: task.title,
+          ),
+        );
     await _refreshAll();
   }
 
   Future<void> startTask(Task task) async {
-    final updated = task.copyWith(status: TaskStatus.inProgress, scheduledDate: _normalizeDate(DateTime.now()));
+    final updated = task.copyWith(
+      status: TaskStatus.inProgress,
+      scheduledDate: _normalizeDate(DateTime.now()),
+    );
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: task,
+            next: updated,
+            displayName: task.title,
+          ),
+        );
     await _refreshAll();
   }
 
@@ -270,7 +355,14 @@ class TaskNotifier extends Notifier<TaskState> {
     );
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: task,
+            next: updated,
+            displayName: task.title,
+          ),
+        );
     await cleanupHistory();
     await _refreshAll();
   }
@@ -289,7 +381,11 @@ class TaskNotifier extends Notifier<TaskState> {
       case TaskStatus.inProgress:
         if (useTimer) {
           final settings = ref.read(settingsProvider);
-          timerNotifier.startPending(task.id, settings.taskCompletionDelay, () => completeTask(task));
+          timerNotifier.startPending(
+            task.id,
+            settings.taskCompletionDelay,
+            () => completeTask(task),
+          );
         } else {
           await completeTask(task);
         }
@@ -310,21 +406,36 @@ class TaskNotifier extends Notifier<TaskState> {
       final activeList = state.tasks.where((t) => t.id != task.id).toList();
       switch (placement) {
         case TaskPlacement.top || TaskPlacement.urgent:
-          computedSortOrder = LexoRankUtils.generateTop(activeList.firstOrNull?.sortOrder);
+          computedSortOrder = LexoRankUtils.generateTop(
+            activeList.firstOrNull?.sortOrder,
+          );
         case TaskPlacement.middle:
           computedSortOrder = LexoRankUtils.generateMiddle(
             activeList.firstOrNull?.sortOrder,
             activeList.lastOrNull?.sortOrder,
           );
         default:
-          computedSortOrder = LexoRankUtils.generateBottom(activeList.lastOrNull?.sortOrder);
+          computedSortOrder = LexoRankUtils.generateBottom(
+            activeList.lastOrNull?.sortOrder,
+          );
       }
-      final resolvedIsUrgent = task.isUrgent || placement == TaskPlacement.urgent;
-      updatedTask = task.copyWith(isUrgent: resolvedIsUrgent, sortOrder: computedSortOrder);
+      final resolvedIsUrgent =
+          task.isUrgent || placement == TaskPlacement.urgent;
+      updatedTask = task.copyWith(
+        isUrgent: resolvedIsUrgent,
+        sortOrder: computedSortOrder,
+      );
     }
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: oldTask, next: updatedTask, displayName: task.title));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: oldTask,
+            next: updatedTask,
+            displayName: task.title,
+          ),
+        );
     final settings = ref.read(settingsProvider);
     if (settings.inheritParentDeadline && task.deadline != null) {
       await _propagateDeadline(updatedTask);
@@ -335,7 +446,14 @@ class TaskNotifier extends Notifier<TaskState> {
   Future<void> deleteTask(Task task) async {
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(DeleteCommand(repo: _repo, item: task, id: task.id, displayName: task.title));
+        .execute(
+          DeleteCommand(
+            repo: _repo,
+            item: task,
+            id: task.id,
+            displayName: task.title,
+          ),
+        );
     await _refreshAll();
   }
 
@@ -343,31 +461,56 @@ class TaskNotifier extends Notifier<TaskState> {
     final updated = task.copyWith(scheduledDate: _normalizeDate(newDate));
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: task,
+            next: updated,
+            displayName: task.title,
+          ),
+        );
     await _refreshAll();
   }
 
   Future<void> unScheduleTask(Task task, {bool resetStatus = false}) async {
-    final updated = task.copyWith(clearScheduledDate: true, status: resetStatus ? TaskStatus.todo : task.status);
+    final updated = task.copyWith(
+      clearScheduledDate: true,
+      status: resetStatus ? TaskStatus.todo : task.status,
+    );
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: task, next: updated, displayName: task.title));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: task,
+            next: updated,
+            displayName: task.title,
+          ),
+        );
     await _refreshAll();
   }
 
   Future<List<Task>> getTasksForProject(String projectId) async {
     final settings = ref.read(settingsProvider);
-    return _repo.getByProject(projectId, prioritizeDeadlines: settings.prioritizeDeadlines);
+    return _repo.getByProject(
+      projectId,
+      prioritizeDeadlines: settings.prioritizeDeadlines,
+    );
   }
 
   Future<List<Task>> getBacklog() async {
     final settings = ref.read(settingsProvider);
-    return _repo.getUnscheduled(prioritizeDeadlines: settings.prioritizeDeadlines);
+    return _repo.getUnscheduled(
+      prioritizeDeadlines: settings.prioritizeDeadlines,
+    );
   }
 
   Future<List<Task>> getTasksForLabel(String labelId) async {
     final settings = ref.read(settingsProvider);
-    return _repo.getByLabel(labelId, prioritizeDeadlines: settings.prioritizeDeadlines);
+    return _repo.getByLabel(
+      labelId,
+      prioritizeDeadlines: settings.prioritizeDeadlines,
+    );
   }
 
   Future<void> refreshTasks() => _refreshAll();

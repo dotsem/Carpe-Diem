@@ -7,7 +7,11 @@ class ProjectTaskTrailingButton extends ConsumerWidget {
   final Task task;
   final List<Task> tasks;
 
-  const ProjectTaskTrailingButton({super.key, required this.task, required this.tasks});
+  const ProjectTaskTrailingButton({
+    super.key,
+    required this.task,
+    required this.tasks,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,9 +24,17 @@ class ProjectTaskTrailingButton extends ConsumerWidget {
               icon: const Icon(Icons.more_vert, size: 18),
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               onPressed: () {
-                final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
+                final RenderBox renderBox =
+                    buttonContext.findRenderObject() as RenderBox;
                 final localPosition = Offset.zero;
-                showTaskCardContextMenu(context, ref, task, tasks, localPosition, renderBox);
+                showTaskCardContextMenu(
+                  context,
+                  ref,
+                  task,
+                  tasks,
+                  localPosition,
+                  renderBox,
+                );
               },
             );
           },

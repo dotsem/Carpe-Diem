@@ -21,29 +21,32 @@ void main() {
       await db.close();
     });
 
-    test('should successfully open an in-memory database and create tables', () async {
-      expect(db.isOpen, isTrue);
+    test(
+      'should successfully open an in-memory database and create tables',
+      () async {
+        expect(db.isOpen, isTrue);
 
-      final tables = [
-        'projects',
-        'labels',
-        'project_labels',
-        'tasks',
-        'task_labels',
-        'settings',
-        'tags',
-        'task_tags',
-        'tag_icons',
-      ];
+        final tables = [
+          'projects',
+          'labels',
+          'project_labels',
+          'tasks',
+          'task_labels',
+          'settings',
+          'tags',
+          'task_tags',
+          'tag_icons',
+        ];
 
-      for (final table in tables) {
-        final result = await db.rawQuery(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-          [table],
-        );
-        expect(result, isNotEmpty, reason: 'Table $table should exist');
-      }
-    });
+        for (final table in tables) {
+          final result = await db.rawQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+            [table],
+          );
+          expect(result, isNotEmpty, reason: 'Table $table should exist');
+        }
+      },
+    );
 
     test('should seed initial tag icons in tag_icons table', () async {
       final results = await db.query('tag_icons');

@@ -20,7 +20,8 @@ class TaskTimerNotifier extends Notifier<TaskTimerState> {
     return const TaskTimerState();
   }
 
-  bool isTaskPending(String taskId) => state.pendingCompletions.containsKey(taskId);
+  bool isTaskPending(String taskId) =>
+      state.pendingCompletions.containsKey(taskId);
 
   double getPendingProgress(String taskId, int delaySeconds) {
     final startTime = state.pendingCompletions[taskId];
@@ -30,7 +31,11 @@ class TaskTimerNotifier extends Notifier<TaskTimerState> {
     return (elapsed / total).clamp(0.0, 1.0);
   }
 
-  void startPending(String taskId, int delaySeconds, Future<void> Function() onComplete) {
+  void startPending(
+    String taskId,
+    int delaySeconds,
+    Future<void> Function() onComplete,
+  ) {
     // cancel existing timer to avoid leak/race condition if task is toggled repeatedly
     _completionTimers[taskId]?.cancel();
 
@@ -38,10 +43,13 @@ class TaskTimerNotifier extends Notifier<TaskTimerState> {
     newPending[taskId] = DateTime.now();
     state = TaskTimerState(pendingCompletions: newPending);
 
-    _completionTimers[taskId] = Timer(Duration(seconds: delaySeconds), () async {
-      cancelPending(taskId);
-      await onComplete();
-    });
+    _completionTimers[taskId] = Timer(
+      Duration(seconds: delaySeconds),
+      () async {
+        cancelPending(taskId);
+        await onComplete();
+      },
+    );
   }
 
   void cancelPending(String taskId) {
@@ -53,6 +61,8 @@ class TaskTimerNotifier extends Notifier<TaskTimerState> {
   }
 }
 
-final taskTimerProvider = NotifierProvider<TaskTimerNotifier, TaskTimerState>(() {
-  return TaskTimerNotifier();
-});
+final taskTimerProvider = NotifierProvider<TaskTimerNotifier, TaskTimerState>(
+  () {
+    return TaskTimerNotifier();
+  },
+);

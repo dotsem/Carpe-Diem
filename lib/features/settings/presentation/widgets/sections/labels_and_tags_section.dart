@@ -25,7 +25,13 @@ class LabelsSection extends ConsumerWidget {
               title: 'Labels',
               subtitle: 'Manage your labels',
               icon: Icons.label,
-              children: [LabelPicker(selectedLabelIds: [], onSelected: (_) {}, isManageMode: true)],
+              children: [
+                LabelPicker(
+                  selectedLabelIds: [],
+                  onSelected: (_) {},
+                  isManageMode: true,
+                ),
+              ],
             ),
           ],
         ),
@@ -36,15 +42,25 @@ class LabelsSection extends ConsumerWidget {
               title: 'Tags',
               subtitle: 'Manage your tags',
               icon: Icons.tag,
-              children: [TagPicker(selectedTagIds: [], onSelected: (_) {}, isManageMode: true)],
+              children: [
+                TagPicker(
+                  selectedTagIds: [],
+                  onSelected: (_) {},
+                  isManageMode: true,
+                ),
+              ],
             ),
             SettingsTile(
               icon: Icons.auto_awesome_outlined,
               title: 'Suggest Tags from Profile',
-              subtitle: 'Import predefined tags and icons for specific interests',
+              subtitle:
+                  'Import predefined tags and icons for specific interests',
               trailing: FilledButton.tonal(
                 onPressed: () {
-                  showDialog(context: context, builder: (context) => const TagProfileSelectionDialog());
+                  showDialog(
+                    context: context,
+                    builder: (context) => const TagProfileSelectionDialog(),
+                  );
                 },
                 child: const Text('Select Profile'),
               ),
@@ -52,10 +68,14 @@ class LabelsSection extends ConsumerWidget {
             SettingsDropdownTile<Absorption>(
               icon: Icons.merge,
               title: "Tag Absorption",
-              subtitle: "Decide if hashtags typed in the title append to or replace current tag selections.",
+              subtitle:
+                  "Decide if hashtags typed in the title append to or replace current tag selections.",
               value: settings.tagAbsorption,
               items: const [
-                DropdownMenuItem(value: Absorption.replace, child: Text("Replace")),
+                DropdownMenuItem(
+                  value: Absorption.replace,
+                  child: Text("Replace"),
+                ),
                 DropdownMenuItem(value: Absorption.append, child: Text("Add")),
               ],
               onChanged: (absorption) {
@@ -76,7 +96,8 @@ class LabelsSection extends ConsumerWidget {
               title: "Show hashtag in title",
               subtitle: "Show hashtag character in the title of the task.",
               value: settings.showHashtagInTitle,
-              onChanged: (value) => settingsNotifier.setShowHashtagInTitle(value),
+              onChanged: (value) =>
+                  settingsNotifier.setShowHashtagInTitle(value),
             ),
           ],
         ),

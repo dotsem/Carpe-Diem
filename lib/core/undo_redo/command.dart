@@ -11,7 +11,12 @@ class CreateCommand<T> implements Command {
   final T item;
   final String id;
   final String displayName;
-  CreateCommand({required this.repo, required this.item, required this.id, required this.displayName});
+  CreateCommand({
+    required this.repo,
+    required this.item,
+    required this.id,
+    required this.displayName,
+  });
   @override
   Future<void> execute() => repo.insert(item);
   @override
@@ -27,13 +32,21 @@ class UpdateCommand<T> implements Command {
   final T previous;
   final T next;
   final String displayName;
-  UpdateCommand({required this.repo, required this.previous, required this.next, required this.displayName});
+  final String? customDescription;
+  UpdateCommand({
+    required this.repo,
+    required this.previous,
+    required this.next,
+    required this.displayName,
+    this.customDescription,
+  });
   @override
   Future<void> execute() => repo.update(next);
   @override
   Future<void> undo() => repo.update(previous);
   @override
-  String get description => 'Update ${repo.repositoryName}: "$displayName"';
+  String get description =>
+      customDescription ?? 'Update ${repo.repositoryName}: "$displayName"';
 }
 
 class DeleteCommand<T> implements Command {
@@ -41,7 +54,12 @@ class DeleteCommand<T> implements Command {
   final T item;
   final String id;
   final String displayName;
-  DeleteCommand({required this.repo, required this.item, required this.id, required this.displayName});
+  DeleteCommand({
+    required this.repo,
+    required this.item,
+    required this.id,
+    required this.displayName,
+  });
   @override
   Future<void> execute() => repo.delete(id);
   @override
@@ -71,4 +89,3 @@ class CompoundCommand implements Command {
     }
   }
 }
-

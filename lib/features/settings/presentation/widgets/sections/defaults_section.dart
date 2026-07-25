@@ -13,7 +13,11 @@ class DefaultsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
-    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
+    final projects = ref
+        .watch(projectProvider)
+        .projects
+        .where((p) => p.isActive)
+        .toList();
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -21,7 +25,6 @@ class DefaultsSection extends ConsumerWidget {
         SettingsSection(
           title: 'Defaults',
           children: [
-
             SettingsCustomWidgetTile(
               icon: Icons.folder_outlined,
               title: 'Default Project',
@@ -30,7 +33,8 @@ class DefaultsSection extends ConsumerWidget {
                 width: 200,
                 child: ProjectPicker(
                   selectedProjectId: settings.defaultProjectId,
-                  onChanged: (value) => settingsNotifier.setDefaultProjectId(value),
+                  onChanged: (value) =>
+                      settingsNotifier.setDefaultProjectId(value),
                   projects: projects,
                 ),
               ),

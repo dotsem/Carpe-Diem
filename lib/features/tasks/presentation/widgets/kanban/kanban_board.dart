@@ -12,7 +12,8 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_col
 class KanbanBoard extends ConsumerStatefulWidget {
   final List<Task> tasks;
   final void Function(Task task, TaskStatus status) onStatusChange;
-  final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
+  final void Function(Task task, Offset localPosition, RenderBox renderBox)
+  onContextMenu;
   final void Function(Task task) onEdit;
   final Map<String, FocusNode>? itemFocusNodes;
   final ValueChanged<List<String>>? onOrderedIdsChanged;
@@ -85,7 +86,10 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
         ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
 
       List<String> getFlatIds(List<Task> categoryTasks) {
-        final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
+        final flattened = TaskHierarchyUtils.buildHierarchy(
+          categoryTasks,
+          allTasks: allAvailableTasks,
+        );
         return flattened.whereType<TaskNode>().map((n) => n.task.id).toList();
       }
 
@@ -101,7 +105,9 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
         final isExpanded = !isNarrow || _forceExpanded || _isDraggingOver;
 
         final standardColumnWidth = (constraints.maxWidth - 32) / 3;
-        final responsiveColumnWidth = isNarrow ? (constraints.maxWidth - 16) / 2 - 20 : standardColumnWidth;
+        final responsiveColumnWidth = isNarrow
+            ? (constraints.maxWidth - 16) / 2 - 20
+            : standardColumnWidth;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
           child: SingleChildScrollView(
@@ -178,7 +184,8 @@ class ItemSizeTransitionBuilder extends ConsumerStatefulWidget {
   final bool isNarrow;
   final List<Task> doneTasks;
   final void Function(Task task, TaskStatus status) onStatusChange;
-  final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
+  final void Function(Task task, Offset localPosition, RenderBox renderBox)
+  onContextMenu;
   final void Function(Task task) onEdit;
   final Map<String, FocusNode>? itemFocusNodes;
   final ScrollController scrollController;
@@ -209,10 +216,12 @@ class ItemSizeTransitionBuilder extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ItemSizeTransitionBuilder> createState() => _ItemSizeTransitionBuilderState();
+  ConsumerState<ItemSizeTransitionBuilder> createState() =>
+      _ItemSizeTransitionBuilderState();
 }
 
-class _ItemSizeTransitionBuilderState extends ConsumerState<ItemSizeTransitionBuilder> {
+class _ItemSizeTransitionBuilderState
+    extends ConsumerState<ItemSizeTransitionBuilder> {
   bool _localTransitioning = false;
 
   @override
@@ -239,10 +248,14 @@ class _ItemSizeTransitionBuilderState extends ConsumerState<ItemSizeTransitionBu
         if (mounted) setState(() => _localTransitioning = false);
       },
       builder: (context, width, child) {
-        if (_localTransitioning && widget.scrollController.hasClients && widget.isExpanded) {
+        if (_localTransitioning &&
+            widget.scrollController.hasClients &&
+            widget.isExpanded) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (widget.scrollController.hasClients && _localTransitioning) {
-              widget.scrollController.jumpTo(widget.scrollController.position.maxScrollExtent);
+              widget.scrollController.jumpTo(
+                widget.scrollController.position.maxScrollExtent,
+              );
             }
           });
         }

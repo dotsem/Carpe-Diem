@@ -46,20 +46,38 @@ void main() {
         current = next;
       }
     });
-    test('computeReorderSortOrder calculates correct string when reordering', () {
-      final list = ['a', 'c', 'e'];
-      // Move 'e' (index 2) to top (index 0)
-      final newRankTop = LexoRankUtils.computeReorderSortOrder(list, 2, 0, (s) => s);
-      expect(newRankTop.compareTo('a'), lessThan(0));
+    test(
+      'computeReorderSortOrder calculates correct string when reordering',
+      () {
+        final list = ['a', 'c', 'e'];
+        // Move 'e' (index 2) to top (index 0)
+        final newRankTop = LexoRankUtils.computeReorderSortOrder(
+          list,
+          2,
+          0,
+          (s) => s,
+        );
+        expect(newRankTop.compareTo('a'), lessThan(0));
 
-      // Move 'a' (index 0) to bottom (index 3 in ReorderableListView callback)
-      final newRankBottom = LexoRankUtils.computeReorderSortOrder(list, 0, 3, (s) => s);
-      expect(newRankBottom.compareTo('e'), greaterThan(0));
+        // Move 'a' (index 0) to bottom (index 3 in ReorderableListView callback)
+        final newRankBottom = LexoRankUtils.computeReorderSortOrder(
+          list,
+          0,
+          3,
+          (s) => s,
+        );
+        expect(newRankBottom.compareTo('e'), greaterThan(0));
 
-      // Move 'a' (index 0) to between 'c' and 'e' (index 2)
-      final newRankMiddle = LexoRankUtils.computeReorderSortOrder(list, 0, 2, (s) => s);
-      expect(newRankMiddle.compareTo('c'), greaterThan(0));
-      expect(newRankMiddle.compareTo('e'), lessThan(0));
-    });
+        // Move 'a' (index 0) to between 'c' and 'e' (index 2)
+        final newRankMiddle = LexoRankUtils.computeReorderSortOrder(
+          list,
+          0,
+          2,
+          (s) => s,
+        );
+        expect(newRankMiddle.compareTo('c'), greaterThan(0));
+        expect(newRankMiddle.compareTo('e'), lessThan(0));
+      },
+    );
   });
 }

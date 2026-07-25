@@ -31,7 +31,11 @@ class TagChip extends ConsumerWidget {
           const SizedBox(width: 4),
           Text(
             tag.name,
-            style: TextStyle(color: displayColor, fontSize: 11, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: displayColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

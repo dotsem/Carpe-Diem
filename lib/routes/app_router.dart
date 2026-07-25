@@ -18,30 +18,37 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/',
-          pageBuilder: (context, state) => const NoTransitionPage(child: HomeScreen()),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: HomeScreen()),
         ),
         GoRoute(
           path: '/projects',
-          pageBuilder: (context, state) => const NoTransitionPage(child: ProjectsScreen()),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: ProjectsScreen()),
         ),
         GoRoute(
           path: '/projects/:projectId',
           pageBuilder: (context, state) {
             final projectId = state.pathParameters['projectId']!;
-            return NoTransitionPage(child: ProjectDetailScreen(projectId: projectId));
+            return NoTransitionPage(
+              child: ProjectDetailScreen(projectId: projectId),
+            );
           },
         ),
         GoRoute(
           path: '/tasks',
-          pageBuilder: (context, state) => const NoTransitionPage(child: BacklogScreen()),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: BacklogScreen()),
         ),
         GoRoute(
           path: '/history',
-          pageBuilder: (context, state) => const NoTransitionPage(child: HistoryScreen()),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: HistoryScreen()),
         ),
         GoRoute(
           path: '/settings',
-          pageBuilder: (context, state) => const NoTransitionPage(child: SettingsScreen()),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: SettingsScreen()),
         ),
       ],
     ),

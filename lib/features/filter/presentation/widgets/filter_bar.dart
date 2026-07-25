@@ -33,17 +33,25 @@ class FilterBar extends ConsumerWidget {
               avatar: Icon(
                 isBypassed ? Icons.filter_list_off : Icons.filter_list,
                 size: 16,
-                color: isBypassed ? Theme.of(context).colorScheme.error.withValues(alpha: 0.5) : null,
+                color: isBypassed
+                    ? Theme.of(context).colorScheme.error.withValues(alpha: 0.5)
+                    : null,
               ),
               label: Text(
                 isBypassed ? 'Filters Disabled' : 'Filter',
                 style: TextStyle(
-                  color: isBypassed ? Theme.of(context).colorScheme.error.withValues(alpha: 0.5) : null,
+                  color: isBypassed
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.error.withValues(alpha: 0.5)
+                      : null,
                   decoration: isBypassed ? TextDecoration.lineThrough : null,
                 ),
               ),
               onPressed: isBypassed ? null : onFilterTap,
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHigh,
               side: BorderSide.none,
             ),
           ],
@@ -63,23 +71,43 @@ class FilterBar extends ConsumerWidget {
             avatar: Icon(
               isBypassed ? Icons.filter_list_off : Icons.filter_list,
               size: 16,
-              color: isBypassed ? Theme.of(context).colorScheme.error.withValues(alpha: 0.9) : AppColors.accent,
+              color: isBypassed
+                  ? Theme.of(context).colorScheme.error.withValues(alpha: 0.9)
+                  : AppColors.accent,
             ),
             label: Text(
               isBypassed ? 'Filters Disabled' : 'Filter',
               style: TextStyle(
-                color: isBypassed ? Theme.of(context).colorScheme.error.withValues(alpha: 0.9) : AppColors.accent,
+                color: isBypassed
+                    ? Theme.of(context).colorScheme.error.withValues(alpha: 0.9)
+                    : AppColors.accent,
                 fontWeight: FontWeight.bold,
               ),
             ),
             onPressed: isBypassed ? null : onFilterTap,
-            backgroundColor: isBypassed ? Theme.of(context).colorScheme.errorContainer : AppColors.accent.withAlpha(50),
-            side: BorderSide(color: isBypassed ? Colors.red : AppColors.accent.withAlpha(50)),
+            backgroundColor: isBypassed
+                ? Theme.of(context).colorScheme.errorContainer
+                : AppColors.accent.withAlpha(50),
+            side: BorderSide(
+              color: isBypassed ? Colors.red : AppColors.accent.withAlpha(50),
+            ),
           ),
           const SizedBox(width: 8),
-          if (filter.isUrgent == true) _buildChip(context, 'Urgent', AppColors.error, isBypassed: isBypassed),
+          if (filter.isUrgent == true)
+            _buildChip(
+              context,
+              'Urgent',
+              AppColors.error,
+              isBypassed: isBypassed,
+            ),
           if (filter.isUrgent == false)
-            _buildChip(context, 'Urgent', AppColors.error, isExcluded: true, isBypassed: isBypassed),
+            _buildChip(
+              context,
+              'Urgent',
+              AppColors.error,
+              isExcluded: true,
+              isBypassed: isBypassed,
+            ),
           if (filter.projectIdsIncluded.isNotEmpty)
             Row(
               children: filter.projectIdsIncluded.map((id) {
@@ -93,7 +121,9 @@ class FilterBar extends ConsumerWidget {
                   isBypassed: isBypassed,
                   tooltip: isBypassed
                       ? 'Filters are temporarily bypassed (Shift+F)'
-                      : (ignoreProjects ? 'Project filters are ignored in this screen' : null),
+                      : (ignoreProjects
+                            ? 'Project filters are ignored in this screen'
+                            : null),
                 );
               }).toList(),
             ),
@@ -111,29 +141,52 @@ class FilterBar extends ConsumerWidget {
                   isBypassed: isBypassed,
                   tooltip: isBypassed
                       ? 'Filters are temporarily bypassed (Shift+F)'
-                      : (ignoreProjects ? 'Project filters are ignored in this screen' : null),
+                      : (ignoreProjects
+                            ? 'Project filters are ignored in this screen'
+                            : null),
                 );
               }).toList(),
             ),
           if (filter.labelIdsIncluded.isNotEmpty)
             Row(
               children: filter.labelIdsIncluded.map((id) {
-                Label label = labelState.labels.firstWhere((l) => l.id == id, orElse: () => Label.empty());
+                Label label = labelState.labels.firstWhere(
+                  (l) => l.id == id,
+                  orElse: () => Label.empty(),
+                );
                 if (label.isEmpty) return const SizedBox.shrink();
-                return _buildChip(context, label.name, label.color, isBypassed: isBypassed);
+                return _buildChip(
+                  context,
+                  label.name,
+                  label.color,
+                  isBypassed: isBypassed,
+                );
               }).toList(),
             ),
           if (filter.labelIdsExcluded.isNotEmpty)
             Row(
               children: filter.labelIdsExcluded.map((id) {
-                Label label = labelState.labels.firstWhere((l) => l.id == id, orElse: () => Label.empty());
+                Label label = labelState.labels.firstWhere(
+                  (l) => l.id == id,
+                  orElse: () => Label.empty(),
+                );
                 if (label.isEmpty) return const SizedBox.shrink();
-                return _buildChip(context, label.name, label.color, isExcluded: true, isBypassed: isBypassed);
+                return _buildChip(
+                  context,
+                  label.name,
+                  label.color,
+                  isExcluded: true,
+                  isBypassed: isBypassed,
+                );
               }).toList(),
             ),
           const SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.close, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            icon: Icon(
+              Icons.close,
+              size: 18,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             onPressed: onClearFilter,
             tooltip: 'Clear filters',
           ),
@@ -163,7 +216,9 @@ class FilterBar extends ConsumerWidget {
 
     final backgroundColor = (isIgnored || isBypassed)
         ? Theme.of(context).colorScheme.surfaceContainerHigh
-        : (isExcluded ? excludedColor.withAlpha(30) : includedColor.withAlpha(30));
+        : (isExcluded
+              ? excludedColor.withAlpha(30)
+              : includedColor.withAlpha(30));
 
     final side = (isIgnored || isBypassed)
         ? BorderSide.none
@@ -171,8 +226,12 @@ class FilterBar extends ConsumerWidget {
 
     final textStyle = TextStyle(
       fontSize: 12,
-      fontWeight: (isIgnored || isBypassed) ? FontWeight.normal : FontWeight.bold,
-      decoration: (isIgnored || isBypassed || isExcluded) ? TextDecoration.lineThrough : null,
+      fontWeight: (isIgnored || isBypassed)
+          ? FontWeight.normal
+          : FontWeight.bold,
+      decoration: (isIgnored || isBypassed || isExcluded)
+          ? TextDecoration.lineThrough
+          : null,
       color: textColor,
     );
 
@@ -180,7 +239,12 @@ class FilterBar extends ConsumerWidget {
       padding: const EdgeInsets.only(right: 8),
       child: Chip(
         label: Text(displayLabel, style: textStyle),
-        avatar: CircleAvatar(backgroundColor: (isIgnored || isBypassed) ? color.withAlpha(128) : color, radius: 4),
+        avatar: CircleAvatar(
+          backgroundColor: (isIgnored || isBypassed)
+              ? color.withAlpha(128)
+              : color,
+          radius: 4,
+        ),
         backgroundColor: backgroundColor,
         side: side,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

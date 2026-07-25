@@ -8,7 +8,9 @@ class TaskRepository extends ITaskRepository {
 
   TaskRepository(this._db);
 
-  Future<List<Task>> _loadTasksWithRelations(List<Map<String, dynamic>> maps) async {
+  Future<List<Task>> _loadTasksWithRelations(
+    List<Map<String, dynamic>> maps,
+  ) async {
     if (maps.isEmpty) return [];
 
     final taskIds = maps.map((m) => m['id'] as String).toList();
@@ -38,11 +40,15 @@ class TaskRepository extends ITaskRepository {
       tagMap.putIfAbsent(tId, () => []).add(tgId);
     }
 
-    return maps.map((m) => Task.fromMap(
-      m,
-      labelIds: labelMap[m['id']] ?? const [],
-      tagIds: tagMap[m['id']] ?? const [],
-    )).toList();
+    return maps
+        .map(
+          (m) => Task.fromMap(
+            m,
+            labelIds: labelMap[m['id']] ?? const [],
+            tagIds: tagMap[m['id']] ?? const [],
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -68,12 +74,19 @@ class TaskRepository extends ITaskRepository {
 
   @override
   Future<List<Task>> getByBlockedBy(String taskId) async {
-    final maps = await _db.query('tasks', where: 'blockedById = ?', whereArgs: [taskId]);
+    final maps = await _db.query(
+      'tasks',
+      where: 'blockedById = ?',
+      whereArgs: [taskId],
+    );
     return _loadTasksWithRelations(maps);
   }
 
   @override
-  Future<List<Task>> getByDate(DateTime date, {bool prioritizeDeadlines = true}) async {
+  Future<List<Task>> getByDate(
+    DateTime date, {
+    bool prioritizeDeadlines = true,
+  }) async {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
     final scheduledDateStr = startOfDay.toIso8601String();
@@ -86,7 +99,11 @@ class TaskRepository extends ITaskRepository {
       AND (p.isActive IS NULL OR p.isActive = 1)
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
     ''',
-      [scheduledDateStr, startOfDay.toIso8601String(), endOfDay.toIso8601String()],
+      [
+        scheduledDateStr,
+        startOfDay.toIso8601String(),
+        endOfDay.toIso8601String(),
+      ],
     );
 
     return _loadTasksWithRelations(maps);
@@ -94,7 +111,11 @@ class TaskRepository extends ITaskRepository {
 
   @override
   Future<List<Task>> getOverdue(DateTime today) async {
-    final dateStr = DateTime(today.year, today.month, today.day).toIso8601String();
+    final dateStr = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).toIso8601String();
     final maps = await _db.rawQuery(
       '''
       SELECT DISTINCT t.* FROM tasks t
@@ -123,19 +144,28 @@ class TaskRepository extends ITaskRepository {
   }
 
   @override
-  Future<List<Task>> getByProject(String projectId, {bool prioritizeDeadlines = true}) async {
+  Future<List<Task>> getByProject(
+    String projectId, {
+    bool prioritizeDeadlines = true,
+  }) async {
     final maps = await _db.query(
       'tasks',
       where: 'projectId = ?',
       whereArgs: [projectId],
-      orderBy: _getOrderBy(useScheduledDate: true, prioritizeDeadlines: prioritizeDeadlines),
+      orderBy: _getOrderBy(
+        useScheduledDate: true,
+        prioritizeDeadlines: prioritizeDeadlines,
+      ),
     );
 
     return _loadTasksWithRelations(maps);
   }
 
   @override
-  Future<List<Task>> getByLabel(String labelId, {bool prioritizeDeadlines = true}) async {
+  Future<List<Task>> getByLabel(
+    String labelId, {
+    bool prioritizeDeadlines = true,
+  }) async {
     final maps = await _db.rawQuery(
       '''
       SELECT DISTINCT t.* FROM tasks t
@@ -157,26 +187,41 @@ class TaskRepository extends ITaskRepository {
     await _db.transaction((txn) async {
       final map = task.toMap();
       if (task.projectId != null) {
-        final projectExists = (await txn.rawQuery('SELECT 1 FROM projects WHERE id = ?', [task.projectId])).isNotEmpty;
+        final projectExists = (await txn.rawQuery(
+          'SELECT 1 FROM projects WHERE id = ?',
+          [task.projectId],
+        )).isNotEmpty;
         if (!projectExists) {
           map['projectId'] = null;
         }
       }
       if (task.blockedById != null) {
-        final taskExists = (await txn.rawQuery('SELECT 1 FROM tasks WHERE id = ?', [task.blockedById])).isNotEmpty;
+        final taskExists = (await txn.rawQuery(
+          'SELECT 1 FROM tasks WHERE id = ?',
+          [task.blockedById],
+        )).isNotEmpty;
         if (!taskExists) {
           map['blockedById'] = null;
         }
       }
       await txn.insert('tasks', map);
       for (final labelId in task.labelIds) {
-        final labelExists = (await txn.rawQuery('SELECT 1 FROM labels WHERE id = ?', [labelId])).isNotEmpty;
+        final labelExists = (await txn.rawQuery(
+          'SELECT 1 FROM labels WHERE id = ?',
+          [labelId],
+        )).isNotEmpty;
         if (labelExists) {
-          await txn.insert('task_labels', {'taskId': task.id, 'labelId': labelId});
+          await txn.insert('task_labels', {
+            'taskId': task.id,
+            'labelId': labelId,
+          });
         }
       }
       for (final tagId in task.tagIds) {
-        final tagExists = (await txn.rawQuery('SELECT 1 FROM tags WHERE id = ?', [tagId])).isNotEmpty;
+        final tagExists = (await txn.rawQuery(
+          'SELECT 1 FROM tags WHERE id = ?',
+          [tagId],
+        )).isNotEmpty;
         if (tagExists) {
           await txn.insert('task_tags', {'taskId': task.id, 'tagId': tagId});
         }
@@ -190,30 +235,49 @@ class TaskRepository extends ITaskRepository {
       final map = task.toMap();
       map.remove('id');
       if (task.projectId != null) {
-        final projectExists = (await txn.rawQuery('SELECT 1 FROM projects WHERE id = ?', [task.projectId])).isNotEmpty;
+        final projectExists = (await txn.rawQuery(
+          'SELECT 1 FROM projects WHERE id = ?',
+          [task.projectId],
+        )).isNotEmpty;
         if (!projectExists) {
           map['projectId'] = null;
         }
       }
       if (task.blockedById != null) {
-        final taskExists = (await txn.rawQuery('SELECT 1 FROM tasks WHERE id = ?', [task.blockedById])).isNotEmpty;
+        final taskExists = (await txn.rawQuery(
+          'SELECT 1 FROM tasks WHERE id = ?',
+          [task.blockedById],
+        )).isNotEmpty;
         if (!taskExists) {
           map['blockedById'] = null;
         }
       }
       await txn.update('tasks', map, where: 'id = ?', whereArgs: [task.id]);
 
-      await txn.delete('task_labels', where: 'taskId = ?', whereArgs: [task.id]);
+      await txn.delete(
+        'task_labels',
+        where: 'taskId = ?',
+        whereArgs: [task.id],
+      );
       for (final labelId in task.labelIds) {
-        final labelExists = (await txn.rawQuery('SELECT 1 FROM labels WHERE id = ?', [labelId])).isNotEmpty;
+        final labelExists = (await txn.rawQuery(
+          'SELECT 1 FROM labels WHERE id = ?',
+          [labelId],
+        )).isNotEmpty;
         if (labelExists) {
-          await txn.insert('task_labels', {'taskId': task.id, 'labelId': labelId});
+          await txn.insert('task_labels', {
+            'taskId': task.id,
+            'labelId': labelId,
+          });
         }
       }
 
       await txn.delete('task_tags', where: 'taskId = ?', whereArgs: [task.id]);
       for (final tagId in task.tagIds) {
-        final tagExists = (await txn.rawQuery('SELECT 1 FROM tags WHERE id = ?', [tagId])).isNotEmpty;
+        final tagExists = (await txn.rawQuery(
+          'SELECT 1 FROM tags WHERE id = ?',
+          [tagId],
+        )).isNotEmpty;
         if (tagExists) {
           await txn.insert('task_tags', {'taskId': task.id, 'tagId': tagId});
         }
@@ -228,7 +292,9 @@ class TaskRepository extends ITaskRepository {
 
   @override
   Future<int> cleanupHistory(int days) async {
-    final threshold = DateTime.now().subtract(Duration(days: days)).toIso8601String();
+    final threshold = DateTime.now()
+        .subtract(Duration(days: days))
+        .toIso8601String();
     return await _db.delete(
       'tasks',
       where: 'status = ? AND completedAt < ?',
@@ -237,16 +303,30 @@ class TaskRepository extends ITaskRepository {
   }
 
   Future<List<String>> _getLabelIds(String taskId) async {
-    final maps = await _db.query('task_labels', where: 'taskId = ?', columns: ['labelId'], whereArgs: [taskId]);
+    final maps = await _db.query(
+      'task_labels',
+      where: 'taskId = ?',
+      columns: ['labelId'],
+      whereArgs: [taskId],
+    );
     return maps.map((m) => m['labelId'] as String).toList();
   }
 
   Future<List<String>> _getTagIds(String taskId) async {
-    final maps = await _db.query('task_tags', where: 'taskId = ?', columns: ['tagId'], whereArgs: [taskId]);
+    final maps = await _db.query(
+      'task_tags',
+      where: 'taskId = ?',
+      columns: ['tagId'],
+      whereArgs: [taskId],
+    );
     return maps.map((m) => m['tagId'] as String).toList();
   }
 
-  String _getOrderBy({bool useScheduledDate = false, String? tableAlias, bool prioritizeDeadlines = true}) {
+  String _getOrderBy({
+    bool useScheduledDate = false,
+    String? tableAlias,
+    bool prioritizeDeadlines = true,
+  }) {
     final prefix = tableAlias != null ? '$tableAlias.' : '';
     final urgentPart = '(${prefix}isUrgent = 1) DESC';
     final sortOrderPart = '${prefix}sortOrder ASC, ${prefix}createdAt DESC';

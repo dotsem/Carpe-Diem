@@ -13,7 +13,9 @@ void main() {
 
     setUp(() {
       mockRepo = MockTagIconRepository();
-      container = ProviderContainer(overrides: [tagIconRepositoryProvider.overrideWithValue(mockRepo)]);
+      container = ProviderContainer(
+        overrides: [tagIconRepositoryProvider.overrideWithValue(mockRepo)],
+      );
     });
 
     tearDown(() {
@@ -37,20 +39,30 @@ void main() {
     });
 
     test('should set tag icon and reload', () async {
-      when(() => mockRepo.getAllIconDatas()).thenAnswer((_) async => {'bug': Icons.bug_report});
-      when(() => mockRepo.setIconDataForTag('bug', Icons.bug_report)).thenAnswer((_) async => {});
+      when(
+        () => mockRepo.getAllIconDatas(),
+      ).thenAnswer((_) async => {'bug': Icons.bug_report});
+      when(
+        () => mockRepo.setIconDataForTag('bug', Icons.bug_report),
+      ).thenAnswer((_) async => {});
 
-      await container.read(tagIconProvider.notifier).setIcon('bug', Icons.bug_report);
+      await container
+          .read(tagIconProvider.notifier)
+          .setIcon('bug', Icons.bug_report);
 
       final state = container.read(tagIconProvider);
       expect(state['bug'], equals(Icons.bug_report));
-      verify(() => mockRepo.setIconDataForTag('bug', Icons.bug_report)).called(1);
+      verify(
+        () => mockRepo.setIconDataForTag('bug', Icons.bug_report),
+      ).called(1);
       verify(() => mockRepo.getAllIconDatas()).called(1);
     });
 
     test('should delete tag icon and reload', () async {
       when(() => mockRepo.getAllIconDatas()).thenAnswer((_) async => {});
-      when(() => mockRepo.deleteIconDataForTag('bug')).thenAnswer((_) async => {});
+      when(
+        () => mockRepo.deleteIconDataForTag('bug'),
+      ).thenAnswer((_) async => {});
 
       await container.read(tagIconProvider.notifier).deleteIcon('bug');
 

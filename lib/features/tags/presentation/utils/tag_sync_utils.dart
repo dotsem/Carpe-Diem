@@ -17,20 +17,31 @@ class TagSyncUtils {
     required Absorption mode,
   }) {
     final parsedNames = TagParser.parseTags(text);
-    final parsedTagIds = allTags.where((t) => parsedNames.contains(t.name.toLowerCase())).map((t) => t.id).toList();
+    final parsedTagIds = allTags
+        .where((t) => parsedNames.contains(t.name.toLowerCase()))
+        .map((t) => t.id)
+        .toList();
 
-    final addedIds = parsedTagIds.where((id) => !currentSelectedIds.contains(id)).toList();
+    final addedIds = parsedTagIds
+        .where((id) => !currentSelectedIds.contains(id))
+        .toList();
     if (addedIds.isNotEmpty) {
       if (mode == Absorption.replace) {
         return parsedTagIds;
       } else {
-        return (Set<String>.from(currentSelectedIds)..addAll(parsedTagIds)).toList();
+        return (Set<String>.from(
+          currentSelectedIds,
+        )..addAll(parsedTagIds)).toList();
       }
     }
 
-    final removedFromText = previousParsedIds.where((id) => !parsedTagIds.contains(id)).toList();
+    final removedFromText = previousParsedIds
+        .where((id) => !parsedTagIds.contains(id))
+        .toList();
     if (removedFromText.isNotEmpty) {
-      return currentSelectedIds.where((id) => !removedFromText.contains(id)).toList();
+      return currentSelectedIds
+          .where((id) => !removedFromText.contains(id))
+          .toList();
     }
 
     return currentSelectedIds;
@@ -46,7 +57,9 @@ class TagSyncUtils {
     required List<String> newSelectedIds,
     required List<Tag> allTags,
   }) {
-    final removedIds = oldSelectedIds.where((id) => !newSelectedIds.contains(id)).toList();
+    final removedIds = oldSelectedIds
+        .where((id) => !newSelectedIds.contains(id))
+        .toList();
     final tagNamesToStrip = removedIds
         .map(
           (id) => allTags

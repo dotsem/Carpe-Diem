@@ -17,63 +17,74 @@ void main() {
     setUp(() {
       mockTagRepo = MockTagRepository();
       mockTagIconRepo = MockTagIconRepository();
-      
-      when(() => mockTagRepo.getAll()).thenAnswer((_) async => [
-        const Tag(id: 't1', name: 'work'),
-        const Tag(id: 't2', name: 'personal'),
-      ]);
+
+      when(() => mockTagRepo.getAll()).thenAnswer(
+        (_) async => [
+          const Tag(id: 't1', name: 'work'),
+          const Tag(id: 't2', name: 'personal'),
+        ],
+      );
       when(() => mockTagIconRepo.getAllIconDatas()).thenAnswer((_) async => {});
     });
 
-    testWidgets('renders tags as FilterChips and adds to selected list on tap', (tester) async {
-      List<String>? selectedIds;
+    testWidgets(
+      'renders tags as FilterChips and adds to selected list on tap',
+      (tester) async {
+        List<String>? selectedIds;
 
-      final container = ProviderContainer(
-        overrides: [
-          tagRepositoryProvider.overrideWithValue(mockTagRepo),
-          tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
-        ],
-      );
+        final container = ProviderContainer(
+          overrides: [
+            tagRepositoryProvider.overrideWithValue(mockTagRepo),
+            tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
+          ],
+        );
 
-      await container.read(tagProvider.notifier).loadTags();
-      await container.read(tagIconProvider.notifier).loadIcons();
+        await container.read(tagProvider.notifier).loadTags();
+        await container.read(tagIconProvider.notifier).loadIcons();
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: TagPicker(
-                selectedTagIds: const ['t1'],
-                onSelected: (ids) {
-                  selectedIds = ids;
-                },
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              home: Scaffold(
+                body: TagPicker(
+                  selectedTagIds: const ['t1'],
+                  onSelected: (ids) {
+                    selectedIds = ids;
+                  },
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.text('work'), findsOneWidget);
-      expect(find.text('personal'), findsOneWidget);
-      expect(find.text('New Tag'), findsOneWidget);
+        expect(find.text('work'), findsOneWidget);
+        expect(find.text('personal'), findsOneWidget);
+        expect(find.text('New Tag'), findsOneWidget);
 
-      final FilterChip workChip = tester.widget(
-        find.ancestor(of: find.text('work'), matching: find.byType(FilterChip)),
-      );
-      expect(workChip.selected, isTrue);
+        final FilterChip workChip = tester.widget(
+          find.ancestor(
+            of: find.text('work'),
+            matching: find.byType(FilterChip),
+          ),
+        );
+        expect(workChip.selected, isTrue);
 
-      final FilterChip personalChip = tester.widget(
-        find.ancestor(of: find.text('personal'), matching: find.byType(FilterChip)),
-      );
-      expect(personalChip.selected, isFalse);
+        final FilterChip personalChip = tester.widget(
+          find.ancestor(
+            of: find.text('personal'),
+            matching: find.byType(FilterChip),
+          ),
+        );
+        expect(personalChip.selected, isFalse);
 
-      await tester.tap(find.text('personal'));
-      await tester.pump();
+        await tester.tap(find.text('personal'));
+        await tester.pump();
 
-      expect(selectedIds, equals(['t1', 't2']));
-    });
+        expect(selectedIds, equals(['t1', 't2']));
+      },
+    );
   });
 }

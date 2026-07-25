@@ -24,8 +24,10 @@ class TaskFilter {
       labelIdsExcluded.isEmpty;
 
   bool get hasUrgencyFilter => isUrgent != null;
-  bool get hasProjectFilter => projectIdsIncluded.isNotEmpty || projectIdsExcluded.isNotEmpty;
-  bool get hasLabelFilter => labelIdsIncluded.isNotEmpty || labelIdsExcluded.isNotEmpty;
+  bool get hasProjectFilter =>
+      projectIdsIncluded.isNotEmpty || projectIdsExcluded.isNotEmpty;
+  bool get hasLabelFilter =>
+      labelIdsIncluded.isNotEmpty || labelIdsExcluded.isNotEmpty;
 
   TaskFilter copyWith({
     bool? isUrgent,
@@ -54,11 +56,12 @@ class TaskFilter {
       return false;
     }
 
-
     if (task.projectId != null && projectIdsExcluded.contains(task.projectId)) {
       return false;
     }
-    if (projectIdsIncluded.isNotEmpty && (task.projectId == null || !projectIdsIncluded.contains(task.projectId))) {
+    if (projectIdsIncluded.isNotEmpty &&
+        (task.projectId == null ||
+            !projectIdsIncluded.contains(task.projectId))) {
       return false;
     }
 
@@ -67,7 +70,8 @@ class TaskFilter {
       if (combinedLabelIds.any(labelIdsExcluded.contains)) {
         return false;
       }
-      if (labelIdsIncluded.isNotEmpty && !combinedLabelIds.any(labelIdsIncluded.contains)) {
+      if (labelIdsIncluded.isNotEmpty &&
+          !combinedLabelIds.any(labelIdsIncluded.contains)) {
         return false;
       }
     }
@@ -89,7 +93,8 @@ class TaskFilter {
       if (project.labelIds.any(labelIdsExcluded.contains)) {
         return false;
       }
-      if (labelIdsIncluded.isNotEmpty && !project.labelIds.any(labelIdsIncluded.contains)) {
+      if (labelIdsIncluded.isNotEmpty &&
+          !project.labelIds.any(labelIdsIncluded.contains)) {
         return false;
       }
     }
@@ -97,7 +102,11 @@ class TaskFilter {
     return true;
   }
 
-  TaskFilter limitTo({bool priority = true, bool projects = true, bool labels = true}) {
+  TaskFilter limitTo({
+    bool priority = true,
+    bool projects = true,
+    bool labels = true,
+  }) {
     return TaskFilter(
       isUrgent: priority ? isUrgent : null,
       projectIdsIncluded: projects ? projectIdsIncluded : const {},
@@ -124,15 +133,21 @@ class TaskFilter {
       return Set<String>.from((list ?? []).map((e) => e.toString()));
     }
 
-
-
     return TaskFilter(
       isUrgent: map['isUrgent'] as bool?,
-      projectIdsIncluded: stringSetFromList(map['projectIdsIncluded'] as List<dynamic>?),
-      labelIdsIncluded: stringSetFromList(map['labelIdsIncluded'] as List<dynamic>?),
+      projectIdsIncluded: stringSetFromList(
+        map['projectIdsIncluded'] as List<dynamic>?,
+      ),
+      labelIdsIncluded: stringSetFromList(
+        map['labelIdsIncluded'] as List<dynamic>?,
+      ),
 
-      projectIdsExcluded: stringSetFromList(map['projectIdsExcluded'] as List<dynamic>?),
-      labelIdsExcluded: stringSetFromList(map['labelIdsExcluded'] as List<dynamic>?),
+      projectIdsExcluded: stringSetFromList(
+        map['projectIdsExcluded'] as List<dynamic>?,
+      ),
+      labelIdsExcluded: stringSetFromList(
+        map['labelIdsExcluded'] as List<dynamic>?,
+      ),
     );
   }
 }
@@ -142,6 +157,9 @@ enum FilterInteractionMethod {
   leftRightClick;
 
   static FilterInteractionMethod fromString(String val) {
-    return FilterInteractionMethod.values.firstWhere((e) => e.name == val, orElse: () => FilterInteractionMethod.cycle);
+    return FilterInteractionMethod.values.firstWhere(
+      (e) => e.name == val,
+      orElse: () => FilterInteractionMethod.cycle,
+    );
   }
 }

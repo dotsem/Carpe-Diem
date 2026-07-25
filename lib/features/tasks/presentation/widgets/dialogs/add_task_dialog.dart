@@ -56,7 +56,8 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     _selectedProjectId = widget.initialProjectId ?? settings.defaultProjectId;
 
     _titleController = TagHighlightingController(
-      getExistingTagNames: () => ref.read(tagProvider).tags.map((t) => t.name).toList(),
+      getExistingTagNames: () =>
+          ref.read(tagProvider).tags.map((t) => t.name).toList(),
     );
     _titleController.addListener(_onTitleChanged);
 
@@ -103,7 +104,9 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
       });
       return;
     }
-    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
+    final tasks = await ref
+        .read(taskProvider.notifier)
+        .getTasksForProject(_selectedProjectId!);
     if (!mounted) return;
     final project = ref.read(projectProvider).getById(_selectedProjectId!);
     final settings = ref.read(settingsProvider);
@@ -127,11 +130,17 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     super.dispose();
   }
 
-  DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
+  DateTime get _maxDate => DateTime.now().add(
+    Duration(days: ref.read(settingsProvider).maxPlanningDays),
+  );
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
+    final projects = ref
+        .watch(projectProvider)
+        .projects
+        .where((p) => p.isActive)
+        .toList();
 
     return AppShortcutRegistrar(
       shortcuts: taskDialogShortcutEntries,
@@ -150,7 +159,11 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
                 setState(() => _placement = TaskPlacement.top),
             const SingleActivator(AppKeyBindings.digit4, control: true): () =>
                 setState(() => _placement = TaskPlacement.urgent),
-            const SingleActivator(ProjectsKeys.keyboardKey, control: true): () => _projectMenuController.open(),
+            const SingleActivator(
+              ProjectsKeys.keyboardKey,
+              control: true,
+            ): () =>
+                _projectMenuController.open(),
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -160,7 +173,9 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
                 controller: _titleController,
                 autofocus: true,
                 decoration: const InputDecoration(hintText: 'Task title'),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 onTagSelected: (tag) {
                   if (!ref.read(settingsProvider).keepTagsInTitle) {
                     setState(() {
@@ -174,14 +189,24 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _descController,
-                decoration: const InputDecoration(hintText: 'Description (optional)'),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                decoration: const InputDecoration(
+                  hintText: 'Description (optional)',
+                ),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
-              Text('Placement & Urgency', style: Theme.of(context).textTheme.labelLarge),
+              Text(
+                'Placement & Urgency',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
               const SizedBox(height: 8),
-              TaskPlacementSelector(selected: _placement, onChanged: (p) => setState(() => _placement = p)),
+              TaskPlacementSelector(
+                selected: _placement,
+                onChanged: (p) => setState(() => _placement = p),
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -269,9 +294,13 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
 
     final parsedTagNames = TagParser.parseTags(rawTitle);
     final existingTags = ref.read(tagProvider).tags;
-    final existingNamesSet = existingTags.map((t) => t.name.toLowerCase()).toSet();
+    final existingNamesSet = existingTags
+        .map((t) => t.name.toLowerCase())
+        .toSet();
 
-    final newTagNames = parsedTagNames.where((name) => !existingNamesSet.contains(name.toLowerCase())).toList();
+    final newTagNames = parsedTagNames
+        .where((name) => !existingNamesSet.contains(name.toLowerCase()))
+        .toList();
 
     List<String> finalTagIds = List.from(_selectedTagIds);
     final List<String> tagsToStrip = [];
@@ -297,7 +326,9 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     }
 
     final settings = ref.read(settingsProvider);
-    var titleToSave = settings.keepTagsInTitle ? rawTitle : TagParser.stripTags(rawTitle);
+    var titleToSave = settings.keepTagsInTitle
+        ? rawTitle
+        : TagParser.stripTags(rawTitle);
     if (settings.keepTagsInTitle && tagsToStrip.isNotEmpty) {
       titleToSave = TagParser.stripSpecificTags(titleToSave, tagsToStrip);
     }
@@ -306,7 +337,9 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
         .read(taskProvider.notifier)
         .addTask(
           title: titleToSave,
-          description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+          description: _descController.text.trim().isEmpty
+              ? null
+              : _descController.text.trim(),
           scheduledDate: _selectedDate,
           projectId: _selectedProjectId,
           placement: _placement,

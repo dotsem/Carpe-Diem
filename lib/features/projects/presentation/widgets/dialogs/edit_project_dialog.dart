@@ -81,8 +81,16 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
         ],
         child: CallbackShortcuts(
           bindings: {
-            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => setState(() => _isUrgent = false),
-            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => setState(() => _isUrgent = true),
+            const SingleActivator(
+              LogicalKeyboardKey.digit1,
+              control: true,
+            ): () =>
+                setState(() => _isUrgent = false),
+            const SingleActivator(
+              LogicalKeyboardKey.digit2,
+              control: true,
+            ): () =>
+                setState(() => _isUrgent = true),
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -92,23 +100,36 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
                 controller: _nameController,
                 autofocus: true,
                 decoration: const InputDecoration(hintText: 'Project name'),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _descController,
-                decoration: const InputDecoration(hintText: 'Description (optional)'),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                decoration: const InputDecoration(
+                  hintText: 'Description (optional)',
+                ),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
               Text('Color', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              ProjectColorPicker(selected: _selectedColor, onChanged: (c) => setState(() => _selectedColor = c)),
+              ProjectColorPicker(
+                selected: _selectedColor,
+                onChanged: (c) => setState(() => _selectedColor = c),
+              ),
               const SizedBox(height: 16),
               Text('Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              UrgencySelector(selected: _isUrgent, onChanged: (v) => setState(() => _isUrgent = v!), allowAll: false),
+              UrgencySelector(
+                selected: _isUrgent,
+                onChanged: (v) => setState(() => _isUrgent = v!),
+                allowAll: false,
+              ),
               const SizedBox(height: 16),
               Text('Labels', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
@@ -124,7 +145,10 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
                 firstDate: widget.project.createdAt,
               ),
               const SizedBox(height: 16),
-              _ActiveToggle(isActive: _isActive, onChanged: (v) => setState(() => _isActive = v)),
+              _ActiveToggle(
+                isActive: _isActive,
+                onChanged: (v) => setState(() => _isActive = v),
+              ),
             ],
           ),
         ),
@@ -139,7 +163,9 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
     final project = Project(
       id: widget.project.id,
       name: name,
-      description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+      description: _descController.text.trim().isEmpty
+          ? null
+          : _descController.text.trim(),
       color: _selectedColor,
       isUrgent: _isUrgent,
       labelIds: _selectedLabelIds,
@@ -172,10 +198,18 @@ class _ActiveToggle extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Project status', style: TextStyle(fontWeight: FontWeight.w500)),
+                  const Text(
+                    'Project status',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
                   Text(
-                    isActive ? 'Tasks can be added to this project' : 'Project is archived. Tasks cannot be added.',
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    isActive
+                        ? 'Tasks can be added to this project'
+                        : 'Project is archived. Tasks cannot be added.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),

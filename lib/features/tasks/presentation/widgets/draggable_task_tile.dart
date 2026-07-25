@@ -15,9 +15,6 @@ class DraggableTaskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!enableDrag) return child;
-    return ReorderableDelayedDragStartListener(
-      index: index,
-      child: child,
-    );
+    return ReorderableDelayedDragStartListener(index: index, child: child);
   }
 }

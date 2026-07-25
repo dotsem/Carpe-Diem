@@ -28,7 +28,9 @@ class LexoRankUtils {
 
     while (true) {
       final pChar = pos < p.length ? p.codeUnitAt(pos) : _minChar;
-      final nChar = n.isNotEmpty && pos < n.length ? n.codeUnitAt(pos) : _maxChar;
+      final nChar = n.isNotEmpty && pos < n.length
+          ? n.codeUnitAt(pos)
+          : _maxChar;
 
       if (pChar == nChar) {
         sb.writeCharCode(pChar);

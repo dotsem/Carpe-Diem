@@ -2,7 +2,10 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 
 class TaskHierarchyUtils {
-  static List<TaskHierarchyNode> buildHierarchy(List<Task> categoryTasks, {Map<String, Task>? allTasks}) {
+  static List<TaskHierarchyNode> buildHierarchy(
+    List<Task> categoryTasks, {
+    Map<String, Task>? allTasks,
+  }) {
     final seenIds = <String>{};
     final tasks = categoryTasks.where((t) => seenIds.add(t.id)).toList();
     final taskMap = {for (final t in tasks) t.id: t};
@@ -29,7 +32,9 @@ class TaskHierarchyUtils {
       if (allTasks != null && allTasks.containsKey(parentId)) {
         final blocker = allTasks[parentId]!;
         if (!blocker.isCompleted) {
-          externalBlockerChildren.putIfAbsent(blocker.id, () => []).add(task.id);
+          externalBlockerChildren
+              .putIfAbsent(blocker.id, () => [])
+              .add(task.id);
           externalBlockerTitles[blocker.id] = blocker.title;
         }
       }

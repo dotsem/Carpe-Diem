@@ -39,13 +39,17 @@ class HomePlannerPane extends ConsumerWidget {
     final isToday = selectedDate.isToday;
 
     final overdue = provider.overdueTasks.where((t) {
-      final project = t.projectId != null ? projectState.getById(t.projectId!) : null;
+      final project = t.projectId != null
+          ? projectState.getById(t.projectId!)
+          : null;
       if (showActiveOnly && project != null && !project.isActive) return false;
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
     final allTasks = provider.tasks.where((t) {
-      final project = t.projectId != null ? projectState.getById(t.projectId!) : null;
+      final project = t.projectId != null
+          ? projectState.getById(t.projectId!)
+          : null;
       if (showActiveOnly && project != null && !project.isActive) return false;
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
@@ -53,8 +57,10 @@ class HomePlannerPane extends ConsumerWidget {
     if (settings.taskLayout == TaskLayout.kanban) {
       return KanbanBoard(
         tasks: [...(isToday ? overdue : []), ...allTasks],
-        onStatusChange: (task, status) => ref.read(taskProvider.notifier).updateTaskStatus(task, status),
-        onContextMenu: (task, pos, box) => showTaskCardContextMenu(context, ref, task, allTasks, pos, box),
+        onStatusChange: (task, status) =>
+            ref.read(taskProvider.notifier).updateTaskStatus(task, status),
+        onContextMenu: (task, pos, box) =>
+            showTaskCardContextMenu(context, ref, task, allTasks, pos, box),
         onEdit: onEdit,
         itemFocusNodes: itemFocusNodes,
         onOrderedIdsChanged: onOrderedIdsChanged,
@@ -64,7 +70,8 @@ class HomePlannerPane extends ConsumerWidget {
     return TaskListView(
       tasks: allTasks,
       overdueTasks: isToday ? overdue : [],
-      onContextMenu: (ctx, task, pos, box) => showTaskCardContextMenu(ctx, ref, task, allTasks, pos, box),
+      onContextMenu: (ctx, task, pos, box) =>
+          showTaskCardContextMenu(ctx, ref, task, allTasks, pos, box),
       trailingBuilder: (ctx, task) => _taskTrailing(ctx, ref, task, allTasks),
       onOrderedIdsChanged: onOrderedIdsChanged,
       itemFocusNodes: itemFocusNodes,
@@ -78,20 +85,35 @@ class HomePlannerPane extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle_outline, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.check_circle_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
           Text(
             isToday ? 'No tasks for today' : 'No tasks scheduled',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: 8),
-          TextButton(onPressed: () => _showAddTask(context, ref), child: const Text('Add your first task')),
+          TextButton(
+            onPressed: () => _showAddTask(context, ref),
+            child: const Text('Add your first task'),
+          ),
         ],
       ),
     );
   }
 
-  Widget _taskTrailing(BuildContext context, WidgetRef ref, Task task, List<Task> allTasks) {
+  Widget _taskTrailing(
+    BuildContext context,
+    WidgetRef ref,
+    Task task,
+    List<Task> allTasks,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -101,9 +123,17 @@ class HomePlannerPane extends ConsumerWidget {
               icon: const Icon(Icons.more_vert, size: 18),
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               onPressed: () {
-                final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
+                final RenderBox renderBox =
+                    buttonContext.findRenderObject() as RenderBox;
                 const localPosition = Offset.zero;
-                showTaskCardContextMenu(context, ref, task, allTasks, localPosition, renderBox);
+                showTaskCardContextMenu(
+                  context,
+                  ref,
+                  task,
+                  allTasks,
+                  localPosition,
+                  renderBox,
+                );
               },
             );
           },
@@ -115,7 +145,8 @@ class HomePlannerPane extends ConsumerWidget {
   void _showAddTask(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (_) => AddTaskDialog(initialDate: ref.read(selectedDateProvider)),
+      builder: (_) =>
+          AddTaskDialog(initialDate: ref.read(selectedDateProvider)),
     );
   }
 }

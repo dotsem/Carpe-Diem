@@ -28,7 +28,9 @@ class DataManagementSection extends ConsumerWidget {
                 DropdownMenuItem(value: 'monthly', child: Text('Monthly')),
               ],
               onChanged: (value) {
-                if (value != null) settingsNotifier.setDefaultStatsPeriod(value);
+                if (value != null) {
+                  settingsNotifier.setDefaultStatsPeriod(value);
+                }
               },
             ),
             SettingsDropdownTile<int>(
@@ -49,9 +51,11 @@ class DataManagementSection extends ConsumerWidget {
             SettingsSwitchTile(
               icon: Icons.filter_alt_outlined,
               title: 'Hide archived projects',
-              subtitle: 'They can still be temporarily shown by clicking "Show archived projects" button',
+              subtitle:
+                  'They can still be temporarily shown by clicking "Show archived projects" button',
               value: settings.showActiveProjectsOnly,
-              onChanged: (value) => settingsNotifier.setShowActiveProjectsOnly(value),
+              onChanged: (value) =>
+                  settingsNotifier.setShowActiveProjectsOnly(value),
             ),
           ],
         ),

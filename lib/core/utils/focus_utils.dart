@@ -32,7 +32,10 @@ class FocusUtils {
       );
       node.requestFocus();
     } else {
-      final nextIndex = (currentIndex + delta).clamp(0, orderedItemIds.length - 1);
+      final nextIndex = (currentIndex + delta).clamp(
+        0,
+        orderedItemIds.length - 1,
+      );
       final id = orderedItemIds[nextIndex];
       final node = itemFocusNodes.putIfAbsent(
         id,
@@ -51,7 +54,9 @@ class FocusUtils {
   }) {
     if (orderedItemIds.isEmpty) return null;
     for (int i = 0; i < orderedItemIds.length; i++) {
-      final node = (i == 0 && firstItemFocusNode != null) ? firstItemFocusNode : itemFocusNodes[orderedItemIds[i]];
+      final node = (i == 0 && firstItemFocusNode != null)
+          ? firstItemFocusNode
+          : itemFocusNodes[orderedItemIds[i]];
       if (node?.hasFocus ?? false) return orderedItemIds[i];
     }
     return null;

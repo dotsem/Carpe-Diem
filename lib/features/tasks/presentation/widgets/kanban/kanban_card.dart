@@ -14,7 +14,8 @@ class KanbanCard extends ConsumerWidget {
   final TaskNode node;
   final ProjectNotifier projectNotifier;
   final List<Task> tasks;
-  final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
+  final void Function(Task task, Offset localPosition, RenderBox renderBox)
+  onContextMenu;
   final void Function(Task task) onEdit;
   final FocusNode? focusNode;
 
@@ -41,14 +42,27 @@ class KanbanCard extends ConsumerWidget {
           delay: const Duration(milliseconds: 150),
           feedback: TaskDragProxy(
             task: task,
-            selectedCount: 1, // Kanban board doesn't currently support multi-select drag, so just 1
+            selectedCount:
+                1, // Kanban board doesn't currently support multi-select drag, so just 1
             width: constraints.maxWidth,
           ),
           childWhenDragging: Opacity(
             opacity: 0.3,
-            child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
+            child: _wrapHierarchy(
+              context,
+              ref,
+              task,
+              projectNotifier,
+              isOverdue: isOverdue,
+            ),
           ),
-          child: _wrapHierarchy(context, ref, task, projectNotifier, isOverdue: isOverdue),
+          child: _wrapHierarchy(
+            context,
+            ref,
+            task,
+            projectNotifier,
+            isOverdue: isOverdue,
+          ),
         );
       },
     );
@@ -61,7 +75,13 @@ class KanbanCard extends ConsumerWidget {
     ProjectNotifier projectNotifier, {
     bool isOverdue = false,
   }) {
-    final card = _buildTaskCard(context, ref, task, projectNotifier, isOverdue: isOverdue);
+    final card = _buildTaskCard(
+      context,
+      ref,
+      task,
+      projectNotifier,
+      isOverdue: isOverdue,
+    );
     return TaskHierarchyIndicator(depth: depth, child: card);
   }
 
@@ -76,15 +96,23 @@ class KanbanCard extends ConsumerWidget {
     return TaskCard(
       key: ValueKey(task.id),
       task: task,
-      project: task.projectId != null ? projectNotifier.getById(task.projectId!) : null,
+      project: task.projectId != null
+          ? projectNotifier.getById(task.projectId!)
+          : null,
       isOverdue: isOverdue,
       useTimer: false,
       leading: Container(),
       focusNode: focusNode,
       onToggle: (_) => taskNotifier.toggleComplete(task),
       onTap: () => onEdit(task),
-      onContextMenu: (localPosition, renderBox) =>
-          showTaskCardContextMenu(context, ref, task, tasks, localPosition, renderBox),
+      onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
+        context,
+        ref,
+        task,
+        tasks,
+        localPosition,
+        renderBox,
+      ),
     );
   }
 }

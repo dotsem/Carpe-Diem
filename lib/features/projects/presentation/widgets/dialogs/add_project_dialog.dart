@@ -44,8 +44,16 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
         submitText: 'Create Project',
         child: CallbackShortcuts(
           bindings: {
-            const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => setState(() => _isUrgent = false),
-            const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => setState(() => _isUrgent = true),
+            const SingleActivator(
+              LogicalKeyboardKey.digit1,
+              control: true,
+            ): () =>
+                setState(() => _isUrgent = false),
+            const SingleActivator(
+              LogicalKeyboardKey.digit2,
+              control: true,
+            ): () =>
+                setState(() => _isUrgent = true),
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -55,23 +63,36 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
                 controller: _nameController,
                 autofocus: true,
                 decoration: const InputDecoration(hintText: 'Project name'),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _descController,
-                decoration: const InputDecoration(hintText: 'Description (optional)'),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                decoration: const InputDecoration(
+                  hintText: 'Description (optional)',
+                ),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
               Text('Color', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              ProjectColorPicker(selected: _selectedColor, onChanged: (c) => setState(() => _selectedColor = c)),
+              ProjectColorPicker(
+                selected: _selectedColor,
+                onChanged: (c) => setState(() => _selectedColor = c),
+              ),
               const SizedBox(height: 16),
               Text('Urgency', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
-              UrgencySelector(selected: _isUrgent, onChanged: (v) => setState(() => _isUrgent = v!), allowAll: false),
+              UrgencySelector(
+                selected: _isUrgent,
+                onChanged: (v) => setState(() => _isUrgent = v!),
+                allowAll: false,
+              ),
               const SizedBox(height: 16),
               Text('Labels', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
@@ -80,7 +101,11 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
                 onSelected: (ids) => setState(() => _selectedLabelIds = ids),
               ),
               const SizedBox(height: 16),
-              DatePickerButton(label: 'Deadline', date: _deadline, onChanged: (d) => setState(() => _deadline = d)),
+              DatePickerButton(
+                label: 'Deadline',
+                date: _deadline,
+                onChanged: (d) => setState(() => _deadline = d),
+              ),
             ],
           ),
         ),
@@ -96,7 +121,9 @@ class _AddProjectDialogState extends ConsumerState<AddProjectDialog> {
         .read(projectProvider.notifier)
         .addProject(
           name: name,
-          description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+          description: _descController.text.trim().isEmpty
+              ? null
+              : _descController.text.trim(),
           color: _selectedColor,
           isUrgent: _isUrgent,
           labelIds: _selectedLabelIds,

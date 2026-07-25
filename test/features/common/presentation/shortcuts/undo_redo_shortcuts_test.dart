@@ -60,37 +60,50 @@ void main() {
       );
     }
 
-    testWidgets('Ctrl+Z should trigger undo and Ctrl+Y should trigger redo when not typing', (tester) async {
-      final focusNode = FocusNode();
-      await tester.pumpWidget(
-        buildTestWidget(Focus(focusNode: focusNode, autofocus: true, child: const SizedBox(width: 10, height: 10))),
-      );
+    testWidgets(
+      'Ctrl+Z should trigger undo and Ctrl+Y should trigger redo when not typing',
+      (tester) async {
+        final focusNode = FocusNode();
+        await tester.pumpWidget(
+          buildTestWidget(
+            Focus(
+              focusNode: focusNode,
+              autofocus: true,
+              child: const SizedBox(width: 10, height: 10),
+            ),
+          ),
+        );
 
-      focusNode.requestFocus();
-      await tester.pump();
+        focusNode.requestFocus();
+        await tester.pump();
 
-      // Trigger Ctrl+Z
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyZ);
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyZ);
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pump();
+        // Trigger Ctrl+Z
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.keyZ);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.keyZ);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pump();
 
-      expect(mockUndoRedoNotifier.undoCalled, isTrue);
+        expect(mockUndoRedoNotifier.undoCalled, isTrue);
 
-      // Trigger Ctrl+Y
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyY);
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyY);
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pump();
+        // Trigger Ctrl+Y
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.keyY);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.keyY);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pump();
 
-      expect(mockUndoRedoNotifier.redoCalled, isTrue);
-    });
+        expect(mockUndoRedoNotifier.redoCalled, isTrue);
+      },
+    );
 
-    testWidgets('Ctrl+Z and Ctrl+Y should be ignored when typing in TextField', (tester) async {
+    testWidgets('Ctrl+Z and Ctrl+Y should be ignored when typing in TextField', (
+      tester,
+    ) async {
       final controller = TextEditingController();
-      await tester.pumpWidget(buildTestWidget(TextField(controller: controller, autofocus: true)));
+      await tester.pumpWidget(
+        buildTestWidget(TextField(controller: controller, autofocus: true)),
+      );
 
       // Ensure TextField has focus
       await tester.showKeyboard(find.byType(TextField));

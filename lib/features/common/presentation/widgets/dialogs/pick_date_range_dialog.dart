@@ -49,11 +49,19 @@ class _PickDateRangeDialogState extends State<PickDateRangeDialog> {
               child: Row(
                 children: [
                   Expanded(
-                    child: _DateTab(label: 'START', date: _startDate, isSelected: true),
+                    child: _DateTab(
+                      label: 'START',
+                      date: _startDate,
+                      isSelected: true,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _DateTab(label: 'END', date: _endDate, isSelected: true),
+                    child: _DateTab(
+                      label: 'END',
+                      date: _endDate,
+                      isSelected: true,
+                    ),
                   ),
                 ],
               ),
@@ -86,16 +94,25 @@ class _DateTab extends StatelessWidget {
   final DateTime date;
   final bool isSelected;
 
-  const _DateTab({required this.label, required this.date, required this.isSelected});
+  const _DateTab({
+    required this.label,
+    required this.date,
+    required this.isSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: isSelected ? AppColors.accent : Colors.transparent, width: 2),
+        border: Border.all(
+          color: isSelected ? AppColors.accent : Colors.transparent,
+          width: 2,
+        ),
         borderRadius: BorderRadius.circular(8),
-        color: isSelected ? AppColors.accent.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surfaceContainerHigh,
+        color: isSelected
+            ? AppColors.accent.withValues(alpha: 0.1)
+            : Theme.of(context).colorScheme.surfaceContainerHigh,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +122,9 @@ class _DateTab extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: isSelected ? AppColors.accent : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: isSelected
+                  ? AppColors.accent
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 4),
@@ -114,7 +133,9 @@ class _DateTab extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.onSurface
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],

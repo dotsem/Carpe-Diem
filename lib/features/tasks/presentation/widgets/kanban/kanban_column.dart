@@ -20,7 +20,8 @@ class KanbanColumn extends ConsumerStatefulWidget {
   final List<Task> tasks;
   final TaskStatus acceptedStatus;
   final void Function(Task task, TaskStatus status) onStatusChange;
-  final void Function(Task task, Offset localPosition, RenderBox renderBox) onContextMenu;
+  final void Function(Task task, Offset localPosition, RenderBox renderBox)
+  onContextMenu;
   final void Function(Task task) onEdit;
   final bool isCollapsed;
   final bool isNarrow;
@@ -72,7 +73,10 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
         if (widget.isCollapsed) {
           return _buildCollapsed(context);
         }
-        return _buildFull(context, candidateData.isNotEmpty || _hoveredChildren > 0);
+        return _buildFull(
+          context,
+          candidateData.isNotEmpty || _hoveredChildren > 0,
+        );
       },
     );
   }
@@ -87,7 +91,9 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHigh),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            ),
           ),
           child: Column(
             children: [
@@ -96,7 +102,10 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                 child: Container(
                   width: 8,
                   height: 8,
-                  decoration: BoxDecoration(color: widget.titleColor, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: widget.titleColor,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
               Expanded(
@@ -127,7 +136,9 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: isHighlighted ? widget.titleColor.withValues(alpha: 0.1) : Theme.of(context).scaffoldBackgroundColor,
+        color: isHighlighted
+            ? widget.titleColor.withValues(alpha: 0.1)
+            : Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isHighlighted
@@ -146,7 +157,11 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                 Expanded(
                   child: Text(
                     widget.title,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: widget.titleColor),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: widget.titleColor,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -156,7 +171,11 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                   color: widget.titleColor.withValues(alpha: 0.15),
                   child: Text(
                     '${widget.tasks.length}',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: widget.titleColor),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: widget.titleColor,
+                    ),
                   ),
                 ),
                 if (widget.onToggle != null && widget.isNarrow) ...[
@@ -177,17 +196,32 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
           Expanded(
             child: widget.tasks.isEmpty
                 ? Center(
-                    child: Text('No tasks', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    child: Text(
+                      'No tasks',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   )
                 : Consumer(
                     builder: (context, ref, child) {
                       final taskState = ref.watch(taskProvider);
-                      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
-                        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-                        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+                      final allAvailableTasks =
+                          {for (var t in taskState.tasks) t.id: t}
+                            ..addAll({
+                              for (var t in taskState.overdueTasks) t.id: t,
+                            })
+                            ..addAll({
+                              for (var t in taskState.unscheduledTasks) t.id: t,
+                            });
 
-                      final projectNotifier = ref.read(projectProvider.notifier);
-                      final hierarchical = TaskHierarchyUtils.buildHierarchy(widget.tasks, allTasks: allAvailableTasks);
+                      final projectNotifier = ref.read(
+                        projectProvider.notifier,
+                      );
+                      final hierarchical = TaskHierarchyUtils.buildHierarchy(
+                        widget.tasks,
+                        allTasks: allAvailableTasks,
+                      );
                       return ListView.builder(
                         padding: const EdgeInsets.all(8),
                         itemCount: hierarchical.length,
@@ -198,10 +232,13 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
 
                           if (node is TaskNode) {
                             final task = node.task;
-                            final focusNode = widget.itemFocusNodes?.putIfAbsent(
-                              task.id,
-                              () => FocusNode(debugLabel: 'KanbanTask_${task.id}'),
-                            );
+                            final focusNode = widget.itemFocusNodes
+                                ?.putIfAbsent(
+                                  task.id,
+                                  () => FocusNode(
+                                    debugLabel: 'KanbanTask_${task.id}',
+                                  ),
+                                );
                             childWidget = KanbanCard(
                               key: ValueKey(task.id),
                               node: node,
@@ -235,17 +272,23 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                             },
                             onDrop: (task, newIndex) {
                               final settings = ref.read(settingsProvider);
-                              final newSortOrder = TaskReorderUtils.handleReorder(
-                                nodes: hierarchical,
-                                draggedTask: task,
-                                newIndex: newIndex,
-                                settings: settings,
-                              );
+                              final newSortOrder =
+                                  TaskReorderUtils.handleReorder(
+                                    nodes: hierarchical,
+                                    draggedTask: task,
+                                    newIndex: newIndex,
+                                    settings: settings,
+                                  );
                               if (newSortOrder != null) {
-                                ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
+                                ref
+                                    .read(taskProvider.notifier)
+                                    .reorderTask(task, newSortOrder);
                               }
                               if (task.status != widget.acceptedStatus) {
-                                widget.onStatusChange(task, widget.acceptedStatus);
+                                widget.onStatusChange(
+                                  task,
+                                  widget.acceptedStatus,
+                                );
                               }
                             },
                             child: childWidget,

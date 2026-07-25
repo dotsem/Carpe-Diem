@@ -54,6 +54,9 @@ enum Absorption {
   append;
 
   static Absorption fromString(String name) {
-    return Absorption.values.firstWhere((e) => e.name == name, orElse: () => Absorption.replace);
+    return Absorption.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => Absorption.replace,
+    );
   }
 }

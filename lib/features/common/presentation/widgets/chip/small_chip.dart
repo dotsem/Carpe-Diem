@@ -17,7 +17,10 @@ class SmallChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: padding,
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(borderRadius)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
       child: child,
     );
   }

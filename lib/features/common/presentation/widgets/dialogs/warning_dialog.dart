@@ -20,7 +20,10 @@ class WarningDialog extends StatelessWidget {
     return SizedDialog(
       title: title,
       submitText: warningText,
-      submitStyle: FilledButton.styleFrom(backgroundColor: AppColors.warning, foregroundColor: Theme.of(context).scaffoldBackgroundColor),
+      submitStyle: FilledButton.styleFrom(
+        backgroundColor: AppColors.warning,
+        foregroundColor: Theme.of(context).scaffoldBackgroundColor,
+      ),
       onSubmit: () {
         Navigator.of(context).pop();
         onConfirm();

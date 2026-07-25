@@ -26,11 +26,17 @@ class ProjectBreakdownItem extends StatelessWidget {
             children: [
               Text(
                 projectName,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               Text(
                 '$taskCount tasks',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -48,7 +54,10 @@ class ProjectBreakdownItem extends StatelessWidget {
                 widthFactor: widthFactor,
                 child: Container(
                   height: 8,
-                  decoration: BoxDecoration(color: projectColor, borderRadius: BorderRadius.circular(4)),
+                  decoration: BoxDecoration(
+                    color: projectColor,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
               ),
             ],

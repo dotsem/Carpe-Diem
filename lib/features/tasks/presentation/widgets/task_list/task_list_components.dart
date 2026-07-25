@@ -37,7 +37,10 @@ class TaskListSectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(width: 8),
         SmallChip(
@@ -45,7 +48,11 @@ class TaskListSectionHeader extends StatelessWidget {
           borderRadius: 10,
           child: Text(
             '$amount',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
         ),
         if (trailing != null) ...[const Spacer(), trailing!],
@@ -56,7 +63,10 @@ class TaskListSectionHeader extends StatelessWidget {
       return InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
-        child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: content),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: content,
+        ),
       );
     }
     return content;
@@ -104,7 +114,9 @@ class TaskHierarchyItem extends ConsumerWidget {
       child = TaskCard(
         key: ValueKey(taskNode.task.id),
         task: taskNode.task,
-        project: taskNode.task.projectId != null ? projectState.getById(taskNode.task.projectId!) : null,
+        project: taskNode.task.projectId != null
+            ? projectState.getById(taskNode.task.projectId!)
+            : null,
         isOverdue: taskIsOverdue,
         autofocus: autofocus,
         focusNode: focusNode,
@@ -113,7 +125,9 @@ class TaskHierarchyItem extends ConsumerWidget {
             : selectionMode
             ? (value) => onSelectedChanged?.call(taskNode.task)
             : (_) => taskNotifier.toggleComplete(taskNode.task),
-        isChecked: selectionMode ? selectedTaskIds.contains(taskNode.task.id) : null,
+        isChecked: selectionMode
+            ? selectedTaskIds.contains(taskNode.task.id)
+            : null,
         selectionMode: selectionMode,
         onTap: isReadOnly ? () {} : () => onEdit?.call(taskNode.task),
         showScheduleDate: showScheduleDate,
@@ -123,7 +137,9 @@ class TaskHierarchyItem extends ConsumerWidget {
             ? (pos, box) => onContextMenu!(context, taskNode.task, pos, box)
             : null,
         leading: isReadOnly ? const SizedBox.shrink() : null,
-        trailing: isReadOnly ? const SizedBox.shrink() : trailingBuilder?.call(context, taskNode.task),
+        trailing: isReadOnly
+            ? const SizedBox.shrink()
+            : trailingBuilder?.call(context, taskNode.task),
       );
     } else if (node is BlockerIndicatorNode) {
       final blockerNode = node as BlockerIndicatorNode;
@@ -152,9 +168,19 @@ class TaskListEmptyPlaceholder extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle_outline, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.check_circle_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
-          Text('No tasks found', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16)),
+          Text(
+            'No tasks found',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
     );
@@ -184,8 +210,14 @@ class TaskListKeyboardShortcuts extends StatelessWidget {
     return Shortcuts(
       shortcuts: Map.fromEntries([
         if (enablePlanShortcut) ...[
-          const MapEntry(SingleActivator(TodayKeys.keyboardKey, control: true), PlanTaskIntent()),
-          const MapEntry(SingleActivator(TodayKeys.keyboardKey, control: true, shift: true), PlanTaskTomorrowIntent()),
+          const MapEntry(
+            SingleActivator(TodayKeys.keyboardKey, control: true),
+            PlanTaskIntent(),
+          ),
+          const MapEntry(
+            SingleActivator(TodayKeys.keyboardKey, control: true, shift: true),
+            PlanTaskTomorrowIntent(),
+          ),
         ],
       ]),
       child: Actions(
@@ -193,7 +225,9 @@ class TaskListKeyboardShortcuts extends StatelessWidget {
           MoveNextIntent: NonTypingAction<MoveNextIntent>((_) => onMoveNext()),
           MovePrevIntent: NonTypingAction<MovePrevIntent>((_) => onMovePrev()),
           PlanTaskIntent: NonTypingAction<PlanTaskIntent>((_) => onPlanToday()),
-          PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>((_) => onPlanTomorrow()),
+          PlanTaskTomorrowIntent: NonTypingAction<PlanTaskTomorrowIntent>(
+            (_) => onPlanTomorrow(),
+          ),
         },
         child: child,
       ),

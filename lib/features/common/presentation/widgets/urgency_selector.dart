@@ -7,7 +7,12 @@ class UrgencySelector extends StatelessWidget {
   /// if true: (All/Urgent/Non-Urgent), else: (Urgent/Non-Urgent)
   final bool allowAll;
 
-  const UrgencySelector({super.key, required this.selected, required this.onChanged, this.allowAll = false});
+  const UrgencySelector({
+    super.key,
+    required this.selected,
+    required this.onChanged,
+    this.allowAll = false,
+  });
 
   @override
   Widget build(BuildContext context) {

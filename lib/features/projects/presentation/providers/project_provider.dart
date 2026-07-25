@@ -19,7 +19,10 @@ class ProjectState {
   const ProjectState({this.projects = const [], this.isLoading = false});
 
   ProjectState copyWith({List<Project>? projects, bool? isLoading}) {
-    return ProjectState(projects: projects ?? this.projects, isLoading: isLoading ?? this.isLoading);
+    return ProjectState(
+      projects: projects ?? this.projects,
+      isLoading: isLoading ?? this.isLoading,
+    );
   }
 
   Project? getById(String id) {
@@ -77,7 +80,14 @@ class ProjectNotifier extends Notifier<ProjectState> {
     );
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(CreateCommand(repo: _repo, item: project, id: project.id, displayName: project.name));
+        .execute(
+          CreateCommand(
+            repo: _repo,
+            item: project,
+            id: project.id,
+            displayName: project.name,
+          ),
+        );
     await loadProjects();
   }
 
@@ -86,16 +96,32 @@ class ProjectNotifier extends Notifier<ProjectState> {
     if (oldProject == null) return;
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(UpdateCommand(repo: _repo, previous: oldProject, next: project, displayName: project.name));
+        .execute(
+          UpdateCommand(
+            repo: _repo,
+            previous: oldProject,
+            next: project,
+            displayName: project.name,
+          ),
+        );
     await loadProjects();
   }
 
   Future<void> deleteProject(Project project) async {
     await ref
         .read(undoRedoProvider.notifier)
-        .execute(DeleteCommand(repo: _repo, item: project, id: project.id, displayName: project.name));
+        .execute(
+          DeleteCommand(
+            repo: _repo,
+            item: project,
+            id: project.id,
+            displayName: project.name,
+          ),
+        );
     ref.read(filterProvider.notifier).removeProjectFilter(project.id);
-    await ref.read(settingsProvider.notifier).setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
+    await ref
+        .read(settingsProvider.notifier)
+        .setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadProjects();
   }
 

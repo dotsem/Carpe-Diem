@@ -18,7 +18,11 @@ class TagRepository extends ITagRepository {
 
   @override
   Future<Tag?> getById(String id) async {
-    final List<Map<String, dynamic>> maps = await db.query('tags', where: 'id = ?', whereArgs: [id]);
+    final List<Map<String, dynamic>> maps = await db.query(
+      'tags',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
     if (maps.isEmpty) return null;
     return Tag.fromMap(maps.first);
   }

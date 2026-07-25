@@ -35,32 +35,41 @@ void main() {
       expect(updatedDate, equals(tomorrow));
     });
 
-    test('SelectedDateExtension normalized getter should return midnight date', () {
-      final date = DateTime(2026, 6, 28, 15, 30, 45);
-      final normalized = date.normalize;
-      expect(normalized, equals(DateTime(2026, 6, 28)));
-    });
+    test(
+      'SelectedDateExtension normalized getter should return midnight date',
+      () {
+        final date = DateTime(2026, 6, 28, 15, 30, 45);
+        final normalized = date.normalize;
+        expect(normalized, equals(DateTime(2026, 6, 28)));
+      },
+    );
 
-    test('SelectedDateExtension isToday should return true for today and false for other days', () {
-      final today = DateTime.now();
-      final tomorrow = today.add(const Duration(days: 1));
-      final yesterday = today.subtract(const Duration(days: 1));
+    test(
+      'SelectedDateExtension isToday should return true for today and false for other days',
+      () {
+        final today = DateTime.now();
+        final tomorrow = today.add(const Duration(days: 1));
+        final yesterday = today.subtract(const Duration(days: 1));
 
-      expect(today.isToday, isTrue);
-      expect(tomorrow.isToday, isFalse);
-      expect(yesterday.isToday, isFalse);
-    });
+        expect(today.isToday, isTrue);
+        expect(tomorrow.isToday, isFalse);
+        expect(yesterday.isToday, isFalse);
+      },
+    );
 
-    test('SelectedDateExtension daysFromToday should calculate difference in days correctly', () {
-      final today = DateTime.now();
-      final tomorrow = today.add(const Duration(days: 1));
-      final nextWeek = today.add(const Duration(days: 7));
-      final yesterday = today.subtract(const Duration(days: 1));
+    test(
+      'SelectedDateExtension daysFromToday should calculate difference in days correctly',
+      () {
+        final today = DateTime.now();
+        final tomorrow = today.add(const Duration(days: 1));
+        final nextWeek = today.add(const Duration(days: 7));
+        final yesterday = today.subtract(const Duration(days: 1));
 
-      expect(today.daysFromToday, equals(0));
-      expect(tomorrow.daysFromToday, equals(1));
-      expect(nextWeek.daysFromToday, equals(7));
-      expect(yesterday.daysFromToday, equals(-1));
-    });
+        expect(today.daysFromToday, equals(0));
+        expect(tomorrow.daysFromToday, equals(1));
+        expect(nextWeek.daysFromToday, equals(7));
+        expect(yesterday.daysFromToday, equals(-1));
+      },
+    );
   });
 }

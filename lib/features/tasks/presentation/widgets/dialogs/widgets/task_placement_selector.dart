@@ -5,7 +5,11 @@ class TaskPlacementSelector extends StatelessWidget {
   final TaskPlacement selected;
   final ValueChanged<TaskPlacement> onChanged;
 
-  const TaskPlacementSelector({super.key, required this.selected, required this.onChanged});
+  const TaskPlacementSelector({
+    super.key,
+    required this.selected,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {

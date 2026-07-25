@@ -61,14 +61,20 @@ class BaseTaskCard extends StatelessWidget {
       child: Ink(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: isFocused ? Border.all(color: AppColors.accent, width: 2) : null,
+          border: isFocused
+              ? Border.all(color: AppColors.accent, width: 2)
+              : null,
           gradient: project?.color != null
               ? LinearGradient(
                   colors: [
                     Theme.of(context).colorScheme.surface,
                     Theme.of(context).colorScheme.surface,
-                    project!.color.themeDependentColor(context).withValues(alpha: 0),
-                    project!.color.themeDependentColor(context).withValues(alpha: 0.4),
+                    project!.color
+                        .themeDependentColor(context)
+                        .withValues(alpha: 0),
+                    project!.color
+                        .themeDependentColor(context)
+                        .withValues(alpha: 0.4),
                   ],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
@@ -87,11 +93,17 @@ class BaseTaskCard extends StatelessWidget {
           onTap: onTap,
           onFocusChange: onFocusChange,
           onSecondaryTapDown: onContextMenu != null
-              ? (details) => onContextMenu!(details.localPosition, context.findRenderObject() as RenderBox)
+              ? (details) => onContextMenu!(
+                  details.localPosition,
+                  context.findRenderObject() as RenderBox,
+                )
               : null,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: compactMode ? 4 : 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: compactMode ? 4 : 8,
+            ),
             child: Stack(
               children: [
                 if (task.isUrgent)
@@ -102,7 +114,10 @@ class BaseTaskCard extends StatelessWidget {
                     bottom: 0,
                     child: Container(
                       width: 6,
-                      decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(2)),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
                 Padding(
@@ -116,19 +131,28 @@ class BaseTaskCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              showHashtagInTitle ? task.title : TagParser.hideHashtagSymbols(task.title),
+                              showHashtagInTitle
+                                  ? task.title
+                                  : TagParser.hideHashtagSymbols(task.title),
                               style: TextStyle(
                                 fontSize: compactMode ? 14 : 15,
                                 fontWeight: FontWeight.w500,
-                                decoration: (!selectionMode && showDone && showStrikeThroughOnCompleted)
+                                decoration:
+                                    (!selectionMode &&
+                                        showDone &&
+                                        showStrikeThroughOnCompleted)
                                     ? TextDecoration.lineThrough
                                     : null,
                                 color: (showDone && !selectionMode)
-                                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant
                                     : Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                            if (showDescriptionOnCard && task.description != null && task.description!.isNotEmpty)
+                            if (showDescriptionOnCard &&
+                                task.description != null &&
+                                task.description!.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 1),
                                 child: Text(
@@ -137,7 +161,9 @@ class BaseTaskCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: compactMode ? 12 : 13,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ),

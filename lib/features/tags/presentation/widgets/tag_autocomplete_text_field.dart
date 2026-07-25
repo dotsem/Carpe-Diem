@@ -26,10 +26,12 @@ class TagAutocompleteTextField extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TagAutocompleteTextField> createState() => _TagAutocompleteTextFieldState();
+  ConsumerState<TagAutocompleteTextField> createState() =>
+      _TagAutocompleteTextFieldState();
 }
 
-class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextField> {
+class _TagAutocompleteTextFieldState
+    extends ConsumerState<TagAutocompleteTextField> {
   final _overlayController = OverlayPortalController();
   final _layerLink = LayerLink();
   late final FocusNode _focusNode;
@@ -53,7 +55,9 @@ class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextFi
       final query = _activeQuery;
       if (query == null) return KeyEventResult.ignored;
 
-      final suggestions = allTags.where((t) => t.name.toLowerCase().contains(query.toLowerCase())).toList();
+      final suggestions = allTags
+          .where((t) => t.name.toLowerCase().contains(query.toLowerCase()))
+          .toList();
       if (suggestions.isEmpty) return KeyEventResult.ignored;
 
       if (event is KeyDownEvent) {
@@ -64,10 +68,12 @@ class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextFi
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
           setState(() {
-            _selectedIndex = (_selectedIndex - 1 + suggestions.length) % suggestions.length;
+            _selectedIndex =
+                (_selectedIndex - 1 + suggestions.length) % suggestions.length;
           });
           return KeyEventResult.handled;
-        } else if (event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+        } else if (event.logicalKey == LogicalKeyboardKey.enter ||
+            event.logicalKey == LogicalKeyboardKey.numpadEnter) {
           _selectTag(suggestions[_selectedIndex]);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.escape) {
@@ -106,12 +112,17 @@ class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextFi
     if (!_focusNode.hasFocus) return;
 
     final selection = widget.controller.selection;
-    final activeQuery = TagParser.getActiveQuery(widget.controller.text, selection.baseOffset);
+    final activeQuery = TagParser.getActiveQuery(
+      widget.controller.text,
+      selection.baseOffset,
+    );
 
     if (activeQuery != null) {
       final query = activeQuery.query;
       final allTags = ref.read(tagProvider).tags;
-      final suggestions = allTags.where((t) => t.name.toLowerCase().contains(query.toLowerCase())).toList();
+      final suggestions = allTags
+          .where((t) => t.name.toLowerCase().contains(query.toLowerCase()))
+          .toList();
 
       setState(() {
         if (_activeQuery != query) {
@@ -188,7 +199,9 @@ class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextFi
     final query = _activeQuery;
     final suggestions = query == null
         ? <Tag>[]
-        : allTags.where((t) => t.name.toLowerCase().contains(query.toLowerCase())).toList();
+        : allTags
+              .where((t) => t.name.toLowerCase().contains(query.toLowerCase()))
+              .toList();
 
     return OverlayPortal(
       controller: _overlayController,
@@ -212,7 +225,9 @@ class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextFi
                 shadowColor: Colors.black.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
                 ),
                 child: Container(
                   constraints: const BoxConstraints(maxHeight: 180),
@@ -225,7 +240,11 @@ class _TagAutocompleteTextFieldState extends ConsumerState<TagAutocompleteTextFi
                           _SuggestionItem(
                             tag: suggestions[i],
                             isSelected: i == _selectedIndex,
-                            icon: tagIcons[suggestions[i].name.trim().toLowerCase()] ?? Icons.tag,
+                            icon:
+                                tagIcons[suggestions[i].name
+                                    .trim()
+                                    .toLowerCase()] ??
+                                Icons.tag,
                             onTap: () => _selectTag(suggestions[i]),
                           ),
                         ],
@@ -258,14 +277,23 @@ class _SuggestionItem extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _SuggestionItem({required this.tag, required this.isSelected, required this.icon, required this.onTap});
+  const _SuggestionItem({
+    required this.tag,
+    required this.isSelected,
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        color: isSelected ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+        color: isSelected
+            ? Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.3)
+            : null,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
@@ -282,7 +310,9 @@ class _SuggestionItem extends StatelessWidget {
                 '#${tag.name}',
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),

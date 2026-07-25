@@ -30,6 +30,11 @@ class PlatformDraggable<T extends Object> extends StatelessWidget {
       );
     }
 
-    return Draggable<T>(data: data, feedback: feedback, childWhenDragging: childWhenDragging, child: child);
+    return Draggable<T>(
+      data: data,
+      feedback: feedback,
+      childWhenDragging: childWhenDragging,
+      child: child,
+    );
   }
 }

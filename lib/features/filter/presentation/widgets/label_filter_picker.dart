@@ -45,7 +45,11 @@ class LabelFilterPicker extends ConsumerWidget {
 
         if (isIncluded) {
           labelText = '+ ${label.name}';
-          labelStyle = TextStyle(color: includedColor, fontSize: 13, fontWeight: FontWeight.bold);
+          labelStyle = TextStyle(
+            color: includedColor,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          );
           avatar = CircleAvatar(backgroundColor: label.color, radius: 6);
           backgroundColor = includedColor.withAlpha(30);
           side = BorderSide(color: includedColor);
@@ -57,11 +61,17 @@ class LabelFilterPicker extends ConsumerWidget {
             fontWeight: FontWeight.bold,
             decoration: TextDecoration.lineThrough,
           );
-          avatar = CircleAvatar(backgroundColor: label.color.withAlpha(100), radius: 6);
+          avatar = CircleAvatar(
+            backgroundColor: label.color.withAlpha(100),
+            radius: 6,
+          );
           backgroundColor = excludedColor.withAlpha(30);
           side = BorderSide(color: excludedColor);
         } else {
-          labelStyle = TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13);
+          labelStyle = TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 13,
+          );
           avatar = CircleAvatar(backgroundColor: label.color, radius: 6);
           backgroundColor = Theme.of(context).colorScheme.surfaceContainerHigh;
           side = BorderSide(color: Theme.of(context).colorScheme.outline);
@@ -122,18 +132,23 @@ class LabelFilterPicker extends ConsumerWidget {
           onSecondaryTap: isInherited
               ? null
               : () {
-                  if (interactionMethod == FilterInteractionMethod.leftRightClick) {
+                  if (interactionMethod ==
+                      FilterInteractionMethod.leftRightClick) {
                     handleRightClick();
                   }
                 },
           child: MouseRegion(
-            cursor: isInherited ? SystemMouseCursors.basic : SystemMouseCursors.click,
+            cursor: isInherited
+                ? SystemMouseCursors.basic
+                : SystemMouseCursors.click,
             child: Chip(
               label: Text(labelText, style: labelStyle),
               avatar: avatar,
               backgroundColor: backgroundColor,
               side: side,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               visualDensity: VisualDensity.compact,
             ),
           ),

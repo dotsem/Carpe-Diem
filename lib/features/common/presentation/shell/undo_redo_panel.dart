@@ -24,37 +24,55 @@ class UndoRedoPanel extends ConsumerWidget {
             height: 56.0,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
-              border: Border(bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5)),
+              color: theme.colorScheme.surfaceContainerHigh.withValues(
+                alpha: 0.5,
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 0.5,
+                ),
+              ),
             ),
             child: Row(
               children: [
                 IconButton(
                   icon: const Icon(Icons.undo_rounded),
-                  onPressed: state.canUndo ? () => ref.read(undoRedoProvider.notifier).undo() : null,
+                  onPressed: state.canUndo
+                      ? () => ref.read(undoRedoProvider.notifier).undo()
+                      : null,
                   tooltip: 'Undo',
                   style: IconButton.styleFrom(
                     foregroundColor: theme.colorScheme.primary,
-                    disabledForegroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                    disabledForegroundColor: theme.colorScheme.onSurface
+                        .withValues(alpha: 0.3),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.redo_rounded),
-                  onPressed: state.canRedo ? () => ref.read(undoRedoProvider.notifier).redo() : null,
+                  onPressed: state.canRedo
+                      ? () => ref.read(undoRedoProvider.notifier).redo()
+                      : null,
                   tooltip: 'Redo',
                   style: IconButton.styleFrom(
                     foregroundColor: theme.colorScheme.primary,
-                    disabledForegroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                    disabledForegroundColor: theme.colorScheme.onSurface
+                        .withValues(alpha: 0.3),
                   ),
                 ),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.history_rounded),
                   onPressed: () {
-                    showDialog(context: context, builder: (context) => const ActionHistoryDialog());
+                    showDialog(
+                      context: context,
+                      builder: (context) => const ActionHistoryDialog(),
+                    );
                   },
                   tooltip: 'Action History',
-                  style: IconButton.styleFrom(foregroundColor: theme.colorScheme.onSurfaceVariant),
+                  style: IconButton.styleFrom(
+                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -81,7 +99,12 @@ class ActionHistoryDialog extends ConsumerWidget {
     return SizedDialog(
       title: 'Action History',
       showDefaultActions: false,
-      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
       child: SizedBox(
         width: 450,
         height: 300,
@@ -95,7 +118,9 @@ class ActionHistoryDialog extends ConsumerWidget {
                   final isApplied = index < undoStack.length;
 
                   final tooltipMessage = isApplied
-                      ? (index == undoStack.length - 1 ? 'Current state' : 'Revert to this action')
+                      ? (index == undoStack.length - 1
+                            ? 'Current state'
+                            : 'Revert to this action')
                       : 'Apply up to this action';
 
                   return Tooltip(
@@ -107,24 +132,38 @@ class ActionHistoryDialog extends ConsumerWidget {
                         contentPadding: EdgeInsets.zero,
                         onTap: undoRedoState.isProcessing
                             ? null
-                            : () => ref.read(undoRedoProvider.notifier).jumpTo(cmd),
-                        hoverColor: theme.colorScheme.primary.withValues(alpha: 0.08),
+                            : () => ref
+                                  .read(undoRedoProvider.notifier)
+                                  .jumpTo(cmd),
+                        hoverColor: theme.colorScheme.primary.withValues(
+                          alpha: 0.08,
+                        ),
                         leading: Icon(
-                          isApplied ? Icons.check_circle_outline_rounded : Icons.history_rounded,
-                          color: isApplied ? AppColors.accent : theme.colorScheme.onSurfaceVariant,
+                          isApplied
+                              ? Icons.check_circle_outline_rounded
+                              : Icons.history_rounded,
+                          color: isApplied
+                              ? AppColors.accent
+                              : theme.colorScheme.onSurfaceVariant,
                         ),
                         title: Text(
                           cmd.description,
                           style: TextStyle(
-                            decoration: isApplied ? null : TextDecoration.lineThrough,
-                            fontWeight: isApplied ? FontWeight.w500 : FontWeight.normal,
+                            decoration: isApplied
+                                ? null
+                                : TextDecoration.lineThrough,
+                            fontWeight: isApplied
+                                ? FontWeight.w500
+                                : FontWeight.normal,
                           ),
                         ),
                         trailing: Text(
                           isApplied ? 'Applied' : 'Undone',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isApplied ? AppColors.accent : theme.colorScheme.onSurfaceVariant,
+                            color: isApplied
+                                ? AppColors.accent
+                                : theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),

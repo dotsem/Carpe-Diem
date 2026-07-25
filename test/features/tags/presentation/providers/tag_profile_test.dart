@@ -36,17 +36,26 @@ void main() {
       when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
       when(() => mockTaskRepo.getAll()).thenAnswer((_) async => []);
       when(
-        () => mockTaskRepo.getByDate(any(), prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
+        () => mockTaskRepo.getByDate(
+          any(),
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+        ),
       ).thenAnswer((_) async => []);
       when(() => mockTaskRepo.getOverdue(any())).thenAnswer((_) async => []);
       when(
-        () => mockTaskRepo.getUnscheduled(prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
+        () => mockTaskRepo.getUnscheduled(
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+        ),
       ).thenAnswer((_) async => []);
       when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
 
       when(() => mockTagIconRepo.getAllIconDatas()).thenAnswer((_) async => {});
-      when(() => mockTagIconRepo.setIconDataForTag(any(), any())).thenAnswer((_) async => {});
-      when(() => mockTagIconRepo.deleteIconDataForTag(any())).thenAnswer((_) async => {});
+      when(
+        () => mockTagIconRepo.setIconDataForTag(any(), any()),
+      ).thenAnswer((_) async => {});
+      when(
+        () => mockTagIconRepo.deleteIconDataForTag(any()),
+      ).thenAnswer((_) async => {});
 
       container = ProviderContainer(
         overrides: [
@@ -72,9 +81,13 @@ void main() {
       await container.read(tagProvider.notifier).loadTags();
       expect(container.read(tagProvider).tags.length, 1);
 
-      final programmingProfile = TagProfile.predefinedProfiles.firstWhere((p) => p.name.contains('Programming'));
+      final programmingProfile = TagProfile.predefinedProfiles.firstWhere(
+        (p) => p.name.contains('Programming'),
+      );
 
-      await container.read(tagProvider.notifier).populateProfile(programmingProfile);
+      await container
+          .read(tagProvider.notifier)
+          .populateProfile(programmingProfile);
 
       // programming profile has 9 tags. since 'bug' exists, insert should be called 8 times.
       verify(() => mockTagRepo.insert(any())).called(8);
@@ -86,9 +99,13 @@ void main() {
       when(() => mockTagRepo.insert(any())).thenAnswer((_) async => {});
       when(() => mockTagRepo.delete(any())).thenAnswer((_) async => {});
 
-      final programmingProfile = TagProfile.predefinedProfiles.firstWhere((p) => p.name.contains('Programming'));
+      final programmingProfile = TagProfile.predefinedProfiles.firstWhere(
+        (p) => p.name.contains('Programming'),
+      );
 
-      await container.read(tagProvider.notifier).populateProfile(programmingProfile);
+      await container
+          .read(tagProvider.notifier)
+          .populateProfile(programmingProfile);
 
       await container.read(undoRedoProvider.notifier).undo();
 

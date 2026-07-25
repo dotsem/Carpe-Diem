@@ -23,7 +23,9 @@ class _AddLabelDialogState extends ConsumerState<AddLabelDialog> {
       onSubmit: () {
         final name = nameController.text.trim();
         if (name.isNotEmpty) {
-          ref.read(labelProvider.notifier).addLabel(name: name, color: selectedColor);
+          ref
+              .read(labelProvider.notifier)
+              .addLabel(name: name, color: selectedColor);
           Navigator.pop(context);
         }
       },
@@ -36,7 +38,10 @@ class _AddLabelDialogState extends ConsumerState<AddLabelDialog> {
             autofocus: true,
           ),
           const SizedBox(height: 16),
-          ProjectColorPicker(selected: selectedColor, onChanged: (c) => setState(() => selectedColor = c)),
+          ProjectColorPicker(
+            selected: selectedColor,
+            onChanged: (c) => setState(() => selectedColor = c),
+          ),
         ],
       ),
     );

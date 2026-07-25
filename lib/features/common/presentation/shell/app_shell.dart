@@ -105,7 +105,10 @@ class _AppShellState extends ConsumerState<AppShell> {
       body: Row(
         children: [
           if (!isMobile) ...[
-            SizedBox(width: 220, child: SideNav(currentPath: currentPath, isMobile: false)),
+            SizedBox(
+              width: 220,
+              child: SideNav(currentPath: currentPath, isMobile: false),
+            ),
             const VerticalDivider(width: 1),
           ],
           Expanded(
@@ -113,7 +116,9 @@ class _AppShellState extends ConsumerState<AppShell> {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: currentPath == '/settings' ? 0 : (isMobile ? 16 : 32),
+                    horizontal: currentPath == '/settings'
+                        ? 0
+                        : (isMobile ? 16 : 32),
                   ),
                   child: widget.child,
                 ),
@@ -126,9 +131,15 @@ class _AppShellState extends ConsumerState<AppShell> {
                         icon: const Icon(Icons.menu),
                         onPressed: () => Scaffold.of(context).openDrawer(),
                         style: IconButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-                          foregroundColor: Theme.of(context).colorScheme.onSurface,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surface.withValues(alpha: 0.8),
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onSurface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),

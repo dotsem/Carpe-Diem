@@ -55,7 +55,9 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
         _startDate = start;
         _endDate = end;
         _isSelecting = false;
-        widget.onRangeSelected(DateTimeRange(start: _startDate!, end: _endDate!));
+        widget.onRangeSelected(
+          DateTimeRange(start: _startDate!, end: _endDate!),
+        );
       }
     });
   }
@@ -72,7 +74,12 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [_buildHeader(), const SizedBox(height: 16), _buildWeekdays(), _buildCalendarGrid()],
+      children: [
+        _buildHeader(),
+        const SizedBox(height: 16),
+        _buildWeekdays(),
+        _buildCalendarGrid(),
+      ],
     );
   }
 
@@ -82,19 +89,39 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
-          icon: Icon(Icons.chevron_left, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          icon: Icon(
+            Icons.chevron_left,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           onPressed: _viewMonth.isAfter(widget.firstDate.startOfMonth())
-              ? () => setState(() => _viewMonth = DateTime(_viewMonth.year, _viewMonth.month - 1))
+              ? () => setState(
+                  () => _viewMonth = DateTime(
+                    _viewMonth.year,
+                    _viewMonth.month - 1,
+                  ),
+                )
               : null,
         ),
         Text(
           title,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
         IconButton(
-          icon: Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          icon: Icon(
+            Icons.chevron_right,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           onPressed: _viewMonth.isBefore(widget.lastDate.startOfMonth())
-              ? () => setState(() => _viewMonth = DateTime(_viewMonth.year, _viewMonth.month + 1))
+              ? () => setState(
+                  () => _viewMonth = DateTime(
+                    _viewMonth.year,
+                    _viewMonth.month + 1,
+                  ),
+                )
               : null,
         ),
       ],
@@ -111,7 +138,11 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
               child: Center(
                 child: Text(
                   d,
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -132,7 +163,10 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, mainAxisSpacing: 4),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        mainAxisSpacing: 4,
+      ),
       itemCount: rows * 7,
       itemBuilder: (context, index) {
         if (index < offset || index >= totalCells) {
@@ -142,7 +176,8 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
         final day = index - offset + 1;
         final date = DateTime(_viewMonth.year, _viewMonth.month, day);
         final isEnabled =
-            (date.isAfter(widget.firstDate) || date.isSameDay(widget.firstDate)) &&
+            (date.isAfter(widget.firstDate) ||
+                date.isSameDay(widget.firstDate)) &&
             (date.isBefore(widget.lastDate) || date.isSameDay(widget.lastDate));
 
         return _CalendarDay(
@@ -204,7 +239,9 @@ class _CalendarDay extends StatelessWidget {
 
     Color? textColor;
     if (!isEnabled) {
-      textColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3);
+      textColor = Theme.of(
+        context,
+      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3);
     } else if (isStart || isEnd) {
       textColor = Colors.white;
     } else if (isInRange) {
@@ -225,14 +262,18 @@ class _CalendarDay extends StatelessWidget {
           decoration: BoxDecoration(
             color: _getBackgroundColor(context),
             borderRadius: _getBorderRadius(),
-            border: isToday && !isStart && !isEnd ? Border.all(color: AppColors.accent.withValues(alpha: 0.5)) : null,
+            border: isToday && !isStart && !isEnd
+                ? Border.all(color: AppColors.accent.withValues(alpha: 0.5))
+                : null,
           ),
           child: Center(
             child: Text(
               date.day.toString(),
               style: TextStyle(
                 color: textColor,
-                fontWeight: (isStart || isEnd || isToday) ? FontWeight.bold : FontWeight.normal,
+                fontWeight: (isStart || isEnd || isToday)
+                    ? FontWeight.bold
+                    : FontWeight.normal,
               ),
             ),
           ),
@@ -250,7 +291,9 @@ class _CalendarDay extends StatelessWidget {
 
   BorderRadius? _getBorderRadius() {
     if (isStart && isEnd) return BorderRadius.circular(20);
-    if (isStart) return const BorderRadius.horizontal(left: Radius.circular(20));
+    if (isStart) {
+      return const BorderRadius.horizontal(left: Radius.circular(20));
+    }
     if (isEnd) return const BorderRadius.horizontal(right: Radius.circular(20));
     if (isInRange) return null;
     return BorderRadius.circular(20);

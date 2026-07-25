@@ -53,7 +53,8 @@ class BulkEditTasksDialog extends ConsumerStatefulWidget {
   const BulkEditTasksDialog({super.key, required this.taskIds});
 
   @override
-  ConsumerState<BulkEditTasksDialog> createState() => _BulkEditTasksDialogState();
+  ConsumerState<BulkEditTasksDialog> createState() =>
+      _BulkEditTasksDialogState();
 }
 
 class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
@@ -79,7 +80,9 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
     super.initState();
     _windowTitleNotifier = ref.read(windowTitleProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _windowTitleNotifier.pushSubtitle('Bulk Editing ${widget.taskIds.length} Tasks');
+      _windowTitleNotifier.pushSubtitle(
+        'Bulk Editing ${widget.taskIds.length} Tasks',
+      );
     });
   }
 
@@ -103,15 +106,24 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
       }
       return;
     }
-    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
+    final tasks = await ref
+        .read(taskProvider.notifier)
+        .getTasksForProject(_selectedProjectId!);
     if (mounted) {
       setState(() => _projectTasks = tasks);
     }
   }
 
-  DateTime get _maxDate => DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays));
+  DateTime get _maxDate => DateTime.now().add(
+    Duration(days: ref.read(settingsProvider).maxPlanningDays),
+  );
 
-  Widget _buildFieldRow(String label, bool value, ValueChanged<bool?> onChanged, Widget child) {
+  Widget _buildFieldRow(
+    String label,
+    bool value,
+    ValueChanged<bool?> onChanged,
+    Widget child,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -137,7 +149,11 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
+    final projects = ref
+        .watch(projectProvider)
+        .projects
+        .where((p) => p.isActive)
+        .toList();
 
     return SizedDialog(
       title: 'Bulk Edit ${widget.taskIds.length} Tasks',
@@ -152,7 +168,11 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
               'Urgency',
               _enableUrgent,
               (v) => setState(() => _enableUrgent = v ?? false),
-              UrgencySelector(selected: _isUrgent, onChanged: (v) => setState(() => _isUrgent = v!), allowAll: false),
+              UrgencySelector(
+                selected: _isUrgent,
+                onChanged: (v) => setState(() => _isUrgent = v!),
+                allowAll: false,
+              ),
             ),
             const SizedBox(height: 16),
             _buildFieldRow(

@@ -35,9 +35,16 @@ class BulkActionMenu extends StatelessWidget {
     return Builder(
       builder: (buttonContext) {
         return IconButton(
-          icon: Icon(Icons.more_horiz, color: Theme.of(context).colorScheme.onSurface),
+          icon: Icon(
+            Icons.more_horiz,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           tooltip: 'More actions',
-          style: IconButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          style: IconButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           onPressed: () => _showMenu(buttonContext),
         );
       },
@@ -46,13 +53,17 @@ class BulkActionMenu extends StatelessWidget {
 
   void _showMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
 
     // Position underneath
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset(0, button.size.height), ancestor: overlay),
-        button.localToGlobal(Offset(button.size.width, button.size.height), ancestor: overlay),
+        button.localToGlobal(
+          Offset(button.size.width, button.size.height),
+          ancestor: overlay,
+        ),
       ),
       Offset.zero & overlay.size,
     );
@@ -71,7 +82,10 @@ class BulkActionMenu extends StatelessWidget {
     });
   }
 
-  PopupMenuItem<String> _buildPopupMenuItem(BuildContext context, BulkActionOption opt) {
+  PopupMenuItem<String> _buildPopupMenuItem(
+    BuildContext context,
+    BulkActionOption opt,
+  ) {
     final content = Row(
       children: [
         Icon(
@@ -96,7 +110,9 @@ class BulkActionMenu extends StatelessWidget {
     return PopupMenuItem<String>(
       value: opt.value,
       enabled: opt.enabled,
-      child: opt.enabled ? content : Tooltip(message: disabledTooltip, child: content),
+      child: opt.enabled
+          ? content
+          : Tooltip(message: disabledTooltip, child: content),
     );
   }
 }

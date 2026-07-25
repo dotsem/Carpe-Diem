@@ -38,7 +38,8 @@ class BacklogList extends ConsumerWidget {
     required this.trailingBuilder,
   });
 
-  bool _isFiltering(TaskFilter filter) => searchQuery.isNotEmpty || !filter.isEmpty;
+  bool _isFiltering(TaskFilter filter) =>
+      searchQuery.isNotEmpty || !filter.isEmpty;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,7 +51,9 @@ class BacklogList extends ConsumerWidget {
     final projectState = ref.watch(projectProvider);
     final filter = ref.watch(filterProvider).activeFilter;
     var allTasks = provider.unscheduledTasks.where((t) {
-      final project = t.projectId != null ? projectState.getById(t.projectId!) : null;
+      final project = t.projectId != null
+          ? projectState.getById(t.projectId!)
+          : null;
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
@@ -73,7 +76,11 @@ class BacklogList extends ConsumerWidget {
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.filter_list_alt, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.filter_list_alt,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 16),
                   const Text('No items found'),
                   const SizedBox(height: 8),
@@ -88,11 +95,18 @@ class BacklogList extends ConsumerWidget {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.inbox_rounded, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.inbox_rounded,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'No backlog tasks',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -103,8 +117,14 @@ class BacklogList extends ConsumerWidget {
       ..addAll({for (var t in provider.overdueTasks) t.id: t})
       ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
 
-    final activeHierarchical = TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
-    final completedHierarchical = TaskHierarchyUtils.buildHierarchy(completedTasks, allTasks: allAvailableTasks);
+    final activeHierarchical = TaskHierarchyUtils.buildHierarchy(
+      activeTasks,
+      allTasks: allAvailableTasks,
+    );
+    final completedHierarchical = TaskHierarchyUtils.buildHierarchy(
+      completedTasks,
+      allTasks: allAvailableTasks,
+    );
 
     final List<String> orderedIds = [];
     for (final n in activeHierarchical) {
@@ -125,12 +145,17 @@ class BacklogList extends ConsumerWidget {
     Widget buildNode(TaskHierarchyNode n) {
       Widget child;
       if (n is TaskNode) {
-        final focusNode = itemFocusNodes.putIfAbsent(n.task.id, () => FocusNode(debugLabel: 'Task_${n.task.id}'));
+        final focusNode = itemFocusNodes.putIfAbsent(
+          n.task.id,
+          () => FocusNode(debugLabel: 'Task_${n.task.id}'),
+        );
 
         child = TaskCard(
           key: ValueKey(n.task.id),
           task: n.task,
-          project: n.task.projectId != null ? projectState.getById(n.task.projectId!) : null,
+          project: n.task.projectId != null
+              ? projectState.getById(n.task.projectId!)
+              : null,
           isChecked: selectedTaskIds.contains(n.task.id),
           selectionMode: true,
           focusNode: focusNode,
@@ -154,7 +179,11 @@ class BacklogList extends ConsumerWidget {
           trailing: trailingBuilder(context, n.task),
         );
       } else if (n is BlockerIndicatorNode) {
-        child = BlockerIndicator(blockerId: n.blockerId, blockerTitle: n.blockerTitle, blockedTaskId: n.blockedTaskId);
+        child = BlockerIndicator(
+          blockerId: n.blockerId,
+          blockerTitle: n.blockerTitle,
+          blockedTaskId: n.blockedTaskId,
+        );
       } else {
         return const SizedBox.shrink();
       }
@@ -199,7 +228,9 @@ class BacklogList extends ConsumerWidget {
                     settings: settings,
                   );
                   if (newSortOrders != null && newSortOrders.isNotEmpty) {
-                    ref.read(taskProvider.notifier).bulkReorderTasks(newSortOrders);
+                    ref
+                        .read(taskProvider.notifier)
+                        .bulkReorderTasks(newSortOrders);
                   } else {
                     final newSortOrder = TaskReorderUtils.handleReorder(
                       nodes: activeHierarchical,
@@ -208,7 +239,9 @@ class BacklogList extends ConsumerWidget {
                       settings: settings,
                     );
                     if (newSortOrder != null) {
-                      ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
+                      ref
+                          .read(taskProvider.notifier)
+                          .reorderTask(task, newSortOrder);
                     }
                   }
                 } else {
@@ -219,7 +252,9 @@ class BacklogList extends ConsumerWidget {
                     settings: settings,
                   );
                   if (newSortOrder != null) {
-                    ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
+                    ref
+                        .read(taskProvider.notifier)
+                        .reorderTask(task, newSortOrder);
                   }
                 }
               },

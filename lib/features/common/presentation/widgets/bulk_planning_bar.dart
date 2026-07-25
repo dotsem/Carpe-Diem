@@ -40,11 +40,21 @@ class BulkPlanningBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.25),
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainer.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 32, offset: const Offset(0, 8)),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 32,
+                    offset: const Offset(0, 8),
+                  ),
                 ],
               ),
               child: Row(
@@ -57,14 +67,20 @@ class BulkPlanningBar extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    selectedCount == 1 ? '1 task selected' : '$selectedCount tasks selected',
+                    selectedCount == 1
+                        ? '1 task selected'
+                        : '$selectedCount tasks selected',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Container(height: 24, width: 1, color: theme.colorScheme.outlineVariant),
+                  Container(
+                    height: 24,
+                    width: 1,
+                    color: theme.colorScheme.outlineVariant,
+                  ),
                   const SizedBox(width: 8),
                   _ActionButton(
                     icon: Icons.calendar_today_rounded,
@@ -133,11 +149,19 @@ class _ActionButton extends StatelessWidget {
       message: disabled ? "" : tooltip,
       child: TextButton.icon(
         onPressed: disabled ? null : onPressed,
-        icon: Icon(icon, size: 20, color: disabled ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4) : color),
+        icon: Icon(
+          icon,
+          size: 20,
+          color: disabled
+              ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
+              : color,
+        ),
         label: Text(
           label,
           style: TextStyle(
-            color: disabled ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4) : theme.colorScheme.onSurface,
+            color: disabled
+                ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
+                : theme.colorScheme.onSurface,
             fontWeight: FontWeight.w500,
             fontSize: 13,
           ),
@@ -145,7 +169,9 @@ class _ActionButton extends StatelessWidget {
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );

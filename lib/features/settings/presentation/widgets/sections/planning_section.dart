@@ -25,7 +25,8 @@ class PlanningSection extends ConsumerWidget {
               min: 3,
               max: 14,
               divisions: 11,
-              onChanged: (value) => settingsNotifier.setMaxPlanningDays(value.round()),
+              onChanged: (value) =>
+                  settingsNotifier.setMaxPlanningDays(value.round()),
             ),
             SettingsDropdownTile<int>(
               icon: Icons.first_page_outlined,

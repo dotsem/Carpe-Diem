@@ -5,7 +5,6 @@ import 'package:carpe_diem/features/common/data/database/database_helper.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/data/repositories/project_repository.dart';
 
-
 void main() {
   setUpAll(() {
     sqfliteFfiInit();
@@ -29,7 +28,11 @@ void main() {
 
     test('should insert and retrieve a project with label mappings', () async {
       // First populate the labels table due to FOREIGN KEY constraints on project_labels
-      await db.insert('labels', {'id': 'label-1', 'name': 'Work', 'color': 0xFFFFFFFF});
+      await db.insert('labels', {
+        'id': 'label-1',
+        'name': 'Work',
+        'color': 0xFFFFFFFF,
+      });
 
       final project = Project(
         id: 'project-1',
@@ -53,8 +56,16 @@ void main() {
     });
 
     test('should update a project and overwrite label mappings', () async {
-      await db.insert('labels', {'id': 'label-1', 'name': 'Work', 'color': 0xFFFFFFFF});
-      await db.insert('labels', {'id': 'label-2', 'name': 'Personal', 'color': 0xFF000000});
+      await db.insert('labels', {
+        'id': 'label-1',
+        'name': 'Work',
+        'color': 0xFFFFFFFF,
+      });
+      await db.insert('labels', {
+        'id': 'label-2',
+        'name': 'Personal',
+        'color': 0xFF000000,
+      });
 
       final project = Project(
         id: 'project-1',
@@ -86,8 +97,12 @@ void main() {
     });
 
     test('should delete a project and cascade delete project_labels', () async {
-      await db.insert('labels', {'id': 'label-1', 'name': 'Work', 'color': 0xFFFFFFFF});
-      
+      await db.insert('labels', {
+        'id': 'label-1',
+        'name': 'Work',
+        'color': 0xFFFFFFFF,
+      });
+
       final project = Project(
         id: 'project-1',
         name: 'Temp Project',
@@ -101,41 +116,48 @@ void main() {
       final fetched = await repository.getById('project-1');
       expect(fetched, isNull);
 
-      final mappings = await db.query('project_labels', where: 'projectId = ?', whereArgs: ['project-1']);
+      final mappings = await db.query(
+        'project_labels',
+        where: 'projectId = ?',
+        whereArgs: ['project-1'],
+      );
       expect(mappings, isEmpty);
     });
 
-    test('should sort projects logically: deadlines, priority, and then name', () async {
-      final pA = Project(
-        id: 'pA',
-        name: 'A_Project',
-        color: Colors.blue,
-        isUrgent: false,
-        createdAt: DateTime.now(),
-      );
-      final pB = Project(
-        id: 'pB',
-        name: 'B_Project',
-        color: Colors.blue,
-        isUrgent: true, // Higher priority than A
-        createdAt: DateTime.now(),
-      );
-      final pC = Project(
-        id: 'pC',
-        name: 'C_Project',
-        color: Colors.blue,
-        deadline: DateTime(2026, 6, 1), // Has a deadline (should come first)
-        createdAt: DateTime.now(),
-      );
+    test(
+      'should sort projects logically: deadlines, priority, and then name',
+      () async {
+        final pA = Project(
+          id: 'pA',
+          name: 'A_Project',
+          color: Colors.blue,
+          isUrgent: false,
+          createdAt: DateTime.now(),
+        );
+        final pB = Project(
+          id: 'pB',
+          name: 'B_Project',
+          color: Colors.blue,
+          isUrgent: true, // Higher priority than A
+          createdAt: DateTime.now(),
+        );
+        final pC = Project(
+          id: 'pC',
+          name: 'C_Project',
+          color: Colors.blue,
+          deadline: DateTime(2026, 6, 1), // Has a deadline (should come first)
+          createdAt: DateTime.now(),
+        );
 
-      await repository.insert(pA);
-      await repository.insert(pB);
-      await repository.insert(pC);
+        await repository.insert(pA);
+        await repository.insert(pB);
+        await repository.insert(pC);
 
-      final sorted = await repository.getAll();
-      expect(sorted[0].id, equals('pC')); // Has deadline
-      expect(sorted[1].id, equals('pB')); // Higher priority
-      expect(sorted[2].id, equals('pA')); // Lower priority
-    });
+        final sorted = await repository.getAll();
+        expect(sorted[0].id, equals('pC')); // Has deadline
+        expect(sorted[1].id, equals('pB')); // Higher priority
+        expect(sorted[2].id, equals('pA')); // Lower priority
+      },
+    );
   });
 }

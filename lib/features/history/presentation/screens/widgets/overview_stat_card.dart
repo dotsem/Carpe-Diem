@@ -23,7 +23,9 @@ class OverviewStatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHigh),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

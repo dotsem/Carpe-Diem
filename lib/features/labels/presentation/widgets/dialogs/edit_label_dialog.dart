@@ -40,7 +40,10 @@ class _EditLabelDialogState extends ConsumerState<EditLabelDialog> {
             autofocus: true,
           ),
           const SizedBox(height: 16),
-          ProjectColorPicker(selected: selectedColor, onChanged: (c) => setState(() => selectedColor = c)),
+          ProjectColorPicker(
+            selected: selectedColor,
+            onChanged: (c) => setState(() => selectedColor = c),
+          ),
         ],
       ),
     );
@@ -50,7 +53,9 @@ class _EditLabelDialogState extends ConsumerState<EditLabelDialog> {
     final name = nameController.text.trim();
     if (name.isEmpty) return;
 
-    ref.read(labelProvider.notifier).updateLabel(widget.label.copyWith(name: name, color: selectedColor));
+    ref
+        .read(labelProvider.notifier)
+        .updateLabel(widget.label.copyWith(name: name, color: selectedColor));
     Navigator.of(context).pop();
   }
 }

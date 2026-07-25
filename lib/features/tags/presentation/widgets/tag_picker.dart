@@ -13,7 +13,13 @@ class TagPicker extends ConsumerWidget {
   final bool allowAdd;
   final bool isManageMode;
   final bool enableContextMenu;
-  final Widget Function(BuildContext context, Tag tag, bool isSelected, Widget defaultChip)? chipBuilder;
+  final Widget Function(
+    BuildContext context,
+    Tag tag,
+    bool isSelected,
+    Widget defaultChip,
+  )?
+  chipBuilder;
 
   const TagPicker({
     super.key,
@@ -43,7 +49,13 @@ class TagPicker extends ConsumerWidget {
               label: tag.name,
               avatar: Icon(icon),
               onTap: (details, box) {
-                showTagContextMenu(context, ref, tag, details.localPosition, box);
+                showTagContextMenu(
+                  context,
+                  ref,
+                  tag,
+                  details.localPosition,
+                  box,
+                );
               },
             );
           }
@@ -63,16 +75,28 @@ class TagPicker extends ConsumerWidget {
             avatar: Icon(icon),
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
             checkmarkColor: Colors.white,
-            labelStyle: TextStyle(color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant),
+            labelStyle: TextStyle(
+              color: isSelected
+                  ? Colors.white
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
 
-          final Widget chip = chipBuilder != null ? chipBuilder!(context, tag, isSelected, defaultChip) : defaultChip;
+          final Widget chip = chipBuilder != null
+              ? chipBuilder!(context, tag, isSelected, defaultChip)
+              : defaultChip;
 
           if (enableContextMenu) {
             return Builder(
               builder: (context) => GestureDetector(
                 onSecondaryTapDown: (details) {
-                  showTagContextMenu(context, ref, tag, details.localPosition, context.findRenderObject() as RenderBox);
+                  showTagContextMenu(
+                    context,
+                    ref,
+                    tag,
+                    details.localPosition,
+                    context.findRenderObject() as RenderBox,
+                  );
                 },
                 child: chip,
               ),

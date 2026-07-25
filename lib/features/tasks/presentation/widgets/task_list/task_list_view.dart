@@ -62,7 +62,8 @@ class TaskListView extends ConsumerStatefulWidget {
 class _TaskListViewState extends ConsumerState<TaskListView> {
   late bool _isDoneExpanded;
   final Map<String, FocusNode> _localItemFocusNodes = {};
-  Map<String, FocusNode> get _itemFocusNodes => widget.itemFocusNodes ?? _localItemFocusNodes;
+  Map<String, FocusNode> get _itemFocusNodes =>
+      widget.itemFocusNodes ?? _localItemFocusNodes;
   final List<String> _orderedItemIds = [];
 
   @override
@@ -145,7 +146,9 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
     final doneCategory = allTasks.where((t) => t.status.isDone).toList();
 
     if (activeTasks.isEmpty && doneCategory.isEmpty) {
-      return TaskListEmptyPlaceholder(customPlaceholder: widget.emptyPlaceholder);
+      return TaskListEmptyPlaceholder(
+        customPlaceholder: widget.emptyPlaceholder,
+      );
     }
 
     _orderedItemIds.clear();
@@ -159,7 +162,10 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
           ..addAll({for (var t in taskState.overdueTasks) t.id: t})
           ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
-        final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
+        final flattened = TaskHierarchyUtils.buildHierarchy(
+          categoryTasks,
+          allTasks: allAvailableTasks,
+        );
         for (final n in flattened) {
           if (n is TaskNode) _orderedItemIds.add(n.task.id);
         }
@@ -183,10 +189,16 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
 
       if (isTaskNode) {
         final isFirst = nodeIndex == 0;
-        autofocus = nodeIndex == 0 && widget.searchQuery == null && widget.firstNode == null;
+        autofocus =
+            nodeIndex == 0 &&
+            widget.searchQuery == null &&
+            widget.firstNode == null;
         focusNode = (isFirst && widget.firstNode != null)
             ? widget.firstNode!
-            : _itemFocusNodes.putIfAbsent(node.task.id, () => FocusNode(debugLabel: 'Task_${node.task.id}'));
+            : _itemFocusNodes.putIfAbsent(
+                node.task.id,
+                () => FocusNode(debugLabel: 'Task_${node.task.id}'),
+              );
 
         if (isFirst && widget.firstNode != null) {
           _itemFocusNodes[node.task.id] = widget.firstNode!;
@@ -210,15 +222,23 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       );
     }
 
-    List<Widget> buildHierarchy(List<Task> categoryTasks, bool Function(Task) overdueFn) {
+    List<Widget> buildHierarchy(
+      List<Task> categoryTasks,
+      bool Function(Task) overdueFn,
+    ) {
       if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
-        return categoryTasks.map((t) => buildNode(TaskNode(t, 0), overdueFn)).toList();
+        return categoryTasks
+            .map((t) => buildNode(TaskNode(t, 0), overdueFn))
+            .toList();
       }
       final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
         ..addAll({for (var t in taskState.overdueTasks) t.id: t})
         ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
 
-      final flattened = TaskHierarchyUtils.buildHierarchy(categoryTasks, allTasks: allAvailableTasks);
+      final flattened = TaskHierarchyUtils.buildHierarchy(
+        categoryTasks,
+        allTasks: allAvailableTasks,
+      );
       return flattened.map((n) => buildNode(n, overdueFn)).toList();
     }
 
@@ -228,9 +248,11 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       onMovePrev: () => _moveFocus(-1),
       onPlanToday: () {
         if (widget.selectedTaskIds.isNotEmpty) {
-          taskNotifier.scheduleTasksForToday(widget.selectedTaskIds.toList()).then((_) {
-            widget.onClearSelection?.call();
-          });
+          taskNotifier
+              .scheduleTasksForToday(widget.selectedTaskIds.toList())
+              .then((_) {
+                widget.onClearSelection?.call();
+              });
         } else {
           final taskId = _getFocusedTaskId();
           if (taskId != null) taskNotifier.scheduleTasksForToday([taskId]);
@@ -238,63 +260,82 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       },
       onPlanTomorrow: () {
         if (widget.selectedTaskIds.isNotEmpty) {
-          taskNotifier.scheduleTasksForTomorrow(widget.selectedTaskIds.toList()).then((_) {
-            widget.onClearSelection?.call();
-          });
+          taskNotifier
+              .scheduleTasksForTomorrow(widget.selectedTaskIds.toList())
+              .then((_) {
+                widget.onClearSelection?.call();
+              });
         } else {
           final taskId = _getFocusedTaskId();
           if (taskId != null) taskNotifier.scheduleTasksForTomorrow([taskId]);
         }
       },
       child: ListView(
-          padding: widget.padding,
-          children: [
-            if (activeTasks.isNotEmpty)
-              Builder(builder: (context) {
-                final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
-                  ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-                  ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
-                final activeNodes = widget.searchQuery != null && widget.searchQuery!.isNotEmpty
+        padding: widget.padding,
+        children: [
+          if (activeTasks.isNotEmpty)
+            Builder(
+              builder: (context) {
+                final allAvailableTasks =
+                    {for (var t in taskState.tasks) t.id: t}
+                      ..addAll({for (var t in taskState.overdueTasks) t.id: t})
+                      ..addAll({
+                        for (var t in taskState.unscheduledTasks) t.id: t,
+                      });
+                final activeNodes =
+                    widget.searchQuery != null && widget.searchQuery!.isNotEmpty
                     ? activeTasks.map((t) => TaskNode(t, 0)).toList()
-                    : TaskHierarchyUtils.buildHierarchy(activeTasks, allTasks: allAvailableTasks);
+                    : TaskHierarchyUtils.buildHierarchy(
+                        activeTasks,
+                        allTasks: allAvailableTasks,
+                      );
                 return ActiveTaskReorderableList(
                   nodes: activeNodes,
-                  widgets: activeNodes.map((n) => buildNode(n, isOverdue)).toList(),
+                  widgets: activeNodes
+                      .map((n) => buildNode(n, isOverdue))
+                      .toList(),
                   selectedTaskIds: widget.selectedTaskIds,
-                  onReorder: (task, newSortOrder) => taskNotifier.reorderTask(task, newSortOrder),
-                  onMultiReorder: (newSortOrders) => taskNotifier.bulkReorderTasks(newSortOrders),
+                  onReorder: (task, newSortOrder) =>
+                      taskNotifier.reorderTask(task, newSortOrder),
+                  onMultiReorder: (newSortOrders) =>
+                      taskNotifier.bulkReorderTasks(newSortOrders),
                 );
-              }),
-            if (doneCategory.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              TaskListSectionHeader(
-                title: 'Done',
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                amount: doneCategory.length,
-                onTap: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
-                trailing: AnimatedRotation(
-                  duration: const Duration(milliseconds: 200),
-                  turns: _isDoneExpanded ? 0.5 : 0,
-                  child: Icon(Icons.expand_more, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 20),
+              },
+            ),
+          if (doneCategory.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            TaskListSectionHeader(
+              title: 'Done',
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              amount: doneCategory.length,
+              onTap: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
+              trailing: AnimatedRotation(
+                duration: const Duration(milliseconds: 200),
+                turns: _isDoneExpanded ? 0.5 : 0,
+                child: Icon(
+                  Icons.expand_more,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  size: 20,
                 ),
               ),
-              const SizedBox(height: 8),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                child: _isDoneExpanded
-                    ? Column(children: buildHierarchy(doneCategory, (_) => false))
-                    : const SizedBox(width: double.infinity),
-              ),
-            ],
+            ),
+            const SizedBox(height: 8),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              child: _isDoneExpanded
+                  ? Column(children: buildHierarchy(doneCategory, (_) => false))
+                  : const SizedBox(width: double.infinity),
+            ),
           ],
-        ),
+        ],
+      ),
     );
   }
 
   String? _getFocusedTaskId() => FocusUtils.getFocusedId(
-        orderedItemIds: _orderedItemIds,
-        itemFocusNodes: _itemFocusNodes,
-        firstItemFocusNode: widget.firstNode,
-      );
+    orderedItemIds: _orderedItemIds,
+    itemFocusNodes: _itemFocusNodes,
+    firstItemFocusNode: widget.firstNode,
+  );
 }

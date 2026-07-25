@@ -22,7 +22,9 @@ class _EditTagDialogState extends ConsumerState<EditTagDialog> {
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.tag.name);
-    selectedIcon = ref.read(tagIconProvider)[widget.tag.name.trim().toLowerCase()] ?? Icons.tag;
+    selectedIcon =
+        ref.read(tagIconProvider)[widget.tag.name.trim().toLowerCase()] ??
+        Icons.tag;
   }
 
   @override
@@ -40,7 +42,10 @@ class _EditTagDialogState extends ConsumerState<EditTagDialog> {
         children: [
           TextField(
             controller: nameController,
-            decoration: const InputDecoration(labelText: 'Tag Name', hintText: 'Tag name'),
+            decoration: const InputDecoration(
+              labelText: 'Tag Name',
+              hintText: 'Tag name',
+            ),
             autofocus: true,
           ),
           const SizedBox(height: 16),
@@ -69,13 +74,22 @@ class _EditTagDialogState extends ConsumerState<EditTagDialog> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: isSelected ? colorScheme.primaryContainer : colorScheme.surfaceContainerHigh,
+                    color: isSelected
+                        ? colorScheme.primaryContainer
+                        : colorScheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: isSelected ? colorScheme.primary : Colors.transparent, width: 2),
+                    border: Border.all(
+                      color: isSelected
+                          ? colorScheme.primary
+                          : Colors.transparent,
+                      width: 2,
+                    ),
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+                    color: isSelected
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurfaceVariant,
                   ),
                 ),
               );
@@ -90,7 +104,9 @@ class _EditTagDialogState extends ConsumerState<EditTagDialog> {
     final name = nameController.text.trim();
     if (name.isEmpty) return;
 
-    ref.read(tagProvider.notifier).updateTag(widget.tag.copyWith(name: name), icon: selectedIcon);
+    ref
+        .read(tagProvider.notifier)
+        .updateTag(widget.tag.copyWith(name: name), icon: selectedIcon);
     Navigator.of(context).pop();
   }
 }

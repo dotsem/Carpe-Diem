@@ -26,7 +26,8 @@ class ProjectDetailScreen extends ConsumerStatefulWidget {
   const ProjectDetailScreen({super.key, required this.projectId});
 
   @override
-  ConsumerState<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
+  ConsumerState<ProjectDetailScreen> createState() =>
+      _ProjectDetailScreenState();
 }
 
 class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
@@ -37,7 +38,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   bool _isLoading = true;
   List<Task> _tasks = [];
   final List<String> _selectedTaskIds = [];
-  final FocusNode _firstItemFocusNode = FocusNode(debugLabel: 'ProjectDetailFirstItem');
+  final FocusNode _firstItemFocusNode = FocusNode(
+    debugLabel: 'ProjectDetailFirstItem',
+  );
   final List<String> _orderedItemIds = [];
   final Map<String, FocusNode> _itemFocusNodes = {};
 
@@ -48,7 +51,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
     _searchFocusNode.onKeyEvent = (node, event) {
       if (event is KeyDownEvent &&
-          (event.logicalKey == LogicalKeyboardKey.arrowDown || event.logicalKey == LogicalKeyboardKey.enter) &&
+          (event.logicalKey == LogicalKeyboardKey.arrowDown ||
+              event.logicalKey == LogicalKeyboardKey.enter) &&
           _tasks.isNotEmpty) {
         _firstItemFocusNode.requestFocus();
         return KeyEventResult.handled;
@@ -76,7 +80,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
   Future<void> _loadTasks({bool showLoading = true}) async {
     if (showLoading && mounted) setState(() => _isLoading = true);
-    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(widget.projectId);
+    final tasks = await ref
+        .read(taskProvider.notifier)
+        .getTasksForProject(widget.projectId);
     if (mounted) {
       setState(() {
         _tasks = tasks;
@@ -103,7 +109,12 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
     if (project == null) {
       return Center(
-        child: Text("Project not found", style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        child: Text(
+          "Project not found",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       );
     }
 
@@ -112,7 +123,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         .every((task) => task.scheduledDate != null);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(windowTitleProvider.notifier).updateTitle(subtitle: 'Project: ${project.name}');
+      ref
+          .read(windowTitleProvider.notifier)
+          .updateTitle(subtitle: 'Project: ${project.name}');
     });
 
     return ProjectDetailShortcuts(
@@ -130,8 +143,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           }
         }
       },
-      onNewTask: () => ProjectDetailDialogHandlers.showAddTask(context, widget.projectId),
-      onShowFilter: () => ProjectDetailDialogHandlers.showFilterDialog(context, ref),
+      onNewTask: () =>
+          ProjectDetailDialogHandlers.showAddTask(context, widget.projectId),
+      onShowFilter: () =>
+          ProjectDetailDialogHandlers.showFilterDialog(context, ref),
       child: Focus(
         focusNode: _mainFocusNode,
         autofocus: true,
@@ -145,8 +160,16 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 children: [
                   ProjectDetailHeader(
                     project: project,
-                    onEdit: () => ProjectDetailDialogHandlers.showEditProject(context, project),
-                    onDelete: () => ProjectDetailDialogHandlers.showDeleteProject(context, ref, project),
+                    onEdit: () => ProjectDetailDialogHandlers.showEditProject(
+                      context,
+                      project,
+                    ),
+                    onDelete: () =>
+                        ProjectDetailDialogHandlers.showDeleteProject(
+                          context,
+                          ref,
+                          project,
+                        ),
                     onImportMd: () {
                       showDialog(
                         context: context,
@@ -154,7 +177,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       ).then((_) => setState(() {}));
                     },
                   ),
-                  Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
+                  Divider(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    height: 1,
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: FuzzySearchBar(
@@ -175,30 +201,60 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                     filter: ref.watch(filterProvider).filter,
                     isBypassed: ref.watch(filterProvider).isBypassed,
                     ignoreProjects: true,
-                    onFilterTap: () => ProjectDetailDialogHandlers.showFilterDialog(context, ref),
-                    onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+                    onFilterTap: () =>
+                        ProjectDetailDialogHandlers.showFilterDialog(
+                          context,
+                          ref,
+                        ),
+                    onClearFilter: () =>
+                        ref.read(filterProvider.notifier).clearFilter(),
                   ),
-                  Divider(color: Theme.of(context).colorScheme.surfaceContainerHigh, height: 1),
+                  Divider(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    height: 1,
+                  ),
                   Expanded(
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : Builder(
                             builder: (context) {
-                              final filter = ref.watch(filterProvider).activeFilter.limitTo(projects: false);
+                              final filter = ref
+                                  .watch(filterProvider)
+                                  .activeFilter
+                                  .limitTo(projects: false);
                               final filteredTasks = _tasks
-                                  .where((t) => filter.applyToTask(t, project.labelIds))
+                                  .where(
+                                    (t) =>
+                                        filter.applyToTask(t, project.labelIds),
+                                  )
                                   .toList();
                               return TaskListView(
                                 tasks: filteredTasks,
-                                padding: const EdgeInsets.symmetric(vertical: 24),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 24,
+                                ),
                                 onContextMenu: (ctx, task, pos, box) =>
-                                    showTaskCardContextMenu(ctx, ref, task, filteredTasks, pos, box),
+                                    showTaskCardContextMenu(
+                                      ctx,
+                                      ref,
+                                      task,
+                                      filteredTasks,
+                                      pos,
+                                      box,
+                                    ),
                                 trailingBuilder: (ctx, task) =>
-                                    ProjectTaskTrailingButton(task: task, tasks: filteredTasks),
+                                    ProjectTaskTrailingButton(
+                                      task: task,
+                                      tasks: filteredTasks,
+                                    ),
                                 emptyPlaceholder: Center(
                                   child: Text(
                                     "No tasks in this project",
-                                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                                 ),
                                 onOrderedIdsChanged: (ids) {
@@ -212,13 +268,18 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                 showScheduleDate: true,
                                 selectionMode: true,
                                 selectedTaskIds: _selectedTaskIds.toSet(),
-                                onClearSelection: () => setState(() => _selectedTaskIds.clear()),
+                                onClearSelection: () =>
+                                    setState(() => _selectedTaskIds.clear()),
                                 onSelectedChanged: (task) => setState(() {
                                   _selectedTaskIds.contains(task.id)
                                       ? _selectedTaskIds.remove(task.id)
                                       : _selectedTaskIds.add(task.id);
                                 }),
-                                onEdit: (task) => ProjectDetailDialogHandlers.showEditTask(context, task),
+                                onEdit: (task) =>
+                                    ProjectDetailDialogHandlers.showEditTask(
+                                      context,
+                                      task,
+                                    ),
                                 isReadOnly: !project.isActive,
                                 initialDoneExpanded: !project.isActive,
                               );
@@ -233,34 +294,46 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 bottom: 16,
                 child: BulkPlanningBar(
                   selectedCount: _selectedTaskIds.length,
-                  onClearSelection: () => setState(() => _selectedTaskIds.clear()),
+                  onClearSelection: () =>
+                      setState(() => _selectedTaskIds.clear()),
                   disableScheduling: selectedTasksAlreadyScheduled,
                   onScheduleToday: () {
-                    ref.read(taskProvider.notifier).scheduleTasksForToday(_selectedTaskIds).then((_) {
-                      setState(() => _selectedTaskIds.clear());
-                    });
+                    ref
+                        .read(taskProvider.notifier)
+                        .scheduleTasksForToday(_selectedTaskIds)
+                        .then((_) {
+                          setState(() => _selectedTaskIds.clear());
+                        });
                   },
                   onScheduleTomorrow: () {
-                    ref.read(taskProvider.notifier).scheduleTasksForTomorrow(_selectedTaskIds).then((_) {
-                      setState(() => _selectedTaskIds.clear());
-                    });
+                    ref
+                        .read(taskProvider.notifier)
+                        .scheduleTasksForTomorrow(_selectedTaskIds)
+                        .then((_) {
+                          setState(() => _selectedTaskIds.clear());
+                        });
                   },
                   onBulkEdit: () {
                     if (_selectedTaskIds.length == 1) {
-                      final task = _tasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                      final task = _tasks.firstWhere(
+                        (t) => t.id == _selectedTaskIds.first,
+                      );
                       ProjectDetailDialogHandlers.showEditTask(context, task);
                     } else {
                       ProjectDetailDialogHandlers.showBulkEdit(
                         context: context,
                         ref: ref,
                         selectedTaskIds: _selectedTaskIds,
-                        onCompleted: () => setState(() => _selectedTaskIds.clear()),
+                        onCompleted: () =>
+                            setState(() => _selectedTaskIds.clear()),
                       );
                     }
                   },
                   onBulkDelete: () {
                     if (_selectedTaskIds.length == 1) {
-                      final task = _tasks.firstWhere((t) => t.id == _selectedTaskIds.first);
+                      final task = _tasks.firstWhere(
+                        (t) => t.id == _selectedTaskIds.first,
+                      );
                       showDialog(
                         context: context,
                         builder: (ctx) => DeleteDialog(
@@ -277,7 +350,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         context: context,
                         ref: ref,
                         selectedTaskIds: _selectedTaskIds,
-                        onCompleted: () => setState(() => _selectedTaskIds.clear()),
+                        onCompleted: () =>
+                            setState(() => _selectedTaskIds.clear()),
                       );
                     }
                   },
@@ -288,7 +362,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           floatingActionButton: ProjectDetailFab(
             isActive: project.isActive,
             color: project.color,
-            onPressed: () => ProjectDetailDialogHandlers.showAddTask(context, widget.projectId),
+            onPressed: () => ProjectDetailDialogHandlers.showAddTask(
+              context,
+              widget.projectId,
+            ),
           ),
         ),
       ),

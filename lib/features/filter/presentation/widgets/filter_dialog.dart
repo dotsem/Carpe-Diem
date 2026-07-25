@@ -84,7 +84,11 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
           children: [
             if (widget.showUrgencyFilter) ...[
               _sectionHeader('Urgency'),
-              UrgencySelector(selected: _isUrgent, onChanged: (v) => setState(() => _isUrgent = v), allowAll: true),
+              UrgencySelector(
+                selected: _isUrgent,
+                onChanged: (v) => setState(() => _isUrgent = v),
+                allowAll: true,
+              ),
               const SizedBox(height: 16),
             ],
             if (widget.showProjectFilter) ...[
@@ -105,8 +109,10 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
               LabelFilterPicker(
                 selectedLabelIds: _labelIdsIncluded.toList(),
                 excludedLabelIds: _labelIdsExcluded.toList(),
-                onSelected: (inc) => setState(() => _labelIdsIncluded = Set.from(inc)),
-                onExcluded: (exc) => setState(() => _labelIdsExcluded = Set.from(exc)),
+                onSelected: (inc) =>
+                    setState(() => _labelIdsIncluded = Set.from(inc)),
+                onExcluded: (exc) =>
+                    setState(() => _labelIdsExcluded = Set.from(exc)),
                 interactionMethod: interactionMethod,
               ),
             ],

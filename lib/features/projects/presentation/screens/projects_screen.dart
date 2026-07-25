@@ -95,7 +95,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 isBypassed: filterState.isBypassed,
                 ignoreProjects: true,
                 onFilterTap: () => _showFilterDialog(context),
-                onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+                onClearFilter: () =>
+                    ref.read(filterProvider.notifier).clearFilter(),
               );
             }(),
             const Divider(height: 1),
@@ -121,7 +122,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     final filterNotifier = ref.read(filterProvider.notifier);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) => FilterDialog(initialFilter: ref.read(filterProvider).filter, showProjectFilter: false),
+      builder: (_) => FilterDialog(
+        initialFilter: ref.read(filterProvider).filter,
+        showProjectFilter: false,
+      ),
     );
     if (result != null) {
       filterNotifier.setFilter(result);
