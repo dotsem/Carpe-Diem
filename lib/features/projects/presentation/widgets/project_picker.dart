@@ -25,8 +25,7 @@ class ProjectPicker extends StatefulWidget {
 
 class _ProjectPickerState extends State<ProjectPicker> {
   final MenuController _localMenuController = MenuController();
-  MenuController get _menuController =>
-      widget.menuController ?? _localMenuController;
+  MenuController get _menuController => widget.menuController ?? _localMenuController;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -56,14 +55,11 @@ class _ProjectPickerState extends State<ProjectPicker> {
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
           setState(() {
-            _selectedIndex =
-                (_selectedIndex - 1 + _filteredProjects.length) %
-                _filteredProjects.length;
+            _selectedIndex = (_selectedIndex - 1 + _filteredProjects.length) % _filteredProjects.length;
           });
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-          if (_selectedIndex >= 0 &&
-              _selectedIndex < _filteredProjects.length) {
+          if (_selectedIndex >= 0 && _selectedIndex < _filteredProjects.length) {
             _onProjectSelected(_filteredProjects[_selectedIndex]);
             return KeyEventResult.handled;
           }
@@ -95,21 +91,13 @@ class _ProjectPickerState extends State<ProjectPicker> {
     if (widget.projects.isEmpty) {
       return InputDecorator(
         decoration: _inputDecoration().copyWith(hintText: 'No projects yet'),
-        child: Text(
-          'No projects yet',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
+        child: Text('No projects yet', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       );
     }
 
-    final selectedProject = widget.selectedProjectId == null
+    final selectedProject = widget.selectedProjectId == null || widget.selectedProjectId!.isEmpty
         ? null
-        : widget.projects.firstWhere(
-            (p) => p.id == widget.selectedProjectId,
-            orElse: () => widget.projects.first,
-          );
+        : widget.projects.cast<Project?>().firstWhere((p) => p?.id == widget.selectedProjectId, orElse: () => null);
 
     return MenuAnchor(
       controller: _menuController,
@@ -118,13 +106,9 @@ class _ProjectPickerState extends State<ProjectPicker> {
         setState(() => _selectedIndex = 0);
       },
       style: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(
-          Theme.of(context).colorScheme.surfaceContainerHigh,
-        ),
+        backgroundColor: WidgetStateProperty.all(Theme.of(context).colorScheme.surfaceContainerHigh),
         elevation: WidgetStateProperty.all(8),
-        shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
+        shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
       ),
       menuChildren: [
         Padding(
@@ -148,11 +132,7 @@ class _ProjectPickerState extends State<ProjectPicker> {
                                 child: Center(
                                   child: Text(
                                     'No results found',
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
+                                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                                   ),
                                 ),
                               ),
@@ -160,11 +140,7 @@ class _ProjectPickerState extends State<ProjectPicker> {
                           : List.generate(_filteredProjects.length, (index) {
                               final project = _filteredProjects[index];
                               final isHighlighted = index == _selectedIndex;
-                              return _buildProjectItem(
-                                project,
-                                isHighlighted,
-                                index,
-                              );
+                              return _buildProjectItem(project, isHighlighted, index);
                             }),
                     ),
                   ),
@@ -191,27 +167,12 @@ class _ProjectPickerState extends State<ProjectPicker> {
                   Container(
                     width: 12,
                     height: 12,
-                    decoration: BoxDecoration(
-                      color: selectedProject.color,
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: BoxDecoration(color: selectedProject.color, shape: BoxShape.circle),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      selectedProject.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                  Expanded(child: Text(selectedProject.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ] else
-                  const Expanded(
-                    child: Text(
-                      'No project',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                  const Expanded(child: Text('No project', maxLines: 1, overflow: TextOverflow.ellipsis)),
                 const Icon(Icons.arrow_drop_down),
               ],
             ),
@@ -251,35 +212,24 @@ class _ProjectPickerState extends State<ProjectPicker> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isHighlighted
-              ? AppColors.accent.withAlpha(25)
-              : Colors.transparent,
+          color: isHighlighted ? AppColors.accent.withAlpha(25) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
             if (project == null)
-              Icon(
-                Icons.block,
-                size: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              )
+              Icon(Icons.block, size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)
             else
               Container(
                 width: 12,
                 height: 12,
-                decoration: BoxDecoration(
-                  color: project.color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: project.color, shape: BoxShape.circle),
               ),
             const SizedBox(width: 8),
             Text(
               project?.name ?? 'No project',
               style: TextStyle(
-                color: isHighlighted
-                    ? AppColors.accent
-                    : Theme.of(context).colorScheme.onSurface,
+                color: isHighlighted ? AppColors.accent : Theme.of(context).colorScheme.onSurface,
                 fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
               ),
             ),
