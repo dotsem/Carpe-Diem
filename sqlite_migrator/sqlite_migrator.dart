@@ -35,10 +35,8 @@ void main(List<String> args) {
     migrationsDirObj.createSync(recursive: true);
   }
 
-  // 5. Generate migration file from template
   _createMigrationFile(nextVersion, className, filename);
 
-  // 6. Re-generate migration_registrar.dart
   _registerMigration(filename, migrationsDirObj);
 
   stdout.write('Migration $filename created with version $nextVersion\n');
