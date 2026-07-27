@@ -32,7 +32,9 @@ extension TaskNotifierExtension on TaskNotifier {
     final settings = ref.read(settingsProvider);
     DateTime? projectDeadline;
     bool shouldInheritDeadline = false;
-    if (updateProjectId && projectId != null && settings.inheritProjectDeadline) {
+    if (updateProjectId &&
+        projectId != null &&
+        settings.inheritProjectDeadline) {
       final project = await _projectRepo.getById(projectId);
       if (project?.deadline != null) {
         projectDeadline = project!.deadline;
@@ -47,7 +49,8 @@ extension TaskNotifierExtension on TaskNotifier {
           (t) => t.id == id,
           orElse: () => tasksState.overdueTasks.firstWhere(
             (t) => t.id == id,
-            orElse: () => tasksState.unscheduledTasks.firstWhere((t) => t.id == id),
+            orElse: () =>
+                tasksState.unscheduledTasks.firstWhere((t) => t.id == id),
           ),
         );
       } catch (_) {
@@ -61,7 +64,9 @@ extension TaskNotifierExtension on TaskNotifier {
           clearScheduledDate: clearScheduledDate,
           projectId: updateProjectId ? projectId : null,
           clearProjectId: clearProjectId,
-          deadline: updateDeadline ? deadline : (shouldInheritDeadline ? projectDeadline : null),
+          deadline: updateDeadline
+              ? deadline
+              : (shouldInheritDeadline ? projectDeadline : null),
           clearDeadline: clearDeadline,
           blockedById: updateBlockedById ? blockedById : null,
           clearBlockedBy: clearBlockedById,
@@ -84,7 +89,10 @@ extension TaskNotifierExtension on TaskNotifier {
     ToastUtils.showSuccess('Deleted ${taskIds.length} tasks');
   }
 
-  Future<void> _scheduleTasksForDate(List<String> taskIds, DateTime date) async {
+  Future<void> _scheduleTasksForDate(
+    List<String> taskIds,
+    DateTime date,
+  ) async {
     final normalizedDate = _normalizeDate(date);
     for (final id in taskIds) {
       Task? task;
@@ -93,7 +101,8 @@ extension TaskNotifierExtension on TaskNotifier {
           (t) => t.id == id,
           orElse: () => tasksState.overdueTasks.firstWhere(
             (t) => t.id == id,
-            orElse: () => tasksState.unscheduledTasks.firstWhere((t) => t.id == id),
+            orElse: () =>
+                tasksState.unscheduledTasks.firstWhere((t) => t.id == id),
           ),
         );
       } catch (_) {
@@ -116,16 +125,27 @@ extension TaskNotifierExtension on TaskNotifier {
 
   /// Schedules tasks for tomorrow (uses the current date at the time of execution)
   Future<void> scheduleTasksForTomorrow(List<String> taskIds) async {
-    await _scheduleTasksForDate(taskIds, DateTime.now().add(const Duration(days: 1)));
+    await _scheduleTasksForDate(
+      taskIds,
+      DateTime.now().add(const Duration(days: 1)),
+    );
     ToastUtils.showSuccess('Tasks scheduled for tomorrow');
   }
 
   /// Schedules tasks for the day after the given date
-  Future<void> scheduleTasksForNextDay(List<String> taskIds, DateTime selectedDate) async {
-    final nextDay = selectedDate.add(const Duration(days: 1));
+  Future<void> scheduleTasksForNextDay(
+    List<String> taskIds,
+    DateTime selectedDate,
+  ) async {
+    final nextDay = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day + 1,
+    );
     final normalizedDate = _normalizeDate(nextDay);
     await _scheduleTasksForDate(taskIds, normalizedDate);
-    ToastUtils.showSuccess('Tasks scheduled for ${normalizedDate.day}/${normalizedDate.month}');
+    final formattedDate = DateFormat('MMM d').format(normalizedDate);
+    ToastUtils.showSuccess('Tasks scheduled for $formattedDate');
   }
 
   /// Schedules tasks for the start of the next week based on the current date and first day of week settings
@@ -137,7 +157,9 @@ extension TaskNotifierExtension on TaskNotifier {
   }
 
   Future<Task?> pickAndScheduleRandomTask(List<Task> availableTasks) async {
-    final unblockedTasks = availableTasks.where((t) => t.blockedById == null && !t.isCompleted).toList();
+    final unblockedTasks = availableTasks
+        .where((t) => t.blockedById == null && !t.isCompleted)
+        .toList();
     if (unblockedTasks.isEmpty) return null;
 
     final randomTask = unblockedTasks[Random().nextInt(unblockedTasks.length)];
@@ -152,7 +174,13 @@ extension TaskNotifierExtension on TaskNotifier {
     int? offset,
     TaskFilter? filter,
   }) async {
-    return _historyRepo.getCompletedInRange(start, end, limit: limit, offset: offset, filter: filter);
+    return _historyRepo.getCompletedInRange(
+      start,
+      end,
+      limit: limit,
+      offset: offset,
+      filter: filter,
+    );
   }
 
   Future<DateTime> getFirstTaskDate() async {
@@ -161,11 +189,18 @@ extension TaskNotifierExtension on TaskNotifier {
     return DateTime.now();
   }
 
-  Future<HistoryOverview> getHistoryOverview(DateTime start, DateTime end, {TaskFilter? filter}) async {
+  Future<HistoryOverview> getHistoryOverview(
+    DateTime start,
+    DateTime end, {
+    TaskFilter? filter,
+  }) async {
     return _historyRepo.getHistoryOverview(start, end, filter: filter);
   }
 
-  Future<void> importTasksFromMarkdown(String markdown, String? projectId) async {
+  Future<void> importTasksFromMarkdown(
+    String markdown,
+    String? projectId,
+  ) async {
     final tasks = TaskMarkdownParser.parseMarkdown(markdown);
     final settings = ref.read(settingsProvider);
     DateTime? projectDeadline;
@@ -175,7 +210,9 @@ extension TaskNotifierExtension on TaskNotifier {
     }
 
     for (final task in tasks) {
-      await _repo.insert(task.copyWith(projectId: projectId, deadline: projectDeadline));
+      await _repo.insert(
+        task.copyWith(projectId: projectId, deadline: projectDeadline),
+      );
     }
     await _refreshAll();
     ToastUtils.showSuccess('Imported ${tasks.length} tasks from markdown');
@@ -198,7 +235,9 @@ extension TaskNotifierExtension on TaskNotifier {
 
   Future<void> _propagateDeadline(Task task, [Set<String>? visited]) async {
     final settings = ref.read(settingsProvider);
-    if (!settings.inheritParentDeadline || task.deadline == null || task.blockedById == null) {
+    if (!settings.inheritParentDeadline ||
+        task.deadline == null ||
+        task.blockedById == null) {
       return;
     }
 
