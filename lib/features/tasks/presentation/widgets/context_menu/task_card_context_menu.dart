@@ -1,9 +1,8 @@
-import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
-import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/warning_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_date_items.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,88 +19,31 @@ void showTaskCardContextMenu(
   VoidCallback? onAction,
 }) {
   final provider = ref.read(taskProvider.notifier);
-  final selectedDate = ref.read(selectedDateProvider);
   final RenderBox overlay =
       Overlay.of(context).context.findRenderObject() as RenderBox;
   final Offset position = renderBox.localToGlobal(
     localPosition,
     ancestor: overlay,
   );
-  final isSelectedDateToday = selectedDate.isToday;
 
   final items = <PopupMenuEntry<void>>[];
 
   items.add(buildTopRow(context, ref, task, tasks));
+
+  items.addAll(
+    buildDateScheduleItems(
+      context,
+      ref,
+      task,
+      tasks,
+      localPosition,
+      renderBox,
+      onAction,
+    ),
+  );
+
   items.addAll(buildProgressStateItems(context, ref, task, onAction: onAction));
 
-  if (task.scheduledDate != null && isSelectedDateToday) {
-    items.add(
-      PopupMenuItem(
-        onTap: () {
-          provider.scheduleTasksForTomorrow([task.id]);
-          onAction?.call();
-        },
-        child: const ListTile(
-          leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
-          title: Text(
-            'Reschedule for Tomorrow',
-            style: TextStyle(color: AppColors.info),
-          ),
-          dense: true,
-        ),
-      ),
-    );
-    if (todayIsEndOfWorkWeek()) {
-      items.add(
-        PopupMenuItem(
-          onTap: () {
-            provider.scheduleTasksForNextWorkDay([task.id]);
-            onAction?.call();
-          },
-          child: const ListTile(
-            leading: Icon(Icons.work_history_outlined, color: AppColors.info),
-            title: Text(
-              'Reschedule for Next Week',
-              style: TextStyle(color: AppColors.info),
-            ),
-            dense: true,
-          ),
-        ),
-      );
-    }
-  } else {
-    items.addAll([
-      PopupMenuItem(
-        onTap: () {
-          provider.scheduleTasksForToday([task.id]);
-          onAction?.call();
-        },
-        child: const ListTile(
-          leading: Icon(Icons.schedule_outlined, color: AppColors.info),
-          title: Text(
-            'Schedule for Today',
-            style: TextStyle(color: AppColors.info),
-          ),
-          dense: true,
-        ),
-      ),
-      PopupMenuItem(
-        onTap: () {
-          provider.scheduleTasksForTomorrow([task.id]);
-          onAction?.call();
-        },
-        child: const ListTile(
-          leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
-          title: Text(
-            'Schedule for Tomorrow',
-            style: TextStyle(color: AppColors.info),
-          ),
-          dense: true,
-        ),
-      ),
-      // TODO: handle cases where we are viewing scheduled tasks for tomorrow or later
-    ]);
-  }
   items.addAll([
     PopupMenuItem(
       onTap: () => _showEditTask(context, task),

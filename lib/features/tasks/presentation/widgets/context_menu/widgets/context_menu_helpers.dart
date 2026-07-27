@@ -26,8 +26,11 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           onAction?.call();
         },
         child: const ListTile(
-          leading: Icon(Icons.play_arrow, color: AppColors.success),
-          title: Text('Start (In Progress)', style: TextStyle(color: AppColors.success)),
+          leading: Icon(Icons.play_circle_outline, color: AppColors.success),
+          title: Text(
+            'Start (In Progress)',
+            style: TextStyle(color: AppColors.success),
+          ),
           dense: true,
         ),
       ),
@@ -119,7 +122,13 @@ PopupMenuItem<void> buildTopRow(BuildContext context, WidgetRef ref, final Task 
                   },
           ),
           IconButton(
-            icon: const Icon(Icons.warning_amber_rounded, color: AppColors.error),
+            icon: Icon(
+              Icons.warning_amber_rounded,
+              color: task.isUrgent
+                  ? Theme.of(context).colorScheme.onSurface
+                  : Theme.of(context).colorScheme.error.withAlpha(200),
+              // TODO: decide if this is good UX
+            ),
             tooltip: task.isUrgent ? 'Mark as Not Urgent' : 'Mark as Urgent',
             onPressed: () {
               Navigator.of(context).pop();

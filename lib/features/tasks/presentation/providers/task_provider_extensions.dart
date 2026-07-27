@@ -117,11 +117,13 @@ extension TaskNotifierExtension on TaskNotifier {
     await _refreshAll();
   }
 
+  /// Schedules tasks for today (uses the current date at the time of execution)
   Future<void> scheduleTasksForToday(List<String> taskIds) async {
     await _scheduleTasksForDate(taskIds, DateTime.now());
     ToastUtils.showSuccess('Tasks scheduled for today');
   }
 
+  /// Schedules tasks for tomorrow (uses the current date at the time of execution)
   Future<void> scheduleTasksForTomorrow(List<String> taskIds) async {
     await _scheduleTasksForDate(
       taskIds,
@@ -130,6 +132,23 @@ extension TaskNotifierExtension on TaskNotifier {
     ToastUtils.showSuccess('Tasks scheduled for tomorrow');
   }
 
+  /// Schedules tasks for the day after the given date
+  Future<void> scheduleTasksForNextDay(
+    List<String> taskIds,
+    DateTime selectedDate,
+  ) async {
+    final nextDay = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day + 1,
+    );
+    final normalizedDate = _normalizeDate(nextDay);
+    await _scheduleTasksForDate(taskIds, normalizedDate);
+    final formattedDate = DateFormat('MMM d').format(normalizedDate);
+    ToastUtils.showSuccess('Tasks scheduled for $formattedDate');
+  }
+
+  /// Schedules tasks for the start of the next week based on the current date and first day of week settings
   Future<void> scheduleTasksForNextWorkDay(List<String> taskIds) async {
     final settings = ref.read(settingsProvider);
     DateTime nextStartOfWeek = DateTime.now().next(settings.firstDayOfWeek);
