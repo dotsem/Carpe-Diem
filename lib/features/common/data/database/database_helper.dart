@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:carpe_diem/features/common/data/database/constants/db_constants.dart';
+import 'package:carpe_diem/features/common/data/database/migration.dart';
+import 'package:carpe_diem/features/common/data/database/migration_registrar.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -38,7 +41,7 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: AppConstants.dbVersion,
+      version: DbConstants.dbVersion,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -197,70 +200,6 @@ class DatabaseHelper {
     int oldVersion,
     int newVersion,
   ) async {
-    if (oldVersion < 11) {
-      await db.execute(
-        'ALTER TABLE projects ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1',
-      );
-    }
-    if (oldVersion < 12) {
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS tags (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL
-        )
-      ''');
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS task_tags (
-          taskId TEXT NOT NULL,
-          tagId TEXT NOT NULL,
-          PRIMARY KEY (taskId, tagId),
-          FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE,
-          FOREIGN KEY (tagId) REFERENCES tags(id) ON DELETE CASCADE
-        )
-      ''');
-    }
-    if (oldVersion < 13) {
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS tag_icons (
-          tag_name TEXT PRIMARY KEY,
-          icon_code_point INTEGER NOT NULL
-        )
-      ''');
-      await _seedTagIcons(db);
-    }
-    if (oldVersion < 15) {
-      await db.execute(
-        "ALTER TABLE tasks ADD COLUMN sortOrder TEXT NOT NULL DEFAULT ''",
-      );
-      await db.execute(
-        "UPDATE tasks SET sortOrder = createdAt WHERE sortOrder = ''",
-      );
-    }
-    if (oldVersion < 16) {
-      await db.execute(
-        'ALTER TABLE tasks ADD COLUMN isUrgent INTEGER NOT NULL DEFAULT 0',
-      );
-      await db.execute('UPDATE tasks SET isUrgent = 1 WHERE priority = 4');
-
-      try {
-        await db.execute('ALTER TABLE tasks DROP COLUMN priority');
-      } catch (_) {}
-
-      await db.execute(
-        'ALTER TABLE projects ADD COLUMN isUrgent INTEGER NOT NULL DEFAULT 0',
-      );
-      await db.execute('UPDATE projects SET isUrgent = 1 WHERE priority = 4');
-      try {
-        await db.execute('ALTER TABLE projects DROP COLUMN priority');
-      } catch (_) {}
-    }
-    if (oldVersion < 17) {
-      await db.execute(
-        "ALTER TABLE projects ADD COLUMN sortOrder TEXT NOT NULL DEFAULT ''",
-      );
-      await db.execute(
-        "UPDATE projects SET sortOrder = createdAt WHERE sortOrder = ''",
-      );
-    }
+    await MigrationRunner(allMigrations).run(db, oldVersion, newVersion);
   }
 }

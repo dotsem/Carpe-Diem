@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/database/database_helper.dart';
+import 'package:carpe_diem/features/common/data/database/migration.dart';
 
 void main() {
   setUpAll(() {
@@ -60,11 +61,8 @@ void main() {
     });
 
     test('should enforce foreign keys on the created database', () async {
-      // Turn on foreign keys explicitly just in case FFI hasn't done it
       await db.execute('PRAGMA foreign_keys = ON');
 
-      // Attempt to insert into tasks with a non-existent projectId
-      // This should fail because tasks.projectId references projects.id
       expect(
         () => db.insert('tasks', {
           'id': 'test-task-1',
@@ -73,10 +71,38 @@ void main() {
           'createdAt': DateTime.now().toIso8601String(),
           'isCompleted': 0,
           'status': 0,
-          'priority': 0,
+          'isUrgent': 0,
         }),
         throwsA(isA<DatabaseException>()),
       );
     });
   });
+
+  group('MigrationRunner', () {
+    test('executes applicable migrations in sequential order', () async {
+      final db = await openDatabase(inMemoryDatabasePath, version: 1);
+      final executed = <int>[];
+
+      final runner = MigrationRunner([
+        _TestMigration(2, () => executed.add(2)),
+        _TestMigration(1, () => executed.add(1)),
+        _TestMigration(3, () => executed.add(3)),
+      ]);
+
+      await runner.run(db, 1, 3);
+      expect(executed, equals([2, 3]));
+      await db.close();
+    });
+  });
+}
+
+class _TestMigration implements Migration {
+  @override
+  final int version;
+  final Function() onUp;
+
+  _TestMigration(this.version, this.onUp);
+
+  @override
+  Future<void> up(DatabaseExecutor db) async => onUp();
 }

@@ -1,0 +1,15 @@
+// ignore_for_file: file_names, camel_case_types
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import '../migration.dart';
+
+class {{name}} implements Migration {
+  @override
+  int get version => {{version}};
+
+  @override
+  Future<void> up(DatabaseExecutor db) async {
+    await db.execute('''
+
+    ''');
+  }
+}
