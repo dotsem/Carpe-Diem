@@ -36,25 +36,28 @@ void main() {
       timer.dispose();
     });
 
-    test('didChangeAppLifecycleState triggers date check on resumed if day changed', () {
-      var currentTime = DateTime(2026, 7, 27, 12, 0, 0);
-      final timer = MidnightTimer(clock: () => currentTime);
-      var called = false;
+    test(
+      'didChangeAppLifecycleState triggers date check on resumed if day changed',
+      () {
+        var currentTime = DateTime(2026, 7, 27, 12, 0, 0);
+        final timer = MidnightTimer(clock: () => currentTime);
+        var called = false;
 
-      timer.start(() {
-        called = true;
-      });
+        timer.start(() {
+          called = true;
+        });
 
-      // Same day resume -> no callback
-      timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
-      expect(called, isFalse);
+        // Same day resume -> no callback
+        timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        expect(called, isFalse);
 
-      // Simulate device waking from sleep on the next day
-      currentTime = DateTime(2026, 7, 28, 8, 0, 0);
-      timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
-      expect(called, isTrue);
+        // Simulate device waking from sleep on the next day
+        currentTime = DateTime(2026, 7, 28, 8, 0, 0);
+        timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        expect(called, isTrue);
 
-      timer.dispose();
-    });
+        timer.dispose();
+      },
+    );
   });
 }

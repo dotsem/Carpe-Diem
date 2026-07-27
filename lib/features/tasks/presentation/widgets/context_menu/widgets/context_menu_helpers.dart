@@ -41,7 +41,10 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
         },
         child: const ListTile(
           leading: Icon(Icons.check_circle_outline, color: AppColors.success),
-          title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
+          title: Text(
+            'Mark as Done',
+            style: TextStyle(color: AppColors.success),
+          ),
           dense: true,
         ),
       ),
@@ -53,7 +56,11 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           provider.updateTaskStatus(task, TaskStatus.todo);
           onAction?.call();
         },
-        child: const ListTile(leading: Icon(Icons.undo), title: Text('Back to Todo'), dense: true),
+        child: const ListTile(
+          leading: Icon(Icons.undo),
+          title: Text('Back to Todo'),
+          dense: true,
+        ),
       ),
       PopupMenuItem(
         onTap: () {
@@ -62,7 +69,10 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
         },
         child: const ListTile(
           leading: Icon(Icons.check_circle_outline, color: AppColors.success),
-          title: Text('Mark as Done', style: TextStyle(color: AppColors.success)),
+          title: Text(
+            'Mark as Done',
+            style: TextStyle(color: AppColors.success),
+          ),
           dense: true,
         ),
       ),
@@ -74,30 +84,50 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           provider.updateTaskStatus(task, TaskStatus.todo);
           onAction?.call();
         },
-        child: const ListTile(leading: Icon(Icons.undo), title: Text('Back to Todo'), dense: true),
+        child: const ListTile(
+          leading: Icon(Icons.undo),
+          title: Text('Back to Todo'),
+          dense: true,
+        ),
       ),
       PopupMenuItem(
         onTap: () {
           provider.updateTaskStatus(task, TaskStatus.inProgress);
           onAction?.call();
         },
-        child: const ListTile(leading: Icon(Icons.play_arrow), title: Text('Back to In Progress'), dense: true),
+        child: const ListTile(
+          leading: Icon(Icons.play_arrow),
+          title: Text('Back to In Progress'),
+          dense: true,
+        ),
       ),
     ]);
   }
   return items;
 }
 
-PopupMenuItem<void> buildTopRow(BuildContext context, WidgetRef ref, final Task task, final List<Task> tasks) {
+PopupMenuItem<void> buildTopRow(
+  BuildContext context,
+  WidgetRef ref,
+  final Task task,
+  final List<Task> tasks,
+) {
   final settings = ref.watch(settingsProvider);
   final provider = ref.read(taskProvider.notifier);
 
-  final taskPosition = TaskReorderUtils.getTaskPosition(task: task, tasks: tasks, settings: settings);
+  final taskPosition = TaskReorderUtils.getTaskPosition(
+    task: task,
+    tasks: tasks,
+    settings: settings,
+  );
 
   return PopupMenuItem<void>(
     enabled: false,
     child: IconTheme(
-      data: IconThemeData(color: Theme.of(context).colorScheme.onSurface, opacity: 1.0),
+      data: IconThemeData(
+        color: Theme.of(context).colorScheme.onSurface,
+        opacity: 1.0,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -118,7 +148,12 @@ PopupMenuItem<void> buildTopRow(BuildContext context, WidgetRef ref, final Task 
                 ? null
                 : () {
                     Navigator.of(context).pop();
-                    TaskReorderUtils.moveToBottom(provider, task, tasks, settings);
+                    TaskReorderUtils.moveToBottom(
+                      provider,
+                      task,
+                      tasks,
+                      settings,
+                    );
                   },
           ),
           IconButton(
@@ -147,7 +182,9 @@ PopupMenuItem<void> buildTopRow(BuildContext context, WidgetRef ref, final Task 
                   return CustomDatePickerDialog(
                     initialDate: task.scheduledDate ?? DateTime.now(),
                     firstDate: AppConstants.appFirstDate,
-                    lastDate: DateTime.now().add(Duration(days: settings.maxPlanningDays)),
+                    lastDate: DateTime.now().add(
+                      Duration(days: settings.maxPlanningDays),
+                    ),
                   );
                 },
               );

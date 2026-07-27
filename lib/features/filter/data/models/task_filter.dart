@@ -5,44 +5,56 @@ class TaskFilter {
   final bool? isUrgent;
   final Set<String> projectIdsIncluded;
   final Set<String> labelIdsIncluded;
+  final Set<String> tagIdsIncluded;
   final Set<String> projectIdsExcluded;
   final Set<String> labelIdsExcluded;
+  final Set<String> tagIdsExcluded;
 
   const TaskFilter({
     this.isUrgent,
     this.projectIdsIncluded = const {},
     this.labelIdsIncluded = const {},
+    this.tagIdsIncluded = const {},
     this.projectIdsExcluded = const {},
     this.labelIdsExcluded = const {},
+    this.tagIdsExcluded = const {},
   });
 
   bool get isEmpty =>
       isUrgent == null &&
       projectIdsIncluded.isEmpty &&
       labelIdsIncluded.isEmpty &&
+      tagIdsIncluded.isEmpty &&
       projectIdsExcluded.isEmpty &&
-      labelIdsExcluded.isEmpty;
+      labelIdsExcluded.isEmpty &&
+      tagIdsExcluded.isEmpty;
 
   bool get hasUrgencyFilter => isUrgent != null;
   bool get hasProjectFilter =>
       projectIdsIncluded.isNotEmpty || projectIdsExcluded.isNotEmpty;
   bool get hasLabelFilter =>
       labelIdsIncluded.isNotEmpty || labelIdsExcluded.isNotEmpty;
+  bool get hasTagFilter =>
+      tagIdsIncluded.isNotEmpty || tagIdsExcluded.isNotEmpty;
 
   TaskFilter copyWith({
     bool? isUrgent,
     bool clearIsUrgent = false,
     Set<String>? projectIdsIncluded,
     Set<String>? labelIdsIncluded,
+    Set<String>? tagIdsIncluded,
     Set<String>? projectIdsExcluded,
     Set<String>? labelIdsExcluded,
+    Set<String>? tagIdsExcluded,
   }) {
     return TaskFilter(
       isUrgent: clearIsUrgent ? null : (isUrgent ?? this.isUrgent),
       projectIdsIncluded: projectIdsIncluded ?? this.projectIdsIncluded,
       labelIdsIncluded: labelIdsIncluded ?? this.labelIdsIncluded,
+      tagIdsIncluded: tagIdsIncluded ?? this.tagIdsIncluded,
       projectIdsExcluded: projectIdsExcluded ?? this.projectIdsExcluded,
       labelIdsExcluded: labelIdsExcluded ?? this.labelIdsExcluded,
+      tagIdsExcluded: tagIdsExcluded ?? this.tagIdsExcluded,
     );
   }
 
@@ -72,6 +84,16 @@ class TaskFilter {
       }
       if (labelIdsIncluded.isNotEmpty &&
           !combinedLabelIds.any(labelIdsIncluded.contains)) {
+        return false;
+      }
+    }
+
+    if (hasTagFilter) {
+      if (task.tagIds.any(tagIdsExcluded.contains)) {
+        return false;
+      }
+      if (tagIdsIncluded.isNotEmpty &&
+          !task.tagIds.any(tagIdsIncluded.contains)) {
         return false;
       }
     }
@@ -106,14 +128,17 @@ class TaskFilter {
     bool priority = true,
     bool projects = true,
     bool labels = true,
+    bool tags = true,
   }) {
     return TaskFilter(
       isUrgent: priority ? isUrgent : null,
       projectIdsIncluded: projects ? projectIdsIncluded : const {},
       labelIdsIncluded: labels ? labelIdsIncluded : const {},
+      tagIdsIncluded: tags ? tagIdsIncluded : const {},
 
       projectIdsExcluded: projects ? projectIdsExcluded : const {},
       labelIdsExcluded: labels ? labelIdsExcluded : const {},
+      tagIdsExcluded: tags ? tagIdsExcluded : const {},
     );
   }
 
@@ -122,9 +147,11 @@ class TaskFilter {
       'isUrgent': isUrgent,
       'projectIdsIncluded': projectIdsIncluded.toList(),
       'labelIdsIncluded': labelIdsIncluded.toList(),
+      'tagIdsIncluded': tagIdsIncluded.toList(),
 
       'projectIdsExcluded': projectIdsExcluded.toList(),
       'labelIdsExcluded': labelIdsExcluded.toList(),
+      'tagIdsExcluded': tagIdsExcluded.toList(),
     };
   }
 
@@ -141,12 +168,18 @@ class TaskFilter {
       labelIdsIncluded: stringSetFromList(
         map['labelIdsIncluded'] as List<dynamic>?,
       ),
+      tagIdsIncluded: stringSetFromList(
+        map['tagIdsIncluded'] as List<dynamic>?,
+      ),
 
       projectIdsExcluded: stringSetFromList(
         map['projectIdsExcluded'] as List<dynamic>?,
       ),
       labelIdsExcluded: stringSetFromList(
         map['labelIdsExcluded'] as List<dynamic>?,
+      ),
+      tagIdsExcluded: stringSetFromList(
+        map['tagIdsExcluded'] as List<dynamic>?,
       ),
     );
   }

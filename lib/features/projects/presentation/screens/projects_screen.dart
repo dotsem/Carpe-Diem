@@ -125,6 +125,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
       builder: (_) => FilterDialog(
         initialFilter: ref.read(filterProvider).filter,
         showProjectFilter: false,
+        showTagFilter: false,
       ),
     );
     if (result != null) {

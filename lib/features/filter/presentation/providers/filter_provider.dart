@@ -98,6 +98,26 @@ class FilterNotifier extends Notifier<FilterState> {
     }
   }
 
+  void removeTagFilter(String tagId) {
+    if (state.filter.tagIdsIncluded.contains(tagId)) {
+      state = state.copyWith(
+        filter: state.filter.copyWith(
+          tagIdsIncluded: Set<String>.from(state.filter.tagIdsIncluded)
+            ..remove(tagId),
+        ),
+      );
+      _persistIfEnabled();
+    } else if (state.filter.tagIdsExcluded.contains(tagId)) {
+      state = state.copyWith(
+        filter: state.filter.copyWith(
+          tagIdsExcluded: Set<String>.from(state.filter.tagIdsExcluded)
+            ..remove(tagId),
+        ),
+      );
+      _persistIfEnabled();
+    }
+  }
+
   void setUrgentFilter(bool? isUrgent) {
     state = state.copyWith(
       filter: state.filter.copyWith(

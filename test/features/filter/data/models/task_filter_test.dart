@@ -14,6 +14,7 @@ void main() {
       bool isUrgent = false,
       String? projectId,
       List<String> labelIds = const [],
+      List<String> tagIds = const [],
     }) {
       return Task(
         id: id,
@@ -21,6 +22,7 @@ void main() {
         isUrgent: isUrgent,
         projectId: projectId,
         labelIds: labelIds,
+        tagIds: tagIds,
         createdAt: now,
       );
     }
@@ -48,6 +50,7 @@ void main() {
         expect(filter.hasUrgencyFilter, isFalse);
         expect(filter.hasProjectFilter, isFalse);
         expect(filter.hasLabelFilter, isFalse);
+        expect(filter.hasTagFilter, isFalse);
 
         const priorityIncFilter = TaskFilter(isUrgent: true);
         expect(priorityIncFilter.isEmpty, isFalse);
@@ -68,6 +71,14 @@ void main() {
         const labelExcFilter = TaskFilter(labelIdsExcluded: {'l1'});
         expect(labelExcFilter.isEmpty, isFalse);
         expect(labelExcFilter.hasLabelFilter, isTrue);
+
+        const tagIncFilter = TaskFilter(tagIdsIncluded: {'t1'});
+        expect(tagIncFilter.isEmpty, isFalse);
+        expect(tagIncFilter.hasTagFilter, isTrue);
+
+        const tagExcFilter = TaskFilter(tagIdsExcluded: {'t1'});
+        expect(tagExcFilter.isEmpty, isFalse);
+        expect(tagExcFilter.hasTagFilter, isTrue);
       },
     );
 
@@ -163,6 +174,29 @@ void main() {
     );
 
     test(
+      'applyToTask tag matching handles inclusion and exclusion correctly',
+      () {
+        const incFilter = TaskFilter(tagIdsIncluded: {'t1'});
+        final taskWithT1 = createTask(id: '1', tagIds: ['t1']);
+        final taskWithT2 = createTask(id: '2', tagIds: ['t2']);
+
+        expect(incFilter.applyToTask(taskWithT1, []), isTrue);
+        expect(incFilter.applyToTask(taskWithT2, []), isFalse);
+
+        const excFilter = TaskFilter(tagIdsExcluded: {'t2'});
+        expect(excFilter.applyToTask(taskWithT1, []), isTrue);
+        expect(excFilter.applyToTask(taskWithT2, []), isFalse);
+
+        const comboFilter = TaskFilter(
+          tagIdsIncluded: {'t1', 't2'},
+          tagIdsExcluded: {'t2'},
+        );
+        expect(comboFilter.applyToTask(taskWithT1, []), isTrue);
+        expect(comboFilter.applyToTask(taskWithT2, []), isFalse);
+      },
+    );
+
+    test(
       'applyToProject matches correctly based on priority and labels (inc/exc)',
       () {
         const filter = TaskFilter(
@@ -202,11 +236,13 @@ void main() {
       const filter = TaskFilter(isUrgent: false);
       final copied = filter.copyWith(
         projectIdsIncluded: {'p1'},
+        tagIdsIncluded: {'t1'},
         clearIsUrgent: true,
       );
 
       expect(copied.isUrgent, isNull);
       expect(copied.projectIdsIncluded, {'p1'});
+      expect(copied.tagIdsIncluded, {'t1'});
       expect(copied.labelIdsIncluded, isEmpty);
     });
 
@@ -215,16 +251,38 @@ void main() {
         isUrgent: true,
         projectIdsIncluded: {'p1'},
         labelIdsIncluded: {'l1'},
+        tagIdsIncluded: {'t1'},
         projectIdsExcluded: {'p2'},
         labelIdsExcluded: {'l2'},
+        tagIdsExcluded: {'t2'},
       );
 
-      final limitPriorityOnly = filter.limitTo(projects: false, labels: false);
+      final limitPriorityOnly = filter.limitTo(
+        projects: false,
+        labels: false,
+        tags: false,
+      );
       expect(limitPriorityOnly.isUrgent, true);
       expect(limitPriorityOnly.projectIdsIncluded, isEmpty);
       expect(limitPriorityOnly.projectIdsExcluded, isEmpty);
       expect(limitPriorityOnly.labelIdsIncluded, isEmpty);
       expect(limitPriorityOnly.labelIdsExcluded, isEmpty);
+      expect(limitPriorityOnly.tagIdsIncluded, isEmpty);
+      expect(limitPriorityOnly.tagIdsExcluded, isEmpty);
+    });
+
+    test('toMap and fromMap serialize tag filters correctly', () {
+      const filter = TaskFilter(
+        isUrgent: true,
+        tagIdsIncluded: {'t1'},
+        tagIdsExcluded: {'t2'},
+      );
+      final map = filter.toMap();
+      final restored = TaskFilter.fromMap(map);
+
+      expect(restored.isUrgent, isTrue);
+      expect(restored.tagIdsIncluded, {'t1'});
+      expect(restored.tagIdsExcluded, {'t2'});
     });
 
     test('FilterInteractionMethod fromString works correctly', () {

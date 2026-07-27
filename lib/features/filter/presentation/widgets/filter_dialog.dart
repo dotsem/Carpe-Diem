@@ -2,8 +2,8 @@ import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_picker.dart';
-
 import 'package:carpe_diem/features/filter/presentation/widgets/project_filter_picker.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/tag_filter_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -13,6 +13,7 @@ class FilterDialog extends ConsumerStatefulWidget {
   final bool showProjectFilter;
   final bool showUrgencyFilter;
   final bool showLabelFilter;
+  final bool showTagFilter;
 
   const FilterDialog({
     super.key,
@@ -20,6 +21,7 @@ class FilterDialog extends ConsumerStatefulWidget {
     this.showProjectFilter = true,
     this.showUrgencyFilter = true,
     this.showLabelFilter = true,
+    this.showTagFilter = true,
   });
 
   @override
@@ -32,6 +34,8 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
   late Set<String> _projectIdsExcluded;
   late Set<String> _labelIdsIncluded;
   late Set<String> _labelIdsExcluded;
+  late Set<String> _tagIdsIncluded;
+  late Set<String> _tagIdsExcluded;
 
   @override
   void initState() {
@@ -41,6 +45,8 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
     _projectIdsExcluded = Set.from(widget.initialFilter.projectIdsExcluded);
     _labelIdsIncluded = Set.from(widget.initialFilter.labelIdsIncluded);
     _labelIdsExcluded = Set.from(widget.initialFilter.labelIdsExcluded);
+    _tagIdsIncluded = Set.from(widget.initialFilter.tagIdsIncluded);
+    _tagIdsExcluded = Set.from(widget.initialFilter.tagIdsExcluded);
   }
 
   @override
@@ -60,6 +66,8 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
           projectIdsExcluded: _projectIdsExcluded,
           labelIdsIncluded: _labelIdsIncluded,
           labelIdsExcluded: _labelIdsExcluded,
+          tagIdsIncluded: _tagIdsIncluded,
+          tagIdsExcluded: _tagIdsExcluded,
         );
         Navigator.pop(context, filter);
       },
@@ -72,6 +80,8 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
               _projectIdsExcluded.clear();
               _labelIdsIncluded.clear();
               _labelIdsExcluded.clear();
+              _tagIdsIncluded.clear();
+              _tagIdsExcluded.clear();
             });
           },
           child: const Text('Clear All'),
@@ -113,6 +123,19 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
                     setState(() => _labelIdsIncluded = Set.from(inc)),
                 onExcluded: (exc) =>
                     setState(() => _labelIdsExcluded = Set.from(exc)),
+                interactionMethod: interactionMethod,
+              ),
+            ],
+            if (widget.showTagFilter) ...[
+              if (widget.showLabelFilter) const SizedBox(height: 16),
+              _sectionHeader('Tags'),
+              TagFilterPicker(
+                selectedTagIds: _tagIdsIncluded.toList(),
+                excludedTagIds: _tagIdsExcluded.toList(),
+                onSelected: (inc) =>
+                    setState(() => _tagIdsIncluded = Set.from(inc)),
+                onExcluded: (exc) =>
+                    setState(() => _tagIdsExcluded = Set.from(exc)),
                 interactionMethod: interactionMethod,
               ),
             ],

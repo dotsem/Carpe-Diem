@@ -53,6 +53,16 @@ class HistoryRepository implements IHistoryRepository {
         where +=
             ' AND t.id NOT IN (SELECT taskId FROM task_labels WHERE labelId IN ($labelList)) AND (t.projectId IS NULL OR t.projectId NOT IN (SELECT projectId FROM project_labels WHERE labelId IN ($labelList)))';
       }
+      if (filter.tagIdsIncluded.isNotEmpty) {
+        final tagList = filter.tagIdsIncluded.map((id) => "'$id'").join(',');
+        where +=
+            ' AND t.id IN (SELECT taskId FROM task_tags WHERE tagId IN ($tagList))';
+      }
+      if (filter.tagIdsExcluded.isNotEmpty) {
+        final tagList = filter.tagIdsExcluded.map((id) => "'$id'").join(',');
+        where +=
+            ' AND t.id NOT IN (SELECT taskId FROM task_tags WHERE tagId IN ($tagList))';
+      }
     }
 
     final query =
@@ -70,7 +80,8 @@ class HistoryRepository implements IHistoryRepository {
     for (final map in maps) {
       final id = map['id'] as String;
       final labelIds = await _getLabelIds(id);
-      tasks.add(Task.fromMap(map, labelIds: labelIds));
+      final tagIds = await _getTagIds(id);
+      tasks.add(Task.fromMap(map, labelIds: labelIds, tagIds: tagIds));
     }
     return tasks;
   }
@@ -131,6 +142,16 @@ class HistoryRepository implements IHistoryRepository {
             .join(',');
         filterWhere +=
             ' AND t.id NOT IN (SELECT taskId FROM task_labels WHERE labelId IN ($labelList)) AND (t.projectId IS NULL OR t.projectId NOT IN (SELECT projectId FROM project_labels WHERE labelId IN ($labelList)))';
+      }
+      if (filter.tagIdsIncluded.isNotEmpty) {
+        final tagList = filter.tagIdsIncluded.map((id) => "'$id'").join(',');
+        filterWhere +=
+            ' AND t.id IN (SELECT taskId FROM task_tags WHERE tagId IN ($tagList))';
+      }
+      if (filter.tagIdsExcluded.isNotEmpty) {
+        final tagList = filter.tagIdsExcluded.map((id) => "'$id'").join(',');
+        filterWhere +=
+            ' AND t.id NOT IN (SELECT taskId FROM task_tags WHERE tagId IN ($tagList))';
       }
     }
 
@@ -208,5 +229,15 @@ class HistoryRepository implements IHistoryRepository {
       whereArgs: [taskId],
     );
     return maps.map((m) => m['labelId'] as String).toList();
+  }
+
+  Future<List<String>> _getTagIds(String taskId) async {
+    final maps = await _db.query(
+      'task_tags',
+      where: 'taskId = ?',
+      columns: ['tagId'],
+      whereArgs: [taskId],
+    );
+    return maps.map((m) => m['tagId'] as String).toList();
   }
 }

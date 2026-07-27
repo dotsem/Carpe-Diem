@@ -3,6 +3,8 @@ import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tags/data/models/tag.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -61,6 +63,7 @@ class FilterBar extends ConsumerWidget {
 
     final projectState = ref.watch(projectProvider);
     final labelState = ref.watch(labelProvider);
+    final tagState = ref.watch(tagProvider);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -175,6 +178,39 @@ class FilterBar extends ConsumerWidget {
                   context,
                   label.name,
                   label.color,
+                  isExcluded: true,
+                  isBypassed: isBypassed,
+                );
+              }).toList(),
+            ),
+          if (filter.tagIdsIncluded.isNotEmpty)
+            Row(
+              children: filter.tagIdsIncluded.map((id) {
+                Tag tag = tagState.tags.firstWhere(
+                  (t) => t.id == id,
+                  orElse: () => const Tag(id: '', name: ''),
+                );
+                if (tag.isEmpty) return const SizedBox.shrink();
+                return _buildChip(
+                  context,
+                  tag.name,
+                  Theme.of(context).colorScheme.primary,
+                  isBypassed: isBypassed,
+                );
+              }).toList(),
+            ),
+          if (filter.tagIdsExcluded.isNotEmpty)
+            Row(
+              children: filter.tagIdsExcluded.map((id) {
+                Tag tag = tagState.tags.firstWhere(
+                  (t) => t.id == id,
+                  orElse: () => const Tag(id: '', name: ''),
+                );
+                if (tag.isEmpty) return const SizedBox.shrink();
+                return _buildChip(
+                  context,
+                  tag.name,
+                  Theme.of(context).colorScheme.primary,
                   isExcluded: true,
                   isBypassed: isBypassed,
                 );
