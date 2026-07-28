@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/common/filter_accordion_section.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/project_filter_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/tag_filter_picker.dart';
@@ -93,68 +94,69 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (widget.showUrgencyFilter) ...[
-              _sectionHeader('Urgency'),
-              UrgencySelector(
-                selected: _isUrgent,
-                onChanged: (v) => setState(() => _isUrgent = v),
-                allowAll: true,
+              FilterAccordionSection(
+                title: 'Urgency',
+                includedCount: _isUrgent == true ? 1 : 0,
+                excludedCount: _isUrgent == false ? 1 : 0,
+                child: UrgencySelector(
+                  selected: _isUrgent,
+                  onChanged: (v) => setState(() => _isUrgent = v),
+                  allowAll: true,
+                ),
               ),
               const SizedBox(height: 16),
             ],
             if (widget.showProjectFilter) ...[
-              _sectionHeader('Project'),
-              ProjectFilterPicker(
-                included: _projectIdsIncluded,
-                excluded: _projectIdsExcluded,
-                onChanged: (inc, exc) => setState(() {
-                  _projectIdsIncluded = inc;
-                  _projectIdsExcluded = exc;
-                }),
-                interactionMethod: interactionMethod,
+              FilterAccordionSection(
+                title: 'Project',
+                includedCount: _projectIdsIncluded.length,
+                excludedCount: _projectIdsExcluded.length,
+                child: ProjectFilterPicker(
+                  included: _projectIdsIncluded,
+                  excluded: _projectIdsExcluded,
+                  onChanged: (inc, exc) => setState(() {
+                    _projectIdsIncluded = inc;
+                    _projectIdsExcluded = exc;
+                  }),
+                  interactionMethod: interactionMethod,
+                ),
               ),
               const SizedBox(height: 16),
             ],
             if (widget.showLabelFilter) ...[
-              _sectionHeader('Labels'),
-              LabelFilterPicker(
-                selectedLabelIds: _labelIdsIncluded.toList(),
-                excludedLabelIds: _labelIdsExcluded.toList(),
-                onSelected: (inc) =>
-                    setState(() => _labelIdsIncluded = Set.from(inc)),
-                onExcluded: (exc) =>
-                    setState(() => _labelIdsExcluded = Set.from(exc)),
-                interactionMethod: interactionMethod,
+              FilterAccordionSection(
+                title: 'Labels',
+                includedCount: _labelIdsIncluded.length,
+                excludedCount: _labelIdsExcluded.length,
+                child: LabelFilterPicker(
+                  selectedLabelIds: _labelIdsIncluded.toList(),
+                  excludedLabelIds: _labelIdsExcluded.toList(),
+                  onSelected: (inc) =>
+                      setState(() => _labelIdsIncluded = Set.from(inc)),
+                  onExcluded: (exc) =>
+                      setState(() => _labelIdsExcluded = Set.from(exc)),
+                  interactionMethod: interactionMethod,
+                ),
               ),
             ],
             if (widget.showTagFilter) ...[
               if (widget.showLabelFilter) const SizedBox(height: 16),
-              _sectionHeader('Tags'),
-              TagFilterPicker(
-                selectedTagIds: _tagIdsIncluded.toList(),
-                excludedTagIds: _tagIdsExcluded.toList(),
-                onSelected: (inc) =>
-                    setState(() => _tagIdsIncluded = Set.from(inc)),
-                onExcluded: (exc) =>
-                    setState(() => _tagIdsExcluded = Set.from(exc)),
-                interactionMethod: interactionMethod,
+              FilterAccordionSection(
+                title: 'Tags',
+                includedCount: _tagIdsIncluded.length,
+                excludedCount: _tagIdsExcluded.length,
+                child: TagFilterPicker(
+                  selectedTagIds: _tagIdsIncluded.toList(),
+                  excludedTagIds: _tagIdsExcluded.toList(),
+                  onSelected: (inc) =>
+                      setState(() => _tagIdsIncluded = Set.from(inc)),
+                  onExcluded: (exc) =>
+                      setState(() => _tagIdsExcluded = Set.from(exc)),
+                  interactionMethod: interactionMethod,
+                ),
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-          fontSize: 12,
-          letterSpacing: 0.5,
         ),
       ),
     );
