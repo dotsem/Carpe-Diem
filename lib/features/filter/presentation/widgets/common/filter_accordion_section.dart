@@ -1,7 +1,10 @@
+import 'package:carpe_diem/features/filter/presentation/providers/filter_accordion_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class FilterAccordionSection extends StatefulWidget {
+class FilterAccordionSection extends ConsumerWidget {
   final String title;
+  final String categoryKey;
   final int includedCount;
   final int excludedCount;
   final bool initiallyExpanded;
@@ -10,6 +13,7 @@ class FilterAccordionSection extends StatefulWidget {
   const FilterAccordionSection({
     super.key,
     required this.title,
+    required this.categoryKey,
     this.includedCount = 0,
     this.excludedCount = 0,
     this.initiallyExpanded = true,
@@ -17,33 +21,30 @@ class FilterAccordionSection extends StatefulWidget {
   });
 
   @override
-  State<FilterAccordionSection> createState() => _FilterAccordionSectionState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isExpanded = ref.watch(
+      filterAccordionProvider.select(
+        (map) => map[categoryKey] ?? initiallyExpanded,
+      ),
+    );
 
-class _FilterAccordionSectionState extends State<FilterAccordionSection> {
-  late bool _isExpanded;
-
-  @override
-  void initState() {
-    super.initState();
-    _isExpanded = widget.initiallyExpanded;
-  }
-
-  @override
-  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final incColor = isDark ? Colors.greenAccent : Colors.green.shade700;
     final excColor = isDark ? Colors.redAccent : Colors.red.shade700;
 
-    final hasIncluded = widget.includedCount > 0;
-    final hasExcluded = widget.excludedCount > 0;
+    final hasIncluded = includedCount > 0;
+    final hasExcluded = excludedCount > 0;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: () => setState(() => _isExpanded = !_isExpanded),
+          onTap: () {
+            ref
+                .read(filterAccordionProvider.notifier)
+                .toggle(categoryKey, initiallyExpanded);
+          },
           borderRadius: BorderRadius.circular(6),
           mouseCursor: SystemMouseCursors.click,
           child: Padding(
@@ -51,7 +52,7 @@ class _FilterAccordionSectionState extends State<FilterAccordionSection> {
             child: Row(
               children: [
                 Text(
-                  widget.title.toUpperCase(),
+                  title.toUpperCase(),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -61,7 +62,7 @@ class _FilterAccordionSectionState extends State<FilterAccordionSection> {
                 ),
                 const SizedBox(width: 8),
                 AnimatedOpacity(
-                  opacity: !_isExpanded && (hasIncluded || hasExcluded)
+                  opacity: !isExpanded && (hasIncluded || hasExcluded)
                       ? 1.0
                       : 0.0,
                   duration: const Duration(milliseconds: 200),
@@ -82,7 +83,7 @@ class _FilterAccordionSectionState extends State<FilterAccordionSection> {
                             border: Border.all(color: incColor, width: 1),
                           ),
                           child: Text(
-                            '+${widget.includedCount}',
+                            '+$includedCount',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -102,7 +103,7 @@ class _FilterAccordionSectionState extends State<FilterAccordionSection> {
                             border: Border.all(color: excColor, width: 1),
                           ),
                           child: Text(
-                            '-${widget.excludedCount}',
+                            '-$excludedCount',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -115,7 +116,7 @@ class _FilterAccordionSectionState extends State<FilterAccordionSection> {
                 ),
                 const Spacer(),
                 AnimatedRotation(
-                  turns: _isExpanded ? 0.0 : 0.5,
+                  turns: isExpanded ? 0.0 : 0.5,
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
                   child: Icon(
@@ -132,11 +133,8 @@ class _FilterAccordionSectionState extends State<FilterAccordionSection> {
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOut,
           alignment: Alignment.topCenter,
-          child: _isExpanded
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: widget.child,
-                )
+          child: isExpanded
+              ? Padding(padding: const EdgeInsets.only(top: 8), child: child)
               : const SizedBox(width: double.infinity, height: 0),
         ),
       ],

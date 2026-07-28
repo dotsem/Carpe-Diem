@@ -96,6 +96,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
             if (widget.showUrgencyFilter) ...[
               FilterAccordionSection(
                 title: 'Urgency',
+                categoryKey: 'urgency',
                 includedCount: _isUrgent == true ? 1 : 0,
                 excludedCount: _isUrgent == false ? 1 : 0,
                 child: UrgencySelector(
@@ -109,6 +110,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
             if (widget.showProjectFilter) ...[
               FilterAccordionSection(
                 title: 'Project',
+                categoryKey: 'project',
                 includedCount: _projectIdsIncluded.length,
                 excludedCount: _projectIdsExcluded.length,
                 child: ProjectFilterPicker(
@@ -126,6 +128,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
             if (widget.showLabelFilter) ...[
               FilterAccordionSection(
                 title: 'Labels',
+                categoryKey: 'labels',
                 includedCount: _labelIdsIncluded.length,
                 excludedCount: _labelIdsExcluded.length,
                 child: LabelFilterPicker(
@@ -143,6 +146,7 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
               if (widget.showLabelFilter) const SizedBox(height: 16),
               FilterAccordionSection(
                 title: 'Tags',
+                categoryKey: 'tags',
                 includedCount: _tagIdsIncluded.length,
                 excludedCount: _tagIdsExcluded.length,
                 child: TagFilterPicker(
