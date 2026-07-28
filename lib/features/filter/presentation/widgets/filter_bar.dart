@@ -1,5 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/common/tri_state_filter_chip.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -27,6 +29,9 @@ class FilterBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (filter.isEmpty) {
+      final errColor = Theme.of(
+        context,
+      ).colorScheme.error.withValues(alpha: 0.5);
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
@@ -35,22 +40,19 @@ class FilterBar extends ConsumerWidget {
               avatar: Icon(
                 isBypassed ? Icons.filter_list_off : Icons.filter_list,
                 size: 16,
-                color: isBypassed
-                    ? Theme.of(context).colorScheme.error.withValues(alpha: 0.5)
-                    : null,
+                color: isBypassed ? errColor : null,
               ),
               label: Text(
                 isBypassed ? 'Filters Disabled' : 'Filter',
                 style: TextStyle(
-                  color: isBypassed
-                      ? Theme.of(
-                          context,
-                        ).colorScheme.error.withValues(alpha: 0.5)
-                      : null,
+                  color: isBypassed ? errColor : null,
                   decoration: isBypassed ? TextDecoration.lineThrough : null,
                 ),
               ),
               onPressed: isBypassed ? null : onFilterTap,
+              mouseCursor: isBypassed
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
               backgroundColor: Theme.of(
                 context,
               ).colorScheme.surfaceContainerHigh,
@@ -64,6 +66,10 @@ class FilterBar extends ConsumerWidget {
     final projectState = ref.watch(projectProvider);
     final labelState = ref.watch(labelProvider);
     final tagState = ref.watch(tagProvider);
+    final filterNotifier = ref.read(filterProvider.notifier);
+    final errColor9 = Theme.of(
+      context,
+    ).colorScheme.error.withValues(alpha: 0.9);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -74,20 +80,19 @@ class FilterBar extends ConsumerWidget {
             avatar: Icon(
               isBypassed ? Icons.filter_list_off : Icons.filter_list,
               size: 16,
-              color: isBypassed
-                  ? Theme.of(context).colorScheme.error.withValues(alpha: 0.9)
-                  : AppColors.accent,
+              color: isBypassed ? errColor9 : AppColors.accent,
             ),
             label: Text(
               isBypassed ? 'Filters Disabled' : 'Filter',
               style: TextStyle(
-                color: isBypassed
-                    ? Theme.of(context).colorScheme.error.withValues(alpha: 0.9)
-                    : AppColors.accent,
+                color: isBypassed ? errColor9 : AppColors.accent,
                 fontWeight: FontWeight.bold,
               ),
             ),
             onPressed: isBypassed ? null : onFilterTap,
+            mouseCursor: isBypassed
+                ? SystemMouseCursors.basic
+                : SystemMouseCursors.click,
             backgroundColor: isBypassed
                 ? Theme.of(context).colorScheme.errorContainer
                 : AppColors.accent.withAlpha(50),
@@ -102,6 +107,7 @@ class FilterBar extends ConsumerWidget {
               'Urgent',
               AppColors.error,
               isBypassed: isBypassed,
+              onTap: () => filterNotifier.setUrgentFilter(null),
             ),
           if (filter.isUrgent == false)
             _buildChip(
@@ -110,112 +116,99 @@ class FilterBar extends ConsumerWidget {
               AppColors.error,
               isExcluded: true,
               isBypassed: isBypassed,
+              onTap: () => filterNotifier.setUrgentFilter(null),
             ),
           if (filter.projectIdsIncluded.isNotEmpty)
-            Row(
-              children: filter.projectIdsIncluded.map((id) {
-                final project = projectState.getById(id);
-                if (project == null) return const SizedBox.shrink();
-                return _buildChip(
-                  context,
-                  project.name,
-                  project.color,
-                  isIgnored: ignoreProjects || isBypassed,
-                  isBypassed: isBypassed,
-                  tooltip: isBypassed
-                      ? 'Filters are temporarily bypassed (Shift+F)'
-                      : (ignoreProjects
-                            ? 'Project filters are ignored in this screen'
-                            : null),
-                );
-              }).toList(),
-            ),
+            ...filter.projectIdsIncluded.map((id) {
+              final project = projectState.getById(id);
+              if (project == null) return const SizedBox.shrink();
+              return _buildChip(
+                context,
+                project.name,
+                project.color,
+                isIgnored: ignoreProjects || isBypassed,
+                isBypassed: isBypassed,
+                onTap: () => filterNotifier.removeProjectFilter(id),
+                tooltip: _projectTooltip(ignoreProjects, isBypassed),
+              );
+            }),
           if (filter.projectIdsExcluded.isNotEmpty)
-            Row(
-              children: filter.projectIdsExcluded.map((id) {
-                final project = projectState.getById(id);
-                if (project == null) return const SizedBox.shrink();
-                return _buildChip(
-                  context,
-                  project.name,
-                  project.color,
-                  isExcluded: true,
-                  isIgnored: ignoreProjects || isBypassed,
-                  isBypassed: isBypassed,
-                  tooltip: isBypassed
-                      ? 'Filters are temporarily bypassed (Shift+F)'
-                      : (ignoreProjects
-                            ? 'Project filters are ignored in this screen'
-                            : null),
-                );
-              }).toList(),
-            ),
+            ...filter.projectIdsExcluded.map((id) {
+              final project = projectState.getById(id);
+              if (project == null) return const SizedBox.shrink();
+              return _buildChip(
+                context,
+                project.name,
+                project.color,
+                isExcluded: true,
+                isIgnored: ignoreProjects || isBypassed,
+                isBypassed: isBypassed,
+                onTap: () => filterNotifier.removeProjectFilter(id),
+                tooltip: _projectTooltip(ignoreProjects, isBypassed),
+              );
+            }),
           if (filter.labelIdsIncluded.isNotEmpty)
-            Row(
-              children: filter.labelIdsIncluded.map((id) {
-                Label label = labelState.labels.firstWhere(
-                  (l) => l.id == id,
-                  orElse: () => Label.empty(),
-                );
-                if (label.isEmpty) return const SizedBox.shrink();
-                return _buildChip(
-                  context,
-                  label.name,
-                  label.color,
-                  isBypassed: isBypassed,
-                );
-              }).toList(),
-            ),
+            ...filter.labelIdsIncluded.map((id) {
+              final label = labelState.labels.firstWhere(
+                (l) => l.id == id,
+                orElse: () => Label.empty(),
+              );
+              if (label.isEmpty) return const SizedBox.shrink();
+              return _buildChip(
+                context,
+                label.name,
+                label.color,
+                isBypassed: isBypassed,
+                onTap: () => filterNotifier.removeLabelFilter(id),
+              );
+            }),
           if (filter.labelIdsExcluded.isNotEmpty)
-            Row(
-              children: filter.labelIdsExcluded.map((id) {
-                Label label = labelState.labels.firstWhere(
-                  (l) => l.id == id,
-                  orElse: () => Label.empty(),
-                );
-                if (label.isEmpty) return const SizedBox.shrink();
-                return _buildChip(
-                  context,
-                  label.name,
-                  label.color,
-                  isExcluded: true,
-                  isBypassed: isBypassed,
-                );
-              }).toList(),
-            ),
+            ...filter.labelIdsExcluded.map((id) {
+              final label = labelState.labels.firstWhere(
+                (l) => l.id == id,
+                orElse: () => Label.empty(),
+              );
+              if (label.isEmpty) return const SizedBox.shrink();
+              return _buildChip(
+                context,
+                label.name,
+                label.color,
+                isExcluded: true,
+                isBypassed: isBypassed,
+                onTap: () => filterNotifier.removeLabelFilter(id),
+              );
+            }),
           if (filter.tagIdsIncluded.isNotEmpty)
-            Row(
-              children: filter.tagIdsIncluded.map((id) {
-                Tag tag = tagState.tags.firstWhere(
-                  (t) => t.id == id,
-                  orElse: () => const Tag(id: '', name: ''),
-                );
-                if (tag.isEmpty) return const SizedBox.shrink();
-                return _buildChip(
-                  context,
-                  tag.name,
-                  Theme.of(context).colorScheme.primary,
-                  isBypassed: isBypassed,
-                );
-              }).toList(),
-            ),
+            ...filter.tagIdsIncluded.map((id) {
+              final tag = tagState.tags.firstWhere(
+                (t) => t.id == id,
+                orElse: () => const Tag(id: '', name: ''),
+              );
+              if (tag.isEmpty) return const SizedBox.shrink();
+              return _buildChip(
+                context,
+                tag.name,
+                Theme.of(context).colorScheme.primary,
+                isBypassed: isBypassed,
+                onTap: () => filterNotifier.removeTagFilter(id),
+              );
+            }),
           if (filter.tagIdsExcluded.isNotEmpty)
-            Row(
-              children: filter.tagIdsExcluded.map((id) {
-                Tag tag = tagState.tags.firstWhere(
-                  (t) => t.id == id,
-                  orElse: () => const Tag(id: '', name: ''),
-                );
-                if (tag.isEmpty) return const SizedBox.shrink();
-                return _buildChip(
-                  context,
-                  tag.name,
-                  Theme.of(context).colorScheme.primary,
-                  isExcluded: true,
-                  isBypassed: isBypassed,
-                );
-              }).toList(),
-            ),
+            ...filter.tagIdsExcluded.map((id) {
+              final tag = tagState.tags.firstWhere(
+                (t) => t.id == id,
+                orElse: () => const Tag(id: '', name: ''),
+              );
+              if (tag.isEmpty) return const SizedBox.shrink();
+              return _buildChip(
+                context,
+                tag.name,
+                Theme.of(context).colorScheme.primary,
+                isExcluded: true,
+                isBypassed: isBypassed,
+                onTap: () => filterNotifier.removeTagFilter(id),
+              );
+            }),
           const SizedBox(width: 8),
           IconButton(
             icon: Icon(
@@ -232,7 +225,6 @@ class FilterBar extends ConsumerWidget {
   }
 
   Widget _buildChip(
-    // TODO: make class widget
     BuildContext context,
     String label,
     Color color, {
@@ -240,57 +232,26 @@ class FilterBar extends ConsumerWidget {
     bool isBypassed = false,
     bool isExcluded = false,
     String? tooltip,
+    VoidCallback? onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final includedColor = isDark ? Colors.greenAccent : Colors.green.shade700;
-    final excludedColor = isDark ? Colors.redAccent : Colors.red.shade700;
-
-    final displayLabel = isExcluded ? '- $label' : '+ $label';
-    final textColor = (isIgnored || isBypassed)
-        ? Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(150)
-        : (isExcluded ? excludedColor : includedColor);
-
-    final backgroundColor = (isIgnored || isBypassed)
-        ? Theme.of(context).colorScheme.surfaceContainerHigh
-        : (isExcluded
-              ? excludedColor.withAlpha(30)
-              : includedColor.withAlpha(30));
-
-    final side = (isIgnored || isBypassed)
-        ? BorderSide.none
-        : BorderSide(color: isExcluded ? excludedColor : includedColor);
-
-    final textStyle = TextStyle(
-      fontSize: 12,
-      fontWeight: (isIgnored || isBypassed)
-          ? FontWeight.normal
-          : FontWeight.bold,
-      decoration: (isIgnored || isBypassed || isExcluded)
-          ? TextDecoration.lineThrough
-          : null,
-      color: textColor,
-    );
-
-    final chip = Padding(
+    return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: Chip(
-        label: Text(displayLabel, style: textStyle),
-        avatar: CircleAvatar(
-          backgroundColor: (isIgnored || isBypassed)
-              ? color.withAlpha(128)
-              : color,
-          radius: 4,
-        ),
-        backgroundColor: backgroundColor,
-        side: side,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        visualDensity: VisualDensity.compact,
+      child: TriStateFilterChip(
+        label: label,
+        isIncluded: !isExcluded,
+        isExcluded: isExcluded,
+        isIgnored: isIgnored,
+        isBypassed: isBypassed,
+        color: color,
+        onTap: onTap,
+        tooltip: tooltip,
       ),
     );
-
-    if (tooltip != null) {
-      return Tooltip(message: tooltip, child: chip);
-    }
-    return chip;
   }
+
+  String? _projectTooltip(bool ignoreProjects, bool isBypassed) => isBypassed
+      ? 'Filters are temporarily bypassed (Shift+F)'
+      : (ignoreProjects
+            ? 'Project filters are ignored in this screen'
+            : 'Click to remove filter');
 }

@@ -1,7 +1,8 @@
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/common/tri_state_filter_chip.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 
 class ProjectFilterPicker extends ConsumerWidget {
   final Set<String> included;
@@ -32,49 +33,12 @@ class ProjectFilterPicker extends ConsumerWidget {
       );
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final includedColor = isDark ? Colors.greenAccent : Colors.green.shade700;
-    final excludedColor = isDark ? Colors.redAccent : Colors.red.shade700;
-
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: provider.projects.map((p) {
         final isIncluded = included.contains(p.id);
         final isExcluded = excluded.contains(p.id);
-
-        String labelText = p.name;
-        TextStyle labelStyle;
-        Color backgroundColor;
-        BorderSide side;
-
-        if (isIncluded) {
-          labelText = '+ ${p.name}';
-          labelStyle = TextStyle(
-            color: includedColor,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          );
-          backgroundColor = includedColor.withAlpha(30);
-          side = BorderSide(color: includedColor);
-        } else if (isExcluded) {
-          labelText = '- ${p.name}';
-          labelStyle = TextStyle(
-            color: excludedColor,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            decoration: TextDecoration.lineThrough,
-          );
-          backgroundColor = excludedColor.withAlpha(30);
-          side = BorderSide(color: excludedColor);
-        } else {
-          labelStyle = TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontSize: 13,
-          );
-          backgroundColor = Theme.of(context).colorScheme.surfaceContainerHigh;
-          side = BorderSide(color: Theme.of(context).colorScheme.outline);
-        }
 
         void handleCycle() {
           final newInc = Set<String>.from(included);
@@ -114,33 +78,15 @@ class ProjectFilterPicker extends ConsumerWidget {
           onChanged(newInc, newExc);
         }
 
-        return GestureDetector(
-          onTap: () {
-            if (interactionMethod == FilterInteractionMethod.cycle) {
-              handleCycle();
-            } else {
-              handleLeftClick();
-            }
-          },
-          // TODO: handle mobile long-press gestures in the future
-          onSecondaryTap: () {
-            if (interactionMethod == FilterInteractionMethod.leftRightClick) {
-              handleRightClick();
-            }
-          },
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Chip(
-              label: Text(labelText, style: labelStyle),
-              avatar: CircleAvatar(backgroundColor: p.color, radius: 4),
-              backgroundColor: backgroundColor,
-              side: side,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              visualDensity: VisualDensity.compact,
-            ),
-          ),
+        return TriStateFilterChip(
+          label: p.name,
+          isIncluded: isIncluded,
+          isExcluded: isExcluded,
+          color: p.color,
+          interactionMethod: interactionMethod,
+          onCycle: handleCycle,
+          onLeftClick: handleLeftClick,
+          onRightClick: handleRightClick,
         );
       }).toList(),
     );
