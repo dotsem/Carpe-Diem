@@ -25,10 +25,7 @@ class ProjectFilterPicker extends ConsumerWidget {
       return Center(
         child: Text(
           'No projects available',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontSize: 13,
-          ),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
         ),
       );
     }
@@ -36,7 +33,7 @@ class ProjectFilterPicker extends ConsumerWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: provider.projects.map((p) {
+      children: provider.projects.where((p) => p.isActive).map((p) {
         final isIncluded = included.contains(p.id);
         final isExcluded = excluded.contains(p.id);
 
