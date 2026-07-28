@@ -43,7 +43,11 @@ class MidnightTimer with WidgetsBindingObserver {
   void _checkDayChangeAndReschedule() {
     final now = _clock();
     final today = DateTime(now.year, now.month, now.day);
-    final lastDate = DateTime(_lastDateCheck.year, _lastDateCheck.month, _lastDateCheck.day);
+    final lastDate = DateTime(
+      _lastDateCheck.year,
+      _lastDateCheck.month,
+      _lastDateCheck.day,
+    );
 
     if (today.isAfter(lastDate)) {
       _lastDateCheck = now;

@@ -2,6 +2,7 @@ import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/data/models/tag_profile.dart';
@@ -115,6 +116,7 @@ class TagNotifier extends Notifier<TagState> {
       tag: tag,
     );
     await ref.read(undoRedoProvider.notifier).execute(command);
+    ref.read(filterProvider.notifier).removeTagFilter(id);
     await loadTags();
     await ref.read(tagIconProvider.notifier).loadIcons();
     await ref.read(projectProvider.notifier).loadProjects();
