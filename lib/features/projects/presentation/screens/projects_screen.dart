@@ -11,6 +11,8 @@ import 'package:carpe_diem/features/filter/presentation/providers/filter_provide
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/projects_shortcuts.dart';
 
+import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
+
 class ProjectsScreen extends ConsumerStatefulWidget {
   const ProjectsScreen({super.key});
 
@@ -88,17 +90,23 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 },
               ),
             ),
-            () {
-              final filterState = ref.watch(filterProvider);
-              return FilterBar(
-                filter: filterState.filter,
-                isBypassed: filterState.isBypassed,
-                ignoreProjects: true,
-                onFilterTap: () => _showFilterDialog(context),
-                onClearFilter: () =>
-                    ref.read(filterProvider.notifier).clearFilter(),
-              );
-            }(),
+            Builder(
+              builder: (context) {
+                final filterState = ref.watch(filterProvider);
+                final hiddenProjects = ref.watch(hiddenProjectsCountProvider);
+                return FilterBar(
+                  filter: filterState.filter,
+                  isBypassed: filterState.isBypassed,
+                  ignoreProjects: true,
+                  hiddenCount: hiddenProjects.activeHidden,
+                  hiddenItemType: 'projects',
+                  hiddenArchivedCount: hiddenProjects.archivedHidden,
+                  onFilterTap: () => _showFilterDialog(context),
+                  onClearFilter: () =>
+                      ref.read(filterProvider.notifier).clearFilter(),
+                );
+              },
+            ),
             const Divider(height: 1),
             Expanded(
               child: ProjectGrid(

@@ -6,6 +6,7 @@ import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_list.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_dialog_handlers.dart';
@@ -162,6 +163,8 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                 FilterBar(
                   filter: ref.watch(filterProvider).filter,
                   isBypassed: ref.watch(filterProvider).isBypassed,
+                  hiddenCount: ref.watch(hiddenUnscheduledTasksCountProvider),
+                  hiddenItemType: 'tasks',
                   onFilterTap: () =>
                       BacklogDialogHandlers.showFilterDialog(context, ref),
                   onClearFilter: () =>
