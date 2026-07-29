@@ -2,6 +2,7 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/common/tri_state_filter_chip.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_button.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -10,12 +11,17 @@ import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dar
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:carpe_diem/features/filter/presentation/widgets/hidden_items_indicator.dart';
+
 class FilterBar extends ConsumerWidget {
   final TaskFilter filter;
   final VoidCallback onFilterTap;
   final VoidCallback onClearFilter;
   final bool ignoreProjects;
   final bool isBypassed;
+  final int hiddenCount;
+  final String hiddenItemType;
+  final int hiddenArchivedCount;
 
   const FilterBar({
     super.key,
@@ -24,83 +30,30 @@ class FilterBar extends ConsumerWidget {
     required this.onClearFilter,
     this.ignoreProjects = false,
     this.isBypassed = false,
+    this.hiddenCount = 0,
+    this.hiddenItemType = 'items',
+    this.hiddenArchivedCount = 0,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (filter.isEmpty) {
-      final errColor = Theme.of(
-        context,
-      ).colorScheme.error.withValues(alpha: 0.5);
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            ActionChip(
-              avatar: Icon(
-                isBypassed ? Icons.filter_list_off : Icons.filter_list,
-                size: 16,
-                color: isBypassed ? errColor : null,
-              ),
-              label: Text(
-                isBypassed ? 'Filters Disabled' : 'Filter',
-                style: TextStyle(
-                  color: isBypassed ? errColor : null,
-                  decoration: isBypassed ? TextDecoration.lineThrough : null,
-                ),
-              ),
-              onPressed: isBypassed ? null : onFilterTap,
-              mouseCursor: isBypassed
-                  ? SystemMouseCursors.basic
-                  : SystemMouseCursors.click,
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHigh,
-              side: BorderSide.none,
-            ),
-          ],
-        ),
-      );
+      return FilterButton(isBypassed: isBypassed, onFilterTap: onFilterTap);
     }
 
     final projectState = ref.watch(projectProvider);
     final labelState = ref.watch(labelProvider);
     final tagState = ref.watch(tagProvider);
     final filterNotifier = ref.read(filterProvider.notifier);
-    final errColor9 = Theme.of(
-      context,
-    ).colorScheme.error.withValues(alpha: 0.9);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          ActionChip(
-            avatar: Icon(
-              isBypassed ? Icons.filter_list_off : Icons.filter_list,
-              size: 16,
-              color: isBypassed ? errColor9 : AppColors.accent,
-            ),
-            label: Text(
-              isBypassed ? 'Filters Disabled' : 'Filter',
-              style: TextStyle(
-                color: isBypassed ? errColor9 : AppColors.accent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            onPressed: isBypassed ? null : onFilterTap,
-            mouseCursor: isBypassed
-                ? SystemMouseCursors.basic
-                : SystemMouseCursors.click,
-            backgroundColor: isBypassed
-                ? Theme.of(context).colorScheme.errorContainer
-                : AppColors.accent.withAlpha(50),
-            side: BorderSide(
-              color: isBypassed ? Colors.red : AppColors.accent.withAlpha(50),
-            ),
-          ),
+          FilterButton(isBypassed: isBypassed, onFilterTap: onFilterTap),
           const SizedBox(width: 8),
+
           if (filter.isUrgent == true)
             _buildChip(
               context,
@@ -149,10 +102,7 @@ class FilterBar extends ConsumerWidget {
             }),
           if (filter.labelIdsIncluded.isNotEmpty)
             ...filter.labelIdsIncluded.map((id) {
-              final label = labelState.labels.firstWhere(
-                (l) => l.id == id,
-                orElse: () => Label.empty(),
-              );
+              final label = labelState.labels.firstWhere((l) => l.id == id, orElse: () => Label.empty());
               if (label.isEmpty) return const SizedBox.shrink();
               return _buildChip(
                 context,
@@ -164,10 +114,7 @@ class FilterBar extends ConsumerWidget {
             }),
           if (filter.labelIdsExcluded.isNotEmpty)
             ...filter.labelIdsExcluded.map((id) {
-              final label = labelState.labels.firstWhere(
-                (l) => l.id == id,
-                orElse: () => Label.empty(),
-              );
+              final label = labelState.labels.firstWhere((l) => l.id == id, orElse: () => Label.empty());
               if (label.isEmpty) return const SizedBox.shrink();
               return _buildChip(
                 context,
@@ -209,13 +156,13 @@ class FilterBar extends ConsumerWidget {
                 onTap: () => filterNotifier.removeTagFilter(id),
               );
             }),
+          if (hiddenCount > 0 || hiddenArchivedCount > 0 || isBypassed) ...[
+            const SizedBox(width: 8),
+            HiddenItemsIndicator(count: hiddenCount, itemType: hiddenItemType, archivedCount: hiddenArchivedCount),
+          ],
           const SizedBox(width: 8),
           IconButton(
-            icon: Icon(
-              Icons.close,
-              size: 18,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            icon: Icon(Icons.close, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
             onPressed: onClearFilter,
             tooltip: 'Clear filters',
           ),
@@ -251,7 +198,5 @@ class FilterBar extends ConsumerWidget {
 
   String? _projectTooltip(bool ignoreProjects, bool isBypassed) => isBypassed
       ? 'Filters are temporarily bypassed (Shift+F)'
-      : (ignoreProjects
-            ? 'Project filters are ignored in this screen'
-            : 'Click to remove filter');
+      : (ignoreProjects ? 'Project filters are ignored in this screen' : 'Click to remove filter');
 }

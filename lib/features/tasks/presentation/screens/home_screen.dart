@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/home_day_selector.dart';
@@ -159,6 +160,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             FilterBar(
               filter: filterState.filter,
               isBypassed: filterState.isBypassed,
+              hiddenCount: ref.watch(hiddenTodayTasksCountProvider),
+              hiddenItemType: 'tasks',
               onFilterTap: () => _showFilterDialog(context),
               onClearFilter: () =>
                   ref.read(filterProvider.notifier).clearFilter(),

@@ -25,7 +25,10 @@ class ProjectFilterPicker extends ConsumerWidget {
       return Center(
         child: Text(
           'No projects available',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 13,
+          ),
         ),
       );
     }
