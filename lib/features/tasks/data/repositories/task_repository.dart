@@ -83,6 +83,16 @@ class TaskRepository extends ITaskRepository {
   }
 
   @override
+  Future<List<Task>> getByParent(String parentId) async {
+    final maps = await _db.query(
+      'tasks',
+      where: 'parentId = ?',
+      whereArgs: [parentId],
+    );
+    return _loadTasksWithRelations(maps);
+  }
+
+  @override
   Future<List<Task>> getByDate(
     DateTime date, {
     bool prioritizeDeadlines = true,
@@ -204,6 +214,15 @@ class TaskRepository extends ITaskRepository {
           map['blockedById'] = null;
         }
       }
+      if (task.parentId != null) {
+        final parentExists = (await txn.rawQuery(
+          'SELECT 1 FROM tasks WHERE id = ?',
+          [task.parentId],
+        )).isNotEmpty;
+        if (!parentExists || task.parentId == task.id) {
+          map['parentId'] = null;
+        }
+      }
       await txn.insert('tasks', map);
       for (final labelId in task.labelIds) {
         final labelExists = (await txn.rawQuery(
@@ -250,6 +269,15 @@ class TaskRepository extends ITaskRepository {
         )).isNotEmpty;
         if (!taskExists) {
           map['blockedById'] = null;
+        }
+      }
+      if (task.parentId != null) {
+        final parentExists = (await txn.rawQuery(
+          'SELECT 1 FROM tasks WHERE id = ?',
+          [task.parentId],
+        )).isNotEmpty;
+        if (!parentExists || task.parentId == task.id) {
+          map['parentId'] = null;
         }
       }
       await txn.update('tasks', map, where: 'id = ?', whereArgs: [task.id]);

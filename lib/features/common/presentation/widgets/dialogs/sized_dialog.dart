@@ -67,7 +67,10 @@ class _SizedDialogState extends State<SizedDialog> {
         maxWidth: widget.maxWidth,
         minWidth: widget.minWidth ?? 0,
       ),
-      child: Padding(padding: widget.padding!, child: widget.child),
+      child: SingleChildScrollView(
+        padding: widget.padding!,
+        child: widget.child,
+      ),
     );
 
     final dialog = AlertDialog(

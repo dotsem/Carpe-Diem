@@ -141,6 +141,7 @@ class DatabaseHelper {
         )
       ''');
     await _seedTagIcons(db);
+    await MigrationRunner(allMigrations).run(db, 1, version);
   }
 
   static Future<void> _seedTagIcons(Database db) async {

@@ -23,6 +23,7 @@ abstract class ITaskRepository implements ICrudRepository<Task> {
   @override
   Future<Task?> getById(String id);
   Future<List<Task>> getByBlockedBy(String taskId);
+  Future<List<Task>> getByParent(String parentId);
   Future<List<Task>> getByDate(
     DateTime date, {
     bool prioritizeDeadlines = true,

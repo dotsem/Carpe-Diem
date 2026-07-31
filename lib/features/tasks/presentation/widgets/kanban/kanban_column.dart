@@ -279,16 +279,18 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                                     newIndex: newIndex,
                                     settings: settings,
                                   );
-                              if (newSortOrder != null) {
+                              if (task.status != widget.acceptedStatus) {
+                                final updatedTask = task.copyWith(
+                                  sortOrder: newSortOrder ?? task.sortOrder,
+                                );
+                                widget.onStatusChange(
+                                  updatedTask,
+                                  widget.acceptedStatus,
+                                );
+                              } else if (newSortOrder != null) {
                                 ref
                                     .read(taskProvider.notifier)
                                     .reorderTask(task, newSortOrder);
-                              }
-                              if (task.status != widget.acceptedStatus) {
-                                widget.onStatusChange(
-                                  task,
-                                  widget.acceptedStatus,
-                                );
                               }
                             },
                             child: childWidget,

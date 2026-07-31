@@ -10,10 +10,9 @@ class TaskHierarchyUtils {
     final tasks = categoryTasks.where((t) => seenIds.add(t.id)).toList();
     final taskMap = {for (final t in tasks) t.id: t};
 
-    // Build parent→children relationships for internal tasks
     final childrenOf = <String, List<String>>{};
     for (final task in tasks) {
-      final parentId = task.blockedById;
+      final parentId = task.parentId ?? task.blockedById;
       if (parentId != null && taskMap.containsKey(parentId)) {
         childrenOf.putIfAbsent(parentId, () => []).add(task.id);
       }
@@ -23,14 +22,18 @@ class TaskHierarchyUtils {
     final externalBlockerTitles = <String, String>{};
 
     for (final task in tasks) {
-      final parentId = task.blockedById;
-      if (parentId == null || taskMap.containsKey(parentId)) {
+      // Only check external blocker if task doesn't have an in-map parentId/blockedById
+      final effectiveParent = task.parentId ?? task.blockedById;
+      if (effectiveParent != null && taskMap.containsKey(effectiveParent)) {
         continue;
       }
 
-      // Check if it's an external uncompleted blocker
-      if (allTasks != null && allTasks.containsKey(parentId)) {
-        final blocker = allTasks[parentId]!;
+      final blockerId = task.blockedById;
+      if (blockerId != null &&
+          !taskMap.containsKey(blockerId) &&
+          allTasks != null &&
+          allTasks.containsKey(blockerId)) {
+        final blocker = allTasks[blockerId]!;
         if (!blocker.isCompleted) {
           externalBlockerChildren
               .putIfAbsent(blocker.id, () => [])
@@ -40,7 +43,6 @@ class TaskHierarchyUtils {
       }
     }
 
-    // Flatten via DFS with Urgency Inheritance
     final result = <TaskHierarchyNode>[];
     final emitted = <String>{};
 
@@ -81,17 +83,19 @@ class TaskHierarchyUtils {
       final task = taskMap[id];
       if (task == null) return null;
 
-      final parentId = task.blockedById;
-      if (parentId == null) return id;
+      final effectiveParent = task.parentId ?? task.blockedById;
+      if (effectiveParent == null) return id;
 
-      if (taskMap.containsKey(parentId)) {
-        return findRootId(parentId, visited);
+      if (taskMap.containsKey(effectiveParent)) {
+        return findRootId(effectiveParent, visited);
       }
 
-      if (allTasks != null && allTasks.containsKey(parentId)) {
-        final blocker = allTasks[parentId]!;
+      if (task.blockedById != null &&
+          allTasks != null &&
+          allTasks.containsKey(task.blockedById)) {
+        final blocker = allTasks[task.blockedById]!;
         if (!blocker.isCompleted) {
-          return 'indicator_$parentId';
+          return 'indicator_${task.blockedById}';
         }
       }
 
@@ -101,7 +105,6 @@ class TaskHierarchyUtils {
     for (final task in tasks) {
       final rootId = findRootId(task.id, {});
       if (rootId == null) {
-        // Cycle detected: emit task as root to prevent it from disappearing
         emit(task.id, 0);
       } else if (rootId.startsWith('indicator_')) {
         emitExternalBlocker(rootId.replaceFirst('indicator_', ''));

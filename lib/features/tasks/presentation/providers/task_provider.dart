@@ -19,6 +19,7 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_prov
 import 'package:carpe_diem/features/tasks/domain/services/task_markdown_parser.dart';
 import 'package:carpe_diem/core/utils/lexorank_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
+import 'package:carpe_diem/features/tasks/data/models/subtask_completion_conflict.dart';
 
 part 'task_provider_extensions.dart';
 
@@ -126,6 +127,7 @@ class TaskNotifier extends Notifier<TaskState> {
     bool isUrgent = false,
     DateTime? deadline,
     String? blockedById,
+    String? parentId,
     TaskPlacement placement = TaskPlacement.bottom,
     List<String> labelIds = const [],
     List<String> tagIds = const [],
@@ -148,19 +150,30 @@ class TaskNotifier extends Notifier<TaskState> {
         );
     }
 
+    DateTime? effectiveScheduledDate = scheduledDate;
+    String? effectiveProjectId = projectId;
+    if (parentId != null) {
+      final parentTask = await _repo.getById(parentId);
+      if (parentTask != null) {
+        effectiveScheduledDate ??= parentTask.scheduledDate;
+        effectiveProjectId ??= parentTask.projectId;
+      }
+    }
+
     final resolvedIsUrgent = isUrgent || placement == TaskPlacement.urgent;
     final task = Task(
       id: _uuid.v4(),
       title: title,
       description: description,
-      scheduledDate: scheduledDate != null
-          ? _normalizeDate(scheduledDate)
+      scheduledDate: effectiveScheduledDate != null
+          ? _normalizeDate(effectiveScheduledDate)
           : null,
-      projectId: projectId,
+      projectId: effectiveProjectId,
       isUrgent: resolvedIsUrgent,
       deadline: deadline != null ? _normalizeDate(deadline) : null,
       createdAt: DateTime.now(),
       blockedById: blockedById,
+      parentId: parentId,
       sortOrder: computedSortOrder,
       labelIds: labelIds,
       tagIds: tagIds,
@@ -348,6 +361,18 @@ class TaskNotifier extends Notifier<TaskState> {
     await _refreshAll();
   }
 
+  Future<SubtaskCompletionConflict?> checkSubtaskConflict(Task task) async {
+    final subtasks = await _repo.getByParent(task.id);
+    final incomplete = subtasks.where((s) => !s.isCompleted).toList();
+    if (incomplete.isNotEmpty) {
+      return SubtaskCompletionConflict(
+        parentTask: task,
+        incompleteSubtasks: incomplete,
+      );
+    }
+    return null;
+  }
+
   Future<void> completeTask(Task task) async {
     final updated = task.copyWith(
       status: TaskStatus.done,
@@ -364,22 +389,44 @@ class TaskNotifier extends Notifier<TaskState> {
             displayName: task.title,
           ),
         );
+
+    if (task.parentId != null) {
+      await _checkAndAutoCompleteParent(task.parentId!);
+    }
+
     await cleanupHistory();
     await _refreshAll();
   }
 
-  Future<void> toggleComplete(Task task, {bool useTimer = false}) async {
+  Future<void> _checkAndAutoCompleteParent(String parentId) async {
+    final siblings = await _repo.getByParent(parentId);
+    if (siblings.isNotEmpty && siblings.every((s) => s.isCompleted)) {
+      final parent = await _repo.getById(parentId);
+      if (parent != null && !parent.isCompleted) {
+        await completeTask(parent);
+      }
+    }
+  }
+
+  Future<SubtaskCompletionConflict?> toggleComplete(
+    Task task, {
+    bool useTimer = false,
+  }) async {
     final timerNotifier = ref.read(taskTimerProvider.notifier);
     if (timerNotifier.isTaskPending(task.id)) {
       timerNotifier.cancelPending(task.id);
-      return;
+      return null;
     }
 
     switch (task.status) {
       case TaskStatus.todo:
         await startTask(task);
-        break;
+        return null;
       case TaskStatus.inProgress:
+        final conflict = await checkSubtaskConflict(task);
+        if (conflict != null) {
+          return conflict;
+        }
         if (useTimer) {
           final settings = ref.read(settingsProvider);
           timerNotifier.startPending(
@@ -390,10 +437,10 @@ class TaskNotifier extends Notifier<TaskState> {
         } else {
           await completeTask(task);
         }
-        break;
+        return null;
       case TaskStatus.done:
         await updateTaskStatus(task, TaskStatus.todo);
-        break;
+        return null;
     }
   }
 

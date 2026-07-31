@@ -14,6 +14,7 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/subtasks_list_section.dart';
 
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
@@ -276,6 +277,14 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
                       _blockedById = id;
                     });
                   },
+                ),
+              ],
+              if (widget.task.parentId == null) ...[
+                const SizedBox(height: 16),
+                SubtasksListSection(
+                  parentTask: widget.task,
+                  scheduledDate: _scheduledDate,
+                  projectId: _selectedProjectId,
                 ),
               ],
               const SizedBox(height: 16),

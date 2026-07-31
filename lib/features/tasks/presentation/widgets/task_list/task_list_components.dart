@@ -14,6 +14,7 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_dialog.dart';
 
 class TaskListSectionHeader extends StatelessWidget {
   final String title;
@@ -124,7 +125,17 @@ class TaskHierarchyItem extends ConsumerWidget {
             ? (_) {}
             : selectionMode
             ? (value) => onSelectedChanged?.call(taskNode.task)
-            : (_) => taskNotifier.toggleComplete(taskNode.task),
+            : (_) async {
+                final conflict = await taskNotifier.toggleComplete(
+                  taskNode.task,
+                );
+                if (conflict != null && context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (_) => CompleteParentDialog(conflict: conflict),
+                  );
+                }
+              },
         isChecked: selectionMode
             ? selectedTaskIds.contains(taskNode.task.id)
             : null,
