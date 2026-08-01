@@ -133,5 +133,42 @@ void main() {
         expect(result[1].depth, 1);
       },
     );
+
+    test('buildHierarchy nests subtasks under parent using parentId', () {
+      final parent = Task(id: 'parent_1', title: 'Parent Task', createdAt: now);
+      final subtask = Task(
+        id: 'sub_1',
+        title: 'Subtask 1',
+        parentId: 'parent_1',
+        createdAt: now,
+      );
+
+      final result = TaskHierarchyUtils.buildHierarchy([subtask, parent]);
+
+      expect(result.length, 2);
+      expect((result[0] as TaskNode).task.id, 'parent_1');
+      expect(result[0].depth, 0);
+
+      expect((result[1] as TaskNode).task.id, 'sub_1');
+      expect(result[1].depth, 1);
+    });
+
+    test(
+      'buildHierarchy renders subtask at depth 0 when parent is not present in category',
+      () {
+        final subtask = Task(
+          id: 'sub_1',
+          title: 'Subtask 1',
+          parentId: 'completed_parent',
+          createdAt: now,
+        );
+
+        final result = TaskHierarchyUtils.buildHierarchy([subtask]);
+
+        expect(result.length, 1);
+        expect((result[0] as TaskNode).task.id, 'sub_1');
+        expect(result[0].depth, 0);
+      },
+    );
   });
 }

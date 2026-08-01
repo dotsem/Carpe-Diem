@@ -77,6 +77,15 @@ void main() {
         );
         expect(newRankMiddle.compareTo('c'), greaterThan(0));
         expect(newRankMiddle.compareTo('e'), lessThan(0));
+
+        // Insert item from another list (oldIndex -1)
+        final newRankCrossList = LexoRankUtils.computeReorderSortOrder(
+          list,
+          -1,
+          0,
+          (s) => s,
+        );
+        expect(newRankCrossList.compareTo('a'), lessThan(0));
       },
     );
   });
