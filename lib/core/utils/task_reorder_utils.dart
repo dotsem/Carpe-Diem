@@ -34,12 +34,20 @@ class TaskReorderUtils {
   /// Get position info for a task in a list of tasks.
   /// If task is not found, returns [TaskPositionInfo.notFound].
   /// It considers task grouping based on [settings] (urgency, overdue, deadlines).
-  static TaskPositionInfo getTaskPosition({required Task task, required List<Task> tasks, SettingsState? settings}) {
+  static TaskPositionInfo getTaskPosition({
+    required Task task,
+    required List<Task> tasks,
+    SettingsState? settings,
+  }) {
     final indexInList = tasks.indexWhere((t) => t.id == task.id);
     if (indexInList == -1) return const TaskPositionInfo.notFound();
 
     final sameGroup = tasks
-        .where((t) => settings != null ? inSameGroup(t, task, settings) : t.isUrgent == task.isUrgent)
+        .where(
+          (t) => settings != null
+              ? inSameGroup(t, task, settings)
+              : t.isUrgent == task.isUrgent,
+        )
         .toList();
 
     final indexInGroup = sameGroup.indexWhere((t) => t.id == task.id);
@@ -65,7 +73,9 @@ class TaskReorderUtils {
     if (settings.prioritizeDeadlines) {
       if (a.deadline == null && b.deadline != null) return false;
       if (a.deadline != null && b.deadline == null) return false;
-      if (a.deadline != null && b.deadline != null && a.deadline != b.deadline) {
+      if (a.deadline != null &&
+          b.deadline != null &&
+          a.deadline != b.deadline) {
         return false;
       }
     }
@@ -122,7 +132,9 @@ class TaskReorderUtils {
 
     if (sameGroupTasks.isEmpty) return null;
 
-    final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == draggedTask.id);
+    final taskOldIndex = sameGroupTasks.indexWhere(
+      (t) => t.id == draggedTask.id,
+    );
 
     int targetCount = 0;
     for (int i = 0; i < newIndex && i < nodes.length; i++) {
@@ -137,7 +149,9 @@ class TaskReorderUtils {
       remaining.removeAt(taskOldIndex);
     }
 
-    int adjustedIndex = (taskOldIndex >= 0 && taskOldIndex < targetCount) ? targetCount - 1 : targetCount;
+    int adjustedIndex = (taskOldIndex >= 0 && taskOldIndex < targetCount)
+        ? targetCount - 1
+        : targetCount;
 
     final prevRank = _getEffectiveRank(remaining, adjustedIndex - 1);
     final nextRank = _getEffectiveRank(remaining, adjustedIndex);
@@ -162,16 +176,21 @@ class TaskReorderUtils {
         .where((t) => inSameGroup(t, draggedTask, settings))
         .toList();
 
-    final selectedSameGroupTasks = sameGroupTasks.where((t) => selectedTaskIds.contains(t.id)).toList();
+    final selectedSameGroupTasks = sameGroupTasks
+        .where((t) => selectedTaskIds.contains(t.id))
+        .toList();
 
     if (selectedSameGroupTasks.isEmpty) return null;
 
-    final remaining = List<Task>.from(sameGroupTasks)..removeWhere((t) => selectedTaskIds.contains(t.id));
+    final remaining = List<Task>.from(sameGroupTasks)
+      ..removeWhere((t) => selectedTaskIds.contains(t.id));
 
     int targetCount = 0;
     for (int i = 0; i < newIndex && i < nodes.length; i++) {
       final n = nodes[i];
-      if (n is TaskNode && inSameGroup(n.task, draggedTask, settings) && !selectedTaskIds.contains(n.task.id)) {
+      if (n is TaskNode &&
+          inSameGroup(n.task, draggedTask, settings) &&
+          !selectedTaskIds.contains(n.task.id)) {
         targetCount++;
       }
     }
@@ -191,8 +210,15 @@ class TaskReorderUtils {
     return newSortOrders;
   }
 
-  static void moveToTop(TaskNotifier provider, Task task, List<Task> tasks, SettingsState settings) {
-    final sameGroupTasks = tasks.where((t) => inSameGroup(t, task, settings)).toList();
+  static void moveToTop(
+    TaskNotifier provider,
+    Task task,
+    List<Task> tasks,
+    SettingsState settings,
+  ) {
+    final sameGroupTasks = tasks
+        .where((t) => inSameGroup(t, task, settings))
+        .toList();
 
     final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == task.id);
 
@@ -203,14 +229,24 @@ class TaskReorderUtils {
     provider.updateTask(task.copyWith(sortOrder: newSortOrder));
   }
 
-  static void moveToBottom(TaskNotifier provider, Task task, List<Task> tasks, SettingsState settings) {
-    final sameGroupTasks = tasks.where((t) => inSameGroup(t, task, settings)).toList();
+  static void moveToBottom(
+    TaskNotifier provider,
+    Task task,
+    List<Task> tasks,
+    SettingsState settings,
+  ) {
+    final sameGroupTasks = tasks
+        .where((t) => inSameGroup(t, task, settings))
+        .toList();
 
     final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == task.id);
 
     if (taskOldIndex == sameGroupTasks.length - 1) return;
 
-    final bottomRank = _getEffectiveRank(sameGroupTasks, sameGroupTasks.length - 1);
+    final bottomRank = _getEffectiveRank(
+      sameGroupTasks,
+      sameGroupTasks.length - 1,
+    );
     final newSortOrder = LexoRankUtils.generateBetween(bottomRank, null);
     provider.updateTask(task.copyWith(sortOrder: newSortOrder));
   }

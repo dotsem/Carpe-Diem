@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_breadcrumb_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_chips_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
@@ -130,6 +131,8 @@ class BaseTaskCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (task.parentId != null)
+                              ParentBreadcrumbHeader(parentId: task.parentId!),
                             Text(
                               showHashtagInTitle
                                   ? task.title
