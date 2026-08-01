@@ -493,17 +493,64 @@ class TaskNotifier extends Notifier<TaskState> {
     await _refreshAll();
   }
 
+  List<Task> getAllSubtasks(String parentId) {
+    final allStateTasks = [
+      ...state.tasks,
+      ...state.overdueTasks,
+      ...state.unscheduledTasks,
+    ];
+    final result = <Task>[];
+    void collect(String pid) {
+      final children = allStateTasks.where((t) => t.parentId == pid).toList();
+      for (final child in children) {
+        result.add(child);
+        collect(child.id);
+      }
+    }
+
+    collect(parentId);
+    return result;
+  }
+
   Future<void> deleteTask(Task task) async {
-    await ref
-        .read(undoRedoProvider.notifier)
-        .execute(
+    final subtasks = getAllSubtasks(task.id);
+    if (subtasks.isEmpty) {
+      await ref
+          .read(undoRedoProvider.notifier)
+          .execute(
+            DeleteCommand(
+              repo: _repo,
+              item: task,
+              id: task.id,
+              displayName: task.title,
+            ),
+          );
+    } else {
+      final commands = <Command>[];
+      for (final subtask in subtasks) {
+        commands.add(
           DeleteCommand(
             repo: _repo,
-            item: task,
-            id: task.id,
-            displayName: task.title,
+            item: subtask,
+            id: subtask.id,
+            displayName: subtask.title,
           ),
         );
+      }
+      commands.add(
+        DeleteCommand(
+          repo: _repo,
+          item: task,
+          id: task.id,
+          displayName: task.title,
+        ),
+      );
+      final compound = CompoundCommand(
+        commands,
+        'Delete "${task.title}" and ${subtasks.length} subtask(s)',
+      );
+      await ref.read(undoRedoProvider.notifier).execute(compound);
+    }
     await _refreshAll();
   }
 

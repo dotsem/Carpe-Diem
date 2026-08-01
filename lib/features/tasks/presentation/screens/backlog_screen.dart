@@ -247,11 +247,18 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     final task = provider.unscheduledTasks.firstWhere(
                       (t) => t.id == _selectedTaskIds.first,
                     );
+                    final subtasks = ref
+                        .read(taskProvider.notifier)
+                        .getAllSubtasks(task.id);
+                    final message = subtasks.isEmpty
+                        ? "Are you sure you want to delete this task?"
+                        : "Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?";
+
                     showDialog(
                       context: context,
                       builder: (ctx) => DeleteDialog(
                         title: "Delete Task",
-                        message: "Are you sure you want to delete this task?",
+                        message: message,
                         onConfirm: () {
                           ref.read(taskProvider.notifier).deleteTask(task);
                           setState(() => _selectedTaskIds.clear());

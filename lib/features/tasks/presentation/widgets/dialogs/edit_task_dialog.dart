@@ -167,17 +167,26 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
         submitText: 'Save Changes',
         actions: [
           TextButton.icon(
-            onPressed: () => showDialog(
-              context: context,
-              builder: (context) => DeleteDialog(
-                title: 'Delete Task',
-                message: 'Are you sure you want to delete this task?',
-                onConfirm: () {
-                  Navigator.of(context).pop();
-                  ref.read(taskProvider.notifier).deleteTask(widget.task);
-                },
-              ),
-            ),
+            onPressed: () {
+              final subtasks = ref
+                  .read(taskProvider.notifier)
+                  .getAllSubtasks(widget.task.id);
+              final message = subtasks.isEmpty
+                  ? 'Are you sure you want to delete this task?'
+                  : 'Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?';
+
+              showDialog(
+                context: context,
+                builder: (context) => DeleteDialog(
+                  title: 'Delete Task',
+                  message: message,
+                  onConfirm: () {
+                    Navigator.of(context).pop();
+                    ref.read(taskProvider.notifier).deleteTask(widget.task);
+                  },
+                ),
+              );
+            },
             icon: const Icon(Icons.delete),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             label: const Text("Delete"),

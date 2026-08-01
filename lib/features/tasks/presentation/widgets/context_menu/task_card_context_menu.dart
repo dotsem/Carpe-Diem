@@ -105,11 +105,16 @@ void _showDeleteTask(
   TaskNotifier provider,
   VoidCallback? onAction,
 ) {
+  final subtasks = provider.getAllSubtasks(task.id);
+  final message = subtasks.isEmpty
+      ? "Are you sure you want to delete this task?"
+      : "Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?";
+
   showDialog(
     context: context,
     builder: (_) => DeleteDialog(
       title: "Delete Task",
-      message: "Are you sure you want to delete this task?",
+      message: message,
       onConfirm: () {
         provider.deleteTask(task);
         onAction?.call();

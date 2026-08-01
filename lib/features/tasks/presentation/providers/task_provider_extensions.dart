@@ -82,11 +82,18 @@ extension TaskNotifierExtension on TaskNotifier {
   }
 
   Future<void> bulkDeleteTasks(List<String> taskIds) async {
+    final allIdsToDelete = <String>{...taskIds};
     for (final id in taskIds) {
+      final subtasks = getAllSubtasks(id);
+      for (final s in subtasks) {
+        allIdsToDelete.add(s.id);
+      }
+    }
+    for (final id in allIdsToDelete) {
       await _repo.delete(id);
     }
     await _refreshAll();
-    ToastUtils.showSuccess('Deleted ${taskIds.length} tasks');
+    ToastUtils.showSuccess('Deleted ${allIdsToDelete.length} tasks');
   }
 
   Future<void> _scheduleTasksForDate(
