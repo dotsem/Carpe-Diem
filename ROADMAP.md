@@ -1,101 +1,44 @@
 # Carpe Diem Roadmap
 
-A living document outlining the development milestones for Carpe Diem.
+A document outlining the current & future development milestones for Carpe Diem.
 
 ---
 
-## Released: v0.1.0 (Initial Release)
+## Current Scope: v0.4.0 (Core Features & Provider Architecture)
 
-- [✅] **Core Task Management:** Add, complete, and delete tasks.
-- [✅] **Categories:** Organise tasks by projects.
-- [✅] **Local Storage:** SQLite implementation for persistent data.
-- [✅] **Basic UI:** Material Design implementation.
-
----
-
-## In Plan: v0.2.0 (History, Statistics & Personalization)
-
-The focus of this version is adding history and statistics. It will also include the addition of a settings menu to personalize the app.
-
-### History
-
-- [✅] **History:** View completed tasks.
-- [✅] **Overview:** Get an overview of completed tasks over a certain time period.
-
-### Statistics
-
-- [✅] **Statistics:** Get statistics about tasks.
-
-### Personalization
-
-- [✅] **Dynamic Theming:** Manual toggle and system-based dark mode.
-- [✅] **Personalization:** More customizability of the app.
+- [x] **Undo & Redo:** Undo and redo system for task actions.
+- [x] **Sub-tasks:** Hierarchical sub-task support and cascade completion.
+- [x] **Tags:** Support adding tags to tasks with inline autocomplete.
+- [x] **Sorting Overhaul:** LexoRank continuous drag-and-drop sorting.
+- [x] **Grouped Settings:** Category-based settings navigation in a dedicated sidebar.
+- [x] **Architecture Refactor:** Modularized task provider into domain services.
 
 ---
 
-## Future: v0.3.0 (Riverpod Migration & Refactor)
+## Planned: v0.5.0 (Desktop & UI Overhaul)
 
-This version is focused on architectural stability and technical debt.
-
-### State Management Rewrite
-
-- [✅] **Migrate to Riverpod:** Replace Provider/ChangeNotifier with Riverpod providers.
-- [✅] **Core Logic Decoupling:** Move repository and logic out of the providers.
-- [✅] **Improved Performance:** Implement granular rebuilds for complex lists.
-
-### Quality Assurance
-
-- [✅] **Unit Testing:** Increase coverage for core logic.
-- [✅] **Widget Testing:** Initial test suite for major UI components.
+- [ ] **Desktop Overhaul:** Optimize desktop UI layout and interaction models.
+- [ ] **Dialog Overhaul:** Streamline modals and integrate more controls into sidebars.
 
 ---
 
-## In Plan: v0.4.0 (Feature Expansion)
+## Planned: v0.6.0 (Advanced Features & Markdown Tools)
 
-The focus of this version is enhancing functionality and user experience.
-
-### Versions
-
-- [ ] **Versions:** Assign a task to a certain version of a project.
-- [ ] **Version Overview:** Get an overview of tasks per version.
-- [ ] **Version Handling:** Handle multiple versions for a project.
-- [ ] **Roadmap Integration:** Tightly integrate with Roadmap.md files.
-
-### Enhanced Markdown Support
-
-- [ ] **Markdown Import Enhancement:** Get preview when importing markdown files.
-- [ ] **File Watcher:** Watch for changes in markdown (like Roadmap.md) files and update tasks accordingly.
-
-### Improved settings menu
-
-- [✅] **Group Settings:** Group settings by category in a new sidebar.
-
-### New Features
-
+- [ ] **Markdown Import Preview:** Live preview before importing markdown files.
+- [ ] **File Watcher:** Watch markdown files (like Roadmap.md) for live sync.
 - [ ] **Advanced Filtering:** Filter tasks by priority and date range.
-- [✅] **Undo & Redo:** Undo and redo recent actions.
-- [✅] **Tags:** Support adding tags to tasks.
-- [✅] **Sub-tasks:** Support sub-tasks.
-- [ ] **Dialog overhaul:** Overhaul the dialogs to be more user friendly. Try to use the sidebar for more settings and less dialogs.
-- [✅] **Sorting overhaul:** Overhaul the sorting to step away from the 5 stage priority sorting and allow more flexibility.
-- [ ] **Desktop overhaul:** Overhaul the desktop UI to be more user friendly. Try to use the sidebar for more settings and less dialogs.
+- [ ] **Project Versions:** Assign tasks to specific project versions and track version progress.
 
 ---
 
-## Future: v0.5.0 (Cross platform)
+## Future: v0.7.0 (Cross Platform)
 
-- [ ] **Mobile Support:** Optimised layouts for Android/iOS.
-
-## Future: v0.6.0 (Cloud Sync)
-
-- [ ] **CRDT:** Switch to CRDT for conflict resolution.
-- [ ] **Cloud Sync:** Cross-device synchronization (via cloud provider).
-- [ ] **Self Hosted Sync:** Option to sync with own server.
+- [ ] **Mobile Support:** Optimized layouts for Android and iOS form factors.
 
 ---
 
-### Legend
+## Future: v0.8.0 (Cloud & Local Sync)
 
-- [ ] **To Do**
-- [⏳] **In Progress**
-- [✅] **Done**
+- [ ] **CRDT:** Conflict-free Replicated Data Types for state reconciliation.
+- [ ] **Cloud Sync:** Cross-device synchronization via cloud providers.
+- [ ] **Self-Hosted Sync:** Option to synchronize with self-hosted servers.
