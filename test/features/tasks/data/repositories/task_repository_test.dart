@@ -6,6 +6,8 @@ import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 
 import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart';
 
+import '../../../../helpers/task_test_helpers.dart';
+
 void main() {
   setUpAll(() {
     sqfliteFfiInit();
@@ -238,5 +240,22 @@ void main() {
         expect(fetched, isNull);
       },
     );
+
+    test('should query subtasks by parent id', () async {
+      final parent = createTestTask(id: 'p1', title: 'Parent Task');
+      final sub1 = createTestTask(id: 's1', title: 'Subtask 1', parentId: 'p1');
+      final sub2 = createTestTask(id: 's2', title: 'Subtask 2', parentId: 'p1');
+
+      await repository.insert(parent);
+      await repository.insert(sub1);
+      await repository.insert(sub2);
+
+      final subtasks = await repository.getByParent('p1');
+      expect(subtasks.length, equals(2));
+      expect(subtasks.map((t) => t.id), containsAll(['s1', 's2']));
+
+      final emptySubtasks = await repository.getByParent('non-existent');
+      expect(emptySubtasks, isEmpty);
+    });
   });
 }

@@ -1,36 +1,22 @@
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/mock_repositories.dart';
+import '../../../../helpers/task_test_helpers.dart';
 
 void main() {
   group('tasks', () {
+    late TestTaskRepositories repos;
     late MockTaskRepository mockTaskRepo;
-    late MockProjectRepository mockProjectRepo;
-    late MockHistoryRepository mockHistoryRepo;
-    late MockSettingsRepository mockSettingsRepo;
     late ProviderContainer container;
 
     setUp(() {
-      mockTaskRepo = MockTaskRepository();
-      mockProjectRepo = MockProjectRepository();
-      mockHistoryRepo = MockHistoryRepository();
-      mockSettingsRepo = MockSettingsRepository();
-
-      when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
-
-      container = ProviderContainer(
-        overrides: [
-          taskRepositoryProvider.overrideWithValue(mockTaskRepo),
-          projectRepositoryProvider.overrideWithValue(mockProjectRepo),
-          historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
-          settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
-        ],
-      );
+      repos = TestTaskRepositories();
+      repos.setupDefaultStubs();
+      mockTaskRepo = repos.mockTaskRepo;
+      container = repos.createContainer();
     });
 
     tearDown(() {
@@ -39,18 +25,8 @@ void main() {
 
     test('subtasksProvider returns all subtasks for given parent ID', () async {
       final subtasks = [
-        Task(
-          id: 'sub1',
-          title: 'Sub 1',
-          parentId: 'parent1',
-          createdAt: DateTime.now(),
-        ),
-        Task(
-          id: 'sub2',
-          title: 'Sub 2',
-          parentId: 'parent1',
-          createdAt: DateTime.now(),
-        ),
+        createTestTask(id: 'sub1', title: 'Sub 1', parentId: 'parent1'),
+        createTestTask(id: 'sub2', title: 'Sub 2', parentId: 'parent1'),
       ];
 
       when(
@@ -66,11 +42,7 @@ void main() {
     });
 
     test('parentTaskProvider returns parent task by ID', () async {
-      final parent = Task(
-        id: 'parent1',
-        title: 'Parent Task',
-        createdAt: DateTime.now(),
-      );
+      final parent = createTestTask(id: 'parent1', title: 'Parent Task');
 
       when(
         () => mockTaskRepo.getById('parent1'),
@@ -84,22 +56,25 @@ void main() {
     });
 
     test(
-      'collapsedSubtasksProvider toggles parent collapse state correctly',
+      'collapsedSubtasksProvider toggles and reports collapse state correctly',
       () {
         final notifier = container.read(collapsedSubtasksProvider.notifier);
 
+        expect(notifier.isCollapsed('p1'), isFalse);
         expect(
           container.read(collapsedSubtasksProvider).contains('p1'),
           isFalse,
         );
 
         notifier.toggleCollapse('p1');
+        expect(notifier.isCollapsed('p1'), isTrue);
         expect(
           container.read(collapsedSubtasksProvider).contains('p1'),
           isTrue,
         );
 
         notifier.toggleCollapse('p1');
+        expect(notifier.isCollapsed('p1'), isFalse);
         expect(
           container.read(collapsedSubtasksProvider).contains('p1'),
           isFalse,
