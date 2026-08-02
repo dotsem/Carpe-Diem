@@ -2,7 +2,9 @@
 Returns true if the date is Friday, Saturday, or Sunday.
 */
 bool isEndOfWorkWeek(DateTime date) {
-  if (date.weekday == DateTime.friday || date.weekday == DateTime.saturday || date.weekday == DateTime.sunday) {
+  if (date.weekday == DateTime.friday ||
+      date.weekday == DateTime.saturday ||
+      date.weekday == DateTime.sunday) {
     return true;
   }
   return false;
@@ -38,20 +40,23 @@ extension DateTimeExtension on DateTime {
   bool isBeforeDay(DateTime? other) {
     if (other == null) return false;
     return year < other.year ||
-        (year == other.year && (month < other.month || (month == other.month && day < other.day)));
+        (year == other.year &&
+            (month < other.month || (month == other.month && day < other.day)));
   }
 
   bool isAfterDay(DateTime? other) {
     if (other == null) return false;
     return year > other.year ||
-        (year == other.year && (month > other.month || (month == other.month && day > other.day)));
+        (year == other.year &&
+            (month > other.month || (month == other.month && day > other.day)));
   }
 
   DateTime startOfMonth() => DateTime(year, month, 1);
   DateTime endOfMonth() => DateTime(year, month + 1, 0);
 
   bool isBetween(DateTime start, DateTime end) {
-    return (isAfterDay(start) || isSameDay(start)) && (isBeforeDay(end) || isSameDay(end));
+    return (isAfterDay(start) || isSameDay(start)) &&
+        (isBeforeDay(end) || isSameDay(end));
   }
 
   bool get isTomorrow {
