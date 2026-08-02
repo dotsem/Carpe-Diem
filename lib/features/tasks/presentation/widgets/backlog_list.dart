@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -117,13 +118,16 @@ class BacklogList extends ConsumerWidget {
       ..addAll({for (var t in provider.overdueTasks) t.id: t})
       ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
 
+    final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
     final activeHierarchical = TaskHierarchyUtils.buildHierarchy(
       activeTasks,
       allTasks: allAvailableTasks,
+      collapsedParentIds: collapsedParentIds,
     );
     final completedHierarchical = TaskHierarchyUtils.buildHierarchy(
       completedTasks,
       allTasks: allAvailableTasks,
+      collapsedParentIds: collapsedParentIds,
     );
 
     final List<String> orderedIds = [];

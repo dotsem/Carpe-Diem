@@ -6,6 +6,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widg
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 
@@ -45,6 +46,15 @@ void showTaskCardContextMenu(
   items.addAll(buildProgressStateItems(context, ref, task, onAction: onAction));
 
   items.addAll([
+    if (task.parentId == null)
+      PopupMenuItem(
+        onTap: () => _showAddSubtask(context, task),
+        child: const ListTile(
+          leading: Icon(Icons.add_task),
+          title: Text('Add subtask'),
+          dense: true,
+        ),
+      ),
     PopupMenuItem(
       onTap: () => _showEditTask(context, task),
       child: const ListTile(
@@ -95,11 +105,16 @@ void _showDeleteTask(
   TaskNotifier provider,
   VoidCallback? onAction,
 ) {
+  final subtasks = provider.getAllSubtasks(task.id);
+  final message = subtasks.isEmpty
+      ? "Are you sure you want to delete this task?"
+      : "Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?";
+
   showDialog(
     context: context,
     builder: (_) => DeleteDialog(
       title: "Delete Task",
-      message: "Are you sure you want to delete this task?",
+      message: message,
       onConfirm: () {
         provider.deleteTask(task);
         onAction?.call();
@@ -136,4 +151,15 @@ void _unscheduleTask(
   } else {
     doUnschedule();
   }
+}
+
+void _showAddSubtask(BuildContext context, Task parentTask) {
+  showDialog(
+    context: context,
+    builder: (_) => AddTaskDialog(
+      initialDate: parentTask.scheduledDate,
+      initialProjectId: parentTask.projectId,
+      initialParentId: parentTask.id,
+    ),
+  );
 }

@@ -79,11 +79,15 @@ void main() {
         isActive: false,
       );
 
-      when(() => mockProjectRepo.getAll()).thenAnswer((_) async => [p1, p2, p3]);
+      when(
+        () => mockProjectRepo.getAll(),
+      ).thenAnswer((_) async => [p1, p2, p3]);
 
       await container.read(projectProvider.notifier).loadProjects();
 
-      container.read(filterProvider.notifier).setFilter(const TaskFilter(isUrgent: true));
+      container
+          .read(filterProvider.notifier)
+          .setFilter(const TaskFilter(isUrgent: true));
 
       final result = container.read(hiddenProjectsCountProvider);
       expect(result.hasHidden, true);
@@ -125,13 +129,27 @@ void main() {
 
     test('calculates hidden unscheduled tasks count correctly', () async {
       final now = DateTime.now();
-      final t1 = Task(id: 't1', title: 'Urgent Task', isUrgent: true, createdAt: now);
-      final t2 = Task(id: 't2', title: 'Normal Task', isUrgent: false, createdAt: now);
+      final t1 = Task(
+        id: 't1',
+        title: 'Urgent Task',
+        isUrgent: true,
+        createdAt: now,
+      );
+      final t2 = Task(
+        id: 't2',
+        title: 'Normal Task',
+        isUrgent: false,
+        createdAt: now,
+      );
 
-      when(() => mockTaskRepo.getUnscheduled()).thenAnswer((_) async => [t1, t2]);
+      when(
+        () => mockTaskRepo.getUnscheduled(),
+      ).thenAnswer((_) async => [t1, t2]);
       await container.read(taskProvider.notifier).loadUnscheduledTasks();
 
-      container.read(filterProvider.notifier).setFilter(const TaskFilter(isUrgent: true));
+      container
+          .read(filterProvider.notifier)
+          .setFilter(const TaskFilter(isUrgent: true));
 
       final hiddenCount = container.read(hiddenUnscheduledTasksCountProvider);
       expect(hiddenCount, 1);

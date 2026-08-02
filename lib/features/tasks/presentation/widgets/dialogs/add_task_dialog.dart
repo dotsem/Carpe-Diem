@@ -25,8 +25,14 @@ import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_di
 class AddTaskDialog extends ConsumerStatefulWidget {
   final DateTime? initialDate;
   final String? initialProjectId;
+  final String? initialParentId;
 
-  const AddTaskDialog({super.key, this.initialDate, this.initialProjectId});
+  const AddTaskDialog({
+    super.key,
+    this.initialDate,
+    this.initialProjectId,
+    this.initialParentId,
+  });
 
   @override
   ConsumerState<AddTaskDialog> createState() => _AddTaskDialogState();
@@ -40,6 +46,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   TaskPlacement _placement = TaskPlacement.bottom;
   DateTime? _deadline;
   String? _blockedById;
+  String? _parentId;
   List<Task> _projectTasks = [];
   List<String> _selectedLabelIds = [];
   List<String> _inheritedLabelIds = [];
@@ -54,6 +61,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     final settings = ref.read(settingsProvider);
     _selectedDate = widget.initialDate;
     _selectedProjectId = widget.initialProjectId ?? settings.defaultProjectId;
+    _parentId = widget.initialParentId;
 
     _titleController = TagHighlightingController(
       getExistingTagNames: () =>
@@ -345,6 +353,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
           placement: _placement,
           deadline: _deadline,
           blockedById: _blockedById,
+          parentId: _parentId,
           labelIds: _selectedLabelIds,
           tagIds: finalTagIds,
         );

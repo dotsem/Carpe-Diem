@@ -75,9 +75,14 @@ class LexoRankUtils {
     String Function(T) getSortOrder,
   ) {
     if (list.isEmpty) return defaultRank;
-    if (oldIndex == newIndex) return getSortOrder(list[oldIndex]);
-    final remaining = List<T>.from(list)..removeAt(oldIndex);
-    int adjustedIndex = oldIndex < newIndex ? newIndex - 1 : newIndex;
+    final remaining = List<T>.from(list);
+    if (oldIndex >= 0 && oldIndex < remaining.length) {
+      if (oldIndex == newIndex) return getSortOrder(list[oldIndex]);
+      remaining.removeAt(oldIndex);
+    }
+    int adjustedIndex = (oldIndex >= 0 && oldIndex < newIndex)
+        ? newIndex - 1
+        : newIndex;
 
     if (remaining.isEmpty) return defaultRank;
     if (adjustedIndex <= 0) {

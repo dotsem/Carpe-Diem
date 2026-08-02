@@ -2,6 +2,7 @@ import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -135,7 +136,9 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
           return deadlineComp;
         }
 
-        final sortComp = a.sortOrder.compareTo(b.sortOrder);
+        final aSort = a.sortOrder.isEmpty ? '~' : a.sortOrder;
+        final bSort = b.sortOrder.isEmpty ? '~' : b.sortOrder;
+        final sortComp = aSort.compareTo(bSort);
         if (sortComp != 0) return sortComp;
 
         return b.createdAt.compareTo(a.createdAt);
@@ -162,9 +165,11 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
           ..addAll({for (var t in taskState.overdueTasks) t.id: t})
           ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+        final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
         final flattened = TaskHierarchyUtils.buildHierarchy(
           categoryTasks,
           allTasks: allAvailableTasks,
+          collapsedParentIds: collapsedParentIds,
         );
         for (final n in flattened) {
           if (n is TaskNode) _orderedItemIds.add(n.task.id);
@@ -235,9 +240,11 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         ..addAll({for (var t in taskState.overdueTasks) t.id: t})
         ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
 
+      final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
       final flattened = TaskHierarchyUtils.buildHierarchy(
         categoryTasks,
         allTasks: allAvailableTasks,
+        collapsedParentIds: collapsedParentIds,
       );
       return flattened.map((n) => buildNode(n, overdueFn)).toList();
     }
@@ -282,12 +289,14 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
                       ..addAll({
                         for (var t in taskState.unscheduledTasks) t.id: t,
                       });
+                final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
                 final activeNodes =
                     widget.searchQuery != null && widget.searchQuery!.isNotEmpty
                     ? activeTasks.map((t) => TaskNode(t, 0)).toList()
                     : TaskHierarchyUtils.buildHierarchy(
                         activeTasks,
                         allTasks: allAvailableTasks,
+                        collapsedParentIds: collapsedParentIds,
                       );
                 return ActiveTaskReorderableList(
                   nodes: activeNodes,

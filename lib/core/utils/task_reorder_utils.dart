@@ -82,6 +82,40 @@ class TaskReorderUtils {
     return true;
   }
 
+  /// Find the effective rank of a task at a given index in a list.
+  /// Considers existing sort orders and generates intermediate ranks if needed.
+  /// Returns the new sort order for the task, or null if no change is needed.
+  static String? _getEffectiveRank(List<Task> remaining, int index) {
+    if (index < 0 || index >= remaining.length) return null;
+    final task = remaining[index];
+    if (task.sortOrder.isNotEmpty) return task.sortOrder;
+
+    String? prevRank;
+    int prevIndex = -1;
+    for (int k = index - 1; k >= 0; k--) {
+      if (remaining[k].sortOrder.isNotEmpty) {
+        prevRank = remaining[k].sortOrder;
+        prevIndex = k;
+        break;
+      }
+    }
+
+    String? nextRank;
+    for (int k = index + 1; k < remaining.length; k++) {
+      if (remaining[k].sortOrder.isNotEmpty) {
+        nextRank = remaining[k].sortOrder;
+        break;
+      }
+    }
+
+    String? current = prevRank;
+    final steps = index - prevIndex;
+    for (int s = 0; s < steps; s++) {
+      current = LexoRankUtils.generateBetween(current, nextRank);
+    }
+    return current;
+  }
+
   /// Calculate the new sort order for a single task when moved to a new position in a group.
   /// Returns the new sort order for the task, or null if no change is needed.
   static String? handleReorder({
@@ -96,6 +130,8 @@ class TaskReorderUtils {
         .where((t) => inSameGroup(t, draggedTask, settings))
         .toList();
 
+    if (sameGroupTasks.isEmpty) return null;
+
     final taskOldIndex = sameGroupTasks.indexWhere(
       (t) => t.id == draggedTask.id,
     );
@@ -108,12 +144,19 @@ class TaskReorderUtils {
       }
     }
 
-    return LexoRankUtils.computeReorderSortOrder(
-      sameGroupTasks,
-      taskOldIndex,
-      targetCount,
-      (t) => t.sortOrder,
-    );
+    final remaining = List<Task>.from(sameGroupTasks);
+    if (taskOldIndex >= 0 && taskOldIndex < remaining.length) {
+      remaining.removeAt(taskOldIndex);
+    }
+
+    int adjustedIndex = (taskOldIndex >= 0 && taskOldIndex < targetCount)
+        ? targetCount - 1
+        : targetCount;
+
+    final prevRank = _getEffectiveRank(remaining, adjustedIndex - 1);
+    final nextRank = _getEffectiveRank(remaining, adjustedIndex);
+
+    return LexoRankUtils.generateBetween(prevRank, nextRank);
   }
 
   /// Calculate new sort orders for multiple tasks being moved together as a group.
@@ -152,12 +195,8 @@ class TaskReorderUtils {
       }
     }
 
-    final String? prev = targetCount == 0
-        ? null
-        : remaining[targetCount - 1].sortOrder;
-    final String? next = targetCount >= remaining.length
-        ? null
-        : remaining[targetCount].sortOrder;
+    final String? prev = _getEffectiveRank(remaining, targetCount - 1);
+    final String? next = _getEffectiveRank(remaining, targetCount);
 
     final Map<String, String> newSortOrders = {};
     String? currentPrev = prev;
@@ -185,10 +224,8 @@ class TaskReorderUtils {
 
     if (taskOldIndex == 0) return;
 
-    final newSortOrder = LexoRankUtils.generateBetween(
-      null,
-      sameGroupTasks[0].sortOrder,
-    );
+    final topRank = _getEffectiveRank(sameGroupTasks, 0);
+    final newSortOrder = LexoRankUtils.generateBetween(null, topRank);
     provider.updateTask(task.copyWith(sortOrder: newSortOrder));
   }
 
@@ -206,10 +243,11 @@ class TaskReorderUtils {
 
     if (taskOldIndex == sameGroupTasks.length - 1) return;
 
-    final newSortOrder = LexoRankUtils.generateBetween(
-      sameGroupTasks[sameGroupTasks.length - 1].sortOrder,
-      null,
+    final bottomRank = _getEffectiveRank(
+      sameGroupTasks,
+      sameGroupTasks.length - 1,
     );
+    final newSortOrder = LexoRankUtils.generateBetween(bottomRank, null);
     provider.updateTask(task.copyWith(sortOrder: newSortOrder));
   }
 }

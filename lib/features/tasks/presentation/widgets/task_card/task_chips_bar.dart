@@ -7,6 +7,9 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/subtask_progress_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,6 +35,7 @@ class TaskChipsBar extends ConsumerWidget {
     // Watch providers
     ref.watch(labelProvider);
     ref.watch(tagProvider);
+    ref.watch(taskProvider);
 
     final labelNotifier = ref.read(labelProvider.notifier);
     final tagNotifier = ref.read(tagProvider.notifier);
@@ -46,11 +50,16 @@ class TaskChipsBar extends ConsumerWidget {
         .whereType<Label>()
         .toList();
 
-    // Tags
     final tags = task.tagIds
         .map((id) => tagNotifier.getById(id))
         .whereType<Tag>()
         .toList();
+
+    final subtasksAsync = ref.watch(subtasksProvider(task.id));
+    final subtasks = subtasksAsync.valueOrNull ?? [];
+
+    final collapsedSet = ref.watch(collapsedSubtasksProvider);
+    final isCollapsedSubtasks = collapsedSet.contains(task.id);
 
     final hasChips =
         project != null ||
@@ -59,6 +68,7 @@ class TaskChipsBar extends ConsumerWidget {
         task.deadline != null ||
         labels.isNotEmpty ||
         tags.isNotEmpty ||
+        subtasks.isNotEmpty ||
         (showScheduleDate && task.scheduledDate != null);
 
     if (!hasChips) return const SizedBox.shrink();
@@ -67,6 +77,20 @@ class TaskChipsBar extends ConsumerWidget {
       spacing: 4,
       runSpacing: 4,
       children: [
+        if (subtasks.isNotEmpty)
+          SubtaskProgressChip(
+            completedCount: subtasks.where((t) => t.isCompleted).length,
+            plannedCount: subtasks
+                .where((t) => t.scheduledDate != null && !t.isCompleted)
+                .length,
+            totalCount: subtasks.length,
+            isCollapsed: isCollapsedSubtasks,
+            onToggleCollapse: () {
+              ref
+                  .read(collapsedSubtasksProvider.notifier)
+                  .toggleCollapse(task.id);
+            },
+          ),
         if (isOverdue && !task.isCompleted) const OverdueChip(),
         if (task.status.isInProgress) const StatusChip(),
         if (task.deadline != null) DeadlineChip(deadline: task.deadline!),

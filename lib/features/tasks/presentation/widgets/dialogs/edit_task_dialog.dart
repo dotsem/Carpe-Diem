@@ -14,6 +14,8 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/subtasks_list_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/parent_task_link.dart';
 
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
@@ -166,17 +168,26 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
         submitText: 'Save Changes',
         actions: [
           TextButton.icon(
-            onPressed: () => showDialog(
-              context: context,
-              builder: (context) => DeleteDialog(
-                title: 'Delete Task',
-                message: 'Are you sure you want to delete this task?',
-                onConfirm: () {
-                  Navigator.of(context).pop();
-                  ref.read(taskProvider.notifier).deleteTask(widget.task);
-                },
-              ),
-            ),
+            onPressed: () {
+              final subtasks = ref
+                  .read(taskProvider.notifier)
+                  .getAllSubtasks(widget.task.id);
+              final message = subtasks.isEmpty
+                  ? 'Are you sure you want to delete this task?'
+                  : 'Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?';
+
+              showDialog(
+                context: context,
+                builder: (context) => DeleteDialog(
+                  title: 'Delete Task',
+                  message: message,
+                  onConfirm: () {
+                    Navigator.of(context).pop();
+                    ref.read(taskProvider.notifier).deleteTask(widget.task);
+                  },
+                ),
+              );
+            },
             icon: const Icon(Icons.delete),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             label: const Text("Delete"),
@@ -202,6 +213,10 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.task.parentId != null) ...[
+                ParentTaskLink(parentId: widget.task.parentId!),
+                const SizedBox(height: 8),
+              ],
               TagAutocompleteTextField(
                 controller: _nameController,
                 autofocus: true,
@@ -276,6 +291,14 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
                       _blockedById = id;
                     });
                   },
+                ),
+              ],
+              if (widget.task.parentId == null) ...[
+                const SizedBox(height: 16),
+                SubtasksListSection(
+                  parentTask: widget.task,
+                  scheduledDate: _scheduledDate,
+                  projectId: _selectedProjectId,
                 ),
               ],
               const SizedBox(height: 16),

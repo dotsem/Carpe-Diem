@@ -214,5 +214,56 @@ void main() {
         verify(() => mockTaskRepo.update(any())).called(2);
       },
     );
+
+    test(
+      'TaskNotifier deleteTask should cascade delete subtasks via CompoundCommand and restore on undo',
+      () async {
+        final parent = Task(
+          id: 'parent_1',
+          title: 'Parent Task',
+          createdAt: DateTime.now(),
+        );
+        final subtask = Task(
+          id: 'sub_1',
+          title: 'Subtask 1',
+          parentId: 'parent_1',
+          createdAt: DateTime.now(),
+        );
+
+        when(
+          () => mockTaskRepo.getUnscheduled(
+            prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          ),
+        ).thenAnswer((_) async => [parent, subtask]);
+        when(
+          () => mockTaskRepo.getByParent('parent_1'),
+        ).thenAnswer((_) async => [subtask]);
+        when(
+          () => mockTaskRepo.getByParent('sub_1'),
+        ).thenAnswer((_) async => []);
+        when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
+        when(() => mockTaskRepo.insert(any())).thenAnswer((_) async => {});
+
+        final taskNotifier = container.read(taskProvider.notifier);
+        final undoRedo = container.read(undoRedoProvider.notifier);
+
+        await taskNotifier.loadUnscheduledTasks();
+        await taskNotifier.deleteTask(parent);
+
+        verify(() => mockTaskRepo.delete('sub_1')).called(1);
+        verify(() => mockTaskRepo.delete('parent_1')).called(1);
+        expect(undoRedo.state.canUndo, isTrue);
+        expect(
+          undoRedo.state.undoDescription,
+          contains('Delete "Parent Task" and 1 subtask'),
+        );
+
+        await undoRedo.undo();
+        await Future.delayed(Duration.zero);
+
+        verify(() => mockTaskRepo.insert(parent)).called(1);
+        verify(() => mockTaskRepo.insert(subtask)).called(1);
+      },
+    );
   });
 }

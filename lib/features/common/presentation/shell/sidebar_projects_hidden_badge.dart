@@ -26,7 +26,8 @@ class SidebarProjectsHiddenBadge extends ConsumerWidget {
 
     if (isBypassed) {
       labelText = 'Bypassed';
-      tooltipMessage = 'Filters are temporarily bypassed (Shift+F). Tap to re-enable.';
+      tooltipMessage =
+          'Filters are temporarily bypassed (Shift+F). Tap to re-enable.';
       iconData = Icons.filter_list_off;
     } else if (hiddenProjects.archivedHidden > 0) {
       labelText = hiddenProjects.activeHidden > 0
@@ -37,7 +38,8 @@ class SidebarProjectsHiddenBadge extends ConsumerWidget {
       iconData = Icons.visibility_off_outlined;
     } else {
       labelText = '${hiddenProjects.activeHidden} hidden';
-      tooltipMessage = '${hiddenProjects.activeHidden} projects hidden by filter';
+      tooltipMessage =
+          '${hiddenProjects.activeHidden} projects hidden by filter';
       iconData = Icons.visibility_off_outlined;
     }
 
@@ -55,7 +57,10 @@ class SidebarProjectsHiddenBadge extends ConsumerWidget {
             decoration: BoxDecoration(
               color: warningColor.withValues(alpha: isDark ? 0.2 : 0.12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: warningColor.withValues(alpha: 0.4), width: 1),
+              border: Border.all(
+                color: warningColor.withValues(alpha: 0.4),
+                width: 1,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

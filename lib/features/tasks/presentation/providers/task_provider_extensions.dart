@@ -82,11 +82,18 @@ extension TaskNotifierExtension on TaskNotifier {
   }
 
   Future<void> bulkDeleteTasks(List<String> taskIds) async {
+    final allIdsToDelete = <String>{...taskIds};
     for (final id in taskIds) {
+      final subtasks = await getAllSubtasksFromRepo(id);
+      for (final s in subtasks) {
+        allIdsToDelete.add(s.id);
+      }
+    }
+    for (final id in allIdsToDelete) {
       await _repo.delete(id);
     }
     await _refreshAll();
-    ToastUtils.showSuccess('Deleted ${taskIds.length} tasks');
+    ToastUtils.showSuccess('Deleted ${allIdsToDelete.length} tasks');
   }
 
   Future<void> _scheduleTasksForDate(
@@ -253,5 +260,54 @@ extension TaskNotifierExtension on TaskNotifier {
       await _repo.update(updatedBlocker);
       await _propagateDeadline(updatedBlocker, localVisited);
     }
+  }
+
+  Future<void> completeParentWithCascade(
+    SubtaskCompletionConflict conflict,
+  ) async {
+    final now = DateTime.now();
+    final commands = <Command>[];
+
+    for (final subtask in conflict.incompleteSubtasks) {
+      final updatedSubtask = subtask.copyWith(
+        status: TaskStatus.done,
+        scheduledDate: subtask.scheduledDate ?? _normalizeDate(now),
+        completedAt: now,
+      );
+      commands.add(
+        UpdateCommand(
+          repo: _repo,
+          previous: subtask,
+          next: updatedSubtask,
+          displayName: subtask.title,
+        ),
+      );
+    }
+
+    final updatedParent = conflict.parentTask.copyWith(
+      status: TaskStatus.done,
+      scheduledDate: conflict.parentTask.scheduledDate ?? _normalizeDate(now),
+      completedAt: now,
+    );
+    commands.add(
+      UpdateCommand(
+        repo: _repo,
+        previous: conflict.parentTask,
+        next: updatedParent,
+        displayName: conflict.parentTask.title,
+      ),
+    );
+
+    final compound = CompoundCommand(
+      commands,
+      'Complete "${conflict.parentTask.title}" and ${conflict.incompleteSubtasks.length} subtasks',
+    );
+    await ref.read(undoRedoProvider.notifier).execute(compound);
+    await cleanupHistory();
+    await _refreshAll();
+  }
+
+  Future<void> completeParentOnly(Task parentTask) async {
+    await completeTask(parentTask);
   }
 }

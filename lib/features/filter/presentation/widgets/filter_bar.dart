@@ -102,7 +102,10 @@ class FilterBar extends ConsumerWidget {
             }),
           if (filter.labelIdsIncluded.isNotEmpty)
             ...filter.labelIdsIncluded.map((id) {
-              final label = labelState.labels.firstWhere((l) => l.id == id, orElse: () => Label.empty());
+              final label = labelState.labels.firstWhere(
+                (l) => l.id == id,
+                orElse: () => Label.empty(),
+              );
               if (label.isEmpty) return const SizedBox.shrink();
               return _buildChip(
                 context,
@@ -114,7 +117,10 @@ class FilterBar extends ConsumerWidget {
             }),
           if (filter.labelIdsExcluded.isNotEmpty)
             ...filter.labelIdsExcluded.map((id) {
-              final label = labelState.labels.firstWhere((l) => l.id == id, orElse: () => Label.empty());
+              final label = labelState.labels.firstWhere(
+                (l) => l.id == id,
+                orElse: () => Label.empty(),
+              );
               if (label.isEmpty) return const SizedBox.shrink();
               return _buildChip(
                 context,
@@ -158,11 +164,19 @@ class FilterBar extends ConsumerWidget {
             }),
           if (hiddenCount > 0 || hiddenArchivedCount > 0 || isBypassed) ...[
             const SizedBox(width: 8),
-            HiddenItemsIndicator(count: hiddenCount, itemType: hiddenItemType, archivedCount: hiddenArchivedCount),
+            HiddenItemsIndicator(
+              count: hiddenCount,
+              itemType: hiddenItemType,
+              archivedCount: hiddenArchivedCount,
+            ),
           ],
           const SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.close, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            icon: Icon(
+              Icons.close,
+              size: 18,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             onPressed: onClearFilter,
             tooltip: 'Clear filters',
           ),
@@ -198,5 +212,7 @@ class FilterBar extends ConsumerWidget {
 
   String? _projectTooltip(bool ignoreProjects, bool isBypassed) => isBypassed
       ? 'Filters are temporarily bypassed (Shift+F)'
-      : (ignoreProjects ? 'Project filters are ignored in this screen' : 'Click to remove filter');
+      : (ignoreProjects
+            ? 'Project filters are ignored in this screen'
+            : 'Click to remove filter');
 }
