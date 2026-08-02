@@ -15,6 +15,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_d
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/subtasks_list_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/parent_task_link.dart';
 
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
@@ -212,6 +213,10 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.task.parentId != null) ...[
+                ParentTaskLink(parentId: widget.task.parentId!),
+                const SizedBox(height: 8),
+              ],
               TagAutocompleteTextField(
                 controller: _nameController,
                 autofocus: true,

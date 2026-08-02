@@ -4,68 +4,67 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ParentBreadcrumbHeader extends ConsumerStatefulWidget {
+class ParentTaskLink extends ConsumerWidget {
   final String parentId;
 
-  const ParentBreadcrumbHeader({super.key, required this.parentId});
+  const ParentTaskLink({super.key, required this.parentId});
 
   @override
-  ConsumerState<ParentBreadcrumbHeader> createState() =>
-      _ParentBreadcrumbHeaderState();
-}
-
-class _ParentBreadcrumbHeaderState
-    extends ConsumerState<ParentBreadcrumbHeader> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final taskState = ref.watch(taskProvider);
     final allStateTasks = [
       ...taskState.tasks,
       ...taskState.overdueTasks,
       ...taskState.unscheduledTasks,
     ];
-    final parentTask = allStateTasks
-        .where((t) => t.id == widget.parentId)
-        .firstOrNull;
+    final parentTask = allStateTasks.where((t) => t.id == parentId).firstOrNull;
     if (parentTask == null) return const SizedBox.shrink();
 
     final cleanTitle = TagParser.hideHashtagSymbols(parentTask.title);
 
-    final color = _isHovered
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7);
-
     return InkWell(
       onTap: () {
+        Navigator.of(context).pop();
         showDialog(
           context: context,
           builder: (_) => EditTaskDialog(task: parentTask),
         );
       },
-      onHover: (hovering) => setState(() => _isHovered = hovering),
-      borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 2, right: 4),
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(6),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.subdirectory_arrow_right_rounded,
-              size: 11,
-              color: color,
+              size: 14,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(width: 3),
+            const SizedBox(width: 4),
+            Text(
+              'Parent: ',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             Flexible(
               child: Text(
                 cleanTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: color,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
