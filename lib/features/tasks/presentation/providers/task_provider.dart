@@ -512,8 +512,22 @@ class TaskNotifier extends Notifier<TaskState> {
     return result;
   }
 
+  Future<List<Task>> getAllSubtasksFromRepo(String parentId) async {
+    final result = <Task>[];
+    Future<void> collect(String pid) async {
+      final children = await _repo.getByParent(pid);
+      for (final child in children) {
+        result.add(child);
+        await collect(child.id);
+      }
+    }
+
+    await collect(parentId);
+    return result;
+  }
+
   Future<void> deleteTask(Task task) async {
-    final subtasks = getAllSubtasks(task.id);
+    final subtasks = await getAllSubtasksFromRepo(task.id);
     if (subtasks.isEmpty) {
       await ref
           .read(undoRedoProvider.notifier)

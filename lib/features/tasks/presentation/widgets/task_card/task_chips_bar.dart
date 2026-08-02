@@ -7,6 +7,7 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/subtask_progress_chip.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,7 @@ class TaskChipsBar extends ConsumerWidget {
     // Watch providers
     ref.watch(labelProvider);
     ref.watch(tagProvider);
-    final taskState = ref.watch(taskProvider);
+    ref.watch(taskProvider);
 
     final labelNotifier = ref.read(labelProvider.notifier);
     final tagNotifier = ref.read(tagProvider.notifier);
@@ -54,13 +55,8 @@ class TaskChipsBar extends ConsumerWidget {
         .whereType<Tag>()
         .toList();
 
-    final allStateTasks = [
-      ...taskState.tasks,
-      ...taskState.overdueTasks,
-      ...taskState.unscheduledTasks,
-    ];
-
-    final subtasks = allStateTasks.where((t) => t.parentId == task.id).toList();
+    final subtasksAsync = ref.watch(subtasksProvider(task.id));
+    final subtasks = subtasksAsync.valueOrNull ?? [];
 
     final hasChips =
         project != null ||

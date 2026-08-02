@@ -1,5 +1,5 @@
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,15 +20,8 @@ class _ParentBreadcrumbHeaderState
 
   @override
   Widget build(BuildContext context) {
-    final taskState = ref.watch(taskProvider);
-    final allStateTasks = [
-      ...taskState.tasks,
-      ...taskState.overdueTasks,
-      ...taskState.unscheduledTasks,
-    ];
-    final parentTask = allStateTasks
-        .where((t) => t.id == widget.parentId)
-        .firstOrNull;
+    final parentTaskAsync = ref.watch(parentTaskProvider(widget.parentId));
+    final parentTask = parentTaskAsync.valueOrNull;
     if (parentTask == null) return const SizedBox.shrink();
 
     final cleanTitle = TagParser.hideHashtagSymbols(parentTask.title);

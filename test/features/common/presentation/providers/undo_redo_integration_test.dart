@@ -235,6 +235,12 @@ void main() {
             prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
           ),
         ).thenAnswer((_) async => [parent, subtask]);
+        when(
+          () => mockTaskRepo.getByParent('parent_1'),
+        ).thenAnswer((_) async => [subtask]);
+        when(
+          () => mockTaskRepo.getByParent('sub_1'),
+        ).thenAnswer((_) async => []);
         when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
         when(() => mockTaskRepo.insert(any())).thenAnswer((_) async => {});
 

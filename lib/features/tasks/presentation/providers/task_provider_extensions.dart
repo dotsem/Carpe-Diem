@@ -84,7 +84,7 @@ extension TaskNotifierExtension on TaskNotifier {
   Future<void> bulkDeleteTasks(List<String> taskIds) async {
     final allIdsToDelete = <String>{...taskIds};
     for (final id in taskIds) {
-      final subtasks = getAllSubtasks(id);
+      final subtasks = await getAllSubtasksFromRepo(id);
       for (final s in subtasks) {
         allIdsToDelete.add(s.id);
       }

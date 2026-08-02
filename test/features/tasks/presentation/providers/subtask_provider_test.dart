@@ -1,0 +1,68 @@
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+import '../../../../helpers/mock_repositories.dart';
+
+void main() {
+  group('tasks', () {
+    late MockTaskRepository mockTaskRepo;
+    late MockProjectRepository mockProjectRepo;
+    late MockHistoryRepository mockHistoryRepo;
+    late MockSettingsRepository mockSettingsRepo;
+    late ProviderContainer container;
+
+    setUp(() {
+      mockTaskRepo = MockTaskRepository();
+      mockProjectRepo = MockProjectRepository();
+      mockHistoryRepo = MockHistoryRepository();
+      mockSettingsRepo = MockSettingsRepository();
+
+      when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
+
+      container = ProviderContainer(
+        overrides: [
+          taskRepositoryProvider.overrideWithValue(mockTaskRepo),
+          projectRepositoryProvider.overrideWithValue(mockProjectRepo),
+          historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
+          settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+        ],
+      );
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('subtasksProvider returns all subtasks for given parent ID', () async {
+      final subtasks = [
+        Task(id: 'sub1', title: 'Sub 1', parentId: 'parent1', createdAt: DateTime.now()),
+        Task(id: 'sub2', title: 'Sub 2', parentId: 'parent1', createdAt: DateTime.now()),
+      ];
+
+      when(() => mockTaskRepo.getByParent('parent1')).thenAnswer((_) async => subtasks);
+
+      final result = await container.read(subtasksProvider('parent1').future);
+
+      expect(result.length, equals(2));
+      expect(result[0].id, equals('sub1'));
+      expect(result[1].id, equals('sub2'));
+      verify(() => mockTaskRepo.getByParent('parent1')).called(1);
+    });
+
+    test('parentTaskProvider returns parent task by ID', () async {
+      final parent = Task(id: 'parent1', title: 'Parent Task', createdAt: DateTime.now());
+
+      when(() => mockTaskRepo.getById('parent1')).thenAnswer((_) async => parent);
+
+      final result = await container.read(parentTaskProvider('parent1').future);
+
+      expect(result, isNotNull);
+      expect(result!.title, equals('Parent Task'));
+      verify(() => mockTaskRepo.getById('parent1')).called(1);
+    });
+  });
+}

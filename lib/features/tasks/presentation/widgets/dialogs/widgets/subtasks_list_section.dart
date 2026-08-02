@@ -1,5 +1,6 @@
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
@@ -22,9 +23,30 @@ class SubtasksListSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final allTasks = ref.watch(taskProvider).tasks;
-    final subtasks = allTasks
-        .where((t) => t.parentId == parentTask.id)
+    final subtasksAsync = ref.watch(subtasksProvider(parentTask.id));
+    final subtasks = subtasksAsync.valueOrNull ?? [];
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final completedEarlier = subtasks.where((t) {
+      if (!t.isCompleted) return false;
+      if (t.completedAt != null) {
+        final compDate = DateTime(
+          t.completedAt!.year,
+          t.completedAt!.month,
+          t.completedAt!.day,
+        );
+        return compDate.isBefore(today);
+      }
+      if (t.scheduledDate != null) {
+        return t.scheduledDate!.isBefore(today);
+      }
+      return false;
+    }).toList();
+
+    final activeSubtasks = subtasks
+        .where((t) => !completedEarlier.contains(t))
         .toList();
 
     return Column(
@@ -55,7 +77,7 @@ class SubtasksListSection extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 8),
-        if (subtasks.isEmpty)
+        if (activeSubtasks.isEmpty && completedEarlier.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Text(
@@ -67,41 +89,68 @@ class SubtasksListSection extends ConsumerWidget {
               ),
             ),
           )
-        else
-          Column(
-            children: [
-              for (final subtask in subtasks)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6.0),
-                  child: TaskCard(
-                    task: subtask,
-                    project: subtask.projectId != null
-                        ? ref.watch(projectProvider).getById(subtask.projectId!)
-                        : null,
-                    useTimer: false,
-                    onToggle: (_) {
-                      ref.read(taskProvider.notifier).toggleComplete(subtask);
-                    },
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => EditTaskDialog(task: subtask),
-                      );
-                    },
-                    onContextMenu: (localPosition, renderBox) {
-                      showTaskCardContextMenu(
-                        context,
-                        ref,
-                        subtask,
-                        allTasks,
-                        localPosition,
-                        renderBox,
-                      );
-                    },
+        else ...[
+          if (activeSubtasks.isNotEmpty)
+            Column(
+              children: [
+                for (final subtask in activeSubtasks)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6.0),
+                    child: TaskCard(
+                      task: subtask,
+                      project: subtask.projectId != null
+                          ? ref
+                                .watch(projectProvider)
+                                .getById(subtask.projectId!)
+                          : null,
+                      useTimer: false,
+                      onToggle: (_) {
+                        ref.read(taskProvider.notifier).toggleComplete(subtask);
+                      },
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => EditTaskDialog(task: subtask),
+                        );
+                      },
+                      onContextMenu: (localPosition, renderBox) {
+                        showTaskCardContextMenu(
+                          context,
+                          ref,
+                          subtask,
+                          subtasks,
+                          localPosition,
+                          renderBox,
+                        );
+                      },
+                    ),
                   ),
-                ),
-            ],
-          ),
+              ],
+            ),
+          if (completedEarlier.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+            ),
+        ],
       ],
     );
   }
