@@ -4,18 +4,7 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 ---
 
-## Current Scope: v0.4.0 (Core Features & Provider Architecture)
-
-- [x] **Undo & Redo:** Undo and redo system for task actions.
-- [x] **Sub-tasks:** Hierarchical sub-task support and cascade completion.
-- [x] **Tags:** Support adding tags to tasks with inline autocomplete.
-- [x] **Sorting Overhaul:** LexoRank continuous drag-and-drop sorting.
-- [x] **Grouped Settings:** Category-based settings navigation in a dedicated sidebar.
-- [x] **Architecture Refactor:** Modularized task provider into domain services.
-
----
-
-## Planned: v0.5.0 (Desktop & UI Overhaul)
+## Current Scope: v0.5.0 (Desktop & UI Overhaul)
 
 - [ ] **Desktop Overhaul:** Optimize desktop UI layout and interaction models.
 - [ ] **Dialog Overhaul:** Streamline modals and integrate more controls into sidebars.
