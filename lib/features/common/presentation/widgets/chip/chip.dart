@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
+import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:flutter/material.dart';
@@ -118,6 +119,13 @@ class ScheduledChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isToday = scheduledDate.isToday;
+    final isTomorrow = scheduledDate.isTomorrow;
+    final scheduledDayTextValue = isToday
+        ? 'Today'
+        : isTomorrow
+        ? 'Tomorrow'
+        : '${months[scheduledDate.month - 1]} ${scheduledDate.day}';
     return SmallChip(
       color: AppColors.info.withValues(alpha: 0.15),
       child: Row(
@@ -130,7 +138,7 @@ class ScheduledChip extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            'Scheduled: ${months[scheduledDate.month - 1]} ${scheduledDate.day}',
+            "Scheduled: $scheduledDayTextValue",
             style: const TextStyle(fontSize: 11, color: AppColors.info),
           ),
         ],
