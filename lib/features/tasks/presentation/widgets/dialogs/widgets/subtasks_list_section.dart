@@ -49,13 +49,51 @@ class SubtasksListSection extends ConsumerWidget {
         .where((t) => !completedEarlier.contains(t))
         .toList();
 
+    final collapsedSet = ref.watch(collapsedSubtasksProvider);
+    final isCollapsed = collapsedSet.contains(parentTask.id);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Subtasks', style: Theme.of(context).textTheme.labelLarge),
+            InkWell(
+              onTap: () {
+                ref
+                    .read(collapsedSubtasksProvider.notifier)
+                    .toggleCollapse(parentTask.id);
+              },
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isCollapsed ? Icons.chevron_right : Icons.expand_more,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Subtasks',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    if (subtasks.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        '(${subtasks.where((t) => t.isCompleted).length}/${subtasks.length})',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
             TextButton.icon(
               onPressed: () {
                 showDialog(
@@ -77,79 +115,83 @@ class SubtasksListSection extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 8),
-        if (activeSubtasks.isEmpty && completedEarlier.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              'No subtasks yet',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          )
-        else ...[
-          if (activeSubtasks.isNotEmpty)
-            Column(
-              children: [
-                for (final subtask in activeSubtasks)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6.0),
-                    child: TaskCard(
-                      task: subtask,
-                      project: subtask.projectId != null
-                          ? ref
-                                .watch(projectProvider)
-                                .getById(subtask.projectId!)
-                          : null,
-                      useTimer: false,
-                      onToggle: (_) {
-                        ref.read(taskProvider.notifier).toggleComplete(subtask);
-                      },
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => EditTaskDialog(task: subtask),
-                        );
-                      },
-                      onContextMenu: (localPosition, renderBox) {
-                        showTaskCardContextMenu(
-                          context,
-                          ref,
-                          subtask,
-                          subtasks,
-                          localPosition,
-                          renderBox,
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          if (completedEarlier.isNotEmpty)
+        if (!isCollapsed) ...[
+          if (activeSubtasks.isEmpty && completedEarlier.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                'No subtasks yet',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            )
+          else ...[
+            if (activeSubtasks.isNotEmpty)
+              Column(
                 children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                        fontStyle: FontStyle.italic,
+                  for (final subtask in activeSubtasks)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6.0),
+                      child: TaskCard(
+                        task: subtask,
+                        project: subtask.projectId != null
+                            ? ref
+                                  .watch(projectProvider)
+                                  .getById(subtask.projectId!)
+                            : null,
+                        useTimer: false,
+                        onToggle: (_) {
+                          ref
+                              .read(taskProvider.notifier)
+                              .toggleComplete(subtask);
+                        },
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => EditTaskDialog(task: subtask),
+                          );
+                        },
+                        onContextMenu: (localPosition, renderBox) {
+                          showTaskCardContextMenu(
+                            context,
+                            ref,
+                            subtask,
+                            subtasks,
+                            localPosition,
+                            renderBox,
+                          );
+                        },
                       ),
                     ),
-                  ),
-                  const Expanded(child: Divider()),
                 ],
               ),
-            ),
+            if (completedEarlier.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+              ),
+          ],
         ],
       ],
     );

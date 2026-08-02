@@ -20,3 +20,23 @@ final parentTaskProvider = FutureProvider.family<Task?, String>((
   final repo = ref.watch(taskRepositoryProvider);
   return repo.getById(parentId);
 });
+
+class CollapsedSubtasksNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void toggleCollapse(String parentId) {
+    if (state.contains(parentId)) {
+      state = {...state}..remove(parentId);
+    } else {
+      state = {...state}..add(parentId);
+    }
+  }
+
+  bool isCollapsed(String parentId) => state.contains(parentId);
+}
+
+final collapsedSubtasksProvider =
+    NotifierProvider<CollapsedSubtasksNotifier, Set<String>>(() {
+      return CollapsedSubtasksNotifier();
+    });

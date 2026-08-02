@@ -58,6 +58,9 @@ class TaskChipsBar extends ConsumerWidget {
     final subtasksAsync = ref.watch(subtasksProvider(task.id));
     final subtasks = subtasksAsync.valueOrNull ?? [];
 
+    final collapsedSet = ref.watch(collapsedSubtasksProvider);
+    final isCollapsedSubtasks = collapsedSet.contains(task.id);
+
     final hasChips =
         project != null ||
         isOverdue ||
@@ -78,6 +81,12 @@ class TaskChipsBar extends ConsumerWidget {
           SubtaskProgressChip(
             completedCount: subtasks.where((t) => t.isCompleted).length,
             totalCount: subtasks.length,
+            isCollapsed: isCollapsedSubtasks,
+            onToggleCollapse: () {
+              ref
+                  .read(collapsedSubtasksProvider.notifier)
+                  .toggleCollapse(task.id);
+            },
           ),
         if (isOverdue && !task.isCompleted) const OverdueChip(),
         if (task.status.isInProgress) const StatusChip(),

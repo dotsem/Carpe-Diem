@@ -39,11 +39,23 @@ void main() {
 
     test('subtasksProvider returns all subtasks for given parent ID', () async {
       final subtasks = [
-        Task(id: 'sub1', title: 'Sub 1', parentId: 'parent1', createdAt: DateTime.now()),
-        Task(id: 'sub2', title: 'Sub 2', parentId: 'parent1', createdAt: DateTime.now()),
+        Task(
+          id: 'sub1',
+          title: 'Sub 1',
+          parentId: 'parent1',
+          createdAt: DateTime.now(),
+        ),
+        Task(
+          id: 'sub2',
+          title: 'Sub 2',
+          parentId: 'parent1',
+          createdAt: DateTime.now(),
+        ),
       ];
 
-      when(() => mockTaskRepo.getByParent('parent1')).thenAnswer((_) async => subtasks);
+      when(
+        () => mockTaskRepo.getByParent('parent1'),
+      ).thenAnswer((_) async => subtasks);
 
       final result = await container.read(subtasksProvider('parent1').future);
 
@@ -54,9 +66,15 @@ void main() {
     });
 
     test('parentTaskProvider returns parent task by ID', () async {
-      final parent = Task(id: 'parent1', title: 'Parent Task', createdAt: DateTime.now());
+      final parent = Task(
+        id: 'parent1',
+        title: 'Parent Task',
+        createdAt: DateTime.now(),
+      );
 
-      when(() => mockTaskRepo.getById('parent1')).thenAnswer((_) async => parent);
+      when(
+        () => mockTaskRepo.getById('parent1'),
+      ).thenAnswer((_) async => parent);
 
       final result = await container.read(parentTaskProvider('parent1').future);
 
@@ -64,5 +82,29 @@ void main() {
       expect(result!.title, equals('Parent Task'));
       verify(() => mockTaskRepo.getById('parent1')).called(1);
     });
+
+    test(
+      'collapsedSubtasksProvider toggles parent collapse state correctly',
+      () {
+        final notifier = container.read(collapsedSubtasksProvider.notifier);
+
+        expect(
+          container.read(collapsedSubtasksProvider).contains('p1'),
+          isFalse,
+        );
+
+        notifier.toggleCollapse('p1');
+        expect(
+          container.read(collapsedSubtasksProvider).contains('p1'),
+          isTrue,
+        );
+
+        notifier.toggleCollapse('p1');
+        expect(
+          container.read(collapsedSubtasksProvider).contains('p1'),
+          isFalse,
+        );
+      },
+    );
   });
 }

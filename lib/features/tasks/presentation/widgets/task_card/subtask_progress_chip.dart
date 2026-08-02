@@ -4,23 +4,31 @@ import 'package:flutter/material.dart';
 class SubtaskProgressChip extends StatelessWidget {
   final int completedCount;
   final int totalCount;
+  final bool isCollapsed;
+  final VoidCallback? onToggleCollapse;
 
   const SubtaskProgressChip({
     super.key,
     required this.completedCount,
     required this.totalCount,
+    this.isCollapsed = false,
+    this.onToggleCollapse,
   });
 
   @override
   Widget build(BuildContext context) {
     final isAllDone = completedCount == totalCount && totalCount > 0;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textColor = isAllDone
+        ? AppColors.success
+        : colorScheme.onSurfaceVariant;
 
-    return Container(
+    final child = Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
         color: isAllDone
             ? AppColors.success.withValues(alpha: 0.15)
-            : Theme.of(context).colorScheme.surfaceContainerHigh,
+            : colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -29,9 +37,7 @@ class SubtaskProgressChip extends StatelessWidget {
           Icon(
             isAllDone ? Icons.check_circle_outline : Icons.checklist_rounded,
             size: 12,
-            color: isAllDone
-                ? AppColors.success
-                : Theme.of(context).colorScheme.onSurfaceVariant,
+            color: textColor,
           ),
           const SizedBox(width: 4),
           Text(
@@ -39,13 +45,27 @@ class SubtaskProgressChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isAllDone
-                  ? AppColors.success
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: textColor,
             ),
           ),
+          if (onToggleCollapse != null) ...[
+            const SizedBox(width: 2),
+            Icon(
+              isCollapsed ? Icons.chevron_right : Icons.expand_more,
+              size: 14,
+              color: textColor,
+            ),
+          ],
         ],
       ),
+    );
+
+    if (onToggleCollapse == null) return child;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onToggleCollapse,
+      child: child,
     );
   }
 }

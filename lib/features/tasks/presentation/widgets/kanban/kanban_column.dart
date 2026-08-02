@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -218,9 +219,13 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                       final projectNotifier = ref.read(
                         projectProvider.notifier,
                       );
+                      final collapsedParentIds = ref.watch(
+                        collapsedSubtasksProvider,
+                      );
                       final hierarchical = TaskHierarchyUtils.buildHierarchy(
                         widget.tasks,
                         allTasks: allAvailableTasks,
+                        collapsedParentIds: collapsedParentIds,
                       );
                       return ListView.builder(
                         padding: const EdgeInsets.all(8),

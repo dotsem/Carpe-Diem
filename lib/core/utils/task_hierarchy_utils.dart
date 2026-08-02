@@ -5,6 +5,7 @@ class TaskHierarchyUtils {
   static List<TaskHierarchyNode> buildHierarchy(
     List<Task> categoryTasks, {
     Map<String, Task>? allTasks,
+    Set<String>? collapsedParentIds,
   }) {
     final seenIds = <String>{};
     final tasks = categoryTasks.where((t) => seenIds.add(t.id)).toList();
@@ -52,6 +53,9 @@ class TaskHierarchyUtils {
       if (task == null) return;
 
       result.add(TaskNode(task, depth));
+      if (collapsedParentIds != null && collapsedParentIds.contains(taskId)) {
+        return;
+      }
       final children = childrenOf[taskId];
       if (children != null) {
         for (final childId in children) {
