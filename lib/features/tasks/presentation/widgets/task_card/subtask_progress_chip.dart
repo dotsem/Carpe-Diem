@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class SubtaskProgressChip extends StatelessWidget {
   final int completedCount;
+  final int plannedCount;
   final int totalCount;
   final bool isCollapsed;
   final VoidCallback? onToggleCollapse;
@@ -10,6 +11,7 @@ class SubtaskProgressChip extends StatelessWidget {
   const SubtaskProgressChip({
     super.key,
     required this.completedCount,
+    required this.plannedCount,
     required this.totalCount,
     this.isCollapsed = false,
     this.onToggleCollapse,
@@ -48,6 +50,19 @@ class SubtaskProgressChip extends StatelessWidget {
               color: textColor,
             ),
           ),
+          if (plannedCount > 0) ...[
+            const SizedBox(width: 8),
+            Icon(Icons.calendar_today, size: 12, color: textColor),
+            const SizedBox(width: 4),
+            Text(
+              '$plannedCount',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: textColor,
+              ),
+            ),
+          ],
           if (onToggleCollapse != null) ...[
             const SizedBox(width: 2),
             Icon(

@@ -80,6 +80,9 @@ class TaskChipsBar extends ConsumerWidget {
         if (subtasks.isNotEmpty)
           SubtaskProgressChip(
             completedCount: subtasks.where((t) => t.isCompleted).length,
+            plannedCount: subtasks
+                .where((t) => t.scheduledDate != null && !t.isCompleted)
+                .length,
             totalCount: subtasks.length,
             isCollapsed: isCollapsedSubtasks,
             onToggleCollapse: () {
