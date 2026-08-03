@@ -7,9 +7,6 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: write
-
 jobs:
   build:
     name: Build ${{ matrix.target }}
