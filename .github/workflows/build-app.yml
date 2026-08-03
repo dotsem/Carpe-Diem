@@ -1,0 +1,82 @@
+name: Build App
+
+on:
+  workflow_call:
+    inputs:
+      upload-release:
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [linux, macos, windows]
+        include:
+          - target: linux
+            os: ubuntu-latest
+            build-cmd: flutter build linux --release
+            artifact-path: build/linux/x64/release/bundle
+            artifact-name: carpe_diem-linux.tar.gz
+          - target: macos
+            os: macos-latest
+            build-cmd: flutter build macos --release
+            artifact-path: "build/macos/Build/Products/Release/Carpe Diem.app"
+            artifact-name: carpe_diem-macos.zip
+          - target: windows
+            os: windows-latest
+            build-cmd: flutter build windows --release
+            artifact-path: build/windows/x64/runner/Release
+            artifact-name: carpe_diem-windows.zip
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.5"
+          channel: "stable"
+          cache: true
+
+      - name: Install Linux dependencies
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libgtk-3-dev libblkid-dev liblzma-dev libglib2.0-dev
+
+      - run: flutter pub get
+
+      - name: Build
+        run: ${{ matrix.build-cmd }}
+
+      - name: Package Linux
+        if: matrix.target == 'linux'
+        run: tar -czf ${{ matrix.artifact-name }} -C ${{ matrix.artifact-path }} .
+
+      - name: Package macOS
+        if: matrix.target == 'macos'
+        run: ditto -c -k --sequesterRsrc "${{ matrix.artifact-path }}" "${{ matrix.artifact-name }}"
+
+      - name: Package Windows
+        if: matrix.target == 'windows'
+        run: Compress-Archive -Path "${{ matrix.artifact-path }}\*" -DestinationPath "${{ matrix.artifact-name }}"
+
+      - name: Upload binaries to release
+        if: inputs.upload-release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ matrix.artifact-name }}
+          asset_name: ${{ matrix.artifact-name }}
+          tag: ${{ github.event.release.tag_name || github.ref_name }}
+          overwrite: true
+
+      - name: Upload build artifact for CI
+        if: ${{ !inputs.upload-release }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-name }}
+          retention-days: 7

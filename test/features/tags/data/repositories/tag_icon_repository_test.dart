@@ -33,15 +33,15 @@ void main() {
     });
 
     test('should insert and retrieve a new icon', () async {
-      await repo.setIconDataForTag('banana', Icons.face);
+      await repo.setIconDataForTag('banana', Icons.bug_report);
       final icons = await repo.getAllIconDatas();
-      expect(icons['banana'], equals(Icons.face));
+      expect(icons['banana'], equals(Icons.bug_report));
     });
 
     test('should delete an icon mapping', () async {
-      await repo.setIconDataForTag('banana', Icons.face);
+      await repo.setIconDataForTag('banana', Icons.bug_report);
       var icons = await repo.getAllIconDatas();
-      expect(icons['banana'], equals(Icons.face));
+      expect(icons['banana'], equals(Icons.bug_report));
 
       await repo.deleteIconDataForTag('banana');
       icons = await repo.getAllIconDatas();
