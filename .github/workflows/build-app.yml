@@ -23,7 +23,7 @@ jobs:
             artifact-name: carpe_diem-linux.tar.gz
           - target: macos
             os: macos-latest
-            build-cmd: flutter build macos --release
+            build-cmd: flutter build macos --release --no-codesign
             artifact-path: "build/macos/Build/Products/Release/Carpe Diem.app"
             artifact-name: carpe_diem-macos.zip
           - target: windows
@@ -43,8 +43,8 @@ jobs:
       - name: Install Linux dependencies
         if: matrix.target == 'linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libblkid-dev liblzma-dev libglib2.0-dev
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libgtk-3-dev libblkid-dev liblzma-dev libglib2.0-dev
 
       - run: flutter pub get
 
@@ -70,7 +70,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ matrix.artifact-name }}
           asset_name: ${{ matrix.artifact-name }}
-          tag: ${{ github.ref }}
+          tag: ${{ github.event.release.tag_name || github.ref_name }}
           overwrite: true
 
       - name: Upload build artifact for CI
