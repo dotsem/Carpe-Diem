@@ -2,10 +2,7 @@ name: Release
 
 on:
   release:
-    types: [ created, published, edited ]
-  push:
-    tags:
-      - "v*"
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -17,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        target: [ linux, macos, windows ]
+        target: [linux, macos, windows]
         include:
           - target: linux
             os: ubuntu-latest
@@ -63,8 +60,7 @@ jobs:
 
       - name: Package Windows
         if: matrix.target == 'windows'
-        run: Compress-Archive -Path "${{ matrix.artifact-path }}\*" -DestinationPath ${{
-          matrix.artifact-name }}
+        run: Compress-Archive -Path "${{ matrix.artifact-path }}\*" -DestinationPath ${{ matrix.artifact-name }}
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
