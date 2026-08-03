@@ -12,6 +12,7 @@ jobs:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         target: [linux, macos, windows]
         include:
@@ -35,6 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: "3.38.5"
           channel: "stable"
           cache: true
 
@@ -55,11 +57,11 @@ jobs:
 
       - name: Package macOS
         if: matrix.target == 'macos'
-        run: zip -r "${{ matrix.artifact-name }}" "${{ matrix.artifact-path }}"
+        run: ditto -c -k --sequesterRsrc "${{ matrix.artifact-path }}" "${{ matrix.artifact-name }}"
 
       - name: Package Windows
         if: matrix.target == 'windows'
-        run: Compress-Archive -Path "${{ matrix.artifact-path }}\*" -DestinationPath ${{ matrix.artifact-name }}
+        run: Compress-Archive -Path "${{ matrix.artifact-path }}\*" -DestinationPath "${{ matrix.artifact-name }}"
 
       - name: Upload binaries to release
         if: inputs.upload-release
@@ -70,3 +72,11 @@ jobs:
           asset_name: ${{ matrix.artifact-name }}
           tag: ${{ github.ref }}
           overwrite: true
+
+      - name: Upload build artifact for CI
+        if: ${{ !inputs.upload-release }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-name }}
+          retention-days: 7
