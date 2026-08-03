@@ -23,7 +23,7 @@ jobs:
             artifact-name: carpe_diem-linux.tar.gz
           - target: macos
             os: macos-latest
-            build-cmd: flutter build macos --release --no-codesign
+            build-cmd: flutter build macos --release
             artifact-path: "build/macos/Build/Products/Release/Carpe Diem.app"
             artifact-name: carpe_diem-macos.zip
           - target: windows
