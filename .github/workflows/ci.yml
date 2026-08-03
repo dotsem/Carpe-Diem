@@ -28,57 +28,9 @@ jobs:
       - name: Run Tests
         run: flutter test
 
-  build-linux:
-    name: Build Linux
+  build:
+    name: Build Release Binaries
     needs: lint-and-test
-    if: |
-      github.event_name == 'pull_request' ||
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-          cache: true
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libblkid-dev liblzma-dev libglib2.0-dev
-      - run: flutter pub get
-      - run: flutter build linux --debug
-
-  build-macos:
-    name: Build macOS
-    needs: lint-and-test
-    if: |
-      github.event_name == 'pull_request' ||
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/master'
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-          cache: true
-      - run: flutter pub get
-      - run: flutter build macos --debug
-
-  build-windows:
-    name: Build Windows
-    needs: lint-and-test
-    if: |
-      github.event_name == 'pull_request' ||
-      github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/master'
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-          cache: true
-      - run: flutter pub get
-      - run: flutter build windows --debug
+    uses: ./.github/workflows/build-app.yml
+    with:
+      upload-release: false
