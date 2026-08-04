@@ -15,6 +15,19 @@ class TaskState {
     required this.currentDate,
   });
 
+  Task? getById(String id) {
+    for (final t in tasks) {
+      if (t.id == id) return t;
+    }
+    for (final t in overdueTasks) {
+      if (t.id == id) return t;
+    }
+    for (final t in unscheduledTasks) {
+      if (t.id == id) return t;
+    }
+    return null;
+  }
+
   TaskState copyWith({
     List<Task>? tasks,
     List<Task>? overdueTasks,

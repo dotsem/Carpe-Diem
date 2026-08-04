@@ -21,6 +21,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/date_picker_butt
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 
 class AddTaskDialog extends ConsumerStatefulWidget {
   final DateTime? initialDate;
@@ -359,7 +360,11 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
         );
 
     if (mounted) {
-      Navigator.of(context).pop();
+      if (ref.read(rightSidebarProvider).isOpen) {
+        ref.read(rightSidebarProvider.notifier).close();
+      } else if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
     }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -64,10 +66,9 @@ class UndoRedoPanel extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.history_rounded),
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const ActionHistoryDialog(),
-                    );
+                    ref
+                        .read(rightSidebarProvider.notifier)
+                        .open(const ActionHistoryPanel());
                   },
                   tooltip: 'Action History',
                   style: IconButton.styleFrom(
@@ -101,7 +102,13 @@ class ActionHistoryDialog extends ConsumerWidget {
       showDefaultActions: false,
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (ref.read(rightSidebarProvider).isOpen) {
+              ref.read(rightSidebarProvider.notifier).close();
+            } else if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
           child: const Text('Close'),
         ),
       ],

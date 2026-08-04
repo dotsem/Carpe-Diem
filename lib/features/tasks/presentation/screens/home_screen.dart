@@ -4,7 +4,6 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +14,10 @@ import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_p
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/home_day_selector.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/home_planner_pane.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/shortcuts/home_shortcuts.dart';
 
@@ -41,9 +41,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _midnightTimer.start(_handleDayChange);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(taskProvider.notifier)
-          .loadTasksForDate(ref.read(selectedDateProvider));
+      ref.read(taskProvider.notifier).loadTasksForDate(ref.read(selectedDateProvider));
     });
   }
 
@@ -75,10 +73,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<DateTime> get _days {
     final settings = ref.read(settingsProvider);
     final today = DateTime(_today.year, _today.month, _today.day);
-    return List.generate(
-      settings.maxPlanningDays + 1,
-      (i) => today.add(Duration(days: i)),
-    );
+    return List.generate(settings.maxPlanningDays + 1, (i) => today.add(Duration(days: i)));
   }
 
   void _moveFocus(int delta) => FocusUtils.moveFocus(
@@ -103,9 +98,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onNewTask: () => _showAddTask(context),
       onToggleLayout: () {
         final currentLayout = settings.taskLayout;
-        final nextLayout = currentLayout == TaskLayout.list
-            ? TaskLayout.kanban
-            : TaskLayout.list;
+        final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
         ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
       },
       onShowFilter: () => _showFilterDialog(context),
@@ -133,21 +126,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 IconButton(
                   onPressed: () {
                     final currentLayout = settings.taskLayout;
-                    final nextLayout = currentLayout == TaskLayout.list
-                        ? TaskLayout.kanban
-                        : TaskLayout.list;
-                    ref
-                        .read(settingsProvider.notifier)
-                        .setTaskLayout(nextLayout);
+                    final nextLayout = currentLayout == TaskLayout.list ? TaskLayout.kanban : TaskLayout.list;
+                    ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
                   },
-                  icon: Icon(
-                    settings.taskLayout == TaskLayout.list
-                        ? Icons.view_kanban
-                        : Icons.view_list,
-                  ),
-                  tooltip: settings.taskLayout == TaskLayout.list
-                      ? 'Kanban view'
-                      : 'List view',
+                  icon: Icon(settings.taskLayout == TaskLayout.list ? Icons.view_kanban : Icons.view_list),
+                  tooltip: settings.taskLayout == TaskLayout.list ? 'Kanban view' : 'List view',
                 ),
                 const SizedBox(width: 8),
                 FilledButton.icon(
@@ -164,8 +147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               hiddenCount: ref.watch(hiddenTodayTasksCountProvider),
               hiddenItemType: 'tasks',
               onFilterTap: () => _showFilterDialog(context),
-              onClearFilter: () =>
-                  ref.read(filterProvider.notifier).clearFilter(),
+              onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
             ),
             const Divider(height: 1),
             Expanded(
@@ -197,18 +179,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showAddTask(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) =>
-          AddTaskDialog(initialDate: ref.read(selectedDateProvider)),
-    );
+    context.openRightSidebar(AddTaskPanel(initialDate: ref.read(selectedDateProvider)));
   }
 
   void _showEditTask(BuildContext context, Task task) {
-    showDialog(
-      context: context,
-      builder: (_) => EditTaskDialog(task: task),
-    );
+    context.openRightSidebar(EditTaskPanel(task.id));
   }
 
   void _showFilterDialog(BuildContext context) async {

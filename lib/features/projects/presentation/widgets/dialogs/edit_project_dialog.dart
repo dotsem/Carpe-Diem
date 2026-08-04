@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 
 class EditProjectDialog extends ConsumerStatefulWidget {
   final Project project;
@@ -175,7 +176,11 @@ class _EditProjectDialogState extends ConsumerState<EditProjectDialog> {
       isActive: _isActive,
     );
     ref.read(projectProvider.notifier).updateProject(project);
-    Navigator.of(context).pop();
+    if (ref.read(rightSidebarProvider).isOpen) {
+      ref.read(rightSidebarProvider.notifier).close();
+    } else if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
   }
 }
 

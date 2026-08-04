@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 
 class EditTaskDialog extends ConsumerStatefulWidget {
   final Task task;
@@ -184,6 +185,9 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
                   onConfirm: () {
                     Navigator.of(context).pop();
                     ref.read(taskProvider.notifier).deleteTask(widget.task);
+                    if (ref.read(rightSidebarProvider).isOpen) {
+                      ref.read(rightSidebarProvider.notifier).close();
+                    }
                   },
                 ),
               );
@@ -409,7 +413,11 @@ class _EditTaskDialogState extends ConsumerState<EditTaskDialog> {
         );
 
     if (mounted) {
-      Navigator.of(context).pop();
+      if (ref.read(rightSidebarProvider).isOpen) {
+        ref.read(rightSidebarProvider.notifier).close();
+      } else if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
     }
   }
 }
