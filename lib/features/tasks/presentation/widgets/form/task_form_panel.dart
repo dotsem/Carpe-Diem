@@ -202,6 +202,7 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
           Text('Placement & Urgency', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),
           TaskPlacementSelector(
+            mini: true,
             selected: _placement ?? TaskPlacement.bottom,
             onChanged: (p) => setState(() => _placement = p),
           ),
