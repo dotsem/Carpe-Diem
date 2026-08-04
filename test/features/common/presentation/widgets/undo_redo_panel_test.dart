@@ -122,7 +122,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify dialog is visible
-      expect(find.byType(ActionHistoryDialog), findsOneWidget);
+      expect(find.byType(ActionHistoryPanelWidget), findsOneWidget);
       expect(find.text('Historical Action'), findsOneWidget);
       expect(find.text('Applied'), findsOneWidget);
 
@@ -130,7 +130,7 @@ void main() {
       await tester.tap(find.text('Close'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(ActionHistoryDialog), findsNothing);
+      expect(find.byType(ActionHistoryPanelWidget), findsNothing);
     });
 
     testWidgets('ActionHistoryDialog jumpTo interaction works', (tester) async {

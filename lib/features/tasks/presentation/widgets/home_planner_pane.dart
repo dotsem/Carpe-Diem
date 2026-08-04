@@ -11,9 +11,10 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_board.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 
 class HomePlannerPane extends ConsumerWidget {
   final Map<String, FocusNode> itemFocusNodes;
@@ -159,10 +160,9 @@ class HomePlannerPane extends ConsumerWidget {
   }
 
   void _showAddTask(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (_) =>
-          AddTaskDialog(initialDate: ref.read(selectedDateProvider)),
+    context.openRightSidebar(
+      AddTaskPanel(initialDate: ref.read(selectedDateProvider)),
+      ref,
     );
   }
 }

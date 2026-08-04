@@ -80,6 +80,7 @@ class RightSidebarContainer extends ConsumerWidget {
     return switch (panel) {
       AddTaskPanel() => 'New Task',
       EditTaskPanel() => 'Edit Task',
+      AddProjectPanel() => 'New Project',
       EditProjectPanel() => 'Edit Project',
       ActionHistoryPanel() => 'Action History',
     };

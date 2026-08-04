@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/projects_shortcuts.dart';
@@ -70,7 +71,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               title: 'Projects',
               actions: [
                 FilledButton.icon(
-                  onPressed: () => _showAddProject(context),
+                  onPressed: () => context.openRightSidebar(const AddProjectPanel(), ref),
                   icon: const Icon(Icons.add),
                   label: const Text('New Project'),
                 ),
@@ -102,8 +103,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   hiddenItemType: 'projects',
                   hiddenArchivedCount: hiddenProjects.archivedHidden,
                   onFilterTap: () => _showFilterDialog(context),
-                  onClearFilter: () =>
-                      ref.read(filterProvider.notifier).clearFilter(),
+                  onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
                 );
               },
             ),
@@ -122,19 +122,12 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
   }
 
-  void _showAddProject(BuildContext context) {
-    showDialog(context: context, builder: (_) => const AddProjectDialog());
-  }
-
   void _showFilterDialog(BuildContext context) async {
     final filterNotifier = ref.read(filterProvider.notifier);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) => FilterDialog(
-        initialFilter: ref.read(filterProvider).filter,
-        showProjectFilter: false,
-        showTagFilter: false,
-      ),
+      builder: (_) =>
+          FilterDialog(initialFilter: ref.read(filterProvider).filter, showProjectFilter: false, showTagFilter: false),
     );
     if (result != null) {
       filterNotifier.setFilter(result);

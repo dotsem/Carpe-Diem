@@ -10,17 +10,17 @@ class AddTaskPanel extends RightSidebarPanel {
   final String? initialProjectId;
   final String? initialParentId;
 
-  const AddTaskPanel({
-    this.initialDate,
-    this.initialProjectId,
-    this.initialParentId,
-  });
+  const AddTaskPanel({this.initialDate, this.initialProjectId, this.initialParentId});
 }
 
 class EditTaskPanel extends RightSidebarPanel {
   final String taskId;
 
   const EditTaskPanel(this.taskId);
+}
+
+class AddProjectPanel extends RightSidebarPanel {
+  const AddProjectPanel();
 }
 
 class EditProjectPanel extends RightSidebarPanel {
@@ -38,10 +38,7 @@ class RightSidebarState {
   final RightSidebarPanel? activePanel;
   final List<RightSidebarPanel> history;
 
-  const RightSidebarState({
-    this.activePanel,
-    this.history = const [],
-  });
+  const RightSidebarState({this.activePanel, this.history = const []});
 
   bool get isOpen => activePanel != null;
 

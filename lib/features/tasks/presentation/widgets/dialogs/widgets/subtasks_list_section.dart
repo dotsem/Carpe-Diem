@@ -1,10 +1,10 @@
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -96,13 +96,13 @@ class SubtasksListSection extends ConsumerWidget {
             ),
             TextButton.icon(
               onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => AddTaskDialog(
+                context.openRightSidebar(
+                  AddTaskPanel(
                     initialDate: scheduledDate,
                     initialProjectId: projectId,
                     initialParentId: parentTask.id,
                   ),
+                  ref,
                 );
               },
               icon: const Icon(Icons.add, size: 16),
@@ -149,9 +149,9 @@ class SubtasksListSection extends ConsumerWidget {
                               .toggleComplete(subtask);
                         },
                         onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => EditTaskDialog(task: subtask),
+                          context.openRightSidebar(
+                            EditTaskPanel(subtask.id),
+                            ref,
                           );
                         },
                         onContextMenu: (localPosition, renderBox) {

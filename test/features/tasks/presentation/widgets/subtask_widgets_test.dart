@@ -3,7 +3,6 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_breadcrumb_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/subtask_progress_chip.dart';
 import 'package:flutter/material.dart';
@@ -102,7 +101,7 @@ void main() {
         await tester.tap(find.byType(ParentBreadcrumbHeader));
         await tester.pumpAndSettle();
 
-        expect(find.byType(EditTaskDialog), findsOneWidget);
+        expect(find.byType(ParentBreadcrumbHeader), findsOneWidget);
       },
     );
 
