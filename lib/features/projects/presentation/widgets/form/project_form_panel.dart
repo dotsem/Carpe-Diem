@@ -10,6 +10,7 @@ import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dar
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
 
 class ProjectFormPanel extends ConsumerStatefulWidget {
   final Project? project;
@@ -61,8 +62,31 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return StickyFooterLayout(
+      footer: Row(
+        children: [
+          if (isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded),
+              tooltip: 'Delete Project',
+              style: IconButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+              onPressed: _onDelete,
+            ),
+          const Spacer(),
+          TextButton(
+            onPressed: () =>
+                ref.read(rightSidebarProvider.notifier).close(),
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: _submit,
+            child: Text(isEditing ? 'Save Changes' : 'Create Project'),
+          ),
+        ],
+      ),
       child: CallbackShortcuts(
         bindings: {
           const SingleActivator(
@@ -132,31 +156,6 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
                 onChanged: (v) => setState(() => _isActive = v),
               ),
             ],
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                if (isEditing)
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
-                    tooltip: 'Delete Project',
-                    style: IconButton.styleFrom(
-                      foregroundColor: AppColors.error,
-                    ),
-                    onPressed: _onDelete,
-                  ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () =>
-                      ref.read(rightSidebarProvider.notifier).close(),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: _submit,
-                  child: Text(isEditing ? 'Save Changes' : 'Create Project'),
-                ),
-              ],
-            ),
           ],
         ),
       ),

@@ -22,6 +22,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/p
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/subtasks_list_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/task_placement_selector.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
 
 class TaskFormPanel extends ConsumerStatefulWidget {
   final Task? initialTask;
@@ -155,8 +156,22 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   Widget build(BuildContext context) {
     final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return StickyFooterLayout(
+      footer: Row(
+        children: [
+          if (isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded),
+              tooltip: 'Delete Task',
+              style: IconButton.styleFrom(foregroundColor: AppColors.error),
+              onPressed: _onDelete,
+            ),
+          const Spacer(),
+          TextButton(onPressed: () => ref.read(rightSidebarProvider.notifier).close(), child: const Text('Cancel')),
+          const SizedBox(width: 8),
+          FilledButton(onPressed: _submit, child: Text(isEditing ? 'Save Changes' : 'Create Task')),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -248,22 +263,6 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
             const SizedBox(height: 16),
             SubtasksListSection(parentTask: widget.initialTask!),
           ],
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              if (isEditing)
-                IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded),
-                  tooltip: 'Delete Task',
-                  style: IconButton.styleFrom(foregroundColor: AppColors.error),
-                  onPressed: _onDelete,
-                ),
-              const Spacer(),
-              TextButton(onPressed: () => ref.read(rightSidebarProvider.notifier).close(), child: const Text('Cancel')),
-              const SizedBox(width: 8),
-              FilledButton(onPressed: _submit, child: Text(isEditing ? 'Save Changes' : 'Create Task')),
-            ],
-          ),
         ],
       ),
     );
