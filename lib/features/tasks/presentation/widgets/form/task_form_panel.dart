@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/planning_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/labels_and_tags_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/placement_section.dart';
@@ -49,6 +50,8 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   List<String> _inheritedLabelIds = [];
   List<String> _selectedTagIds = [];
   List<String> _previousParsedIds = [];
+  final MenuController _projectMenuController = MenuController();
+  final MenuController _blockerMenuController = MenuController();
 
   bool get isEditing => widget.initialTask != null;
 
@@ -154,10 +157,7 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
     final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
     if (!mounted) return;
     final project = ref.read(projectProvider).getById(_selectedProjectId!);
-    final combinedInheritedLabels = <String>{
-      ...?project?.labelIds,
-      ...parentLabelIds,
-    }.toList();
+    final combinedInheritedLabels = <String>{...?project?.labelIds, ...parentLabelIds}.toList();
 
     setState(() {
       _projectTasks = tasks;
@@ -196,70 +196,108 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
           FilledButton(onPressed: _submit, child: Text(isEditing ? 'Save Changes' : 'Create Task')),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_parentId != null) ...[ParentTaskLink(parentId: _parentId!), const SizedBox(height: 8)],
-          TagAutocompleteTextField(
-            controller: _titleController,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: 'Task name'),
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            onTagSelected: (tag) {
-              if (!ref.read(settingsProvider).keepTagsInTitle) {
-                setState(() {
-                  if (!_selectedTagIds.contains(tag.id)) {
-                    _selectedTagIds.add(tag.id);
-                  }
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _descController,
-            decoration: const InputDecoration(hintText: 'Description (optional)'),
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            maxLines: 2,
-          ),
-          const SizedBox(height: 8),
-          PlacementSection(
-            placement: _placement ?? TaskPlacement.bottom,
-            onChanged: (p) => setState(() => _placement = p),
-          ),
-
-          ProjectsAndBlockersSection(
-            projects: projects,
-            availableTasks: _projectTasks,
-            currentTaskId: widget.initialTask?.id,
-            selectedBlockerId: _blockedById,
-            selectedProjectId: _selectedProjectId,
-            onChangedProject: (id) {
-              setState(() => _selectedProjectId = id);
-              _loadProjectDetails();
-            },
-            onChangedBlockers: (id) => setState(() => _blockedById = id),
-          ),
-          PlanningSection(
-            scheduledDate: _scheduledDate,
-            onScheduledChanged: (d) => setState(() => _scheduledDate = d),
-            deadline: _deadline,
-            onDeadlineChanged: (d) => setState(() => _deadline = d),
-            maxPlanningDays: ref.read(settingsProvider).maxPlanningDays,
-          ),
-
-          CategorizationSection(
-            selectedLabelIds: _selectedLabelIds,
-            inheritedLabelIds: _inheritedLabelIds,
-            onLabelsSelected: (ids) => setState(() => _selectedLabelIds = ids),
-            selectedTagIds: _selectedTagIds,
-            onTagsSelected: (ids) => setState(() => _selectedTagIds = ids),
-          ),
-          if (isEditing && _parentId == null) ...[
+      child: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(AppKeyBindings.digit1, control: true): () =>
+              setState(() => _placement = TaskPlacement.bottom),
+          const SingleActivator(AppKeyBindings.digit1, meta: true): () =>
+              setState(() => _placement = TaskPlacement.bottom),
+          const SingleActivator(AppKeyBindings.digit2, control: true): () =>
+              setState(() => _placement = TaskPlacement.middle),
+          const SingleActivator(AppKeyBindings.digit2, meta: true): () =>
+              setState(() => _placement = TaskPlacement.middle),
+          const SingleActivator(AppKeyBindings.digit3, control: true): () =>
+              setState(() => _placement = TaskPlacement.top),
+          const SingleActivator(AppKeyBindings.digit3, meta: true): () =>
+              setState(() => _placement = TaskPlacement.top),
+          const SingleActivator(AppKeyBindings.digit4, control: true): () =>
+              setState(() => _placement = TaskPlacement.urgent),
+          const SingleActivator(AppKeyBindings.digit4, meta: true): () =>
+              setState(() => _placement = TaskPlacement.urgent),
+          SingleActivator(ProjectsKeys.keyboardKey, control: true): () {
+            if (_projectMenuController.isOpen) {
+              _projectMenuController.close();
+            } else {
+              _projectMenuController.open();
+            }
+          },
+          SingleActivator(ProjectsKeys.keyboardKey, meta: true): () {
+            if (_projectMenuController.isOpen) {
+              _projectMenuController.close();
+            } else {
+              _projectMenuController.open();
+            }
+          },
+          const SingleActivator(AppKeyBindings.enter, control: true): _submit,
+          const SingleActivator(AppKeyBindings.enter, meta: true): _submit,
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_parentId != null) ...[ParentTaskLink(parentId: _parentId!), const SizedBox(height: 8)],
+            TagAutocompleteTextField(
+              controller: _titleController,
+              autofocus: true,
+              decoration: const InputDecoration(hintText: 'Task name'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              onTagSelected: (tag) {
+                if (!ref.read(settingsProvider).keepTagsInTitle) {
+                  setState(() {
+                    if (!_selectedTagIds.contains(tag.id)) {
+                      _selectedTagIds.add(tag.id);
+                    }
+                  });
+                }
+              },
+            ),
             const SizedBox(height: 16),
-            SubtasksListSection(parentTask: widget.initialTask!),
+            TextField(
+              controller: _descController,
+              decoration: const InputDecoration(hintText: 'Description (optional)'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 8),
+            PlacementSection(
+              placement: _placement ?? TaskPlacement.bottom,
+              onChanged: (p) => setState(() => _placement = p),
+            ),
+
+            ProjectsAndBlockersSection(
+              projects: projects,
+              availableTasks: _projectTasks,
+              currentTaskId: widget.initialTask?.id,
+              selectedBlockerId: _blockedById,
+              selectedProjectId: _selectedProjectId,
+              projectMenuController: _projectMenuController,
+              blockerMenuController: _blockerMenuController,
+              onChangedProject: (id) {
+                setState(() => _selectedProjectId = id);
+                _loadProjectDetails();
+              },
+              onChangedBlockers: (id) => setState(() => _blockedById = id),
+            ),
+            PlanningSection(
+              scheduledDate: _scheduledDate,
+              onScheduledChanged: (d) => setState(() => _scheduledDate = d),
+              deadline: _deadline,
+              onDeadlineChanged: (d) => setState(() => _deadline = d),
+              maxPlanningDays: ref.read(settingsProvider).maxPlanningDays,
+            ),
+
+            CategorizationSection(
+              selectedLabelIds: _selectedLabelIds,
+              inheritedLabelIds: _inheritedLabelIds,
+              onLabelsSelected: (ids) => setState(() => _selectedLabelIds = ids),
+              selectedTagIds: _selectedTagIds,
+              onTagsSelected: (ids) => setState(() => _selectedTagIds = ids),
+            ),
+            if (isEditing && _parentId == null) ...[
+              const SizedBox(height: 16),
+              SubtasksListSection(parentTask: widget.initialTask!),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

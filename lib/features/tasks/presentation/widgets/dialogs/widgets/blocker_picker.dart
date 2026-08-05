@@ -9,6 +9,7 @@ class BlockerPicker extends StatelessWidget {
   final String? currentTaskId;
   final Function(String?) onChanged;
   final bool borderless;
+  final MenuController? menuController;
 
   const BlockerPicker({
     super.key,
@@ -17,6 +18,7 @@ class BlockerPicker extends StatelessWidget {
     this.selectedBlockerId,
     this.currentTaskId,
     this.borderless = false,
+    this.menuController,
   });
 
   bool _wouldCreateCycle(String candidateId) {
@@ -47,6 +49,7 @@ class BlockerPicker extends StatelessWidget {
 
     return SearchableDropdown<Task>(
       borderless: borderless,
+      menuController: menuController,
       items: selectableTasks,
       selectedItem: selectedTask,
       onChanged: (task) => onChanged(task?.id),

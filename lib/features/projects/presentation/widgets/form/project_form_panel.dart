@@ -1,5 +1,5 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/color_picker.dart';
@@ -81,8 +81,12 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
       ),
       child: CallbackShortcuts(
         bindings: {
-          const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => setState(() => _isUrgent = false),
-          const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => setState(() => _isUrgent = true),
+          const SingleActivator(AppKeyBindings.digit1, control: true): () => setState(() => _isUrgent = false),
+          const SingleActivator(AppKeyBindings.digit1, meta: true): () => setState(() => _isUrgent = false),
+          const SingleActivator(AppKeyBindings.digit2, control: true): () => setState(() => _isUrgent = true),
+          const SingleActivator(AppKeyBindings.digit2, meta: true): () => setState(() => _isUrgent = true),
+          const SingleActivator(AppKeyBindings.enter, control: true): _submit,
+          const SingleActivator(AppKeyBindings.enter, meta: true): _submit,
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

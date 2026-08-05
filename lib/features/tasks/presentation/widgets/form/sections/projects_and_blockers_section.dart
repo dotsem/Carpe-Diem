@@ -13,7 +13,10 @@ class ProjectsAndBlockersSection extends StatelessWidget {
   final String? currentTaskId;
   final String? selectedBlockerId;
   final String? selectedProjectId;
-  ProjectsAndBlockersSection({
+  final MenuController? projectMenuController;
+  final MenuController? blockerMenuController;
+
+  const ProjectsAndBlockersSection({
     super.key,
     required this.projects,
     required this.onChangedProject,
@@ -22,9 +25,9 @@ class ProjectsAndBlockersSection extends StatelessWidget {
     required this.currentTaskId,
     required this.selectedBlockerId,
     required this.selectedProjectId,
+    this.projectMenuController,
+    this.blockerMenuController,
   });
-
-  final MenuController _projectMenuController = MenuController();
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +41,7 @@ class ProjectsAndBlockersSection extends StatelessWidget {
             borderless: true,
             onChanged: onChangedProject,
             projects: projects,
-            menuController: _projectMenuController,
+            menuController: projectMenuController,
             selectedProjectId: selectedProjectId,
           ),
         ),
@@ -51,6 +54,7 @@ class ProjectsAndBlockersSection extends StatelessWidget {
             onChanged: onChangedBlockers,
             currentTaskId: currentTaskId,
             selectedBlockerId: selectedBlockerId,
+            menuController: blockerMenuController,
           ),
         ),
       ],
