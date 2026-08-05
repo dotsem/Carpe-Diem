@@ -10,8 +10,8 @@ class StickyFooterLayout extends StatelessWidget {
     super.key,
     required this.child,
     required this.footer,
-    this.contentPadding = const EdgeInsets.all(16),
-    this.footerPadding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    this.contentPadding = const EdgeInsets.all(8),
+    this.footerPadding = const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
   });
 
   @override
@@ -21,17 +21,10 @@ class StickyFooterLayout extends StatelessWidget {
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
-            padding: contentPadding,
-            child: child,
-          ),
+          child: SingleChildScrollView(padding: contentPadding, child: child),
         ),
         const Divider(height: 1),
-        Container(
-          padding: footerPadding,
-          color: theme.colorScheme.surface,
-          child: footer,
-        ),
+        Container(padding: footerPadding, color: theme.colorScheme.surface, child: footer),
       ],
     );
   }

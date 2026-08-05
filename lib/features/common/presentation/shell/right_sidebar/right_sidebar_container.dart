@@ -42,7 +42,7 @@ class RightSidebarContainer extends ConsumerWidget {
 
     return Container(
       height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
           if (state.history.isNotEmpty)

@@ -86,5 +86,47 @@ void main() {
         expect(selectedIds, equals(['t1', 't2']));
       },
     );
+
+    testWidgets(
+      'renders in dropdown mode and opens menu on tap',
+      (tester) async {
+        final container = ProviderContainer(
+          overrides: [
+            tagRepositoryProvider.overrideWithValue(mockTagRepo),
+            tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
+          ],
+        );
+
+        await container.read(tagProvider.notifier).loadTags();
+        await container.read(tagIconProvider.notifier).loadIcons();
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              home: Scaffold(
+                body: TagPicker(
+                  selectedTagIds: const ['t1'],
+                  isDropdown: true,
+                  onSelected: (_) {},
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.text('work'), findsOneWidget);
+        expect(find.text('+ Tag'), findsOneWidget);
+        expect(find.text('personal'), findsNothing);
+
+        await tester.tap(find.text('+ Tag'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('personal'), findsOneWidget);
+      },
+    );
   });
 }
+

@@ -1,12 +1,12 @@
-import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/planning_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/labels_and_tags_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/placement_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/projects_and_blockers_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
-import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
@@ -17,10 +17,8 @@ import 'package:carpe_diem/features/tags/presentation/widgets/tag_highlighting_c
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/parent_task_link.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/subtasks_list_section.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/task_placement_selector.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
 
@@ -50,7 +48,6 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   List<String> _inheritedLabelIds = [];
   List<String> _selectedTagIds = [];
   List<String> _previousParsedIds = [];
-  final MenuController _projectMenuController = MenuController();
 
   bool get isEditing => widget.initialTask != null;
 
@@ -191,75 +188,46 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
               }
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           TextField(
             controller: _descController,
             decoration: const InputDecoration(hintText: 'Description (optional)'),
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             maxLines: 2,
           ),
-          const SizedBox(height: 16),
-          Text('Placement & Urgency', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),
-          TaskPlacementSelector(
-            mini: true,
-            selected: _placement ?? TaskPlacement.bottom,
+          PlacementSection(
+            placement: _placement ?? TaskPlacement.bottom,
             onChanged: (p) => setState(() => _placement = p),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: ProjectPicker(
-                  menuController: _projectMenuController,
-                  projects: projects,
-                  selectedProjectId: _selectedProjectId,
-                  onChanged: (id) {
-                    setState(() => _selectedProjectId = id);
-                    _loadProjectDetails();
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: DatePickerButton(
-                  label: 'Scheduled',
-                  date: _scheduledDate,
-                  onChanged: (d) => setState(() => _scheduledDate = d),
-                  lastDate: DateTime.now().add(Duration(days: ref.read(settingsProvider).maxPlanningDays)),
-                ),
-              ),
-            ],
+
+          ProjectsAndBlockersSection(
+            projects: projects,
+            availableTasks: _projectTasks,
+            currentTaskId: widget.initialTask?.id,
+            selectedBlockerId: _blockedById,
+            selectedProjectId: _selectedProjectId,
+            onChangedProject: (id) {
+              setState(() => _selectedProjectId = id);
+              _loadProjectDetails();
+            },
+            onChangedBlockers: (id) => setState(() => _blockedById = id),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: DatePickerButton(
-                  label: 'Deadline',
-                  date: _deadline,
-                  onChanged: (d) => setState(() => _deadline = d),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: BlockerPicker(
-                  availableTasks: _projectTasks,
-                  selectedBlockerId: _blockedById,
-                  currentTaskId: widget.initialTask?.id,
-                  onChanged: (id) => setState(() => _blockedById = id),
-                ),
-              ),
-            ],
+          PlanningSection(
+            scheduledDate: _scheduledDate,
+            onScheduledChanged: (d) => setState(() => _scheduledDate = d),
+            deadline: _deadline,
+            onDeadlineChanged: (d) => setState(() => _deadline = d),
+            maxPlanningDays: ref.read(settingsProvider).maxPlanningDays,
           ),
-          const SizedBox(height: 16),
-          LabelPicker(
+
+          CategorizationSection(
             selectedLabelIds: _selectedLabelIds,
             inheritedLabelIds: _inheritedLabelIds,
-            onSelected: (ids) => setState(() => _selectedLabelIds = ids),
+            onLabelsSelected: (ids) => setState(() => _selectedLabelIds = ids),
+            selectedTagIds: _selectedTagIds,
+            onTagsSelected: (ids) => setState(() => _selectedTagIds = ids),
           ),
-          const SizedBox(height: 16),
-          TagPicker(selectedTagIds: _selectedTagIds, onSelected: (ids) => setState(() => _selectedTagIds = ids)),
           if (isEditing && _parentId == null) ...[
             const SizedBox(height: 16),
             SubtasksListSection(parentTask: widget.initialTask!),
