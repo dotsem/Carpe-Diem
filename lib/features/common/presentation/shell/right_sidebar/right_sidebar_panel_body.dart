@@ -16,6 +16,7 @@ class RightSidebarPanelBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return switch (panel) {
       AddTaskPanel(:final initialDate, :final initialProjectId, :final initialParentId) => TaskFormPanel(
+        key: ValueKey('add_task_${initialParentId ?? ''}_${initialProjectId ?? ''}_${initialDate ?? ''}'),
         initialDate: initialDate,
         initialProjectId: initialProjectId,
         initialParentId: initialParentId,
@@ -26,17 +27,17 @@ class RightSidebarPanelBody extends ConsumerWidget {
           if (task == null) {
             return const Center(child: Text('Task not found'));
           }
-          return TaskFormPanel(initialTask: task);
+          return TaskFormPanel(key: ValueKey('edit_task_$taskId'), initialTask: task);
         },
       ),
-      AddProjectPanel() => const ProjectFormPanel(),
+      AddProjectPanel() => const ProjectFormPanel(key: ValueKey('add_project')),
       EditProjectPanel(:final projectId) => Consumer(
         builder: (context, ref, child) {
           final project = ref.watch(projectProvider).getById(projectId);
           if (project == null) {
             return const Center(child: Text('Project not found'));
           }
-          return ProjectFormPanel(project: project);
+          return ProjectFormPanel(key: ValueKey('edit_project_$projectId'), project: project);
         },
       ),
       ActionHistoryPanel() => const ActionHistoryPanelWidget(),
