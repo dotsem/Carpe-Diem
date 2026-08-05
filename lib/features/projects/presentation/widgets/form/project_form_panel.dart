@@ -7,6 +7,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/date_picker_butt
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/section_card.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
@@ -69,34 +70,19 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
             IconButton(
               icon: const Icon(Icons.delete_outline_rounded),
               tooltip: 'Delete Project',
-              style: IconButton.styleFrom(
-                foregroundColor: AppColors.error,
-              ),
+              style: IconButton.styleFrom(foregroundColor: AppColors.error),
               onPressed: _onDelete,
             ),
           const Spacer(),
-          TextButton(
-            onPressed: () =>
-                ref.read(rightSidebarProvider.notifier).close(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => ref.read(rightSidebarProvider.notifier).close(), child: const Text('Cancel')),
           const SizedBox(width: 8),
-          FilledButton(
-            onPressed: _submit,
-            child: Text(isEditing ? 'Save Changes' : 'Create Project'),
-          ),
+          FilledButton(onPressed: _submit, child: Text(isEditing ? 'Save Changes' : 'Create Project')),
         ],
       ),
       child: CallbackShortcuts(
         bindings: {
-          const SingleActivator(
-            LogicalKeyboardKey.digit1,
-            control: true,
-          ): () => setState(() => _isUrgent = false),
-          const SingleActivator(
-            LogicalKeyboardKey.digit2,
-            control: true,
-          ): () => setState(() => _isUrgent = true),
+          const SingleActivator(LogicalKeyboardKey.digit1, control: true): () => setState(() => _isUrgent = false),
+          const SingleActivator(LogicalKeyboardKey.digit2, control: true): () => setState(() => _isUrgent = true),
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,57 +91,63 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
               controller: _nameController,
               autofocus: true,
               decoration: const InputDecoration(hintText: 'Project name'),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _descController,
-              decoration: const InputDecoration(
-                hintText: 'Description (optional)',
-              ),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              decoration: const InputDecoration(hintText: 'Description (optional)'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               maxLines: 2,
             ),
             const SizedBox(height: 16),
-            Text('Color', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            ProjectColorPicker(
-              selected: _selectedColor,
-              onChanged: (c) => setState(() => _selectedColor = c),
+            SectionCard.single(
+              icon: Icons.palette_outlined,
+              title: 'Color',
+              child: ProjectColorPicker(selected: _selectedColor, onChanged: (c) => setState(() => _selectedColor = c)),
             ),
-            const SizedBox(height: 16),
-            Text('Urgency', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            UrgencySelector(
-              selected: _isUrgent,
-              onChanged: (v) => setState(() => _isUrgent = v!),
-              allowAll: false,
+            const SizedBox(height: 12),
+            SectionCard(
+              items: [
+                SectionItem(
+                  icon: Icons.warning_amber_rounded,
+                  title: 'Urgency',
+                  child: UrgencySelector(
+                    selected: _isUrgent,
+                    onChanged: (v) => setState(() => _isUrgent = v!),
+                    allowAll: false,
+                  ),
+                ),
+                if (isEditing)
+                  SectionItem(
+                    icon: Icons.toggle_on_outlined,
+                    title: 'Status',
+                    child: _ActiveToggle(isActive: _isActive, onChanged: (v) => setState(() => _isActive = v)),
+                  ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text('Labels', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            LabelPicker(
-              selectedLabelIds: _selectedLabelIds,
-              onSelected: (ids) => setState(() => _selectedLabelIds = ids),
-            ),
-            const SizedBox(height: 16),
-            DatePickerButton(
-              label: 'Deadline',
-              date: _deadline,
-              onChanged: (d) => setState(() => _deadline = d),
-              firstDate: widget.project?.createdAt,
-            ),
-            if (isEditing) ...[
-              const SizedBox(height: 16),
-              _ActiveToggle(
-                isActive: _isActive,
-                onChanged: (v) => setState(() => _isActive = v),
+            const SizedBox(height: 12),
+            SectionCard.single(
+              icon: Icons.label_outlined,
+              title: 'Labels',
+              child: LabelPicker(
+                selectedLabelIds: _selectedLabelIds,
+                onSelected: (ids) => setState(() => _selectedLabelIds = ids),
+                isDropdown: true,
               ),
-            ],
+            ),
+            const SizedBox(height: 12),
+            SectionCard.single(
+              icon: Icons.calendar_today_outlined,
+              title: 'Planning & Deadline',
+              child: DatePickerButton(
+                label: 'Deadline',
+                icon: Icons.flag_outlined,
+                date: _deadline,
+                onChanged: (d) => setState(() => _deadline = d),
+                firstDate: widget.project?.createdAt,
+              ),
+            ),
           ],
         ),
       ),
@@ -192,9 +184,7 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
       final updatedProject = Project(
         id: p.id,
         name: name,
-        description: _descController.text.trim().isEmpty
-            ? null
-            : _descController.text.trim(),
+        description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
         color: _selectedColor,
         isUrgent: _isUrgent,
         labelIds: _selectedLabelIds,
@@ -205,11 +195,11 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
       );
       ref.read(projectProvider.notifier).updateProject(updatedProject);
     } else {
-      ref.read(projectProvider.notifier).addProject(
+      ref
+          .read(projectProvider.notifier)
+          .addProject(
             name: name,
-            description: _descController.text.trim().isEmpty
-                ? null
-                : _descController.text.trim(),
+            description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
             color: _selectedColor,
             isUrgent: _isUrgent,
             labelIds: _selectedLabelIds,
@@ -240,18 +230,10 @@ class _ActiveToggle extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Project status',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                  const Text('Project status', style: TextStyle(fontWeight: FontWeight.w500)),
                   Text(
-                    isActive
-                        ? 'Tasks can be added to this project'
-                        : 'Project is archived. Tasks cannot be added.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                    isActive ? 'Tasks can be added to this project' : 'Project is archived. Tasks cannot be added.',
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
