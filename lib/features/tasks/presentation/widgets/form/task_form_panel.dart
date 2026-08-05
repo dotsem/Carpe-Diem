@@ -50,6 +50,7 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   List<String> _inheritedLabelIds = [];
   List<String> _selectedTagIds = [];
   List<String> _previousParsedIds = [];
+  String? _titleError;
   final MenuController _projectMenuController = MenuController();
   final MenuController _blockerMenuController = MenuController();
 
@@ -99,6 +100,10 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   }
 
   void _onTitleChanged() {
+    if (_titleError != null && _titleController.text.trim().isNotEmpty) {
+      setState(() => _titleError = null);
+    }
+
     final newTagIds = TagSyncUtils.syncTitleToPicker(
       text: _titleController.text,
       allTags: ref.read(tagProvider).tags,
@@ -238,7 +243,10 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
             TagAutocompleteTextField(
               controller: _titleController,
               autofocus: true,
-              decoration: const InputDecoration(hintText: 'Task name'),
+              decoration: InputDecoration(
+                hintText: 'Task name',
+                errorText: _titleError,
+              ),
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               onTagSelected: (tag) {
                 if (!ref.read(settingsProvider).keepTagsInTitle) {
@@ -326,7 +334,10 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
 
   Future<void> _submit() async {
     final rawTitle = _titleController.text.trim();
-    if (rawTitle.isEmpty) return;
+    if (rawTitle.isEmpty) {
+      setState(() => _titleError = 'Task name is required');
+      return;
+    }
 
     final parsedTagNames = TagParser.parseTags(rawTitle);
     final existingTags = ref.read(tagProvider).tags;

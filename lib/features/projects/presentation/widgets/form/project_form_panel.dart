@@ -30,12 +30,14 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
   List<String> _selectedLabelIds = [];
   DateTime? _deadline;
   late bool _isActive;
+  String? _nameError;
 
   bool get isEditing => widget.project != null;
 
   @override
   void initState() {
     super.initState();
+    _nameController.addListener(_onNameChanged);
     final p = widget.project;
     if (p != null) {
       _nameController.text = p.name;
@@ -54,8 +56,15 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
     }
   }
 
+  void _onNameChanged() {
+    if (_nameError != null && _nameController.text.trim().isNotEmpty) {
+      setState(() => _nameError = null);
+    }
+  }
+
   @override
   void dispose() {
+    _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
     _descController.dispose();
     super.dispose();
@@ -94,7 +103,10 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
             TextField(
               controller: _nameController,
               autofocus: true,
-              decoration: const InputDecoration(hintText: 'Project name'),
+              decoration: InputDecoration(
+                hintText: 'Project name',
+                errorText: _nameError,
+              ),
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 12),
@@ -181,7 +193,10 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
 
   void _submit() {
     final name = _nameController.text.trim();
-    if (name.isEmpty) return;
+    if (name.isEmpty) {
+      setState(() => _nameError = 'Project name is required');
+      return;
+    }
 
     if (isEditing) {
       final p = widget.project!;
