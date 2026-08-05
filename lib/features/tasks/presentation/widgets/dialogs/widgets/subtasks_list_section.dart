@@ -78,7 +78,11 @@ class SubtasksListSection extends ConsumerWidget {
             TextButton.icon(
               onPressed: () {
                 context.openRightSidebar(
-                  AddTaskPanel(initialDate: scheduledDate, initialProjectId: projectId, initialParentId: parentTask.id),
+                  AddTaskPanel(
+                    initialDate: scheduledDate ?? parentTask.scheduledDate,
+                    initialProjectId: projectId ?? parentTask.projectId,
+                    initialParentId: parentTask.id,
+                  ),
                   ref,
                 );
               },

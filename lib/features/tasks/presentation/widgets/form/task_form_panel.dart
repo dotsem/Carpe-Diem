@@ -5,6 +5,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/pro
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -55,7 +56,6 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   void initState() {
     super.initState();
     final task = widget.initialTask;
-    final settings = ref.read(settingsProvider);
 
     if (task != null) {
       _descController.text = task.description ?? '';
@@ -82,7 +82,7 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       );
     } else {
       _scheduledDate = widget.initialDate;
-      _selectedProjectId = widget.initialProjectId ?? settings.defaultProjectId;
+      _selectedProjectId = widget.initialProjectId;
       _placement = TaskPlacement.bottom;
       _parentId = widget.initialParentId;
 
@@ -92,7 +92,7 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
     }
 
     _titleController.addListener(_onTitleChanged);
-    if (_selectedProjectId != null) _loadProjectDetails();
+    _loadProjectDetails();
   }
 
   void _onTitleChanged() {
@@ -120,23 +120,50 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   }
 
   Future<void> _loadProjectDetails() async {
+    final settings = ref.read(settingsProvider);
+    List<String> parentLabelIds = [];
+
+    if (!isEditing && _parentId != null) {
+      Task? parentTask = ref.read(taskProvider).getById(_parentId!);
+      if (parentTask == null) {
+        final repo = ref.read(taskRepositoryProvider);
+        parentTask = await repo.getById(_parentId!);
+      }
+      if (parentTask != null) {
+        _selectedProjectId ??= parentTask.projectId;
+        _scheduledDate ??= parentTask.scheduledDate;
+        _deadline ??= parentTask.deadline;
+        parentLabelIds = parentTask.labelIds;
+      }
+    }
+
+    if (!isEditing && _selectedProjectId == null && _parentId == null) {
+      _selectedProjectId = settings.defaultProjectId;
+    }
+
     if (_selectedProjectId == null) {
+      if (!mounted) return;
       setState(() {
         _projectTasks = [];
         _blockedById = null;
-        _inheritedLabelIds = [];
+        _inheritedLabelIds = parentLabelIds.toSet().toList();
       });
       return;
     }
+
     final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
     if (!mounted) return;
     final project = ref.read(projectProvider).getById(_selectedProjectId!);
-    final settings = ref.read(settingsProvider);
+    final combinedInheritedLabels = <String>{
+      ...?project?.labelIds,
+      ...parentLabelIds,
+    }.toList();
+
     setState(() {
       _projectTasks = tasks;
-      _inheritedLabelIds = project?.labelIds ?? [];
+      _inheritedLabelIds = combinedInheritedLabels;
       if (!isEditing && settings.inheritProjectDeadline && project?.deadline != null) {
-        _deadline = project?.deadline;
+        _deadline ??= project?.deadline;
       }
     });
   }
