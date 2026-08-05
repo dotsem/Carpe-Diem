@@ -9,6 +9,7 @@ class RightSidebarNotifier extends Notifier<RightSidebarState> {
   }
 
   void open(RightSidebarPanel panel) {
+    if (state.activePanel == panel) return;
     if (state.activePanel == null) {
       state = RightSidebarState(activePanel: panel, history: const []);
     } else {

@@ -53,7 +53,7 @@ class RightSidebarContainer extends ConsumerWidget {
             ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(left: 8.0),
+              padding: EdgeInsets.only(left: state.history.isNotEmpty ? 4.0 : 8.0),
               child: Text(
                 title,
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -64,12 +64,7 @@ class RightSidebarContainer extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.close_rounded),
             tooltip: 'Close',
-            onPressed: () {
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-              ref.read(rightSidebarProvider.notifier).close();
-            },
+            onPressed: () => ref.read(rightSidebarProvider.notifier).close(),
           ),
         ],
       ),

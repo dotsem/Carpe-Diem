@@ -1,24 +1,23 @@
-import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/planning_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/labels_and_tags_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/placement_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/projects_and_blockers_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/task_form_shortcuts.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_delete_handler.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_details_loader.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_submit_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_sync_utils.dart';
-import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/create_tags_prompt_dialog.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_autocomplete_text_field.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_highlighting_controller.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/parent_task_link.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/subtasks_list_section.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
@@ -40,19 +39,11 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   late final TagHighlightingController _titleController;
   final _descController = TextEditingController();
   TaskPlacement? _placement;
-  DateTime? _scheduledDate;
-  DateTime? _deadline;
-  String? _selectedProjectId;
-  String? _blockedById;
-  String? _parentId;
+  DateTime? _scheduledDate, _deadline;
+  String? _selectedProjectId, _blockedById, _parentId, _titleError;
   List<Task> _projectTasks = [];
-  List<String> _selectedLabelIds = [];
-  List<String> _inheritedLabelIds = [];
-  List<String> _selectedTagIds = [];
-  List<String> _previousParsedIds = [];
-  String? _titleError;
-  final MenuController _projectMenuController = MenuController();
-  final MenuController _blockerMenuController = MenuController();
+  List<String> _selectedLabelIds = [], _inheritedLabelIds = [], _selectedTagIds = [], _previousParsedIds = [];
+  final MenuController _projectMenuController = MenuController(), _blockerMenuController = MenuController();
 
   bool get isEditing => widget.initialTask != null;
 
@@ -73,12 +64,8 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       _selectedTagIds = List.from(task.tagIds);
 
       final initialTags = TagParser.parseTags(task.title);
-      _previousParsedIds = ref
-          .read(tagProvider)
-          .tags
-          .where((t) => initialTags.contains(t.name.toLowerCase()))
-          .map((t) => t.id)
-          .toList();
+      _previousParsedIds =
+          ref.read(tagProvider).tags.where((t) => initialTags.contains(t.name.toLowerCase())).map((t) => t.id).toList();
 
       _titleController = TagHighlightingController(
         text: task.title,
@@ -128,47 +115,25 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   }
 
   Future<void> _loadProjectDetails() async {
-    final settings = ref.read(settingsProvider);
-    List<String> parentLabelIds = [];
+    final details = await TaskFormDetailsLoader.loadDetails(
+      ref: ref,
+      isEditing: isEditing,
+      parentId: _parentId,
+      currentProjectId: _selectedProjectId,
+      currentScheduledDate: _scheduledDate,
+      currentDeadline: _deadline,
+    );
 
-    if (!isEditing && _parentId != null) {
-      Task? parentTask = ref.read(taskProvider).getById(_parentId!);
-      if (parentTask == null) {
-        final repo = ref.read(taskRepositoryProvider);
-        parentTask = await repo.getById(_parentId!);
-      }
-      if (parentTask != null) {
-        _selectedProjectId ??= parentTask.projectId;
-        _scheduledDate ??= parentTask.scheduledDate;
-        _deadline ??= parentTask.deadline;
-        parentLabelIds = parentTask.labelIds;
-      }
-    }
-
-    if (!isEditing && _selectedProjectId == null && _parentId == null) {
-      _selectedProjectId = settings.defaultProjectId;
-    }
-
-    if (_selectedProjectId == null) {
-      if (!mounted) return;
-      setState(() {
-        _projectTasks = [];
-        _blockedById = null;
-        _inheritedLabelIds = parentLabelIds.toSet().toList();
-      });
-      return;
-    }
-
-    final tasks = await ref.read(taskProvider.notifier).getTasksForProject(_selectedProjectId!);
-    if (!mounted) return;
-    final project = ref.read(projectProvider).getById(_selectedProjectId!);
-    final combinedInheritedLabels = <String>{...?project?.labelIds, ...parentLabelIds}.toList();
+    if (!mounted || details == null) return;
 
     setState(() {
-      _projectTasks = tasks;
-      _inheritedLabelIds = combinedInheritedLabels;
-      if (!isEditing && settings.inheritProjectDeadline && project?.deadline != null) {
-        _deadline ??= project?.deadline;
+      _selectedProjectId = details.selectedProjectId;
+      _scheduledDate = details.scheduledDate;
+      _deadline = details.deadline;
+      _projectTasks = details.projectTasks;
+      _inheritedLabelIds = details.inheritedLabelIds;
+      if (_selectedProjectId == null) {
+        _blockedById = null;
       }
     });
   }
@@ -183,7 +148,11 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(projectProvider).projects.where((p) => p.isActive).toList();
+    final projects = ref
+        .watch(projectProvider)
+        .projects
+        .where((p) => p.isActive)
+        .toList();
 
     return StickyFooterLayout(
       footer: Row(
@@ -196,50 +165,28 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
               onPressed: _onDelete,
             ),
           const Spacer(),
-          TextButton(onPressed: () => ref.read(rightSidebarProvider.notifier).close(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => ref.read(rightSidebarProvider.notifier).close(),
+            child: const Text('Cancel'),
+          ),
           const SizedBox(width: 8),
-          FilledButton(onPressed: _submit, child: Text(isEditing ? 'Save Changes' : 'Create Task')),
+          FilledButton(
+            onPressed: _submit,
+            child: Text(isEditing ? 'Save Changes' : 'Create Task'),
+          ),
         ],
       ),
-      child: CallbackShortcuts(
-        bindings: {
-          const SingleActivator(AppKeyBindings.digit1, control: true): () =>
-              setState(() => _placement = TaskPlacement.bottom),
-          const SingleActivator(AppKeyBindings.digit1, meta: true): () =>
-              setState(() => _placement = TaskPlacement.bottom),
-          const SingleActivator(AppKeyBindings.digit2, control: true): () =>
-              setState(() => _placement = TaskPlacement.middle),
-          const SingleActivator(AppKeyBindings.digit2, meta: true): () =>
-              setState(() => _placement = TaskPlacement.middle),
-          const SingleActivator(AppKeyBindings.digit3, control: true): () =>
-              setState(() => _placement = TaskPlacement.top),
-          const SingleActivator(AppKeyBindings.digit3, meta: true): () =>
-              setState(() => _placement = TaskPlacement.top),
-          const SingleActivator(AppKeyBindings.digit4, control: true): () =>
-              setState(() => _placement = TaskPlacement.urgent),
-          const SingleActivator(AppKeyBindings.digit4, meta: true): () =>
-              setState(() => _placement = TaskPlacement.urgent),
-          SingleActivator(ProjectsKeys.keyboardKey, control: true): () {
-            if (_projectMenuController.isOpen) {
-              _projectMenuController.close();
-            } else {
-              _projectMenuController.open();
-            }
-          },
-          SingleActivator(ProjectsKeys.keyboardKey, meta: true): () {
-            if (_projectMenuController.isOpen) {
-              _projectMenuController.close();
-            } else {
-              _projectMenuController.open();
-            }
-          },
-          const SingleActivator(AppKeyBindings.enter, control: true): _submit,
-          const SingleActivator(AppKeyBindings.enter, meta: true): _submit,
-        },
+      child: TaskFormShortcuts(
+        onPlacementChanged: (p) => setState(() => _placement = p),
+        projectMenuController: _projectMenuController,
+        onSubmit: _submit,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_parentId != null) ...[ParentTaskLink(parentId: _parentId!), const SizedBox(height: 8)],
+            if (_parentId != null) ...[
+              ParentTaskLink(parentId: _parentId!),
+              const SizedBox(height: 8),
+            ],
             TagAutocompleteTextField(
               controller: _titleController,
               autofocus: true,
@@ -261,7 +208,9 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
             const SizedBox(height: 16),
             TextField(
               controller: _descController,
-              decoration: const InputDecoration(hintText: 'Description (optional)'),
+              decoration: const InputDecoration(
+                hintText: 'Description (optional)',
+              ),
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               maxLines: 2,
             ),
@@ -270,7 +219,6 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
               placement: _placement ?? TaskPlacement.bottom,
               onChanged: (p) => setState(() => _placement = p),
             ),
-
             ProjectsAndBlockersSection(
               projects: projects,
               availableTasks: _projectTasks,
@@ -292,11 +240,11 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
               onDeadlineChanged: (d) => setState(() => _deadline = d),
               maxPlanningDays: ref.read(settingsProvider).maxPlanningDays,
             ),
-
             CategorizationSection(
               selectedLabelIds: _selectedLabelIds,
               inheritedLabelIds: _inheritedLabelIds,
-              onLabelsSelected: (ids) => setState(() => _selectedLabelIds = ids),
+              onLabelsSelected: (ids) =>
+                  setState(() => _selectedLabelIds = ids),
               selectedTagIds: _selectedTagIds,
               onTagsSelected: (ids) => setState(() => _selectedTagIds = ids),
             ),
@@ -311,24 +259,10 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   }
 
   void _onDelete() {
-    final task = widget.initialTask;
-    if (task == null) return;
-    final subtasks = ref.read(taskProvider).tasks.where((t) => t.parentId == task.id).toList();
-    final message = subtasks.isEmpty
-        ? 'Are you sure you want to delete this task?'
-        : 'Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?';
-
-    showDialog(
+    TaskFormDeleteHandler.confirmAndDelete(
       context: context,
-      builder: (ctx) => DeleteDialog(
-        title: 'Delete Task',
-        message: message,
-        onConfirm: () {
-          Navigator.of(ctx).pop();
-          ref.read(taskProvider.notifier).deleteTask(task);
-          ref.read(rightSidebarProvider.notifier).close();
-        },
-      ),
+      ref: ref,
+      task: widget.initialTask,
     );
   }
 
@@ -339,77 +273,20 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       return;
     }
 
-    final parsedTagNames = TagParser.parseTags(rawTitle);
-    final existingTags = ref.read(tagProvider).tags;
-    final existingNamesSet = existingTags.map((t) => t.name.toLowerCase()).toSet();
-    final newTagNames = parsedTagNames.where((name) => !existingNamesSet.contains(name.toLowerCase())).toList();
-
-    List<String> finalTagIds = List.from(_selectedTagIds);
-    final List<String> tagsToStrip = [];
-
-    if (newTagNames.isNotEmpty) {
-      final result = await showDialog<CreateTagsPromptResult>(
-        context: context,
-        builder: (_) => CreateTagsPromptDialog(newTagNames: newTagNames),
-      );
-
-      if (result == null || result == CreateTagsPromptResult.cancel) {
-        return;
-      }
-
-      if (result == CreateTagsPromptResult.createAndSave) {
-        for (final name in newTagNames) {
-          final newTag = await ref.read(tagProvider.notifier).addTag(name);
-          finalTagIds.add(newTag.id);
-        }
-      } else if (result == CreateTagsPromptResult.saveWithoutTags) {
-        tagsToStrip.addAll(newTagNames);
-      }
-    }
-
-    final settings = ref.read(settingsProvider);
-    var titleToSave = settings.keepTagsInTitle ? rawTitle : TagParser.stripTags(rawTitle);
-    if (settings.keepTagsInTitle && tagsToStrip.isNotEmpty) {
-      titleToSave = TagParser.stripSpecificTags(titleToSave, tagsToStrip);
-    }
-
-    if (isEditing) {
-      final task = widget.initialTask!;
-      ref
-          .read(taskProvider.notifier)
-          .updateTask(
-            task.copyWith(
-              title: titleToSave,
-              description: _descController.text.trim().isEmpty ? "" : _descController.text.trim(),
-              scheduledDate: _scheduledDate,
-              clearScheduledDate: _scheduledDate == null,
-              deadline: _deadline,
-              clearDeadline: _deadline == null,
-              blockedById: _blockedById,
-              clearBlockedBy: _blockedById == null,
-              projectId: _selectedProjectId,
-              labelIds: _selectedLabelIds,
-              tagIds: finalTagIds,
-              isUrgent: _placement == TaskPlacement.urgent,
-            ),
-          );
-    } else {
-      ref
-          .read(taskProvider.notifier)
-          .addTask(
-            title: titleToSave,
-            description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
-            scheduledDate: _scheduledDate,
-            projectId: _selectedProjectId,
-            placement: _placement ?? TaskPlacement.bottom,
-            deadline: _deadline,
-            blockedById: _blockedById,
-            parentId: _parentId,
-            labelIds: _selectedLabelIds,
-            tagIds: finalTagIds,
-          );
-    }
-
-    ref.read(rightSidebarProvider.notifier).close();
+    await TaskFormSubmitHandler.submit(
+      context: context,
+      ref: ref,
+      rawTitle: rawTitle,
+      description: _descController.text,
+      scheduledDate: _scheduledDate,
+      deadline: _deadline,
+      blockedById: _blockedById,
+      selectedProjectId: _selectedProjectId,
+      parentId: _parentId,
+      selectedLabelIds: _selectedLabelIds,
+      selectedTagIds: _selectedTagIds,
+      placement: _placement ?? TaskPlacement.bottom,
+      initialTask: widget.initialTask,
+    );
   }
 }

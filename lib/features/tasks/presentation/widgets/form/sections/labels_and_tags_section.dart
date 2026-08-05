@@ -37,7 +37,11 @@ class CategorizationSection extends StatelessWidget {
         SectionItem(
           icon: Icons.tag,
           title: 'Tags',
-          child: TagPicker(selectedTagIds: selectedTagIds, onSelected: onTagsSelected, isDropdown: true),
+          child: TagPicker(
+            selectedTagIds: selectedTagIds,
+            onSelected: onTagsSelected,
+            isDropdown: true,
+          ),
         ),
       ],
     );

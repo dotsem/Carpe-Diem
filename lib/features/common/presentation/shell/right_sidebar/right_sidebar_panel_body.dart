@@ -23,7 +23,7 @@ class RightSidebarPanelBody extends ConsumerWidget {
       ),
       EditTaskPanel(:final taskId) => Consumer(
         builder: (context, ref, child) {
-          final task = ref.watch(taskProvider).getById(taskId);
+          final task = ref.watch(taskProvider.select((s) => s.getById(taskId)));
           if (task == null) {
             return const Center(child: Text('Task not found'));
           }
@@ -33,7 +33,7 @@ class RightSidebarPanelBody extends ConsumerWidget {
       AddProjectPanel() => const ProjectFormPanel(key: ValueKey('add_project')),
       EditProjectPanel(:final projectId) => Consumer(
         builder: (context, ref, child) {
-          final project = ref.watch(projectProvider).getById(projectId);
+          final project = ref.watch(projectProvider.select((s) => s.getById(projectId)));
           if (project == null) {
             return const Center(child: Text('Project not found'));
           }
