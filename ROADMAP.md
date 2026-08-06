@@ -7,7 +7,7 @@ A document outlining the current & future development milestones for Carpe Diem.
 ## Current Scope: v0.5.0 (Desktop & UI Overhaul)
 
 - [ ] **Desktop Overhaul:** Optimize desktop UI layout and interaction models.
-- [ ] **Dialog Overhaul:** Streamline modals and integrate more controls into sidebars.
+- [x] **Dialog Overhaul:** Streamline modals and integrate more controls into sidebars.
 
 ---
 
