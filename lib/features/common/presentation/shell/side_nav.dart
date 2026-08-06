@@ -7,7 +7,8 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/add_project_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
 import 'package:carpe_diem/features/common/presentation/shell/sidebar_projects_hidden_badge.dart';
 
@@ -149,10 +150,8 @@ class ProjectList extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton.icon(
-            onPressed: () => showDialog(
-              context: context,
-              builder: (context) => const AddProjectDialog(),
-            ),
+            onPressed: () =>
+                context.openRightSidebar(const AddProjectPanel(), ref),
             icon: const Icon(Icons.add),
             label: const Text('Create a project'),
           ),

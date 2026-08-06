@@ -6,42 +6,28 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/edit_project_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_edit_tasks_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 
 class ProjectDetailDialogHandlers {
-  static void showEditTask(BuildContext context, Task task) {
-    showDialog(
-      context: context,
-      builder: (_) => EditTaskDialog(task: task),
-    );
+  static void showEditTask(BuildContext context, Task task, {WidgetRef? ref}) {
+    context.openRightSidebar(EditTaskPanel(task.id));
   }
 
-  static void showAddTask(BuildContext context, String projectId) {
-    showDialog(
-      context: context,
-      builder: (_) => AddTaskDialog(initialProjectId: projectId),
-    );
+  static void showAddTask(BuildContext context, String projectId, {WidgetRef? ref}) {
+    context.openRightSidebar(AddTaskPanel(initialProjectId: projectId));
   }
 
-  static void showEditProject(BuildContext context, Project project) {
-    showDialog(
-      context: context,
-      builder: (_) => EditProjectDialog(project: project),
-    );
+  static void showEditProject(BuildContext context, Project project, {WidgetRef? ref}) {
+    context.openRightSidebar(EditProjectPanel(project.id));
   }
 
-  static void showDeleteProject(
-    BuildContext context,
-    WidgetRef ref,
-    Project project,
-  ) {
+  static void showDeleteProject(BuildContext context, WidgetRef ref, Project project) {
     showDialog(
       context: context,
       builder: (ctx) => DeleteDialog(
@@ -63,10 +49,7 @@ class ProjectDetailDialogHandlers {
     final filterNotifier = ref.read(filterProvider.notifier);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) => FilterDialog(
-        initialFilter: ref.read(filterProvider).filter,
-        showProjectFilter: false,
-      ),
+      builder: (_) => FilterDialog(initialFilter: ref.read(filterProvider).filter, showProjectFilter: false),
     );
     if (result != null) {
       filterNotifier.setFilter(result);
@@ -118,24 +101,17 @@ class ProjectDetailDialogHandlers {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm Deletion'),
-        content: Text(
-          'Are you sure you want to delete ${selectedTaskIds.length} tasks?',
-        ),
+        content: Text('Are you sure you want to delete ${selectedTaskIds.length} tasks?'),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () async {
-              await ref
-                  .read(taskProvider.notifier)
-                  .bulkDeleteTasks(selectedTaskIds);
+              await ref.read(taskProvider.notifier).bulkDeleteTasks(selectedTaskIds);
               onCompleted();
               if (ctx.mounted) {
                 Navigator.of(ctx).pop();

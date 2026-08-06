@@ -1,10 +1,10 @@
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,12 +14,7 @@ class SubtasksListSection extends ConsumerWidget {
   final DateTime? scheduledDate;
   final String? projectId;
 
-  const SubtasksListSection({
-    super.key,
-    required this.parentTask,
-    this.scheduledDate,
-    this.projectId,
-  });
+  const SubtasksListSection({super.key, required this.parentTask, this.scheduledDate, this.projectId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,11 +27,7 @@ class SubtasksListSection extends ConsumerWidget {
     final completedEarlier = subtasks.where((t) {
       if (!t.isCompleted) return false;
       if (t.completedAt != null) {
-        final compDate = DateTime(
-          t.completedAt!.year,
-          t.completedAt!.month,
-          t.completedAt!.day,
-        );
+        final compDate = DateTime(t.completedAt!.year, t.completedAt!.month, t.completedAt!.day);
         return compDate.isBefore(today);
       }
       if (t.scheduledDate != null) {
@@ -45,9 +36,7 @@ class SubtasksListSection extends ConsumerWidget {
       return false;
     }).toList();
 
-    final activeSubtasks = subtasks
-        .where((t) => !completedEarlier.contains(t))
-        .toList();
+    final activeSubtasks = subtasks.where((t) => !completedEarlier.contains(t)).toList();
 
     final collapsedSet = ref.watch(collapsedSubtasksProvider);
     final isCollapsed = collapsedSet.contains(parentTask.id);
@@ -60,9 +49,7 @@ class SubtasksListSection extends ConsumerWidget {
           children: [
             InkWell(
               onTap: () {
-                ref
-                    .read(collapsedSubtasksProvider.notifier)
-                    .toggleCollapse(parentTask.id);
+                ref.read(collapsedSubtasksProvider.notifier).toggleCollapse(parentTask.id);
               },
               borderRadius: BorderRadius.circular(4),
               child: Padding(
@@ -76,18 +63,12 @@ class SubtasksListSection extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      'Subtasks',
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
+                    Text('Subtasks', style: Theme.of(context).textTheme.labelLarge),
                     if (subtasks.isNotEmpty) ...[
                       const SizedBox(width: 6),
                       Text(
                         '(${subtasks.where((t) => t.isCompleted).length}/${subtasks.length})',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ],
@@ -96,13 +77,13 @@ class SubtasksListSection extends ConsumerWidget {
             ),
             TextButton.icon(
               onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => AddTaskDialog(
-                    initialDate: scheduledDate,
-                    initialProjectId: projectId,
+                context.openRightSidebar(
+                  AddTaskPanel(
+                    initialDate: scheduledDate ?? parentTask.scheduledDate,
+                    initialProjectId: projectId ?? parentTask.projectId,
                     initialParentId: parentTask.id,
                   ),
+                  ref,
                 );
               },
               icon: const Icon(Icons.add, size: 16),
@@ -136,34 +117,22 @@ class SubtasksListSection extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6.0),
                       child: TaskCard(
+                        compactOverride: true,
                         task: subtask,
                         project: subtask.projectId != null
-                            ? ref
-                                  .watch(projectProvider)
-                                  .getById(subtask.projectId!)
+                            ? ref.watch(projectProvider).getById(subtask.projectId!)
                             : null,
                         useTimer: false,
                         onToggle: (_) {
-                          ref
-                              .read(taskProvider.notifier)
-                              .toggleComplete(subtask);
+                          ref.read(taskProvider.notifier).toggleComplete(subtask);
                         },
                         onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => EditTaskDialog(task: subtask),
-                          );
+                          context.openRightSidebar(EditTaskPanel(subtask.id), ref);
                         },
                         onContextMenu: (localPosition, renderBox) {
-                          showTaskCardContextMenu(
-                            context,
-                            ref,
-                            subtask,
-                            subtasks,
-                            localPosition,
-                            renderBox,
-                          );
+                          showTaskCardContextMenu(context, ref, subtask, subtasks, localPosition, renderBox);
                         },
+                        hideProjectInfo: true,
                       ),
                     ),
                 ],
@@ -180,9 +149,7 @@ class SubtasksListSection extends ConsumerWidget {
                         '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           fontStyle: FontStyle.italic,
                         ),
                       ),

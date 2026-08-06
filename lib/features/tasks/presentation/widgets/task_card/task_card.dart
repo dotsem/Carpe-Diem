@@ -26,6 +26,12 @@ class TaskCard extends ConsumerStatefulWidget {
   final bool autofocus;
   final FocusNode? focusNode;
   final Widget? leading;
+
+  /// Override compact mode (true = compact, false = normal, null = fallback to setting).
+  final bool? compactOverride;
+
+  /// Hides the project info, inherited labels, project color and parent breadcrumb.
+  final bool hideProjectInfo;
   final void Function(Offset localPosition, RenderBox renderBox)? onContextMenu;
 
   const TaskCard({
@@ -44,15 +50,16 @@ class TaskCard extends ConsumerStatefulWidget {
     this.autofocus = false,
     this.focusNode,
     this.leading,
+    this.compactOverride,
     this.onContextMenu,
+    this.hideProjectInfo = false,
   });
 
   @override
   ConsumerState<TaskCard> createState() => _TaskCardState();
 }
 
-class _TaskCardState extends ConsumerState<TaskCard>
-    with SingleTickerProviderStateMixin {
+class _TaskCardState extends ConsumerState<TaskCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isFocused = false;
 
@@ -71,10 +78,7 @@ class _TaskCardState extends ConsumerState<TaskCard>
     final timerNotifier = ref.read(taskTimerProvider.notifier);
     final settings = ref.read(settingsProvider);
     if (timerNotifier.isTaskPending(widget.task.id)) {
-      final progress = timerNotifier.getPendingProgress(
-        widget.task.id,
-        settings.taskCompletionDelay,
-      );
+      final progress = timerNotifier.getPendingProgress(widget.task.id, settings.taskCompletionDelay);
       if (progress < 1.0) {
         _controller.value = progress;
         _controller.forward();
@@ -118,8 +122,7 @@ class _TaskCardState extends ConsumerState<TaskCard>
   Widget build(BuildContext context) {
     final timerState = ref.watch(taskTimerProvider);
     final isPending = timerState.pendingCompletions.containsKey(widget.task.id);
-    final bool showDone =
-        widget.isChecked == null && (widget.task.isCompleted || isPending);
+    final bool showDone = widget.isChecked == null && (widget.task.isCompleted || isPending);
     final settings = ref.watch(settingsProvider);
 
     if (isPending && !_controller.isAnimating && _controller.value < 1.0) {
@@ -128,14 +131,13 @@ class _TaskCardState extends ConsumerState<TaskCard>
           .getPendingProgress(widget.task.id, settings.taskCompletionDelay);
       _controller.value = progress;
       _controller.forward();
-    } else if (!isPending &&
-        (_controller.isAnimating || _controller.value > 0)) {
+    } else if (!isPending && (_controller.isAnimating || _controller.value > 0)) {
       _controller.reset();
     }
 
     final isOverdue = widget.task.isOverdue;
 
-    final isCompact = settings.compactMode;
+    final isCompact = widget.compactOverride ?? settings.compactMode;
     final showDescription = settings.showDescriptionOnCard;
 
     return AnimatedBuilder(
@@ -176,15 +178,12 @@ class _TaskCardState extends ConsumerState<TaskCard>
         showDescriptionOnCard: showDescription,
         showHashtagInTitle: settings.showHashtagInTitle,
         taskGradientWidth: settings.taskGradientWidth,
+        hideProjectInfo: widget.hideProjectInfo,
         onTap: widget.onTap,
         onContextMenu: widget.onContextMenu,
         onFocusChange: (focused) {
           if (focused && mounted) {
-            Scrollable.ensureVisible(
-              context,
-              duration: const Duration(milliseconds: 200),
-              alignment: 0.5,
-            );
+            Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 200), alignment: 0.5);
           }
           setState(() => _isFocused = focused);
         },

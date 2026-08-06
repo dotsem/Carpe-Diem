@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,10 +33,7 @@ class _ParentBreadcrumbHeaderState
 
     return InkWell(
       onTap: () {
-        showDialog(
-          context: context,
-          builder: (_) => EditTaskDialog(task: parentTask),
-        );
+        context.openRightSidebar(EditTaskPanel(parentTask.id), ref);
       },
       onHover: (hovering) => setState(() => _isHovered = hovering),
       borderRadius: BorderRadius.circular(4),

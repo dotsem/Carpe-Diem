@@ -1,6 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -64,10 +65,9 @@ class UndoRedoPanel extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.history_rounded),
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const ActionHistoryDialog(),
-                    );
+                    ref
+                        .read(rightSidebarProvider.notifier)
+                        .open(const ActionHistoryPanel());
                   },
                   tooltip: 'Action History',
                   style: IconButton.styleFrom(
@@ -83,8 +83,8 @@ class UndoRedoPanel extends ConsumerWidget {
   }
 }
 
-class ActionHistoryDialog extends ConsumerWidget {
-  const ActionHistoryDialog({super.key});
+class ActionHistoryPanelWidget extends ConsumerWidget {
+  const ActionHistoryPanelWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,82 +96,65 @@ class ActionHistoryDialog extends ConsumerWidget {
 
     final timeline = [...undoStack, ...redoStack.reversed];
 
-    return SizedDialog(
-      title: 'Action History',
-      showDefaultActions: false,
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
-        ),
-      ],
-      child: SizedBox(
-        width: 450,
-        height: 300,
-        child: timeline.isEmpty
-            ? const Center(child: Text('No action history available'))
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: timeline.length,
-                itemBuilder: (context, index) {
-                  final cmd = timeline[index];
-                  final isApplied = index < undoStack.length;
+    if (timeline.isEmpty) {
+      return const Center(child: Text('No action history available'));
+    }
 
-                  final tooltipMessage = isApplied
-                      ? (index == undoStack.length - 1
-                            ? 'Current state'
-                            : 'Revert to this action')
-                      : 'Apply up to this action';
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: timeline.length,
+      itemBuilder: (context, index) {
+        final cmd = timeline[index];
+        final isApplied = index < undoStack.length;
 
-                  return Tooltip(
-                    message: tooltipMessage,
-                    child: Opacity(
-                      opacity: isApplied ? 1.0 : 0.5,
-                      child: ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        onTap: undoRedoState.isProcessing
-                            ? null
-                            : () => ref
-                                  .read(undoRedoProvider.notifier)
-                                  .jumpTo(cmd),
-                        hoverColor: theme.colorScheme.primary.withValues(
-                          alpha: 0.08,
-                        ),
-                        leading: Icon(
-                          isApplied
-                              ? Icons.check_circle_outline_rounded
-                              : Icons.history_rounded,
-                          color: isApplied
-                              ? AppColors.accent
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                        title: Text(
-                          cmd.description,
-                          style: TextStyle(
-                            decoration: isApplied
-                                ? null
-                                : TextDecoration.lineThrough,
-                            fontWeight: isApplied
-                                ? FontWeight.w500
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        trailing: Text(
-                          isApplied ? 'Applied' : 'Undone',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isApplied
-                                ? AppColors.accent
-                                : theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
+        final tooltipMessage = isApplied
+            ? (index == undoStack.length - 1
+                  ? 'Current state'
+                  : 'Revert to this action')
+            : 'Apply up to this action';
+
+        return Tooltip(
+          message: tooltipMessage,
+          child: Opacity(
+            opacity: isApplied ? 1.0 : 0.5,
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              onTap: undoRedoState.isProcessing
+                  ? null
+                  : () => ref.read(undoRedoProvider.notifier).jumpTo(cmd),
+              hoverColor: theme.colorScheme.primary.withValues(
+                alpha: 0.08,
               ),
-      ),
+              leading: Icon(
+                isApplied
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.history_rounded,
+                color: isApplied
+                    ? AppColors.accent
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+              title: Text(
+                cmd.description,
+                style: TextStyle(
+                  decoration: isApplied ? null : TextDecoration.lineThrough,
+                  fontWeight:
+                      isApplied ? FontWeight.w500 : FontWeight.normal,
+                ),
+              ),
+              trailing: Text(
+                isApplied ? 'Applied' : 'Undone',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isApplied
+                      ? AppColors.accent
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

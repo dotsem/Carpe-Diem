@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_panel_body.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
 
 class TestCommand extends Command {
@@ -23,8 +25,18 @@ void main() {
   Widget buildTestWidget(ProviderContainer container) {
     return UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(
-        home: Scaffold(bottomNavigationBar: UndoRedoPanel()),
+      child: Consumer(
+        builder: (context, ref, child) {
+          final sidebarState = ref.watch(rightSidebarProvider);
+          return MaterialApp(
+            home: Scaffold(
+              bottomNavigationBar: const UndoRedoPanel(),
+              body: sidebarState.isOpen
+                  ? RightSidebarPanelBody(panel: sidebarState.activePanel!)
+                  : const SizedBox.shrink(),
+            ),
+          );
+        },
       ),
     );
   }
@@ -108,7 +120,7 @@ void main() {
       expect(redoButton.onPressed, isNull);
     });
 
-    testWidgets('History button should open ActionHistoryDialog', (
+    testWidgets('History button should open ActionHistoryPanel', (
       tester,
     ) async {
       await tester.pumpWidget(buildTestWidget(container));
@@ -121,16 +133,16 @@ void main() {
       await tester.tap(historyFinder);
       await tester.pumpAndSettle();
 
-      // Verify dialog is visible
-      expect(find.byType(ActionHistoryDialog), findsOneWidget);
+      // Verify panel is visible
+      expect(find.byType(ActionHistoryPanelWidget), findsOneWidget);
       expect(find.text('Historical Action'), findsOneWidget);
       expect(find.text('Applied'), findsOneWidget);
 
-      // Close dialog
-      await tester.tap(find.text('Close'));
+      // Close panel
+      container.read(rightSidebarProvider.notifier).close();
       await tester.pumpAndSettle();
 
-      expect(find.byType(ActionHistoryDialog), findsNothing);
+      expect(find.byType(ActionHistoryPanelWidget), findsNothing);
     });
 
     testWidgets('ActionHistoryDialog jumpTo interaction works', (tester) async {

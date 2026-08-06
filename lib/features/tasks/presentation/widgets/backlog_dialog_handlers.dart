@@ -4,8 +4,6 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_task_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/edit_task_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_edit_tasks_dialog.dart';
@@ -15,17 +13,16 @@ import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 
 class BacklogDialogHandlers {
-  static void showEditTask(BuildContext context, Task task) {
-    showDialog(
-      context: context,
-      builder: (_) => EditTaskDialog(task: task),
-    );
+  static void showEditTask(BuildContext context, Task task, {WidgetRef? ref}) {
+    context.openRightSidebar(EditTaskPanel(task.id));
   }
 
-  static void showAddTask(BuildContext context) {
-    showDialog(context: context, builder: (_) => const AddTaskDialog());
+  static void showAddTask(BuildContext context, {WidgetRef? ref}) {
+    context.openRightSidebar(AddTaskPanel());
   }
 
   static void showImportFromMD(BuildContext context) {
@@ -88,26 +85,19 @@ class BacklogDialogHandlers {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm Deletion'),
-        content: Text(
-          'Are you sure you want to delete ${selectedTaskIds.length} tasks?',
-        ),
+        content: Text('Are you sure you want to delete ${selectedTaskIds.length} tasks?'),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         titleTextStyle: Theme.of(context).textTheme.titleLarge,
         contentTextStyle: Theme.of(context).textTheme.bodyMedium,
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () async {
-              await ref
-                  .read(taskProvider.notifier)
-                  .bulkDeleteTasks(selectedTaskIds);
+              await ref.read(taskProvider.notifier).bulkDeleteTasks(selectedTaskIds);
               onCompleted();
               if (ctx.mounted) {
                 Navigator.of(ctx).pop();
@@ -120,19 +110,13 @@ class BacklogDialogHandlers {
     );
   }
 
-  static void pickRandomTask(
-    BuildContext context,
-    WidgetRef ref,
-    String searchQuery,
-  ) async {
+  static void pickRandomTask(BuildContext context, WidgetRef ref, String searchQuery) async {
     final taskProviderVal = ref.read(taskProvider);
     final projectProviderVal = ref.read(projectProvider);
     final filter = ref.read(filterProvider).activeFilter;
 
     var availableTasks = taskProviderVal.unscheduledTasks.where((t) {
-      final project = t.projectId != null
-          ? projectProviderVal.getById(t.projectId!)
-          : null;
+      final project = t.projectId != null ? projectProviderVal.getById(t.projectId!) : null;
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
@@ -145,9 +129,7 @@ class BacklogDialogHandlers {
       );
     }
 
-    final randomTask = await ref
-        .read(taskProvider.notifier)
-        .pickAndScheduleRandomTask(availableTasks);
+    final randomTask = await ref.read(taskProvider.notifier).pickAndScheduleRandomTask(availableTasks);
 
     if (randomTask == null) {
       ToastUtils.showInfo('No available tasks to pick from');
@@ -161,20 +143,13 @@ class BacklogDialogHandlers {
       builder: (ctx) => SizedDialog(
         title: 'We\'ve picked this task for you:',
         showDefaultActions: false,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Great!'),
-          ),
-        ],
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Great!'))],
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TaskCard(
               task: randomTask,
-              project: randomTask.projectId != null
-                  ? projectProviderVal.getById(randomTask.projectId!)
-                  : null,
+              project: randomTask.projectId != null ? projectProviderVal.getById(randomTask.projectId!) : null,
               onToggle: (_) {},
               onTap: () {},
               leading: const SizedBox.shrink(),

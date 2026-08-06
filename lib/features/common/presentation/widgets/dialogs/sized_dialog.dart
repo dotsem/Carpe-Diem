@@ -98,14 +98,22 @@ class _SizedDialogState extends State<SizedDialog> {
                     if (widget.showDefaultActions) ...[
                       const Spacer(),
                       TextButton(
-                        onPressed:
-                            widget.onCancel ?? () => Navigator.pop(context),
+                        onPressed: widget.onCancel ??
+                            () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              }
+                            },
                         child: const Text('Cancel'),
                       ),
                       const SizedBox(width: 12),
                       FilledButton(
-                        onPressed:
-                            widget.onSubmit ?? () => Navigator.pop(context),
+                        onPressed: widget.onSubmit ??
+                            () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              }
+                            },
                         style: widget.submitStyle,
                         child: Text(widget.submitText),
                       ),
