@@ -200,8 +200,7 @@ class _MultiSelectSearchableDropdownState<T>
                                   child: Text(
                                     'No items found',
                                     style: TextStyle(
-                                      color:
-                                          theme.colorScheme.onSurfaceVariant,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -211,8 +210,9 @@ class _MultiSelectSearchableDropdownState<T>
                           : List.generate(filtered.length, (index) {
                               final item = filtered[index];
                               final id = widget.idGetter(item);
-                              final isDisabled =
-                                  widget.disabledIds.contains(id);
+                              final isDisabled = widget.disabledIds.contains(
+                                id,
+                              );
                               final isSelected =
                                   widget.selectedIds.contains(id) || isDisabled;
                               final isHighlighted = index == _selectedIndex;
@@ -226,7 +226,9 @@ class _MultiSelectSearchableDropdownState<T>
                                 child: Container(
                                   decoration: BoxDecoration(
                                     color: isHighlighted
-                                        ? theme.colorScheme.primary.withAlpha(25)
+                                        ? theme.colorScheme.primary.withAlpha(
+                                            25,
+                                          )
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -240,13 +242,15 @@ class _MultiSelectSearchableDropdownState<T>
                                       widget.nameGetter(item),
                                       style: const TextStyle(fontSize: 13),
                                     ),
-                                    secondary: widget.leadingBuilder?.call(item),
+                                    secondary: widget.leadingBuilder?.call(
+                                      item,
+                                    ),
                                     value: isSelected,
                                     enabled: !isDisabled,
                                     onChanged: isDisabled
                                         ? null
                                         : (checked) =>
-                                            _toggle(id, checked ?? false),
+                                              _toggle(id, checked ?? false),
                                   ),
                                 ),
                               );

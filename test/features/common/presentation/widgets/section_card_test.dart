@@ -8,7 +8,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: SectionCard.single(icon: Icons.star, title: 'Single Title', child: Text('Child Widget')),
+            body: SectionCard.single(
+              icon: Icons.star,
+              title: 'Single Title',
+              child: Text('Child Widget'),
+            ),
           ),
         ),
       );
@@ -25,8 +29,16 @@ void main() {
           home: Scaffold(
             body: SectionCard(
               items: [
-                SectionItem(icon: Icons.folder, title: 'First Section', child: Text('First Child')),
-                SectionItem(icon: Icons.tag, title: 'Second Section', child: Text('Second Child')),
+                SectionItem(
+                  icon: Icons.folder,
+                  title: 'First Section',
+                  child: Text('First Child'),
+                ),
+                SectionItem(
+                  icon: Icons.tag,
+                  title: 'Second Section',
+                  child: Text('Second Child'),
+                ),
               ],
             ),
           ),

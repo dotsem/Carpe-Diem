@@ -38,7 +38,8 @@ class SearchableDropdown<T> extends StatefulWidget {
 
 class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   final MenuController _localMenuController = MenuController();
-  MenuController get _menuController => widget.menuController ?? _localMenuController;
+  MenuController get _menuController =>
+      widget.menuController ?? _localMenuController;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
@@ -134,9 +135,13 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
         });
       },
       style: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(theme.colorScheme.surfaceContainerHigh),
+        backgroundColor: WidgetStateProperty.all(
+          theme.colorScheme.surfaceContainerHigh,
+        ),
         elevation: WidgetStateProperty.all(8),
-        shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       ),
       menuChildren: [
         Padding(
@@ -157,7 +162,8 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                     });
                   },
                   onSubmitted: (_) {
-                    if (_selectedIndex >= 0 && _selectedIndex < _filteredItems.length) {
+                    if (_selectedIndex >= 0 &&
+                        _selectedIndex < _filteredItems.length) {
                       _onItemSelected(_filteredItems[_selectedIndex]);
                     } else {
                       _searchFocusNode.requestFocus();
@@ -175,11 +181,15 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                       children: _filteredItems.isEmpty
                           ? [
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 32),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 32,
+                                ),
                                 child: Center(
                                   child: Text(
                                     widget.emptyText,
-                                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -187,7 +197,12 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                           : List.generate(_filteredItems.length, (index) {
                               final item = _filteredItems[index];
                               final isHighlighted = index == _selectedIndex;
-                              return _buildItemRow(context, item, isHighlighted, index);
+                              return _buildItemRow(
+                                context,
+                                item,
+                                isHighlighted,
+                                index,
+                              );
                             }),
                     ),
                   ),
@@ -242,7 +257,13 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                   widget.prefixIcon!,
                   const SizedBox(width: 8),
                 ],
-                Expanded(child: Text(selectedText, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                Expanded(
+                  child: Text(
+                    selectedText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const Icon(Icons.arrow_drop_down),
               ],
             ),
@@ -252,7 +273,12 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
     );
   }
 
-  Widget _buildItemRow(BuildContext context, T? item, bool isHighlighted, int index) {
+  Widget _buildItemRow(
+    BuildContext context,
+    T? item,
+    bool isHighlighted,
+    int index,
+  ) {
     final theme = Theme.of(context);
     final label = widget.nameGetter(item);
 
@@ -264,19 +290,28 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isHighlighted ? AppColors.accent.withAlpha(25) : Colors.transparent,
+          color: isHighlighted
+              ? AppColors.accent.withAlpha(25)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            if (widget.leadingBuilder != null) ...[widget.leadingBuilder!(item), const SizedBox(width: 8)],
+            if (widget.leadingBuilder != null) ...[
+              widget.leadingBuilder!(item),
+              const SizedBox(width: 8),
+            ],
             Expanded(
               child: Text(
                 label,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: isHighlighted ? AppColors.accent : theme.colorScheme.onSurface,
-                  fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
+                  color: isHighlighted
+                      ? AppColors.accent
+                      : theme.colorScheme.onSurface,
+                  fontWeight: isHighlighted
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                 ),
               ),
             ),

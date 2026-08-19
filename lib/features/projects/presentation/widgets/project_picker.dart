@@ -37,10 +37,8 @@ class ProjectPicker extends StatelessWidget {
 
     final selectedProject =
         selectedProjectId == null || selectedProjectId!.isEmpty
-            ? null
-            : projects
-                .where((p) => p.id == selectedProjectId)
-                .firstOrNull;
+        ? null
+        : projects.where((p) => p.id == selectedProjectId).firstOrNull;
 
     return SearchableDropdown<Project>(
       borderless: borderless,
@@ -61,12 +59,8 @@ class ProjectPicker extends StatelessWidget {
           : Container(
               width: 12,
               height: 12,
-              decoration: BoxDecoration(
-                color: p.color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: p.color, shape: BoxShape.circle),
             ),
     );
   }
 }
-

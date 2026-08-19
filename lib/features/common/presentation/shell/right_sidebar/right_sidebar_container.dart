@@ -22,7 +22,12 @@ class RightSidebarContainer extends ConsumerWidget {
       height: double.infinity,
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        border: Border(left: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1)),
+        border: Border(
+          left: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            width: 1,
+          ),
+        ),
       ),
       child: SafeArea(
         child: Column(
@@ -36,7 +41,12 @@ class RightSidebarContainer extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref, RightSidebarState state, RightSidebarPanel panel) {
+  Widget _buildHeader(
+    BuildContext context,
+    WidgetRef ref,
+    RightSidebarState state,
+    RightSidebarPanel panel,
+  ) {
     final theme = Theme.of(context);
     final title = _getPanelTitle(panel);
 
@@ -53,10 +63,14 @@ class RightSidebarContainer extends ConsumerWidget {
             ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(left: state.history.isNotEmpty ? 4.0 : 8.0),
+              padding: EdgeInsets.only(
+                left: state.history.isNotEmpty ? 4.0 : 8.0,
+              ),
               child: Text(
                 title,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),

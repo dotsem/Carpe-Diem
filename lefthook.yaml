@@ -1,0 +1,9 @@
+pre-commit:
+  parallel: true
+  commands:
+    dart-fmt:
+      glob: "*.dart"
+      run: dart format .
+    flutter-analyze:
+      glob: "*.dart"
+      run: flutter analyze

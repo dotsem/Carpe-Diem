@@ -83,17 +83,27 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
               onPressed: _onDelete,
             ),
           const Spacer(),
-          TextButton(onPressed: () => ref.read(rightSidebarProvider.notifier).close(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => ref.read(rightSidebarProvider.notifier).close(),
+            child: const Text('Cancel'),
+          ),
           const SizedBox(width: 8),
-          FilledButton(onPressed: _submit, child: Text(isEditing ? 'Save Changes' : 'Create Project')),
+          FilledButton(
+            onPressed: _submit,
+            child: Text(isEditing ? 'Save Changes' : 'Create Project'),
+          ),
         ],
       ),
       child: CallbackShortcuts(
         bindings: {
-          const SingleActivator(AppKeyBindings.digit1, control: true): () => setState(() => _isUrgent = false),
-          const SingleActivator(AppKeyBindings.digit1, meta: true): () => setState(() => _isUrgent = false),
-          const SingleActivator(AppKeyBindings.digit2, control: true): () => setState(() => _isUrgent = true),
-          const SingleActivator(AppKeyBindings.digit2, meta: true): () => setState(() => _isUrgent = true),
+          const SingleActivator(AppKeyBindings.digit1, control: true): () =>
+              setState(() => _isUrgent = false),
+          const SingleActivator(AppKeyBindings.digit1, meta: true): () =>
+              setState(() => _isUrgent = false),
+          const SingleActivator(AppKeyBindings.digit2, control: true): () =>
+              setState(() => _isUrgent = true),
+          const SingleActivator(AppKeyBindings.digit2, meta: true): () =>
+              setState(() => _isUrgent = true),
           const SingleActivator(AppKeyBindings.enter, control: true): _submit,
           const SingleActivator(AppKeyBindings.enter, meta: true): _submit,
         },
@@ -112,7 +122,9 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
             const SizedBox(height: 12),
             TextField(
               controller: _descController,
-              decoration: const InputDecoration(hintText: 'Description (optional)'),
+              decoration: const InputDecoration(
+                hintText: 'Description (optional)',
+              ),
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               maxLines: 2,
             ),
@@ -120,7 +132,10 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
             SectionCard.single(
               icon: Icons.palette_outlined,
               title: 'Color',
-              child: ProjectColorPicker(selected: _selectedColor, onChanged: (c) => setState(() => _selectedColor = c)),
+              child: ProjectColorPicker(
+                selected: _selectedColor,
+                onChanged: (c) => setState(() => _selectedColor = c),
+              ),
             ),
             const SizedBox(height: 12),
             SectionCard(
@@ -138,7 +153,10 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
                   SectionItem(
                     icon: Icons.toggle_on_outlined,
                     title: 'Status',
-                    child: _ActiveToggle(isActive: _isActive, onChanged: (v) => setState(() => _isActive = v)),
+                    child: _ActiveToggle(
+                      isActive: _isActive,
+                      onChanged: (v) => setState(() => _isActive = v),
+                    ),
                   ),
               ],
             ),
@@ -203,7 +221,9 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
       final updatedProject = Project(
         id: p.id,
         name: name,
-        description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+        description: _descController.text.trim().isEmpty
+            ? null
+            : _descController.text.trim(),
         color: _selectedColor,
         isUrgent: _isUrgent,
         labelIds: _selectedLabelIds,
@@ -218,7 +238,9 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
           .read(projectProvider.notifier)
           .addProject(
             name: name,
-            description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
+            description: _descController.text.trim().isEmpty
+                ? null
+                : _descController.text.trim(),
             color: _selectedColor,
             isUrgent: _isUrgent,
             labelIds: _selectedLabelIds,
@@ -249,10 +271,18 @@ class _ActiveToggle extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Project status', style: TextStyle(fontWeight: FontWeight.w500)),
+                  const Text(
+                    'Project status',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
                   Text(
-                    isActive ? 'Tasks can be added to this project' : 'Project is archived. Tasks cannot be added.',
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    isActive
+                        ? 'Tasks can be added to this project'
+                        : 'Project is archived. Tasks cannot be added.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),

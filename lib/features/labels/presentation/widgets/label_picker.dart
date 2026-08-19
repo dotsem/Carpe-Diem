@@ -65,14 +65,17 @@ class LabelPicker extends ConsumerWidget {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        ...selectedAndInherited.map((label) => _buildSingleChip(context, ref, label)),
+        ...selectedAndInherited.map(
+          (label) => _buildSingleChip(context, ref, label),
+        ),
         MultiSelectSearchableDropdown<Label>(
           items: allLabels,
           selectedIds: selectedLabelIds,
           disabledIds: inheritedLabelIds,
           idGetter: (l) => l.id,
           nameGetter: (l) => l.name,
-          leadingBuilder: (l) => CircleAvatar(backgroundColor: l.color, radius: 5),
+          leadingBuilder: (l) =>
+              CircleAvatar(backgroundColor: l.color, radius: 5),
           onChanged: onSelected,
           buttonLabel: '+ Label',
           searchHint: 'Search labels...',
@@ -111,13 +114,7 @@ class LabelPicker extends ConsumerWidget {
         label: label.name,
         avatar: CircleAvatar(backgroundColor: label.color, radius: 6),
         onTap: (details, box) {
-          showLabelContextMenu(
-            context,
-            ref,
-            label,
-            details.localPosition,
-            box,
-          );
+          showLabelContextMenu(context, ref, label, details.localPosition, box);
         },
       );
     }
@@ -142,13 +139,7 @@ class LabelPicker extends ConsumerWidget {
     );
 
     final Widget chip = chipBuilder != null
-        ? chipBuilder!(
-            context,
-            label,
-            isSelected,
-            isInherited,
-            defaultChip,
-          )
+        ? chipBuilder!(context, label, isSelected, isInherited, defaultChip)
         : defaultChip;
 
     final Widget tooltipChip = isInherited
@@ -180,6 +171,3 @@ class LabelPicker extends ConsumerWidget {
     showDialog(context: context, builder: (context) => const AddLabelDialog());
   }
 }
-
-
-

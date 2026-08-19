@@ -5,7 +5,11 @@ class SectionItem {
   final String title;
   final Widget child;
 
-  const SectionItem({required this.icon, required this.title, required this.child});
+  const SectionItem({
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
 }
 
 class SectionCard extends StatelessWidget {
@@ -13,7 +17,12 @@ class SectionCard extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry? margin;
 
-  const SectionCard({super.key, required this.items, this.padding = const EdgeInsets.all(12), this.margin});
+  const SectionCard({
+    super.key,
+    required this.items,
+    this.padding = const EdgeInsets.all(12),
+    this.margin,
+  });
 
   factory SectionCard.single({
     Key? key,
@@ -38,7 +47,9 @@ class SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       padding: padding,
       child: Column(
@@ -53,7 +64,11 @@ class SectionCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(item.icon, size: 14, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    item.icon,
+                    size: 14,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     item.title,
@@ -67,7 +82,11 @@ class SectionCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               item.child,
-              if (!isLast) const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1)),
+              if (!isLast)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: Divider(height: 1),
+                ),
             ],
           );
         }),

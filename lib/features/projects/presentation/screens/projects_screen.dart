@@ -71,7 +71,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               title: 'Projects',
               actions: [
                 FilledButton.icon(
-                  onPressed: () => context.openRightSidebar(const AddProjectPanel(), ref),
+                  onPressed: () =>
+                      context.openRightSidebar(const AddProjectPanel(), ref),
                   icon: const Icon(Icons.add),
                   label: const Text('New Project'),
                 ),
@@ -103,7 +104,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   hiddenItemType: 'projects',
                   hiddenArchivedCount: hiddenProjects.archivedHidden,
                   onFilterTap: () => _showFilterDialog(context),
-                  onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+                  onClearFilter: () =>
+                      ref.read(filterProvider.notifier).clearFilter(),
                 );
               },
             ),
@@ -126,8 +128,11 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     final filterNotifier = ref.read(filterProvider.notifier);
     final result = await showDialog<TaskFilter>(
       context: context,
-      builder: (_) =>
-          FilterDialog(initialFilter: ref.read(filterProvider).filter, showProjectFilter: false, showTagFilter: false),
+      builder: (_) => FilterDialog(
+        initialFilter: ref.read(filterProvider).filter,
+        showProjectFilter: false,
+        showTagFilter: false,
+      ),
     );
     if (result != null) {
       filterNotifier.setFilter(result);
