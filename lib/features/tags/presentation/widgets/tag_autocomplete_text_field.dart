@@ -1,4 +1,5 @@
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_suggestion_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,6 +75,10 @@ class _TagAutocompleteTextFieldState
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+          if (HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed) {
+            return KeyEventResult.ignored;
+          }
           _selectTag(suggestions[_selectedIndex]);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.escape) {
@@ -237,7 +242,7 @@ class _TagAutocompleteTextFieldState
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         for (int i = 0; i < suggestions.length; i++) ...[
-                          _SuggestionItem(
+                          TagSuggestionItem(
                             tag: suggestions[i],
                             isSelected: i == _selectedIndex,
                             icon:
@@ -265,58 +270,6 @@ class _TagAutocompleteTextFieldState
           autofocus: widget.autofocus,
           decoration: widget.decoration,
           style: widget.style,
-        ),
-      ),
-    );
-  }
-}
-
-class _SuggestionItem extends StatelessWidget {
-  final Tag tag;
-  final bool isSelected;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _SuggestionItem({
-    required this.tag,
-    required this.isSelected,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        color: isSelected
-            ? Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withValues(alpha: 0.3)
-            : null,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                '#${tag.name}',
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
