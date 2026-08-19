@@ -1,22 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class _SubmitIntent extends Intent {
-  const _SubmitIntent();
-}
-
-class _SubmitAction extends Action<_SubmitIntent> {
-  final VoidCallback onSubmit;
-
-  _SubmitAction(this.onSubmit);
-
-  @override
-  Object? invoke(_SubmitIntent intent) {
-    onSubmit();
-    return null;
-  }
-}
-
 class SizedDialog extends StatefulWidget {
   final Widget child;
   final String? title;
@@ -50,19 +34,49 @@ class SizedDialog extends StatefulWidget {
 }
 
 class _SizedDialogState extends State<SizedDialog> {
-  final FocusScopeNode _focusScopeNode = FocusScopeNode(
-    debugLabel: 'SizedDialogScope',
-  );
+  @override
+  void initState() {
+    super.initState();
+    if (widget.onSubmit != null) {
+      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    }
+  }
+
+  @override
+  void didUpdateWidget(SizedDialog oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.onSubmit == null && widget.onSubmit != null) {
+      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    } else if (oldWidget.onSubmit != null && widget.onSubmit == null) {
+      HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    }
+  }
 
   @override
   void dispose() {
-    _focusScopeNode.dispose();
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+
+    final isCtrl = HardwareKeyboard.instance.isControlPressed;
+    final isMeta = HardwareKeyboard.instance.isMetaPressed;
+    if (!isCtrl && !isMeta) return false;
+
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter) {
+      widget.onSubmit?.call();
+      return true;
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget content = ConstrainedBox(
+    final content = ConstrainedBox(
       constraints: BoxConstraints(
         maxWidth: widget.maxWidth,
         minWidth: widget.minWidth ?? 0,
@@ -73,17 +87,11 @@ class _SizedDialogState extends State<SizedDialog> {
       ),
     );
 
-    final dialog = AlertDialog(
+    return AlertDialog(
       title: widget.title != null ? Text(widget.title!) : null,
       contentPadding: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      content: widget.onSubmit != null
-          ? GestureDetector(
-              onTap: () => _focusScopeNode.requestFocus(),
-              behavior: HitTestBehavior.opaque,
-              child: content,
-            )
-          : content,
+      content: content,
       actions:
           (widget.actions != null ||
               widget.onCancel != null ||
@@ -125,25 +133,6 @@ class _SizedDialogState extends State<SizedDialog> {
               ),
             ]
           : null,
-    );
-
-    if (widget.onSubmit == null) return dialog;
-
-    return Shortcuts(
-      shortcuts: {
-        const SingleActivator(LogicalKeyboardKey.enter, control: true):
-            const _SubmitIntent(),
-        const SingleActivator(LogicalKeyboardKey.numpadEnter, control: true):
-            const _SubmitIntent(),
-      },
-      child: Actions(
-        actions: {_SubmitIntent: _SubmitAction(widget.onSubmit!)},
-        child: FocusScope(
-          node: _focusScopeNode,
-          autofocus: true,
-          child: dialog,
-        ),
-      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/multi_select_dropdown_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -78,7 +79,12 @@ class _MultiSelectSearchableDropdownState<T>
           });
           _scrollToIndex(_selectedIndex);
           return KeyEventResult.handled;
-        } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+        } else if (event.logicalKey == LogicalKeyboardKey.enter ||
+            event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+          if (HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed) {
+            return KeyEventResult.ignored;
+          }
           if (_selectedIndex >= 0 && _selectedIndex < items.length) {
             final item = items[_selectedIndex];
             final id = widget.idGetter(item);
@@ -217,42 +223,21 @@ class _MultiSelectSearchableDropdownState<T>
                                   widget.selectedIds.contains(id) || isDisabled;
                               final isHighlighted = index == _selectedIndex;
 
-                              return MouseRegion(
-                                onHover: (_) {
+                              return MultiSelectDropdownTile(
+                                name: widget.nameGetter(item),
+                                leading: widget.leadingBuilder?.call(item),
+                                isSelected: isSelected,
+                                isDisabled: isDisabled,
+                                isHighlighted: isHighlighted,
+                                onHover: () {
                                   if (_selectedIndex != index) {
                                     setState(() => _selectedIndex = index);
                                   }
                                 },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: isHighlighted
-                                        ? theme.colorScheme.primary.withAlpha(
-                                            25,
-                                          )
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: CheckboxListTile(
-                                    dense: true,
-                                    visualDensity: VisualDensity.compact,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    title: Text(
-                                      widget.nameGetter(item),
-                                      style: const TextStyle(fontSize: 13),
-                                    ),
-                                    secondary: widget.leadingBuilder?.call(
-                                      item,
-                                    ),
-                                    value: isSelected,
-                                    enabled: !isDisabled,
-                                    onChanged: isDisabled
-                                        ? null
-                                        : (checked) =>
-                                              _toggle(id, checked ?? false),
-                                  ),
-                                ),
+                                onChanged: isDisabled
+                                    ? null
+                                    : (checked) =>
+                                          _toggle(id, checked ?? false),
                               );
                             }),
                     ),

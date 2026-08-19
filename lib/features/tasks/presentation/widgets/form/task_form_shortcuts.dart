@@ -1,8 +1,9 @@
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-class TaskFormShortcuts extends StatelessWidget {
+class TaskFormShortcuts extends StatefulWidget {
   final Widget child;
   final ValueChanged<TaskPlacement> onPlacementChanged;
   final MenuController projectMenuController;
@@ -16,42 +17,64 @@ class TaskFormShortcuts extends StatelessWidget {
     required this.onSubmit,
   });
 
+  @override
+  State<TaskFormShortcuts> createState() => _TaskFormShortcutsState();
+}
+
+class _TaskFormShortcutsState extends State<TaskFormShortcuts> {
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    super.dispose();
+  }
+
   void _toggleProjectMenu() {
-    if (projectMenuController.isOpen) {
-      projectMenuController.close();
+    if (widget.projectMenuController.isOpen) {
+      widget.projectMenuController.close();
     } else {
-      projectMenuController.open();
+      widget.projectMenuController.open();
+    }
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+
+    final isCtrl = HardwareKeyboard.instance.isControlPressed;
+    final isMeta = HardwareKeyboard.instance.isMetaPressed;
+    if (!isCtrl && !isMeta) return false;
+
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.enter || LogicalKeyboardKey.numpadEnter:
+        widget.onSubmit();
+        return true;
+      case LogicalKeyboardKey.digit1 || LogicalKeyboardKey.numpad1:
+        widget.onPlacementChanged(TaskPlacement.bottom);
+        return true;
+      case LogicalKeyboardKey.digit2 || LogicalKeyboardKey.numpad2:
+        widget.onPlacementChanged(TaskPlacement.middle);
+        return true;
+      case LogicalKeyboardKey.digit3 || LogicalKeyboardKey.numpad3:
+        widget.onPlacementChanged(TaskPlacement.top);
+        return true;
+      case LogicalKeyboardKey.digit4 || LogicalKeyboardKey.numpad4:
+        widget.onPlacementChanged(TaskPlacement.urgent);
+        return true;
+      case ProjectsKeys.keyboardKey:
+        _toggleProjectMenu();
+        return true;
+      default:
+        return false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(AppKeyBindings.digit1, control: true): () =>
-            onPlacementChanged(TaskPlacement.bottom),
-        const SingleActivator(AppKeyBindings.digit1, meta: true): () =>
-            onPlacementChanged(TaskPlacement.bottom),
-        const SingleActivator(AppKeyBindings.digit2, control: true): () =>
-            onPlacementChanged(TaskPlacement.middle),
-        const SingleActivator(AppKeyBindings.digit2, meta: true): () =>
-            onPlacementChanged(TaskPlacement.middle),
-        const SingleActivator(AppKeyBindings.digit3, control: true): () =>
-            onPlacementChanged(TaskPlacement.top),
-        const SingleActivator(AppKeyBindings.digit3, meta: true): () =>
-            onPlacementChanged(TaskPlacement.top),
-        const SingleActivator(AppKeyBindings.digit4, control: true): () =>
-            onPlacementChanged(TaskPlacement.urgent),
-        const SingleActivator(AppKeyBindings.digit4, meta: true): () =>
-            onPlacementChanged(TaskPlacement.urgent),
-        SingleActivator(ProjectsKeys.keyboardKey, control: true):
-            _toggleProjectMenu,
-        SingleActivator(ProjectsKeys.keyboardKey, meta: true):
-            _toggleProjectMenu,
-        const SingleActivator(AppKeyBindings.enter, control: true): onSubmit,
-        const SingleActivator(AppKeyBindings.enter, meta: true): onSubmit,
-      },
-      child: child,
-    );
+    return widget.child;
   }
 }

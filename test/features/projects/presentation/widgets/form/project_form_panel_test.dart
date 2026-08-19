@@ -84,5 +84,33 @@ void main() {
         verify(() => repos.mockProjectRepo.insert(any())).called(1);
       },
     );
+
+    testWidgets(
+      'submits project form via Ctrl+Enter when input field is not focused',
+      (tester) async {
+        when(
+          () => repos.mockProjectRepo.insert(any()),
+        ).thenAnswer((_) async => 'p_new');
+
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byType(TextField).first,
+          'Unfocused Project',
+        );
+        await tester.pumpAndSettle();
+
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pumpAndSettle();
+
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(AppKeyBindings.enter);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
+
+        verify(() => repos.mockProjectRepo.insert(any())).called(1);
+      },
+    );
   });
 }

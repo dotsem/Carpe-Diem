@@ -78,7 +78,12 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
           });
           _scrollToIndex(_selectedIndex);
           return KeyEventResult.handled;
-        } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+        } else if (event.logicalKey == LogicalKeyboardKey.enter ||
+            event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+          if (HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed) {
+            return KeyEventResult.ignored;
+          }
           if (_selectedIndex >= 0 && _selectedIndex < items.length) {
             _onItemSelected(items[_selectedIndex]);
             return KeyEventResult.handled;
@@ -214,13 +219,8 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       ],
       builder: (context, controller, child) {
         return InkWell(
-          onTap: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
+          onTap: () =>
+              controller.isOpen ? controller.close() : controller.open(),
           child: InputDecorator(
             decoration: widget.borderless
                 ? InputDecoration(

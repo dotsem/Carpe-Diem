@@ -162,5 +162,54 @@ void main() {
         verify(() => repos.mockTaskRepo.insert(any())).called(1);
       },
     );
+
+    testWidgets('submits form via Ctrl+Enter when input field is not focused', (
+      tester,
+    ) async {
+      when(() => repos.mockTaskRepo.insert(any())).thenAnswer((_) async => {});
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'Unfocused Task');
+      await tester.pumpAndSettle();
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(AppKeyBindings.enter);
+      await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pumpAndSettle();
+
+      verify(() => repos.mockTaskRepo.insert(any())).called(1);
+    });
+
+    testWidgets('submits form via Ctrl+Enter when dropdown menu is open', (
+      tester,
+    ) async {
+      when(() => repos.mockTaskRepo.insert(any())).thenAnswer((_) async => {});
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'Dropdown Task');
+      await tester.pumpAndSettle();
+
+      final addLabelButton = find.text('+ Label');
+      if (addLabelButton.evaluate().isNotEmpty) {
+        await tester.ensureVisible(addLabelButton);
+        await tester.pumpAndSettle();
+        await tester.tap(addLabelButton);
+        await tester.pumpAndSettle();
+      }
+
+      await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(AppKeyBindings.enter);
+      await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pumpAndSettle();
+
+      verify(() => repos.mockTaskRepo.insert(any())).called(1);
+    });
   });
 }
