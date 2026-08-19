@@ -182,7 +182,7 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
             ),
           const Spacer(),
           TextButton(
-            onPressed: () => ref.read(rightSidebarProvider.notifier).close(),
+            onPressed: () => ref.read(rightSidebarProvider.notifier).pop(),
             child: const Text('Cancel'),
           ),
           const SizedBox(width: 8),
@@ -212,12 +212,9 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
               ),
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               onTagSelected: (tag) {
-                if (!ref.read(settingsProvider).keepTagsInTitle) {
-                  setState(() {
-                    if (!_selectedTagIds.contains(tag.id)) {
-                      _selectedTagIds.add(tag.id);
-                    }
-                  });
+                if (!ref.read(settingsProvider).keepTagsInTitle &&
+                    !_selectedTagIds.contains(tag.id)) {
+                  setState(() => _selectedTagIds.add(tag.id));
                 }
               },
             ),
