@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
@@ -180,6 +181,68 @@ void main() {
         expect(controller.text, equals('Hello '));
         expect(selectedTag, isNotNull);
         expect(selectedTag!.name, equals('personal'));
+      },
+    );
+
+    testWidgets(
+      'selects suggestion on enter key and ignores when ctrl or meta is pressed',
+      (tester) async {
+        final mockSettingsRepo = MockSettingsRepository();
+        when(
+          () => mockSettingsRepo.getAll(),
+        ).thenAnswer((_) async => {'keep_tags_in_title': 'true'});
+
+        final container = ProviderContainer(
+          overrides: [
+            tagRepositoryProvider.overrideWithValue(mockTagRepo),
+            tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
+            settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+          ],
+        );
+
+        await container.read(tagProvider.notifier).loadTags();
+        await container.read(tagIconProvider.notifier).loadIcons();
+        await container.read(settingsProvider.notifier).loadSettings();
+
+        Tag? selectedTag;
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              home: Scaffold(
+                body: TagAutocompleteTextField(
+                  controller: controller,
+                  onTagSelected: (tag) => selectedTag = tag,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextField), 'Hello #');
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text('#work'), findsOneWidget);
+        expect(find.text('#personal'), findsOneWidget);
+
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pump();
+
+        expect(selectedTag, isNull);
+        expect(controller.text, equals('Hello #'));
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pump();
+
+        expect(selectedTag, isNotNull);
+        expect(selectedTag!.name, equals('work'));
+        expect(controller.text, equals('Hello #work '));
       },
     );
   });

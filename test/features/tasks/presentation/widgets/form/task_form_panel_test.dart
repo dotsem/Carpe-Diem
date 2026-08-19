@@ -46,7 +46,9 @@ void main() {
       );
     }
 
-    testWidgets('shows validation error when submitting empty task name', (tester) async {
+    testWidgets('shows validation error when submitting empty task name', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -61,64 +63,104 @@ void main() {
       expect(find.text('Task name is required'), findsNothing);
     });
 
-    testWidgets('inherits project, dates, and parent labels when creating subtask', (tester) async {
-      final parentTask = createTestTask(
-        id: 'parent_1',
-        title: 'Parent Task',
-        projectId: 'proj_1',
-        scheduledDate: DateTime(2026, 8, 10),
-      );
-      final project = Project(
-        id: 'proj_1',
-        name: 'Project 1',
-        color: Colors.blue,
-        labelIds: ['label_p1'],
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-      );
+    testWidgets(
+      'inherits project, dates, and parent labels when creating subtask',
+      (tester) async {
+        final parentTask = createTestTask(
+          id: 'parent_1',
+          title: 'Parent Task',
+          projectId: 'proj_1',
+          scheduledDate: DateTime(2026, 8, 10),
+        );
+        final project = Project(
+          id: 'proj_1',
+          name: 'Project 1',
+          color: Colors.blue,
+          labelIds: ['label_p1'],
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        );
 
-      when(() => repos.mockTaskRepo.getById('parent_1')).thenAnswer((_) async => parentTask);
-      when(
-        () =>
-            repos.mockTaskRepo.getByDate(DateTime(2026, 8, 10), prioritizeDeadlines: any(named: 'prioritizeDeadlines')),
-      ).thenAnswer((_) async => [parentTask]);
-      when(() => repos.mockProjectRepo.getAll()).thenAnswer((_) async => [project]);
+        when(
+          () => repos.mockTaskRepo.getById('parent_1'),
+        ).thenAnswer((_) async => parentTask);
+        when(
+          () => repos.mockTaskRepo.getByDate(
+            DateTime(2026, 8, 10),
+            prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          ),
+        ).thenAnswer((_) async => [parentTask]);
+        when(
+          () => repos.mockProjectRepo.getAll(),
+        ).thenAnswer((_) async => [project]);
 
-      await tester.pumpWidget(buildTestWidget(initialParentId: 'parent_1'));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildTestWidget(initialParentId: 'parent_1'));
+        await tester.pumpAndSettle();
 
-      final container = ProviderScope.containerOf(tester.element(find.byType(TaskFormPanel)));
-      await container.read(projectProvider.notifier).loadProjects();
-      await container.read(taskProvider.notifier).loadTasksForDate(DateTime(2026, 8, 10));
-      await tester.pumpAndSettle();
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(TaskFormPanel)),
+        );
+        await container.read(projectProvider.notifier).loadProjects();
+        await container
+            .read(taskProvider.notifier)
+            .loadTasksForDate(DateTime(2026, 8, 10));
+        await tester.pumpAndSettle();
 
-      // Parent link should be rendered
-      expect(find.text('Parent: '), findsOneWidget);
-      expect(find.text('Parent Task'), findsOneWidget);
+        // Parent link should be rendered
+        expect(find.text('Parent: '), findsOneWidget);
+        expect(find.text('Parent Task'), findsOneWidget);
 
-      // Project 1 should be pre-selected in the project picker
-      expect(find.text('Project 1'), findsOneWidget);
-    });
+        // Project 1 should be pre-selected in the project picker
+        expect(find.text('Project 1'), findsOneWidget);
+      },
+    );
 
-    testWidgets('supports keyboard shortcuts for placement and form submission', (tester) async {
-      when(() => repos.mockTaskRepo.insert(any())).thenAnswer((_) async => {});
+    testWidgets(
+      'supports keyboard shortcuts for placement and form submission',
+      (tester) async {
+        when(
+          () => repos.mockTaskRepo.insert(any()),
+        ).thenAnswer((_) async => {});
 
-      await tester.pumpWidget(buildTestWidget());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField).first, 'Shortcut Task');
-      await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField).first, 'Shortcut Task');
+        await tester.pumpAndSettle();
 
-      await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.sendKeyEvent(AppKeyBindings.digit4);
-      await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pumpAndSettle();
-      await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.sendKeyEvent(AppKeyBindings.enter);
-      await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pumpAndSettle();
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(AppKeyBindings.digit4);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(AppKeyBindings.enter);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
 
-      verify(() => repos.mockTaskRepo.insert(any())).called(1);
-    });
+        verify(() => repos.mockTaskRepo.insert(any())).called(1);
+      },
+    );
+
+    testWidgets(
+      'submits form via Ctrl+Enter even when tag autocomplete is open',
+      (tester) async {
+        when(
+          () => repos.mockTaskRepo.insert(any()),
+        ).thenAnswer((_) async => {});
+
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextField).first, 'Task with tag #');
+        await tester.pumpAndSettle();
+
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(AppKeyBindings.enter);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
+
+        verify(() => repos.mockTaskRepo.insert(any())).called(1);
+      },
+    );
   });
 }
