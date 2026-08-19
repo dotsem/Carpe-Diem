@@ -123,9 +123,7 @@ class ActionHistoryPanelWidget extends ConsumerWidget {
               onTap: undoRedoState.isProcessing
                   ? null
                   : () => ref.read(undoRedoProvider.notifier).jumpTo(cmd),
-              hoverColor: theme.colorScheme.primary.withValues(
-                alpha: 0.08,
-              ),
+              hoverColor: theme.colorScheme.primary.withValues(alpha: 0.08),
               leading: Icon(
                 isApplied
                     ? Icons.check_circle_outline_rounded
@@ -138,8 +136,7 @@ class ActionHistoryPanelWidget extends ConsumerWidget {
                 cmd.description,
                 style: TextStyle(
                   decoration: isApplied ? null : TextDecoration.lineThrough,
-                  fontWeight:
-                      isApplied ? FontWeight.w500 : FontWeight.normal,
+                  fontWeight: isApplied ? FontWeight.w500 : FontWeight.normal,
                 ),
               ),
               trailing: Text(

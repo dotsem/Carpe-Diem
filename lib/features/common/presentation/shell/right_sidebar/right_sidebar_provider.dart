@@ -13,7 +13,10 @@ class RightSidebarNotifier extends Notifier<RightSidebarState> {
     if (state.activePanel == null) {
       state = RightSidebarState(activePanel: panel, history: const []);
     } else {
-      state = RightSidebarState(activePanel: panel, history: [...state.history, state.activePanel!]);
+      state = RightSidebarState(
+        activePanel: panel,
+        history: [...state.history, state.activePanel!],
+      );
     }
   }
 
@@ -32,13 +35,19 @@ class RightSidebarNotifier extends Notifier<RightSidebarState> {
   }
 }
 
-final rightSidebarProvider = NotifierProvider<RightSidebarNotifier, RightSidebarState>(RightSidebarNotifier.new);
+final rightSidebarProvider =
+    NotifierProvider<RightSidebarNotifier, RightSidebarState>(
+      RightSidebarNotifier.new,
+    );
 
 extension RightSidebar on BuildContext {
   void openRightSidebar(RightSidebarPanel panel, [WidgetRef? ref]) {
     final notifier = ref != null
         ? ref.read(rightSidebarProvider.notifier)
-        : ProviderScope.containerOf(this, listen: false).read(rightSidebarProvider.notifier);
+        : ProviderScope.containerOf(
+            this,
+            listen: false,
+          ).read(rightSidebarProvider.notifier);
     notifier.open(panel);
   }
 }

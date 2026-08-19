@@ -54,20 +54,27 @@ class TagPicker extends ConsumerWidget {
       return _buildWrap(context, ref, allTags, tagIcons);
     }
 
-    final selectedTags = allTags.where((t) => selectedTagIds.contains(t.id)).toList();
+    final selectedTags = allTags
+        .where((t) => selectedTagIds.contains(t.id))
+        .toList();
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        ...selectedTags.map((tag) => _buildSingleChip(context, ref, tag, tagIcons)),
+        ...selectedTags.map(
+          (tag) => _buildSingleChip(context, ref, tag, tagIcons),
+        ),
         MultiSelectSearchableDropdown<Tag>(
           items: allTags,
           selectedIds: selectedTagIds,
           idGetter: (t) => t.id,
           nameGetter: (t) => t.name,
-          leadingBuilder: (t) => Icon(tagIcons[t.name.trim().toLowerCase()] ?? Icons.tag, size: 16),
+          leadingBuilder: (t) => Icon(
+            tagIcons[t.name.trim().toLowerCase()] ?? Icons.tag,
+            size: 16,
+          ),
           onChanged: onSelected,
           buttonLabel: '+ Tag',
           searchHint: 'Search tags...',
@@ -79,7 +86,12 @@ class TagPicker extends ConsumerWidget {
     );
   }
 
-  Widget _buildWrap(BuildContext context, WidgetRef ref, List<Tag> tags, Map<String, IconData> tagIcons) {
+  Widget _buildWrap(
+    BuildContext context,
+    WidgetRef ref,
+    List<Tag> tags,
+    Map<String, IconData> tagIcons,
+  ) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -97,7 +109,12 @@ class TagPicker extends ConsumerWidget {
     );
   }
 
-  Widget _buildSingleChip(BuildContext context, WidgetRef ref, Tag tag, Map<String, IconData> tagIcons) {
+  Widget _buildSingleChip(
+    BuildContext context,
+    WidgetRef ref,
+    Tag tag,
+    Map<String, IconData> tagIcons,
+  ) {
     final isSelected = selectedTagIds.contains(tag.id);
     final icon = tagIcons[tag.name.trim().toLowerCase()] ?? Icons.tag;
 
@@ -106,13 +123,7 @@ class TagPicker extends ConsumerWidget {
         label: tag.name,
         avatar: Icon(icon),
         onTap: (details, box) {
-          showTagContextMenu(
-            context,
-            ref,
-            tag,
-            details.localPosition,
-            box,
-          );
+          showTagContextMenu(context, ref, tag, details.localPosition, box);
         },
       );
     }
@@ -159,6 +170,3 @@ class TagPicker extends ConsumerWidget {
     showDialog(context: context, builder: (_) => const AddTagDialog());
   }
 }
-
-
-

@@ -81,7 +81,10 @@ class _AppShellState extends ConsumerState<AppShell> {
         }
       } else if (opType == UndoRedoOperationType.undo) {
         if (next.redoDescription != null) {
-          ToastUtils.showSuccess('Undone: ${next.redoDescription}', context: context);
+          ToastUtils.showSuccess(
+            'Undone: ${next.redoDescription}',
+            context: context,
+          );
         }
       }
     });
@@ -121,18 +124,27 @@ class _AppShellState extends ConsumerState<AppShell> {
               child: SideNav(currentPath: currentPath, isMobile: true),
             )
           : null,
-      endDrawer: rightSidebarState.isOpen ? Drawer(width: isMobile ? 320 : 380, child: RightSidebarContainer()) : null,
+      endDrawer: rightSidebarState.isOpen
+          ? Drawer(width: isMobile ? 320 : 380, child: RightSidebarContainer())
+          : null,
       body: Row(
         children: [
           if (!isMobile) ...[
-            SizedBox(width: 220, child: SideNav(currentPath: currentPath, isMobile: false)),
+            SizedBox(
+              width: 220,
+              child: SideNav(currentPath: currentPath, isMobile: false),
+            ),
             const VerticalDivider(width: 1),
           ],
           Expanded(
             child: Stack(
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: currentPath == '/settings' ? 0 : (isMobile ? 16 : 32)),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: currentPath == '/settings'
+                        ? 0
+                        : (isMobile ? 16 : 32),
+                  ),
                   child: widget.child,
                 ),
                 if (isMobile)
@@ -144,9 +156,15 @@ class _AppShellState extends ConsumerState<AppShell> {
                         icon: const Icon(Icons.menu),
                         onPressed: () => Scaffold.of(context).openDrawer(),
                         style: IconButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-                          foregroundColor: Theme.of(context).colorScheme.onSurface,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surface.withValues(alpha: 0.8),
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onSurface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),

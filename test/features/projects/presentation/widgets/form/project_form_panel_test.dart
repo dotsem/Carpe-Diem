@@ -12,7 +12,13 @@ import '../../../../../helpers/task_test_helpers.dart';
 void main() {
   setUpAll(() {
     registerFallbackValue(
-      Project(id: '', name: '', color: Colors.red, createdAt: DateTime.now(), updatedAt: DateTime.now()),
+      Project(
+        id: '',
+        name: '',
+        color: Colors.red,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
     );
   });
 
@@ -33,7 +39,9 @@ void main() {
       );
     }
 
-    testWidgets('shows validation error when submitting empty project name', (tester) async {
+    testWidgets('shows validation error when submitting empty project name', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -47,26 +55,34 @@ void main() {
       expect(find.text('Project name is required'), findsNothing);
     });
 
-    testWidgets('supports keyboard shortcuts for urgency toggle and form submission', (tester) async {
-      when(() => repos.mockProjectRepo.insert(any())).thenAnswer((_) async => 'p_new');
+    testWidgets(
+      'supports keyboard shortcuts for urgency toggle and form submission',
+      (tester) async {
+        when(
+          () => repos.mockProjectRepo.insert(any()),
+        ).thenAnswer((_) async => 'p_new');
 
-      await tester.pumpWidget(buildTestWidget());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField).first, 'Shortcut Project');
-      await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byType(TextField).first,
+          'Shortcut Project',
+        );
+        await tester.pumpAndSettle();
 
-      await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.sendKeyEvent(AppKeyBindings.digit2);
-      await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pumpAndSettle();
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(AppKeyBindings.digit2);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
 
-      await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.sendKeyEvent(AppKeyBindings.enter);
-      await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pumpAndSettle();
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(AppKeyBindings.enter);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
 
-      verify(() => repos.mockProjectRepo.insert(any())).called(1);
-    });
+        verify(() => repos.mockProjectRepo.insert(any())).called(1);
+      },
+    );
   });
 }

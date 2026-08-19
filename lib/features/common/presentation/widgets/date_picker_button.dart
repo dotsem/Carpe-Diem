@@ -48,7 +48,11 @@ class DatePickerButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: InputDecorator(
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          prefixIcon: Icon(
+            icon,
+            size: 16,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           suffixIcon: date != null
               ? IconButton(
                   icon: const Icon(Icons.close, size: 16),
@@ -57,7 +61,10 @@ class DatePickerButton extends StatelessWidget {
                   constraints: const BoxConstraints(),
                 )
               : null,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
         ),
         child: Text(
           date != null ? '${date!.day}/${date!.month}/${date!.year}' : label,

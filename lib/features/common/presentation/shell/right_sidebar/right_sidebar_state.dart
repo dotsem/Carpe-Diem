@@ -10,7 +10,11 @@ class AddTaskPanel extends RightSidebarPanel {
   final String? initialProjectId;
   final String? initialParentId;
 
-  const AddTaskPanel({this.initialDate, this.initialProjectId, this.initialParentId});
+  const AddTaskPanel({
+    this.initialDate,
+    this.initialProjectId,
+    this.initialParentId,
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -22,7 +26,8 @@ class AddTaskPanel extends RightSidebarPanel {
           initialParentId == other.initialParentId;
 
   @override
-  int get hashCode => Object.hash(initialDate, initialProjectId, initialParentId);
+  int get hashCode =>
+      Object.hash(initialDate, initialProjectId, initialParentId);
 }
 
 class EditTaskPanel extends RightSidebarPanel {
@@ -32,7 +37,10 @@ class EditTaskPanel extends RightSidebarPanel {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is EditTaskPanel && runtimeType == other.runtimeType && taskId == other.taskId;
+      identical(this, other) ||
+      other is EditTaskPanel &&
+          runtimeType == other.runtimeType &&
+          taskId == other.taskId;
 
   @override
   int get hashCode => taskId.hashCode;
@@ -42,7 +50,8 @@ class AddProjectPanel extends RightSidebarPanel {
   const AddProjectPanel();
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AddProjectPanel;
+  bool operator ==(Object other) =>
+      identical(this, other) || other is AddProjectPanel;
 
   @override
   int get hashCode => runtimeType.hashCode;
@@ -56,7 +65,9 @@ class EditProjectPanel extends RightSidebarPanel {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is EditProjectPanel && runtimeType == other.runtimeType && projectId == other.projectId;
+      other is EditProjectPanel &&
+          runtimeType == other.runtimeType &&
+          projectId == other.projectId;
 
   @override
   int get hashCode => projectId.hashCode;
@@ -66,7 +77,8 @@ class ActionHistoryPanel extends RightSidebarPanel {
   const ActionHistoryPanel();
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ActionHistoryPanel;
+  bool operator ==(Object other) =>
+      identical(this, other) || other is ActionHistoryPanel;
 
   @override
   int get hashCode => runtimeType.hashCode;
@@ -103,4 +115,3 @@ class RightSidebarState {
   @override
   int get hashCode => Object.hash(activePanel, Object.hashAll(history));
 }
-

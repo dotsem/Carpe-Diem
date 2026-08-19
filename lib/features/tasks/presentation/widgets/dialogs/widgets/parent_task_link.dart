@@ -13,7 +13,11 @@ class ParentTaskLink extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final taskState = ref.watch(taskProvider);
-    final allStateTasks = [...taskState.tasks, ...taskState.overdueTasks, ...taskState.unscheduledTasks];
+    final allStateTasks = [
+      ...taskState.tasks,
+      ...taskState.overdueTasks,
+      ...taskState.unscheduledTasks,
+    ];
     final parentTask = allStateTasks.where((t) => t.id == parentId).firstOrNull;
     if (parentTask == null) return const SizedBox.shrink();
 
@@ -27,13 +31,19 @@ class ParentTaskLink extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+          color: Theme.of(
+            context,
+          ).colorScheme.primaryContainer.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.subdirectory_arrow_right_rounded, size: 14, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.subdirectory_arrow_right_rounded,
+              size: 14,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(width: 4),
             Text(
               'Parent: ',

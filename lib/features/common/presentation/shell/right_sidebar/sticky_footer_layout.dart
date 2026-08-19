@@ -11,7 +11,10 @@ class StickyFooterLayout extends StatelessWidget {
     required this.child,
     required this.footer,
     this.contentPadding = const EdgeInsets.all(8),
-    this.footerPadding = const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+    this.footerPadding = const EdgeInsets.symmetric(
+      horizontal: 8,
+      vertical: 12,
+    ),
   });
 
   @override
@@ -24,7 +27,11 @@ class StickyFooterLayout extends StatelessWidget {
           child: SingleChildScrollView(padding: contentPadding, child: child),
         ),
         const Divider(height: 1),
-        Container(padding: footerPadding, color: theme.colorScheme.surface, child: footer),
+        Container(
+          padding: footerPadding,
+          color: theme.colorScheme.surface,
+          child: footer,
+        ),
       ],
     );
   }

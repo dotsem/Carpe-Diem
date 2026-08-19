@@ -29,7 +29,13 @@ class TaskFormPanel extends ConsumerStatefulWidget {
   final String? initialProjectId;
   final String? initialParentId;
 
-  const TaskFormPanel({super.key, this.initialTask, this.initialDate, this.initialProjectId, this.initialParentId});
+  const TaskFormPanel({
+    super.key,
+    this.initialTask,
+    this.initialDate,
+    this.initialProjectId,
+    this.initialParentId,
+  });
 
   @override
   ConsumerState<TaskFormPanel> createState() => _TaskFormPanelState();
@@ -42,8 +48,12 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   DateTime? _scheduledDate, _deadline;
   String? _selectedProjectId, _blockedById, _parentId, _titleError;
   List<Task> _projectTasks = [];
-  List<String> _selectedLabelIds = [], _inheritedLabelIds = [], _selectedTagIds = [], _previousParsedIds = [];
-  final MenuController _projectMenuController = MenuController(), _blockerMenuController = MenuController();
+  List<String> _selectedLabelIds = [],
+      _inheritedLabelIds = [],
+      _selectedTagIds = [],
+      _previousParsedIds = [];
+  final MenuController _projectMenuController = MenuController(),
+      _blockerMenuController = MenuController();
 
   bool get isEditing => widget.initialTask != null;
 
@@ -64,12 +74,17 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       _selectedTagIds = List.from(task.tagIds);
 
       final initialTags = TagParser.parseTags(task.title);
-      _previousParsedIds =
-          ref.read(tagProvider).tags.where((t) => initialTags.contains(t.name.toLowerCase())).map((t) => t.id).toList();
+      _previousParsedIds = ref
+          .read(tagProvider)
+          .tags
+          .where((t) => initialTags.contains(t.name.toLowerCase()))
+          .map((t) => t.id)
+          .toList();
 
       _titleController = TagHighlightingController(
         text: task.title,
-        getExistingTagNames: () => ref.read(tagProvider).tags.map((t) => t.name).toList(),
+        getExistingTagNames: () =>
+            ref.read(tagProvider).tags.map((t) => t.name).toList(),
       );
     } else {
       _scheduledDate = widget.initialDate;
@@ -78,7 +93,8 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       _parentId = widget.initialParentId;
 
       _titleController = TagHighlightingController(
-        getExistingTagNames: () => ref.read(tagProvider).tags.map((t) => t.name).toList(),
+        getExistingTagNames: () =>
+            ref.read(tagProvider).tags.map((t) => t.name).toList(),
       );
     }
 

@@ -3,7 +3,9 @@ import 'package:carpe_diem/features/tags/presentation/constants/tag_icon_constan
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-final Map<int, IconData> _availableIconMap = {for (final icon in availableIcons) icon.codePoint: icon};
+final Map<int, IconData> _availableIconMap = {
+  for (final icon in availableIcons) icon.codePoint: icon,
+};
 
 class TagIconRepository implements ITagIconRepository {
   final Database db;

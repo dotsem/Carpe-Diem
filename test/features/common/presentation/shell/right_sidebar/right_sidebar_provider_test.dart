@@ -34,19 +34,22 @@ void main() {
       expect(state.history, isEmpty);
     });
 
-    test('open pushes previous activePanel into history when opening a new panel', () {
-      final notifier = container.read(rightSidebarProvider.notifier);
-      const panel1 = AddTaskPanel();
-      const panel2 = AddProjectPanel();
+    test(
+      'open pushes previous activePanel into history when opening a new panel',
+      () {
+        final notifier = container.read(rightSidebarProvider.notifier);
+        const panel1 = AddTaskPanel();
+        const panel2 = AddProjectPanel();
 
-      notifier.open(panel1);
-      notifier.open(panel2);
+        notifier.open(panel1);
+        notifier.open(panel2);
 
-      final state = container.read(rightSidebarProvider);
-      expect(state.isOpen, isTrue);
-      expect(state.activePanel, equals(panel2));
-      expect(state.history, equals([panel1]));
-    });
+        final state = container.read(rightSidebarProvider);
+        expect(state.isOpen, isTrue);
+        expect(state.activePanel, equals(panel2));
+        expect(state.history, equals([panel1]));
+      },
+    );
 
     test('open ignores duplicate consecutive panel pushes', () {
       final notifier = container.read(rightSidebarProvider.notifier);
@@ -101,19 +104,22 @@ void main() {
       expect(state.history, isEmpty);
     });
 
-    test('RightSidebarPanel subclasses equality and hashCode work correctly', () {
-      const panelA1 = AddTaskPanel(initialParentId: 'p1');
-      const panelA2 = AddTaskPanel(initialParentId: 'p1');
-      const panelB = AddTaskPanel(initialParentId: 'p2');
+    test(
+      'RightSidebarPanel subclasses equality and hashCode work correctly',
+      () {
+        const panelA1 = AddTaskPanel(initialParentId: 'p1');
+        const panelA2 = AddTaskPanel(initialParentId: 'p1');
+        const panelB = AddTaskPanel(initialParentId: 'p2');
 
-      expect(panelA1, equals(panelA2));
-      expect(panelA1.hashCode, equals(panelA2.hashCode));
-      expect(panelA1, isNot(equals(panelB)));
+        expect(panelA1, equals(panelA2));
+        expect(panelA1.hashCode, equals(panelA2.hashCode));
+        expect(panelA1, isNot(equals(panelB)));
 
-      const edit1 = EditTaskPanel('t1');
-      const edit2 = EditTaskPanel('t1');
-      expect(edit1, equals(edit2));
-      expect(edit1.hashCode, equals(edit2.hashCode));
-    });
+        const edit1 = EditTaskPanel('t1');
+        const edit2 = EditTaskPanel('t1');
+        expect(edit1, equals(edit2));
+        expect(edit1.hashCode, equals(edit2.hashCode));
+      },
+    );
   });
 }

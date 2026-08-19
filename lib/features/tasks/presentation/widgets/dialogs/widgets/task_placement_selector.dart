@@ -8,7 +8,12 @@ class TaskPlacementSelector extends StatelessWidget {
   /// [mini] only shows icons, useful for mobile interfaces
   final bool mini;
 
-  const TaskPlacementSelector({super.key, required this.selected, required this.onChanged, this.mini = false});
+  const TaskPlacementSelector({
+    super.key,
+    required this.selected,
+    required this.onChanged,
+    this.mini = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,15 +38,29 @@ class TaskPlacementSelector extends StatelessWidget {
               ),
               ButtonSegment(
                 value: TaskPlacement.urgent,
-                label: Icon(Icons.warning_amber_rounded), // TODO: replace everywhere with priority_high
+                label: Icon(
+                  Icons.warning_amber_rounded,
+                ), // TODO: replace everywhere with priority_high
                 tooltip: TaskPlacement.urgent.name,
               ),
             ]
           : [
-              ButtonSegment(value: TaskPlacement.bottom, label: Text(TaskPlacement.bottom.name)),
-              ButtonSegment(value: TaskPlacement.middle, label: Text(TaskPlacement.middle.name)),
-              ButtonSegment(value: TaskPlacement.top, label: Text(TaskPlacement.top.name)),
-              ButtonSegment(value: TaskPlacement.urgent, label: Text(TaskPlacement.urgent.name)),
+              ButtonSegment(
+                value: TaskPlacement.bottom,
+                label: Text(TaskPlacement.bottom.name),
+              ),
+              ButtonSegment(
+                value: TaskPlacement.middle,
+                label: Text(TaskPlacement.middle.name),
+              ),
+              ButtonSegment(
+                value: TaskPlacement.top,
+                label: Text(TaskPlacement.top.name),
+              ),
+              ButtonSegment(
+                value: TaskPlacement.urgent,
+                label: Text(TaskPlacement.urgent.name),
+              ),
             ],
       selected: {selected},
       onSelectionChanged: (s) => onChanged(s.first),
