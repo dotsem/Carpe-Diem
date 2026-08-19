@@ -1,7 +1,9 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/hardware_shortcuts.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class SizedDialog extends StatefulWidget {
+class SizedDialog extends StatelessWidget {
   final Widget child;
   final String? title;
   final List<Widget>? actions;
@@ -29,46 +31,12 @@ class SizedDialog extends StatefulWidget {
     this.showDefaultActions = true,
   });
 
-  @override
-  State<SizedDialog> createState() => _SizedDialogState();
-}
-
-class _SizedDialogState extends State<SizedDialog> {
-  @override
-  void initState() {
-    super.initState();
-    if (widget.onSubmit != null) {
-      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
-    }
-  }
-
-  @override
-  void didUpdateWidget(SizedDialog oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.onSubmit == null && widget.onSubmit != null) {
-      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
-    } else if (oldWidget.onSubmit != null && widget.onSubmit == null) {
-      HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
-    }
-  }
-
-  @override
-  void dispose() {
-    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
-    super.dispose();
-  }
-
   bool _handleKeyEvent(KeyEvent event) {
-    if (event is! KeyDownEvent) return false;
+    if (event is! KeyDownEvent || !isControlOrMetaPressed()) return false;
 
-    final isCtrl = HardwareKeyboard.instance.isControlPressed;
-    final isMeta = HardwareKeyboard.instance.isMetaPressed;
-    if (!isCtrl && !isMeta) return false;
-
-    final key = event.logicalKey;
-    if (key == LogicalKeyboardKey.enter ||
-        key == LogicalKeyboardKey.numpadEnter) {
-      widget.onSubmit?.call();
+    if (event.logicalKey == LogicalKeyboardKey.enter ||
+        event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+      onSubmit?.call();
       return true;
     }
     return false;
@@ -77,37 +45,28 @@ class _SizedDialogState extends State<SizedDialog> {
   @override
   Widget build(BuildContext context) {
     final content = ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: widget.maxWidth,
-        minWidth: widget.minWidth ?? 0,
-      ),
-      child: SingleChildScrollView(
-        padding: widget.padding!,
-        child: widget.child,
-      ),
+      constraints: BoxConstraints(maxWidth: maxWidth, minWidth: minWidth ?? 0),
+      child: SingleChildScrollView(padding: padding!, child: child),
     );
 
-    return AlertDialog(
-      title: widget.title != null ? Text(widget.title!) : null,
+    final dialog = AlertDialog(
+      title: title != null ? Text(title!) : null,
       contentPadding: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       content: content,
-      actions:
-          (widget.actions != null ||
-              widget.onCancel != null ||
-              widget.onSubmit != null)
+      actions: (actions != null || onCancel != null || onSubmit != null)
           ? [
               Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    if (widget.actions != null) ...widget.actions!,
-                    if (widget.showDefaultActions) ...[
+                    if (actions != null) ...actions!,
+                    if (showDefaultActions) ...[
                       const Spacer(),
                       TextButton(
                         onPressed:
-                            widget.onCancel ??
+                            onCancel ??
                             () {
                               if (Navigator.canPop(context)) {
                                 Navigator.pop(context);
@@ -118,14 +77,14 @@ class _SizedDialogState extends State<SizedDialog> {
                       const SizedBox(width: 12),
                       FilledButton(
                         onPressed:
-                            widget.onSubmit ??
+                            onSubmit ??
                             () {
                               if (Navigator.canPop(context)) {
                                 Navigator.pop(context);
                               }
                             },
-                        style: widget.submitStyle,
-                        child: Text(widget.submitText),
+                        style: submitStyle,
+                        child: Text(submitText),
                       ),
                     ],
                   ],
@@ -134,5 +93,9 @@ class _SizedDialogState extends State<SizedDialog> {
             ]
           : null,
     );
+
+    if (onSubmit == null) return dialog;
+
+    return HardwareShortcuts(onKeyEvent: _handleKeyEvent, child: dialog);
   }
 }

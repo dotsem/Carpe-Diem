@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/multi_select_dropdown_tile.dart';
 import 'package:flutter/material.dart';
@@ -81,10 +82,7 @@ class _MultiSelectSearchableDropdownState<T>
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-          if (HardwareKeyboard.instance.isControlPressed ||
-              HardwareKeyboard.instance.isMetaPressed) {
-            return KeyEventResult.ignored;
-          }
+          if (isControlOrMetaPressed()) return KeyEventResult.ignored;
           if (_selectedIndex >= 0 && _selectedIndex < items.length) {
             final item = items[_selectedIndex];
             final id = widget.idGetter(item);

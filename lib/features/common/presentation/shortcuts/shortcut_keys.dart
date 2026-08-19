@@ -105,6 +105,7 @@ abstract class DeleteKeys {
 class AppKeyBindings {
   static const escape = LogicalKeyboardKey.escape;
   static const enter = LogicalKeyboardKey.enter;
+  static const numpadEnter = LogicalKeyboardKey.numpadEnter;
 
   // Arrow Keys
   static const arrowLeft = LogicalKeyboardKey.arrowLeft;
@@ -117,4 +118,9 @@ class AppKeyBindings {
   static const digit2 = LogicalKeyboardKey.digit2;
   static const digit3 = LogicalKeyboardKey.digit3;
   static const digit4 = LogicalKeyboardKey.digit4;
+}
+
+bool isControlOrMetaPressed() {
+  return HardwareKeyboard.instance.isControlPressed ||
+      HardwareKeyboard.instance.isMetaPressed;
 }

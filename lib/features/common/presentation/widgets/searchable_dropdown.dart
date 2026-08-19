@@ -1,6 +1,7 @@
-import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/searchable_dropdown_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -80,10 +81,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-          if (HardwareKeyboard.instance.isControlPressed ||
-              HardwareKeyboard.instance.isMetaPressed) {
-            return KeyEventResult.ignored;
-          }
+          if (isControlOrMetaPressed()) return KeyEventResult.ignored;
           if (_selectedIndex >= 0 && _selectedIndex < items.length) {
             _onItemSelected(items[_selectedIndex]);
             return KeyEventResult.handled;
@@ -201,12 +199,13 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                             ]
                           : List.generate(_filteredItems.length, (index) {
                               final item = _filteredItems[index];
-                              final isHighlighted = index == _selectedIndex;
-                              return _buildItemRow(
-                                context,
-                                item,
-                                isHighlighted,
-                                index,
+                              return SearchableDropdownItemTile(
+                                label: widget.nameGetter(item),
+                                isHighlighted: index == _selectedIndex,
+                                leading: widget.leadingBuilder?.call(item),
+                                onTap: () => _onItemSelected(item),
+                                onHover: () =>
+                                    setState(() => _selectedIndex = index),
                               );
                             }),
                     ),
@@ -270,54 +269,6 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildItemRow(
-    BuildContext context,
-    T? item,
-    bool isHighlighted,
-    int index,
-  ) {
-    final theme = Theme.of(context);
-    final label = widget.nameGetter(item);
-
-    return InkWell(
-      onTap: () => _onItemSelected(item),
-      onHover: (hovering) {
-        if (hovering) setState(() => _selectedIndex = index);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: isHighlighted
-              ? AppColors.accent.withAlpha(25)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            if (widget.leadingBuilder != null) ...[
-              widget.leadingBuilder!(item),
-              const SizedBox(width: 8),
-            ],
-            Expanded(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: isHighlighted
-                      ? AppColors.accent
-                      : theme.colorScheme.onSurface,
-                  fontWeight: isHighlighted
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_suggestion_item.dart';
 import 'package:flutter/material.dart';
@@ -75,10 +76,7 @@ class _TagAutocompleteTextFieldState
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-          if (HardwareKeyboard.instance.isControlPressed ||
-              HardwareKeyboard.instance.isMetaPressed) {
-            return KeyEventResult.ignored;
-          }
+          if (isControlOrMetaPressed()) return KeyEventResult.ignored;
           _selectTag(suggestions[_selectedIndex]);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.escape) {
