@@ -1,3 +1,5 @@
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -211,5 +213,46 @@ void main() {
 
       verify(() => repos.mockTaskRepo.insert(any())).called(1);
     });
+
+    testWidgets(
+      'restores parent task panel in sidebar after creating subtask',
+      (tester) async {
+        when(
+          () => repos.mockTaskRepo.insert(any()),
+        ).thenAnswer((_) async => {});
+
+        late WidgetRef capturedRef;
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: repos.providerOverrides,
+            child: MaterialApp(
+              home: Scaffold(
+                body: Consumer(
+                  builder: (context, ref, _) {
+                    capturedRef = ref;
+                    return TaskFormPanel(initialParentId: 'parent_123');
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextField).first, 'New Subtask');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Create Task'));
+        await tester.pumpAndSettle();
+
+        verify(() => repos.mockTaskRepo.insert(any())).called(1);
+        final sidebarState = capturedRef.read(rightSidebarProvider);
+        expect(
+          sidebarState.activePanel,
+          equals(const EditTaskPanel('parent_123')),
+        );
+      },
+    );
   });
 }

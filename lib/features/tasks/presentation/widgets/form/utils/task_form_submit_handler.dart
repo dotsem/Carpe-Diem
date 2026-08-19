@@ -1,4 +1,5 @@
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
@@ -105,7 +106,17 @@ abstract final class TaskFormSubmitHandler {
           );
     }
 
-    ref.read(rightSidebarProvider.notifier).close();
+    if (parentId != null && initialTask == null) {
+      final sidebarState = ref.read(rightSidebarProvider);
+      if (sidebarState.history.isNotEmpty &&
+          sidebarState.history.last == EditTaskPanel(parentId)) {
+        ref.read(rightSidebarProvider.notifier).pop();
+      } else {
+        ref.read(rightSidebarProvider.notifier).open(EditTaskPanel(parentId));
+      }
+    } else {
+      ref.read(rightSidebarProvider.notifier).close();
+    }
     return true;
   }
 }
