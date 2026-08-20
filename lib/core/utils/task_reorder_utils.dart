@@ -46,7 +46,7 @@ class TaskReorderUtils {
         .where(
           (t) => settings != null
               ? inSameGroup(t, task, settings)
-              : t.isUrgent == task.isUrgent,
+              : (t.parentId == task.parentId && t.isUrgent == task.isUrgent),
         )
         .toList();
 
@@ -64,6 +64,8 @@ class TaskReorderUtils {
 
   /// Check if two tasks are in the same group based on [settings] (urgency, overdue, deadlines).
   static bool inSameGroup(Task a, Task b, SettingsState settings) {
+    if (a.parentId != b.parentId) return false;
+
     if (a.isUrgent || b.isUrgent) {
       return a.isUrgent && b.isUrgent;
     }

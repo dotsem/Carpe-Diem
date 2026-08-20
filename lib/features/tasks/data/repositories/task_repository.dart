@@ -88,6 +88,7 @@ class TaskRepository extends ITaskRepository {
       'tasks',
       where: 'parentId = ?',
       whereArgs: [parentId],
+      orderBy: _getOrderBy(),
     );
     return _loadTasksWithRelations(maps);
   }
