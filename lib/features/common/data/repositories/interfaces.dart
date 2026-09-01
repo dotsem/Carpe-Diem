@@ -19,7 +19,10 @@ abstract class ITaskRepository implements ICrudRepository<Task> {
   @override
   String get repositoryName => 'task';
   @override
-  Future<List<Task>> getAll({bool prioritizeDeadlines = true});
+  Future<List<Task>> getAll({
+    bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
+  });
   @override
   Future<Task?> getById(String id);
   Future<List<Task>> getByBlockedBy(String taskId);
@@ -27,16 +30,27 @@ abstract class ITaskRepository implements ICrudRepository<Task> {
   Future<List<Task>> getByDate(
     DateTime date, {
     bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
   });
   Future<List<Task>> getOverdue(DateTime today);
-  Future<List<Task>> getUnscheduled({bool prioritizeDeadlines = true});
+  Future<List<Task>> getUnscheduled({
+    bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
+  });
   Future<List<Task>> getByProject(
     String projectId, {
     bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
+  });
+  Future<List<Task>> getByProjectUnscheduled(
+    String projectId, {
+    bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
   });
   Future<List<Task>> getByLabel(
     String labelId, {
     bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
   });
 
   @override

@@ -116,6 +116,7 @@ void main() {
     test('should change task status and call repository update', () async {
       final task = Task(id: 't1', title: 'Task', createdAt: DateTime.now());
 
+      when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => task);
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
       when(
         () => mockTaskRepo.getByDate(

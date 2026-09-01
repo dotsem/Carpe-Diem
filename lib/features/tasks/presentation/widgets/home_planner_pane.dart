@@ -74,7 +74,9 @@ class HomePlannerPane extends ConsumerWidget {
               return;
             }
           }
-          ref.read(taskProvider.notifier).updateTaskStatus(task, status);
+          ref
+              .read(taskProvider.notifier)
+              .updateTaskStatus(task, status, newSortOrder: task.sortOrder);
         },
         onContextMenu: (task, pos, box) =>
             showTaskCardContextMenu(context, ref, task, allTasks, pos, box),

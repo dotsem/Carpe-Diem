@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/utils/lexorank_utils.dart';
+import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 
@@ -7,16 +8,37 @@ class TaskReorderService {
     required TaskPlacement placement,
     required List<Task> activeList,
   }) {
+    if (activeList.isEmpty) {
+      return LexoRankUtils.defaultRank;
+    }
+
     switch (placement) {
       case TaskPlacement.top || TaskPlacement.urgent:
-        return LexoRankUtils.generateTop(activeList.firstOrNull?.sortOrder);
+        final topRank = TaskReorderUtils.getEffectiveRank(activeList, 0);
+        return LexoRankUtils.generateTop(topRank);
+
       case TaskPlacement.middle:
-        return LexoRankUtils.generateMiddle(
-          activeList.firstOrNull?.sortOrder,
-          activeList.lastOrNull?.sortOrder,
+        if (activeList.length == 1) {
+          final singleRank = TaskReorderUtils.getEffectiveRank(activeList, 0);
+          return LexoRankUtils.generateBetween(null, singleRank);
+        }
+        final midIndex = activeList.length ~/ 2;
+        final prevRank = TaskReorderUtils.getEffectiveRank(
+          activeList,
+          midIndex - 1,
         );
+        final nextRank = TaskReorderUtils.getEffectiveRank(
+          activeList,
+          midIndex,
+        );
+        return LexoRankUtils.generateBetween(prevRank, nextRank);
+
       default:
-        return LexoRankUtils.generateBottom(activeList.lastOrNull?.sortOrder);
+        final bottomRank = TaskReorderUtils.getEffectiveRank(
+          activeList,
+          activeList.length - 1,
+        );
+        return LexoRankUtils.generateBottom(bottomRank);
     }
   }
 
@@ -57,7 +79,10 @@ class TaskReorderService {
       final sortComp = aSort.compareTo(bSort);
       if (sortComp != 0) return sortComp;
 
-      return b.createdAt.compareTo(a.createdAt);
+      final createdComp = b.createdAt.compareTo(a.createdAt);
+      if (createdComp != 0) return createdComp;
+
+      return deadlineComp;
     });
 
     return updatedList;

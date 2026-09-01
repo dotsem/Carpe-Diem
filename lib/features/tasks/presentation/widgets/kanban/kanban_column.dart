@@ -1,19 +1,22 @@
-import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_collapsed_column.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class KanbanColumn extends ConsumerStatefulWidget {
   final String title;
@@ -68,67 +71,32 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
       onLeave: (details) => widget.onDragExiting?.call(),
       onAcceptWithDetails: (details) {
         widget.onDragExiting?.call();
-        widget.onStatusChange(details.data, widget.acceptedStatus);
+        final settings = ref.read(settingsProvider);
+        final sameGroupTasks = widget.tasks
+            .where(
+              (t) => TaskReorderUtils.inSameGroup(t, details.data, settings),
+            )
+            .toList();
+        final newSortOrder = TaskReorderService.computeSortOrder(
+          placement: TaskPlacement.bottom,
+          activeList: sameGroupTasks,
+        );
+        final updatedTask = details.data.copyWith(sortOrder: newSortOrder);
+        widget.onStatusChange(updatedTask, widget.acceptedStatus);
       },
       builder: (context, candidateData, rejectedData) {
         if (widget.isCollapsed) {
-          return _buildCollapsed(context);
+          return KanbanCollapsedColumn(
+            title: widget.title,
+            titleColor: widget.titleColor,
+            onToggle: widget.onToggle,
+          );
         }
         return _buildFull(
           context,
           candidateData.isNotEmpty || _hoveredChildren > 0,
         );
       },
-    );
-  }
-
-  Widget _buildCollapsed(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onToggle,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
-          width: 24,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            ),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: widget.titleColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: RotatedBox(
-                    quarterTurns: 1,
-                    child: Text(
-                      widget.title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: widget.titleColor,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -232,7 +200,6 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                         itemCount: hierarchical.length,
                         itemBuilder: (context, index) {
                           final node = hierarchical[index];
-
                           Widget childWidget = const SizedBox.shrink();
 
                           if (node is TaskNode) {
