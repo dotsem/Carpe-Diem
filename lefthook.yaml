@@ -4,6 +4,7 @@ pre-commit:
     dart-fmt:
       glob: "*.dart"
       run: dart format .
+      stage_fixed: true
     flutter-analyze:
       glob: "*.dart"
       run: flutter analyze
