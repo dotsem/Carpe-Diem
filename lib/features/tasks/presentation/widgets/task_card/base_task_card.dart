@@ -34,6 +34,7 @@ class BaseTaskCard extends StatelessWidget {
 
   /// Hides the project info, inherited labels, project color and parent breadcrumb.
   final bool hideProjectInfo;
+  final bool? hideProjectGradient;
 
   const BaseTaskCard({
     super.key,
@@ -57,6 +58,7 @@ class BaseTaskCard extends StatelessWidget {
     this.focusNode,
     this.autofocus = false,
     this.hideProjectInfo = false,
+    this.hideProjectGradient,
   });
 
   @override
@@ -69,7 +71,9 @@ class BaseTaskCard extends StatelessWidget {
           border: isFocused
               ? Border.all(color: AppColors.accent, width: 2)
               : null,
-          gradient: (project?.color != null && !hideProjectInfo)
+          gradient:
+              (project?.color != null &&
+                  !(hideProjectGradient ?? hideProjectInfo))
               ? LinearGradient(
                   colors: [
                     Theme.of(context).colorScheme.surface,

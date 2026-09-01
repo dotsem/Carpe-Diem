@@ -7,7 +7,9 @@ abstract class TaskHierarchyNode {
 
 class TaskNode extends TaskHierarchyNode {
   final Task task;
-  const TaskNode(this.task, int depth) : super(depth);
+  final bool isBundledUnderParent;
+  const TaskNode(this.task, int depth, {this.isBundledUnderParent = false})
+    : super(depth);
 }
 
 class BlockerIndicatorNode extends TaskHierarchyNode {

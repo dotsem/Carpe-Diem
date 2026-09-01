@@ -32,6 +32,7 @@ class TaskCard extends ConsumerStatefulWidget {
 
   /// Hides the project info, inherited labels, project color and parent breadcrumb.
   final bool hideProjectInfo;
+  final bool? hideProjectGradient;
   final void Function(Offset localPosition, RenderBox renderBox)? onContextMenu;
 
   const TaskCard({
@@ -53,6 +54,7 @@ class TaskCard extends ConsumerStatefulWidget {
     this.compactOverride,
     this.onContextMenu,
     this.hideProjectInfo = false,
+    this.hideProjectGradient,
   });
 
   @override
@@ -185,6 +187,7 @@ class _TaskCardState extends ConsumerState<TaskCard>
         showHashtagInTitle: settings.showHashtagInTitle,
         taskGradientWidth: settings.taskGradientWidth,
         hideProjectInfo: widget.hideProjectInfo,
+        hideProjectGradient: widget.hideProjectGradient,
         onTap: widget.onTap,
         onContextMenu: widget.onContextMenu,
         onFocusChange: (focused) {

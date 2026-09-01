@@ -93,12 +93,15 @@ class KanbanCard extends ConsumerWidget {
     bool isOverdue = false,
   }) {
     final taskNotifier = ref.read(taskProvider.notifier);
+    final isNested = node.isBundledUnderParent;
     return TaskCard(
       key: ValueKey(task.id),
       task: task,
       project: task.projectId != null
           ? projectNotifier.getById(task.projectId!)
           : null,
+      hideProjectInfo: isNested,
+      hideProjectGradient: false,
       isOverdue: isOverdue,
       useTimer: false,
       leading: Container(),
