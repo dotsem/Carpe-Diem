@@ -88,6 +88,7 @@ abstract final class TaskFormSubmitHandler {
               tagIds: finalTagIds,
               isUrgent: placement == TaskPlacement.urgent,
             ),
+            placement: placement,
           );
     } else {
       ref

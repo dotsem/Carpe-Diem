@@ -141,7 +141,10 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         final sortComp = aSort.compareTo(bSort);
         if (sortComp != 0) return sortComp;
 
-        return b.createdAt.compareTo(a.createdAt);
+        final createdComp = b.createdAt.compareTo(a.createdAt);
+        if (createdComp != 0) return createdComp;
+
+        return deadlineComp;
       });
     }
 
@@ -304,6 +307,8 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
                       .map((n) => buildNode(n, isOverdue))
                       .toList(),
                   selectedTaskIds: widget.selectedTaskIds,
+                  isReorderEnabled:
+                      widget.searchQuery == null || widget.searchQuery!.isEmpty,
                   onReorder: (task, newSortOrder) =>
                       taskNotifier.reorderTask(task, newSortOrder),
                   onMultiReorder: (newSortOrders) =>

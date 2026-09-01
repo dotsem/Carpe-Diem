@@ -252,6 +252,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
   final Set<String> selectedTaskIds;
   final void Function(Task task, String newSortOrder) onReorder;
   final void Function(Map<String, String> newSortOrders)? onMultiReorder;
+  final bool isReorderEnabled;
 
   const ActiveTaskReorderableList({
     super.key,
@@ -260,10 +261,20 @@ class ActiveTaskReorderableList extends ConsumerWidget {
     this.selectedTaskIds = const {},
     required this.onReorder,
     this.onMultiReorder,
+    this.isReorderEnabled = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!isReorderEnabled) {
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: widgets.length,
+        itemBuilder: (context, index) => widgets[index],
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return ListView.builder(

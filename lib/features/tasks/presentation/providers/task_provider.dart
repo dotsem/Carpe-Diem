@@ -7,6 +7,7 @@ import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -60,6 +61,7 @@ class TaskNotifier extends Notifier<TaskState> {
     final tasks = await _repo.getByDate(
       normalized,
       prioritizeDeadlines: settings.prioritizeDeadlines,
+      prioritizeOverdue: settings.prioritizeOverdue,
     );
     final overdue = await _repo.getOverdue(normalized);
 
@@ -77,9 +79,39 @@ class TaskNotifier extends Notifier<TaskState> {
     final settings = ref.read(settingsProvider);
     final unscheduled = await _repo.getUnscheduled(
       prioritizeDeadlines: settings.prioritizeDeadlines,
+      prioritizeOverdue: settings.prioritizeOverdue,
     );
 
     state = state.copyWith(unscheduledTasks: unscheduled, isLoading: false);
+  }
+
+  Future<List<Task>> _getRelevantTasksList({
+    required String? parentId,
+    required String? projectId,
+    required DateTime? scheduledDate,
+    required SettingsState settings,
+  }) async {
+    if (parentId != null) {
+      return await _repo.getByParent(parentId);
+    }
+    if (projectId != null && scheduledDate == null) {
+      return await _repo.getByProjectUnscheduled(
+        projectId,
+        prioritizeDeadlines: settings.prioritizeDeadlines,
+        prioritizeOverdue: settings.prioritizeOverdue,
+      );
+    }
+    if (scheduledDate == null) {
+      return await _repo.getUnscheduled(
+        prioritizeDeadlines: settings.prioritizeDeadlines,
+        prioritizeOverdue: settings.prioritizeOverdue,
+      );
+    }
+    return await _repo.getByDate(
+      scheduledDate.normalize,
+      prioritizeDeadlines: settings.prioritizeDeadlines,
+      prioritizeOverdue: settings.prioritizeOverdue,
+    );
   }
 
   Future<void> addTask({
@@ -95,11 +127,6 @@ class TaskNotifier extends Notifier<TaskState> {
     List<String> labelIds = const [],
     List<String> tagIds = const [],
   }) async {
-    final computedSortOrder = TaskReorderService.computeSortOrder(
-      placement: placement,
-      activeList: state.tasks,
-    );
-
     DateTime? effectiveScheduledDate = scheduledDate;
     String? effectiveProjectId = projectId;
     if (parentId != null) {
@@ -110,7 +137,35 @@ class TaskNotifier extends Notifier<TaskState> {
       }
     }
 
+    final settings = ref.read(settingsProvider);
+    final rawList = await _getRelevantTasksList(
+      parentId: parentId,
+      projectId: effectiveProjectId,
+      scheduledDate: effectiveScheduledDate,
+      settings: settings,
+    );
+
     final resolvedIsUrgent = isUrgent || placement == TaskPlacement.urgent;
+    final dummyTask = Task(
+      id: '',
+      title: '',
+      parentId: parentId,
+      projectId: effectiveProjectId,
+      isUrgent: resolvedIsUrgent,
+      deadline: deadline?.normalize,
+      scheduledDate: effectiveScheduledDate?.normalize,
+      createdAt: DateTime.now(),
+    );
+
+    final activeList = rawList
+        .where((t) => TaskReorderUtils.inSameGroup(t, dummyTask, settings))
+        .toList();
+
+    final computedSortOrder = TaskReorderService.computeSortOrder(
+      placement: placement,
+      activeList: activeList,
+    );
+
     final task = Task(
       id: _uuid.v4(),
       title: title,
@@ -137,7 +192,6 @@ class TaskNotifier extends Notifier<TaskState> {
             displayName: task.title,
           ),
         );
-    final settings = ref.read(settingsProvider);
     if (settings.inheritParentDeadline && task.deadline != null) {
       await DeadlinePropagationService.propagateDeadline(
         repo: _repo,
@@ -154,17 +208,27 @@ class TaskNotifier extends Notifier<TaskState> {
 
     var updatedTask = task;
     if (placement != null) {
-      final activeList = state.tasks.where((t) => t.id != task.id).toList();
+      final settings = ref.read(settingsProvider);
+      final rawList = await _getRelevantTasksList(
+        parentId: task.parentId,
+        projectId: task.projectId,
+        scheduledDate: task.scheduledDate,
+        settings: settings,
+      );
+      final resolvedIsUrgent =
+          task.isUrgent || placement == TaskPlacement.urgent;
+      final targetTask = task.copyWith(isUrgent: resolvedIsUrgent);
+
+      final activeList = rawList
+          .where((t) => t.id != task.id)
+          .where((t) => TaskReorderUtils.inSameGroup(t, targetTask, settings))
+          .toList();
+
       final computedSortOrder = TaskReorderService.computeSortOrder(
         placement: placement,
         activeList: activeList,
       );
-      final resolvedIsUrgent =
-          task.isUrgent || placement == TaskPlacement.urgent;
-      updatedTask = task.copyWith(
-        isUrgent: resolvedIsUrgent,
-        sortOrder: computedSortOrder,
-      );
+      updatedTask = targetTask.copyWith(sortOrder: computedSortOrder);
     }
     await ref
         .read(undoRedoProvider.notifier)
@@ -357,14 +421,22 @@ class TaskNotifier extends Notifier<TaskState> {
     await _refreshAll();
   }
 
-  Future<void> updateTaskStatus(Task task, TaskStatus status) async {
-    final updated = task.copyWith(status: status);
+  Future<void> updateTaskStatus(
+    Task task,
+    TaskStatus status, {
+    String? newSortOrder,
+  }) async {
+    final oldTask = await _repo.getById(task.id) ?? task;
+    final updated = oldTask.copyWith(
+      status: status,
+      sortOrder: newSortOrder ?? oldTask.sortOrder,
+    );
     await ref
         .read(undoRedoProvider.notifier)
         .execute(
           UpdateCommand(
             repo: _repo,
-            previous: task,
+            previous: oldTask,
             next: updated,
             displayName: task.title,
           ),

@@ -25,13 +25,11 @@ class MultiSelectDropdownTile extends StatelessWidget {
     final theme = Theme.of(context);
     return MouseRegion(
       onHover: (_) => onHover(),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isHighlighted
-              ? theme.colorScheme.primary.withAlpha(25)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
+      child: Material(
+        color: isHighlighted
+            ? theme.colorScheme.primary.withAlpha(25)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
         child: CheckboxListTile(
           dense: true,
           visualDensity: VisualDensity.compact,

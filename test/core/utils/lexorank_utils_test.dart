@@ -1,92 +1,82 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/core/utils/lexorank_utils.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('LexoRankUtils', () {
     test('default rank when both bounds are null', () {
-      expect(LexoRankUtils.generateBetween(null, null), equals('m'));
+      expect(LexoRankUtils.generateBetween(null, null), equals('a0'));
     });
 
     test('generateTop returns rank before first element', () {
-      final top = LexoRankUtils.generateTop('m');
-      expect(top.compareTo('m'), lessThan(0));
+      final top = LexoRankUtils.generateTop('a0');
+      expect(top.compareTo('a0'), lessThan(0));
     });
 
     test('generateBottom returns rank after last element', () {
-      final bottom = LexoRankUtils.generateBottom('m');
-      expect(bottom.compareTo('m'), greaterThan(0));
+      final bottom = LexoRankUtils.generateBottom('a0');
+      expect(bottom.compareTo('a0'), greaterThan(0));
     });
 
     test('generateBetween returns rank strictly between prev and next', () {
-      final mid = LexoRankUtils.generateBetween('g', 'm');
-      expect(mid.compareTo('g'), greaterThan(0));
-      expect(mid.compareTo('m'), lessThan(0));
+      final mid = LexoRankUtils.generateBetween('a0', 'a5');
+      expect(mid.compareTo('a0'), greaterThan(0));
+      expect(mid.compareTo('a5'), lessThan(0));
     });
 
-    test('handles adjacent characters by increasing string length', () {
-      final mid = LexoRankUtils.generateBetween('a', 'b');
-      expect(mid.compareTo('a'), greaterThan(0));
-      expect(mid.compareTo('b'), lessThan(0));
+    test('handles adjacent integers by appending fractional digits', () {
+      final mid = LexoRankUtils.generateBetween('a0', 'a1');
+      expect(mid.compareTo('a0'), greaterThan(0));
+      expect(mid.compareTo('a1'), lessThan(0));
     });
 
-    test('handles consecutive insertions at top', () {
-      String current = 'm';
-      for (int i = 0; i < 5; i++) {
+    test('handles deep consecutive insertions at top without underflow', () {
+      String current = 'a0';
+      for (int i = 0; i < 100; i++) {
         final prev = LexoRankUtils.generateTop(current);
-        expect(prev.compareTo(current), lessThan(0));
+        expect(
+          prev.compareTo(current),
+          lessThan(0),
+          reason: 'Failed at iteration $i: $prev should be < $current',
+        );
         current = prev;
       }
     });
 
-    test('handles consecutive insertions at bottom', () {
-      String current = 'm';
-      for (int i = 0; i < 5; i++) {
+    test('handles deep consecutive insertions at bottom without overflow', () {
+      String current = 'a0';
+      for (int i = 0; i < 100; i++) {
         final next = LexoRankUtils.generateBottom(current);
-        expect(next.compareTo(current), greaterThan(0));
+        expect(
+          next.compareTo(current),
+          greaterThan(0),
+          reason: 'Failed at iteration $i: $next should be > $current',
+        );
         current = next;
       }
     });
-    test(
-      'computeReorderSortOrder calculates correct string when reordering',
-      () {
-        final list = ['a', 'c', 'e'];
-        // Move 'e' (index 2) to top (index 0)
-        final newRankTop = LexoRankUtils.computeReorderSortOrder(
-          list,
-          2,
-          0,
-          (s) => s,
-        );
-        expect(newRankTop.compareTo('a'), lessThan(0));
 
-        // Move 'a' (index 0) to bottom (index 3 in ReorderableListView callback)
-        final newRankBottom = LexoRankUtils.computeReorderSortOrder(
-          list,
-          0,
-          3,
-          (s) => s,
-        );
-        expect(newRankBottom.compareTo('e'), greaterThan(0));
+    test('handles consecutive midpoint insertions between adjacent keys', () {
+      String low = 'a0';
+      const high = 'a1';
+      for (int i = 0; i < 20; i++) {
+        final mid = LexoRankUtils.generateBetween(low, high);
+        expect(mid.compareTo(low), greaterThan(0));
+        expect(mid.compareTo(high), lessThan(0));
+        low = mid;
+      }
+    });
 
-        // Move 'a' (index 0) to between 'c' and 'e' (index 2)
-        final newRankMiddle = LexoRankUtils.computeReorderSortOrder(
-          list,
-          0,
-          2,
-          (s) => s,
-        );
-        expect(newRankMiddle.compareTo('c'), greaterThan(0));
-        expect(newRankMiddle.compareTo('e'), lessThan(0));
+    test('handles identical keys by appending fraction', () {
+      final mid = LexoRankUtils.generateBetween('a0', 'a0');
+      expect(mid.compareTo('a0'), greaterThan(0));
+    });
 
-        // Insert item from another list (oldIndex -1)
-        final newRankCrossList = LexoRankUtils.computeReorderSortOrder(
-          list,
-          -1,
-          0,
-          (s) => s,
-        );
-        expect(newRankCrossList.compareTo('a'), lessThan(0));
-      },
-    );
+    test('handles legacy fallback keys', () {
+      final top = LexoRankUtils.generateTop('m');
+      expect(top.compareTo('m'), lessThan(0));
+
+      final bottom = LexoRankUtils.generateBottom('m');
+      expect(bottom.compareTo('m'), greaterThan(0));
+    });
   });
 }

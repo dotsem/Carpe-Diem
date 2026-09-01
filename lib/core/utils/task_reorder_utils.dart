@@ -62,7 +62,6 @@ class TaskReorderUtils {
     );
   }
 
-  /// Check if two tasks are in the same group based on [settings] (urgency, overdue, deadlines).
   static bool inSameGroup(Task a, Task b, SettingsState settings) {
     if (a.parentId != b.parentId) return false;
 
@@ -72,50 +71,20 @@ class TaskReorderUtils {
 
     if (settings.prioritizeOverdue && a.isOverdue != b.isOverdue) return false;
 
-    if (settings.prioritizeDeadlines) {
-      if (a.deadline == null && b.deadline != null) return false;
-      if (a.deadline != null && b.deadline == null) return false;
-      if (a.deadline != null &&
-          b.deadline != null &&
-          a.deadline != b.deadline) {
-        return false;
-      }
-    }
+    if (settings.prioritizeDeadlines && a.deadline != b.deadline) return false;
+
     return true;
   }
 
   /// Find the effective rank of a task at a given index in a list.
   /// Considers existing sort orders and generates intermediate ranks if needed.
   /// Returns the new sort order for the task, or null if no change is needed.
-  static String? _getEffectiveRank(List<Task> remaining, int index) {
+  static String? getEffectiveRank(List<Task> remaining, int index) {
     if (index < 0 || index >= remaining.length) return null;
     final task = remaining[index];
+    // Empty sortOrder is stored as '~' in SQL — match that here so ranks are consistent.
     if (task.sortOrder.isNotEmpty) return task.sortOrder;
-
-    String? prevRank;
-    int prevIndex = -1;
-    for (int k = index - 1; k >= 0; k--) {
-      if (remaining[k].sortOrder.isNotEmpty) {
-        prevRank = remaining[k].sortOrder;
-        prevIndex = k;
-        break;
-      }
-    }
-
-    String? nextRank;
-    for (int k = index + 1; k < remaining.length; k++) {
-      if (remaining[k].sortOrder.isNotEmpty) {
-        nextRank = remaining[k].sortOrder;
-        break;
-      }
-    }
-
-    String? current = prevRank;
-    final steps = index - prevIndex;
-    for (int s = 0; s < steps; s++) {
-      current = LexoRankUtils.generateBetween(current, nextRank);
-    }
-    return current;
+    return '~';
   }
 
   /// Calculate the new sort order for a single task when moved to a new position in a group.
@@ -155,8 +124,8 @@ class TaskReorderUtils {
         ? targetCount - 1
         : targetCount;
 
-    final prevRank = _getEffectiveRank(remaining, adjustedIndex - 1);
-    final nextRank = _getEffectiveRank(remaining, adjustedIndex);
+    final prevRank = getEffectiveRank(remaining, adjustedIndex - 1);
+    final nextRank = getEffectiveRank(remaining, adjustedIndex);
 
     return LexoRankUtils.generateBetween(prevRank, nextRank);
   }
@@ -197,8 +166,8 @@ class TaskReorderUtils {
       }
     }
 
-    final String? prev = _getEffectiveRank(remaining, targetCount - 1);
-    final String? next = _getEffectiveRank(remaining, targetCount);
+    final String? prev = getEffectiveRank(remaining, targetCount - 1);
+    final String? next = getEffectiveRank(remaining, targetCount);
 
     final Map<String, String> newSortOrders = {};
     String? currentPrev = prev;
@@ -226,9 +195,9 @@ class TaskReorderUtils {
 
     if (taskOldIndex == 0) return;
 
-    final topRank = _getEffectiveRank(sameGroupTasks, 0);
+    final topRank = getEffectiveRank(sameGroupTasks, 0);
     final newSortOrder = LexoRankUtils.generateBetween(null, topRank);
-    provider.updateTask(task.copyWith(sortOrder: newSortOrder));
+    provider.reorderTask(task, newSortOrder);
   }
 
   static void moveToBottom(
@@ -245,11 +214,11 @@ class TaskReorderUtils {
 
     if (taskOldIndex == sameGroupTasks.length - 1) return;
 
-    final bottomRank = _getEffectiveRank(
+    final bottomRank = getEffectiveRank(
       sameGroupTasks,
       sameGroupTasks.length - 1,
     );
     final newSortOrder = LexoRankUtils.generateBetween(bottomRank, null);
-    provider.updateTask(task.copyWith(sortOrder: newSortOrder));
+    provider.reorderTask(task, newSortOrder);
   }
 }

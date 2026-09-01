@@ -61,7 +61,7 @@ class SizedDialog extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    if (actions != null) ...actions!,
+                    ...?actions,
                     if (showDefaultActions) ...[
                       const Spacer(),
                       TextButton(

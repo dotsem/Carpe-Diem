@@ -74,7 +74,10 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
       final sortComp = aSort.compareTo(bSort);
       if (sortComp != 0) return sortComp;
 
-      return b.createdAt.compareTo(a.createdAt);
+      final createdComp = b.createdAt.compareTo(a.createdAt);
+      if (createdComp != 0) return createdComp;
+
+      return deadlineComp;
     });
 
     final todo = tasks.where((t) => t.status.isTodo).toList();

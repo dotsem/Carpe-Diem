@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 
 class Task {
@@ -57,12 +58,12 @@ class Task {
     'id': id,
     'title': title,
     'description': description,
-    'scheduledDate': scheduledDate?.toIso8601String(),
+    'scheduledDate': scheduledDate?.normalize.toIso8601String(),
     'isCompleted': isCompleted ? 1 : 0,
     'status': status.index,
     'projectId': projectId,
     'isUrgent': isUrgent ? 1 : 0,
-    'deadline': deadline?.toIso8601String(),
+    'deadline': deadline?.normalize.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'completedAt': completedAt?.toIso8601String(),
     'blockedById': blockedById,

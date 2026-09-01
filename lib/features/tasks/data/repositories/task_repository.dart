@@ -52,12 +52,15 @@ class TaskRepository extends ITaskRepository {
   }
 
   @override
-  Future<List<Task>> getAll({bool prioritizeDeadlines = true}) async {
+  Future<List<Task>> getAll({
+    bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
+  }) async {
     final maps = await _db.rawQuery('''
       SELECT DISTINCT t.* FROM tasks t
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE p.isActive IS NULL OR p.isActive = 1
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''');
     return _loadTasksWithRelations(maps);
   }
@@ -97,6 +100,7 @@ class TaskRepository extends ITaskRepository {
   Future<List<Task>> getByDate(
     DateTime date, {
     bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
   }) async {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
@@ -106,9 +110,9 @@ class TaskRepository extends ITaskRepository {
       '''
       SELECT DISTINCT t.* FROM tasks t
       LEFT JOIN projects p ON t.projectId = p.id
-      WHERE ((t.scheduledDate = ?) OR (t.completedAt >= ? AND t.completedAt < ?))
+      WHERE ((date(t.scheduledDate) = date(?)) OR (t.completedAt >= ? AND t.completedAt < ?))
       AND (p.isActive IS NULL OR p.isActive = 1)
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue, today: startOfDay)}
     ''',
       [
         scheduledDateStr,
@@ -142,13 +146,16 @@ class TaskRepository extends ITaskRepository {
   }
 
   @override
-  Future<List<Task>> getUnscheduled({bool prioritizeDeadlines = true}) async {
+  Future<List<Task>> getUnscheduled({
+    bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
+  }) async {
     final maps = await _db.rawQuery('''
       SELECT DISTINCT t.* FROM tasks t
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE t.scheduledDate IS NULL
       AND (p.isActive IS NULL OR p.isActive = 1)
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''');
 
     return _loadTasksWithRelations(maps);
@@ -158,14 +165,34 @@ class TaskRepository extends ITaskRepository {
   Future<List<Task>> getByProject(
     String projectId, {
     bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
   }) async {
     final maps = await _db.query(
       'tasks',
       where: 'projectId = ?',
       whereArgs: [projectId],
       orderBy: _getOrderBy(
-        useScheduledDate: true,
         prioritizeDeadlines: prioritizeDeadlines,
+        prioritizeOverdue: prioritizeOverdue,
+      ),
+    );
+
+    return _loadTasksWithRelations(maps);
+  }
+
+  @override
+  Future<List<Task>> getByProjectUnscheduled(
+    String projectId, {
+    bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
+  }) async {
+    final maps = await _db.query(
+      'tasks',
+      where: 'projectId = ? AND scheduledDate IS NULL',
+      whereArgs: [projectId],
+      orderBy: _getOrderBy(
+        prioritizeDeadlines: prioritizeDeadlines,
+        prioritizeOverdue: prioritizeOverdue,
       ),
     );
 
@@ -176,6 +203,7 @@ class TaskRepository extends ITaskRepository {
   Future<List<Task>> getByLabel(
     String labelId, {
     bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
   }) async {
     final maps = await _db.rawQuery(
       '''
@@ -185,7 +213,7 @@ class TaskRepository extends ITaskRepository {
       LEFT JOIN task_labels tl ON t.id = tl.taskId
       WHERE (pl.labelId = ? OR tl.labelId = ?)
       AND (p.isActive IS NULL OR p.isActive = 1)
-      ORDER BY ${_getOrderBy(useScheduledDate: true, tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines)}
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''',
       [labelId, labelId],
     );
@@ -352,9 +380,10 @@ class TaskRepository extends ITaskRepository {
   }
 
   String _getOrderBy({
-    bool useScheduledDate = false,
     String? tableAlias,
     bool prioritizeDeadlines = true,
+    bool prioritizeOverdue = false,
+    DateTime? today,
   }) {
     final prefix = tableAlias != null ? '$tableAlias.' : '';
     final urgentPart = '(${prefix}isUrgent = 1) DESC';
@@ -362,10 +391,22 @@ class TaskRepository extends ITaskRepository {
         "CASE WHEN ${prefix}sortOrder = '' THEN '~' ELSE ${prefix}sortOrder END ASC, ${prefix}createdAt DESC";
     final deadlinePart = '(${prefix}deadline IS NULL), ${prefix}deadline ASC';
 
-    if (prioritizeDeadlines) {
-      return '$deadlinePart, $urgentPart, $sortOrderPart';
-    } else {
-      return '$urgentPart, $sortOrderPart, $deadlinePart';
+    final t = today ?? DateTime.now();
+    final todayStr = DateTime(t.year, t.month, t.day).toIso8601String();
+    final overduePart =
+        "(CASE WHEN ${prefix}status != ${TaskStatus.done.index} AND ((${prefix}scheduledDate IS NOT NULL AND ${prefix}scheduledDate < '$todayStr' AND (${prefix}deadline IS NULL OR ${prefix}deadline < '$todayStr')) OR (${prefix}deadline IS NOT NULL AND ${prefix}deadline < '$todayStr')) THEN 1 ELSE 0 END) DESC";
+
+    final parts = <String>[urgentPart];
+    if (prioritizeOverdue) {
+      parts.add(overduePart);
     }
+    if (prioritizeDeadlines) {
+      parts.add(deadlinePart);
+    }
+    parts.add(sortOrderPart);
+    if (!prioritizeDeadlines) {
+      parts.add(deadlinePart);
+    }
+    return parts.join(', ');
   }
 }
