@@ -229,7 +229,7 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
             ),
             const SizedBox(height: 8),
             PlacementSection(
-              placement: _placement ?? TaskPlacement.bottom,
+              placement: _placement,
               onChanged: (p) => setState(() => _placement = p),
             ),
             ProjectsAndBlockersSection(

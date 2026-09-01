@@ -2,8 +2,8 @@ import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:flutter/material.dart';
 
 class TaskPlacementSelector extends StatelessWidget {
-  final TaskPlacement selected;
-  final ValueChanged<TaskPlacement> onChanged;
+  final TaskPlacement? selected;
+  final ValueChanged<TaskPlacement?> onChanged;
 
   /// [mini] only shows icons, useful for mobile interfaces
   final bool mini;
@@ -62,8 +62,9 @@ class TaskPlacementSelector extends StatelessWidget {
                 label: Text(TaskPlacement.urgent.name),
               ),
             ],
-      selected: {selected},
-      onSelectionChanged: (s) => onChanged(s.first),
+      selected: selected != null ? {selected!} : <TaskPlacement>{},
+      emptySelectionAllowed: true,
+      onSelectionChanged: (s) => onChanged(s.firstOrNull),
     );
   }
 }
