@@ -4,8 +4,8 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/t
 import 'package:flutter/material.dart';
 
 class PlacementSection extends StatelessWidget {
-  final TaskPlacement placement;
-  final ValueChanged<TaskPlacement> onChanged;
+  final TaskPlacement? placement;
+  final ValueChanged<TaskPlacement?> onChanged;
 
   const PlacementSection({
     super.key,
