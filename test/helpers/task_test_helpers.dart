@@ -9,22 +9,36 @@ import 'mock_repositories.dart';
 Task createTestTask({
   String id = 't1',
   String title = 'Test Task',
+  String? description,
   String? parentId,
   TaskStatus status = TaskStatus.todo,
   DateTime? scheduledDate,
   String? projectId,
   bool isUrgent = false,
+  DateTime? deadline,
   DateTime? createdAt,
+  DateTime? completedAt,
+  String? blockedById,
+  String sortOrder = '',
+  List<String> labelIds = const [],
+  List<String> tagIds = const [],
 }) {
   return Task(
     id: id,
     title: title,
+    description: description,
     parentId: parentId,
     status: status,
     scheduledDate: scheduledDate,
     projectId: projectId,
     isUrgent: isUrgent,
+    deadline: deadline,
     createdAt: createdAt ?? DateTime(2026, 1, 1),
+    completedAt: completedAt,
+    blockedById: blockedById,
+    sortOrder: sortOrder,
+    labelIds: labelIds,
+    tagIds: tagIds,
   );
 }
 
@@ -55,6 +69,8 @@ class TestTaskRepositories {
 
   void setupDefaultStubs() {
     when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
+    when(() => mockSettingsRepo.set(any(), any())).thenAnswer((_) async => {});
+    when(() => mockSettingsRepo.delete(any())).thenAnswer((_) async => {});
     when(
       () => mockTaskRepo.getByDate(
         any(),
