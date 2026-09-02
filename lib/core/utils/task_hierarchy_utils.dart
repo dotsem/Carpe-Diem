@@ -52,7 +52,11 @@ class TaskHierarchyUtils {
       final task = taskMap[taskId];
       if (task == null) return;
 
-      result.add(TaskNode(task, depth));
+      final isBundledUnderParent =
+          task.parentId != null && taskMap.containsKey(task.parentId);
+      result.add(
+        TaskNode(task, depth, isBundledUnderParent: isBundledUnderParent),
+      );
       if (collapsedParentIds != null && collapsedParentIds.contains(taskId)) {
         return;
       }

@@ -109,6 +109,7 @@ class TaskHierarchyItem extends ConsumerWidget {
     Widget child;
     if (node is TaskNode) {
       final taskNode = node as TaskNode;
+      final isNested = taskNode.isBundledUnderParent;
       final projectState = ref.watch(projectProvider);
       final taskNotifier = ref.read(taskProvider.notifier);
 
@@ -118,6 +119,8 @@ class TaskHierarchyItem extends ConsumerWidget {
         project: taskNode.task.projectId != null
             ? projectState.getById(taskNode.task.projectId!)
             : null,
+        hideProjectInfo: isNested,
+        hideProjectGradient: false,
         isOverdue: taskIsOverdue,
         autofocus: autofocus,
         focusNode: focusNode,

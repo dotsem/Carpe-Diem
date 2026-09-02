@@ -149,6 +149,7 @@ class BacklogList extends ConsumerWidget {
     Widget buildNode(TaskHierarchyNode n) {
       Widget child;
       if (n is TaskNode) {
+        final isNested = n.isBundledUnderParent;
         final focusNode = itemFocusNodes.putIfAbsent(
           n.task.id,
           () => FocusNode(debugLabel: 'Task_${n.task.id}'),
@@ -160,6 +161,8 @@ class BacklogList extends ConsumerWidget {
           project: n.task.projectId != null
               ? projectState.getById(n.task.projectId!)
               : null,
+          hideProjectInfo: isNested,
+          hideProjectGradient: false,
           isChecked: selectedTaskIds.contains(n.task.id),
           selectionMode: true,
           focusNode: focusNode,
