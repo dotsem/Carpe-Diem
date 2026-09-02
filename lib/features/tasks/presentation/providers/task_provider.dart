@@ -157,7 +157,7 @@ class TaskNotifier extends Notifier<TaskState> {
       previous: task,
       next: updated,
     );
-    await ref.read(undoRedoProvider.notifier).execute(cmd);
+    await executeCommand(cmd);
   }
 
   Future<void> bulkReorderTasks(Map<String, String> updates) async {
@@ -171,7 +171,7 @@ class TaskNotifier extends Notifier<TaskState> {
       repo: repo,
       updates: updates,
     );
-    if (cmd != null) await ref.read(undoRedoProvider.notifier).execute(cmd);
+    if (cmd != null) await executeCommand(cmd);
   }
 
   Future<void> updateTaskStatus(
@@ -198,18 +198,11 @@ class TaskNotifier extends Notifier<TaskState> {
       SubtaskService.checkSubtaskConflict(repo: repo, task: task);
 
   Future<void> completeTask(Task task) async {
-    final cmd = TaskCompletionService.buildCompleteCommand(
+    final cmd = await SubtaskService.buildCompleteSubtaskCommand(
       repo: repo,
       task: task,
     );
     await executeCommand(cmd);
-    if (task.parentId != null) {
-      await SubtaskService.checkAndAutoCompleteParent(
-        repo: repo,
-        parentId: task.parentId!,
-        onCompleteParent: completeTask,
-      );
-    }
   }
 
   Future<SubtaskCompletionConflict?> toggleComplete(

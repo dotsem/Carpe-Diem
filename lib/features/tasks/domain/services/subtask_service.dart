@@ -1,6 +1,8 @@
+import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/tasks/data/models/subtask_completion_conflict.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/domain/services/task_completion_service.dart';
 
 class SubtaskService {
   static Future<SubtaskCompletionConflict?> checkSubtaskConflict({
@@ -18,18 +20,35 @@ class SubtaskService {
     return null;
   }
 
-  static Future<void> checkAndAutoCompleteParent({
+  static Future<Command> buildCompleteSubtaskCommand({
     required ITaskRepository repo,
-    required String parentId,
-    required Future<void> Function(Task parent) onCompleteParent,
+    required Task task,
   }) async {
-    final siblings = await repo.getByParent(parentId);
-    if (siblings.isNotEmpty && siblings.every((s) => s.isCompleted)) {
-      final parent = await repo.getById(parentId);
+    final subtaskCmd = TaskCompletionService.buildCompleteCommand(
+      repo: repo,
+      task: task,
+    );
+    if (task.parentId == null) return subtaskCmd;
+
+    final siblings = await repo.getByParent(task.parentId!);
+    final otherSiblings = siblings.where((s) => s.id != task.id);
+    final allOtherSiblingsDone = otherSiblings.every((s) => s.isCompleted);
+
+    if (allOtherSiblingsDone) {
+      final parent = await repo.getById(task.parentId!);
       if (parent != null && !parent.isCompleted) {
-        await onCompleteParent(parent);
+        final parentCmd = TaskCompletionService.buildCompleteCommand(
+          repo: repo,
+          task: parent,
+        );
+        return CompoundCommand([
+          subtaskCmd,
+          parentCmd,
+        ], 'Complete "${task.title}" and auto-complete "${parent.title}"');
       }
     }
+
+    return subtaskCmd;
   }
 
   static List<Task> getAllSubtasks({
