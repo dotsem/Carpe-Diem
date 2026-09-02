@@ -273,10 +273,10 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     );
                   } else {
                     BacklogDialogHandlers.showBulkDeleteConfirm(
-                      context,
-                      ref,
-                      _selectedTaskIds,
-                      () {
+                      context: context,
+                      ref: ref,
+                      selectedTaskIds: _selectedTaskIds,
+                      onCompleted: () {
                         setState(() => _selectedTaskIds.clear());
                       },
                     );

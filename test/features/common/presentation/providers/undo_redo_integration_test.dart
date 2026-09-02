@@ -265,5 +265,63 @@ void main() {
         verify(() => mockTaskRepo.insert(subtask)).called(1);
       },
     );
+
+    test(
+      'TaskNotifier addTask with deadline propagation bundles into CompoundCommand and reverts all on undo',
+      () async {
+        final blocker = Task(
+          id: 'blocker_1',
+          title: 'Blocker Task',
+          createdAt: DateTime.now(),
+          deadline: DateTime(2026, 12, 31),
+        );
+        when(
+          () => mockTaskRepo.getById('blocker_1'),
+        ).thenAnswer((_) async => blocker);
+        when(() => mockTaskRepo.insert(any())).thenAnswer((_) async => {});
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+        when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
+
+        final taskNotifier = container.read(taskProvider.notifier);
+        final undoRedo = container.read(undoRedoProvider.notifier);
+
+        await taskNotifier.addTask(
+          title: 'Blocked Task',
+          blockedById: 'blocker_1',
+          deadline: DateTime(2026, 10, 1),
+        );
+
+        verify(() => mockTaskRepo.insert(any())).called(1);
+        verify(
+          () => mockTaskRepo.update(
+            any(
+              that: isA<Task>()
+                  .having((t) => t.id, 'id', 'blocker_1')
+                  .having((t) => t.deadline, 'deadline', DateTime(2026, 10, 1)),
+            ),
+          ),
+        ).called(1);
+        expect(undoRedo.state.canUndo, isTrue);
+        expect(undoRedo.state.undoDescription, contains('propagated deadline'));
+
+        await undoRedo.undo();
+        await Future.delayed(Duration.zero);
+
+        verify(() => mockTaskRepo.delete(any())).called(1);
+        verify(
+          () => mockTaskRepo.update(
+            any(
+              that: isA<Task>()
+                  .having((t) => t.id, 'id', 'blocker_1')
+                  .having(
+                    (t) => t.deadline,
+                    'deadline',
+                    DateTime(2026, 12, 31),
+                  ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
   });
 }

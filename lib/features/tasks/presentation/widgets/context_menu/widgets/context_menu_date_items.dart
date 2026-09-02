@@ -17,12 +17,12 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
   final VoidCallback? onAction,
 ) {
   final List<PopupMenuEntry<void>> items = [];
-  final provider = ref.read(taskProvider.notifier);
+  final taskNotifier = ref.read(taskProvider.notifier);
   final selectedDate = ref.read(selectedDateProvider);
   final isSelectedDateToday = selectedDate.isToday;
 
   void scheduleTarget(DateTime targetDate) {
-    final subtasks = provider.getAllSubtasks(task.id);
+    final subtasks = taskNotifier.getAllSubtasks(task.id);
     final incompleteSubtasks = subtasks.where((t) => !t.isCompleted).toList();
 
     if (incompleteSubtasks.isNotEmpty) {
@@ -33,7 +33,7 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
           subtasks: incompleteSubtasks,
           targetDate: targetDate,
           onParentOnly: () {
-            provider.scheduleTaskWithCascade(
+            taskNotifier.scheduleTaskWithCascade(
               task,
               targetDate,
               cascadeChildren: false,
@@ -41,7 +41,7 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
             onAction?.call();
           },
           onCascadeAll: () {
-            provider.scheduleTaskWithCascade(
+            taskNotifier.scheduleTaskWithCascade(
               task,
               targetDate,
               cascadeChildren: true,
@@ -51,7 +51,7 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
         ),
       );
     } else {
-      provider.scheduleTaskWithCascade(
+      taskNotifier.scheduleTaskWithCascade(
         task,
         targetDate,
         cascadeChildren: false,

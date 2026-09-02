@@ -3,7 +3,7 @@ import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_history_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/pick_date_range_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
@@ -83,9 +83,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       _hasMore = true;
       _completedTasks = [];
     });
-    final taskNotifier = ref.read(taskProvider.notifier);
+    final historyNotifier = ref.read(taskHistoryProvider.notifier);
 
-    _minDate ??= await taskNotifier.getFirstTaskDate();
+    _minDate ??= await historyNotifier.getFirstTaskDate();
 
     final start = DateTime(
       _dateRange.start.year,
@@ -103,14 +103,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     if (!mounted) return;
     final filter = ref.read(filterProvider).activeFilter;
 
-    final tasksFuture = taskNotifier.getCompletedTasks(
+    final tasksFuture = historyNotifier.getCompletedTasks(
       start,
       end,
       limit: _limit,
       offset: _offset,
       filter: filter,
     );
-    final overviewFuture = taskNotifier.getHistoryOverview(
+    final overviewFuture = historyNotifier.getHistoryOverview(
       start,
       end,
       filter: filter,
@@ -134,7 +134,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Future<void> _loadMoreData() async {
     if (_isLoadingMore) return;
     setState(() => _isLoadingMore = true);
-    final taskNotifier = ref.read(taskProvider.notifier);
+    final historyNotifier = ref.read(taskHistoryProvider.notifier);
 
     final start = DateTime(
       _dateRange.start.year,
@@ -151,7 +151,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     );
     final filter = ref.read(filterProvider).activeFilter;
 
-    final tasks = await taskNotifier.getCompletedTasks(
+    final tasks = await historyNotifier.getCompletedTasks(
       start,
       end,
       limit: _limit,
