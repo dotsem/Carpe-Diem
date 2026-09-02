@@ -251,7 +251,7 @@ class TaskNotifier extends Notifier<TaskState> {
     await _refreshAll();
   }
 
-  Future<void> deleteTask(Task task) async {
+  Future<void> deleteTask(Task task, {bool deleteSubtasks = true}) async {
     final subtasks = await SubtaskService.getAllSubtasksFromRepo(
       repo: _repo,
       parentId: task.id,
@@ -267,7 +267,7 @@ class TaskNotifier extends Notifier<TaskState> {
               displayName: task.title,
             ),
           );
-    } else {
+    } else if (deleteSubtasks) {
       final commands = <Command>[];
       for (final subtask in subtasks) {
         commands.add(
@@ -290,6 +290,32 @@ class TaskNotifier extends Notifier<TaskState> {
       final compound = CompoundCommand(
         commands,
         'Delete "${task.title}" and ${subtasks.length} subtask(s)',
+      );
+      await ref.read(undoRedoProvider.notifier).execute(compound);
+    } else {
+      final commands = <Command>[];
+      for (final subtask in subtasks) {
+        final orphaned = subtask.copyWith(clearParent: true);
+        commands.add(
+          UpdateCommand(
+            repo: _repo,
+            previous: subtask,
+            next: orphaned,
+            displayName: subtask.title,
+          ),
+        );
+      }
+      commands.add(
+        DeleteCommand(
+          repo: _repo,
+          item: task,
+          id: task.id,
+          displayName: task.title,
+        ),
+      );
+      final compound = CompoundCommand(
+        commands,
+        'Delete parent "${task.title}" (preserve subtasks)',
       );
       await ref.read(undoRedoProvider.notifier).execute(compound);
     }
@@ -557,21 +583,151 @@ class TaskNotifier extends Notifier<TaskState> {
     await _refreshAll();
   }
 
-  Future<void> unScheduleTask(Task task, {bool resetStatus = false}) async {
-    final updated = task.copyWith(
+  Future<void> unScheduleTask(
+    Task task, {
+    bool resetStatus = false,
+    bool unscheduleChildren = false,
+  }) async {
+    final updatedParent = task.copyWith(
       clearScheduledDate: true,
       status: resetStatus ? TaskStatus.todo : task.status,
     );
-    await ref
-        .read(undoRedoProvider.notifier)
-        .execute(
+
+    if (unscheduleChildren) {
+      final subtasks = await SubtaskService.getAllSubtasksFromRepo(
+        repo: _repo,
+        parentId: task.id,
+      );
+      final scheduledSubtasks = subtasks
+          .where((t) => t.scheduledDate != null)
+          .toList();
+
+      if (scheduledSubtasks.isNotEmpty) {
+        final commands = <Command>[
           UpdateCommand(
             repo: _repo,
             previous: task,
-            next: updated,
+            next: updatedParent,
             displayName: task.title,
           ),
+        ];
+        for (final subtask in scheduledSubtasks) {
+          final updatedSubtask = subtask.copyWith(
+            clearScheduledDate: true,
+            status: resetStatus ? TaskStatus.todo : subtask.status,
+          );
+          commands.add(
+            UpdateCommand(
+              repo: _repo,
+              previous: subtask,
+              next: updatedSubtask,
+              displayName: subtask.title,
+            ),
+          );
+        }
+        final compound = CompoundCommand(
+          commands,
+          'Unschedule "${task.title}" and ${scheduledSubtasks.length} subtask(s)',
         );
+        await ref.read(undoRedoProvider.notifier).execute(compound);
+      } else {
+        await ref
+            .read(undoRedoProvider.notifier)
+            .execute(
+              UpdateCommand(
+                repo: _repo,
+                previous: task,
+                next: updatedParent,
+                displayName: task.title,
+              ),
+            );
+      }
+    } else {
+      await ref
+          .read(undoRedoProvider.notifier)
+          .execute(
+            UpdateCommand(
+              repo: _repo,
+              previous: task,
+              next: updatedParent,
+              displayName: task.title,
+            ),
+          );
+    }
+
+    await _refreshAll();
+  }
+
+  Future<void> scheduleTaskWithCascade(
+    Task task,
+    DateTime date, {
+    required bool cascadeChildren,
+  }) async {
+    final normalizedDate = date.normalize;
+    final updatedParent = task.copyWith(scheduledDate: normalizedDate);
+
+    if (cascadeChildren) {
+      final subtasks = await SubtaskService.getAllSubtasksFromRepo(
+        repo: _repo,
+        parentId: task.id,
+      );
+      final incompleteSubtasks = subtasks.where((t) => !t.isCompleted).toList();
+
+      if (incompleteSubtasks.isNotEmpty) {
+        final commands = <Command>[
+          UpdateCommand(
+            repo: _repo,
+            previous: task,
+            next: updatedParent,
+            displayName: task.title,
+          ),
+        ];
+        for (final subtask in incompleteSubtasks) {
+          final updatedSubtask = subtask.copyWith(
+            scheduledDate: normalizedDate,
+          );
+          commands.add(
+            UpdateCommand(
+              repo: _repo,
+              previous: subtask,
+              next: updatedSubtask,
+              displayName: subtask.title,
+            ),
+          );
+        }
+        final actionWord = task.scheduledDate != null
+            ? 'Reschedule'
+            : 'Schedule';
+        final compound = CompoundCommand(
+          commands,
+          '$actionWord "${task.title}" and ${incompleteSubtasks.length} subtask(s)',
+        );
+        await ref.read(undoRedoProvider.notifier).execute(compound);
+      } else {
+        await ref
+            .read(undoRedoProvider.notifier)
+            .execute(
+              UpdateCommand(
+                repo: _repo,
+                previous: task,
+                next: updatedParent,
+                displayName: task.title,
+              ),
+            );
+      }
+    } else {
+      await ref
+          .read(undoRedoProvider.notifier)
+          .execute(
+            UpdateCommand(
+              repo: _repo,
+              previous: task,
+              next: updatedParent,
+              displayName: task.title,
+            ),
+          );
+    }
+
     await _refreshAll();
   }
 
@@ -580,6 +736,8 @@ class TaskNotifier extends Notifier<TaskState> {
     DateTime date,
   ) async {
     final normalizedDate = date.normalize;
+    final commands = <Command>[];
+
     for (final id in taskIds) {
       Task? task;
       try {
@@ -596,16 +754,45 @@ class TaskNotifier extends Notifier<TaskState> {
 
       if (task != null) {
         final updated = task.copyWith(scheduledDate: normalizedDate);
-        await _repo.update(updated);
+        commands.add(
+          UpdateCommand(
+            repo: _repo,
+            previous: task,
+            next: updated,
+            displayName: task.title,
+          ),
+        );
 
         final subtasks = await _repo.getByParent(task.id);
         for (final subtask in subtasks) {
-          if (subtask.scheduledDate == null && !subtask.isCompleted) {
-            await _repo.update(subtask.copyWith(scheduledDate: normalizedDate));
+          if (subtask.scheduledDate == null &&
+              !subtask.isCompleted &&
+              !taskIds.contains(subtask.id)) {
+            commands.add(
+              UpdateCommand(
+                repo: _repo,
+                previous: subtask,
+                next: subtask.copyWith(scheduledDate: normalizedDate),
+                displayName: subtask.title,
+              ),
+            );
           }
         }
       }
     }
+
+    if (commands.isNotEmpty) {
+      if (commands.length == 1) {
+        await ref.read(undoRedoProvider.notifier).execute(commands.first);
+      } else {
+        final compound = CompoundCommand(
+          commands,
+          'Schedule ${commands.length} tasks',
+        );
+        await ref.read(undoRedoProvider.notifier).execute(compound);
+      }
+    }
+
     await _refreshAll();
   }
 

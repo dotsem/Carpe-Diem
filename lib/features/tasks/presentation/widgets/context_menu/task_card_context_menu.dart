@@ -7,6 +7,8 @@ import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/righ
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/cascade_delete_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/cascade_schedule_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_date_items.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_helpers.dart';
 
@@ -106,21 +108,35 @@ void _showDeleteTask(
   VoidCallback? onAction,
 ) {
   final subtasks = provider.getAllSubtasks(task.id);
-  final message = subtasks.isEmpty
-      ? "Are you sure you want to delete this task?"
-      : "Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?";
-
-  showDialog(
-    context: context,
-    builder: (_) => DeleteDialog(
-      title: "Delete Task",
-      message: message,
-      onConfirm: () {
-        provider.deleteTask(task);
-        onAction?.call();
-      },
-    ),
-  );
+  if (subtasks.isNotEmpty) {
+    showDialog(
+      context: context,
+      builder: (_) => CascadeDeleteDialog(
+        parentTask: task,
+        subtasks: subtasks,
+        onDeleteParentOnly: () {
+          provider.deleteTask(task, deleteSubtasks: false);
+          onAction?.call();
+        },
+        onDeleteAll: () {
+          provider.deleteTask(task, deleteSubtasks: true);
+          onAction?.call();
+        },
+      ),
+    );
+  } else {
+    showDialog(
+      context: context,
+      builder: (_) => DeleteDialog(
+        title: "Delete Task",
+        message: "Are you sure you want to delete this task?",
+        onConfirm: () {
+          provider.deleteTask(task);
+          onAction?.call();
+        },
+      ),
+    );
+  }
 }
 
 void _unscheduleTask(
@@ -129,6 +145,36 @@ void _unscheduleTask(
   TaskNotifier provider,
   VoidCallback? onAction,
 ) {
+  final subtasks = provider.getAllSubtasks(task.id);
+  final hasScheduledSubtasks = subtasks.any((t) => t.scheduledDate != null);
+
+  if (hasScheduledSubtasks) {
+    showDialog(
+      context: context,
+      builder: (_) => CascadeScheduleDialog.unschedule(
+        parentTask: task,
+        subtasks: subtasks,
+        onParentOnly: () {
+          provider.unScheduleTask(
+            task,
+            resetStatus: task.status.isDone || task.status.isInProgress,
+            unscheduleChildren: false,
+          );
+          onAction?.call();
+        },
+        onCascadeAll: () {
+          provider.unScheduleTask(
+            task,
+            resetStatus: task.status.isDone || task.status.isInProgress,
+            unscheduleChildren: true,
+          );
+          onAction?.call();
+        },
+      ),
+    );
+    return;
+  }
+
   void doUnschedule() {
     provider.unScheduleTask(
       task,

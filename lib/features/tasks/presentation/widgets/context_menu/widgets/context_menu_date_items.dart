@@ -3,6 +3,7 @@ import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/cascade_schedule_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,14 +21,51 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
   final selectedDate = ref.read(selectedDateProvider);
   final isSelectedDateToday = selectedDate.isToday;
 
+  void scheduleTarget(DateTime targetDate) {
+    final subtasks = provider.getAllSubtasks(task.id);
+    final incompleteSubtasks = subtasks.where((t) => !t.isCompleted).toList();
+
+    if (incompleteSubtasks.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (_) => CascadeScheduleDialog.schedule(
+          parentTask: task,
+          subtasks: incompleteSubtasks,
+          targetDate: targetDate,
+          onParentOnly: () {
+            provider.scheduleTaskWithCascade(
+              task,
+              targetDate,
+              cascadeChildren: false,
+            );
+            onAction?.call();
+          },
+          onCascadeAll: () {
+            provider.scheduleTaskWithCascade(
+              task,
+              targetDate,
+              cascadeChildren: true,
+            );
+            onAction?.call();
+          },
+        ),
+      );
+    } else {
+      provider.scheduleTaskWithCascade(
+        task,
+        targetDate,
+        cascadeChildren: false,
+      );
+      onAction?.call();
+    }
+  }
+
   if (task.scheduledDate != null) {
     if (isSelectedDateToday) {
       items.add(
         PopupMenuItem(
-          onTap: () {
-            provider.scheduleTasksForTomorrow([task.id]);
-            onAction?.call();
-          },
+          onTap: () =>
+              scheduleTarget(DateTime.now().add(const Duration(days: 1))),
           child: const ListTile(
             leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
             title: Text(
@@ -39,12 +77,15 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
         ),
       );
       if (todayIsEndOfWorkWeek()) {
+        final now = DateTime.now();
+        final daysUntilMonday = (8 - now.weekday) % 7 == 0
+            ? 7
+            : (8 - now.weekday) % 7;
+        final nextMonday = now.add(Duration(days: daysUntilMonday));
+
         items.add(
           PopupMenuItem(
-            onTap: () {
-              provider.scheduleTasksForNextWorkDay([task.id]);
-              onAction?.call();
-            },
+            onTap: () => scheduleTarget(nextMonday),
             child: const ListTile(
               leading: Icon(Icons.next_week_outlined, color: AppColors.info),
               title: Text(
@@ -59,10 +100,7 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
     } else {
       items.add(
         PopupMenuItem(
-          onTap: () {
-            provider.scheduleTasksForToday([task.id]);
-            onAction?.call();
-          },
+          onTap: () => scheduleTarget(DateTime.now()),
           child: ListTile(
             leading: Transform.flip(
               flipX: true,
@@ -81,10 +119,13 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
       );
       items.add(
         PopupMenuItem(
-          onTap: () {
-            provider.scheduleTasksForNextDay([task.id], selectedDate);
-            onAction?.call();
-          },
+          onTap: () => scheduleTarget(
+            DateTime(
+              selectedDate.year,
+              selectedDate.month,
+              selectedDate.day + 1,
+            ),
+          ),
           child: const ListTile(
             leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
             title: Text(
@@ -99,10 +140,7 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
   } else {
     items.addAll([
       PopupMenuItem(
-        onTap: () {
-          provider.scheduleTasksForToday([task.id]);
-          onAction?.call();
-        },
+        onTap: () => scheduleTarget(DateTime.now()),
         child: const ListTile(
           leading: Icon(Icons.schedule_outlined, color: AppColors.info),
           title: Text(
@@ -113,10 +151,8 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
         ),
       ),
       PopupMenuItem(
-        onTap: () {
-          provider.scheduleTasksForTomorrow([task.id]);
-          onAction?.call();
-        },
+        onTap: () =>
+            scheduleTarget(DateTime.now().add(const Duration(days: 1))),
         child: const ListTile(
           leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
           title: Text(
