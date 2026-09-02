@@ -6,6 +6,7 @@ class TaskHierarchyUtils {
     List<Task> categoryTasks, {
     Map<String, Task>? allTasks,
     Set<String>? collapsedParentIds,
+    bool asParentContainers = false,
   }) {
     final seenIds = <String>{};
     final tasks = categoryTasks.where((t) => seenIds.add(t.id)).toList();
@@ -13,9 +14,9 @@ class TaskHierarchyUtils {
 
     final childrenOf = <String, List<String>>{};
     for (final task in tasks) {
-      final parentId = task.parentId ?? task.blockedById;
-      if (parentId != null && taskMap.containsKey(parentId)) {
-        childrenOf.putIfAbsent(parentId, () => []).add(task.id);
+      final effectiveParent = task.parentId ?? task.blockedById;
+      if (effectiveParent != null && taskMap.containsKey(effectiveParent)) {
+        childrenOf.putIfAbsent(effectiveParent, () => []).add(task.id);
       }
     }
 
@@ -23,7 +24,6 @@ class TaskHierarchyUtils {
     final externalBlockerTitles = <String, String>{};
 
     for (final task in tasks) {
-      // Only check external blocker if task doesn't have an in-map parentId/blockedById
       final effectiveParent = task.parentId ?? task.blockedById;
       if (effectiveParent != null && taskMap.containsKey(effectiveParent)) {
         continue;
@@ -54,13 +54,47 @@ class TaskHierarchyUtils {
 
       final isBundledUnderParent =
           task.parentId != null && taskMap.containsKey(task.parentId);
-      result.add(
-        TaskNode(task, depth, isBundledUnderParent: isBundledUnderParent),
-      );
+      final children = childrenOf[taskId];
+      final subtasksInView =
+          children?.where((id) => taskMap[id]?.parentId == taskId).toList() ??
+          [];
+      final hasSubtasksInView = subtasksInView.isNotEmpty;
+
+      if (asParentContainers && hasSubtasksInView && depth == 0) {
+        final allSubtasks = allTasks != null
+            ? allTasks.values.where((t) => t.parentId == taskId).toList()
+            : subtasksInView.map((id) => taskMap[id]!).toList();
+
+        final hasUrgent = allSubtasks.any((t) => t.isUrgent && !t.isCompleted);
+        final completedCount = allSubtasks.where((t) => t.isCompleted).length;
+        final plannedCount = allSubtasks
+            .where((t) => t.scheduledDate != null && !t.isCompleted)
+            .length;
+
+        result.add(
+          ParentContainerNode(
+            task: task,
+            depth: depth,
+            totalSubtasks: allSubtasks.isNotEmpty
+                ? allSubtasks.length
+                : subtasksInView.length,
+            completedSubtasks: completedCount,
+            plannedSubtasks: plannedCount,
+            hasUrgentChild: hasUrgent,
+            isCollapsed:
+                collapsedParentIds != null &&
+                collapsedParentIds.contains(taskId),
+          ),
+        );
+      } else {
+        result.add(
+          TaskNode(task, depth, isBundledUnderParent: isBundledUnderParent),
+        );
+      }
+
       if (collapsedParentIds != null && collapsedParentIds.contains(taskId)) {
         return;
       }
-      final children = childrenOf[taskId];
       if (children != null) {
         for (final childId in children) {
           emit(childId, depth + 1);
@@ -92,9 +126,7 @@ class TaskHierarchyUtils {
       if (task == null) return null;
 
       final effectiveParent = task.parentId ?? task.blockedById;
-      if (effectiveParent == null) return id;
-
-      if (taskMap.containsKey(effectiveParent)) {
+      if (effectiveParent != null && taskMap.containsKey(effectiveParent)) {
         return findRootId(effectiveParent, visited);
       }
 
@@ -102,7 +134,7 @@ class TaskHierarchyUtils {
           allTasks != null &&
           allTasks.containsKey(task.blockedById)) {
         final blocker = allTasks[task.blockedById]!;
-        if (!blocker.isCompleted) {
+        if (!blocker.isCompleted && !taskMap.containsKey(blocker.id)) {
           return 'indicator_${task.blockedById}';
         }
       }

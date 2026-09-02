@@ -44,7 +44,7 @@ void main() {
     });
 
     test(
-      'buildHierarchy nesting builds correct internal parent-child tree hierarchy',
+      'buildHierarchy with internal blocker indents blocked task under blocker',
       () {
         // 1 <- 2 (2 is blocked by 1)
         final tasks = [
@@ -60,6 +60,7 @@ void main() {
 
         expect((result[1] as TaskNode).task.id, '2');
         expect(result[1].depth, 1);
+        expect((result[1] as TaskNode).isBundledUnderParent, isFalse);
       },
     );
 
@@ -115,16 +116,15 @@ void main() {
     });
 
     test(
-      'buildHierarchy handles cycle dependencies gracefully by emitting them starting from the first node as root',
+      'buildHierarchy handles cycle parent relationships gracefully by emitting them starting from the first node as root',
       () {
         final tasks = [
-          createTask(id: '1', blockedById: '2'),
-          createTask(id: '2', blockedById: '1'),
+          Task(id: '1', title: '1', createdAt: now, parentId: '2'),
+          Task(id: '2', title: '2', createdAt: now, parentId: '1'),
         ];
 
         final result = TaskHierarchyUtils.buildHierarchy(tasks);
 
-        // Tasks are not lost. One becomes the root (depth 0), the other nested (depth 1)
         expect(result.length, 2);
         expect((result[0] as TaskNode).task.id, '1');
         expect(result[0].depth, 0);
@@ -168,6 +168,103 @@ void main() {
         expect(result.length, 1);
         expect((result[0] as TaskNode).task.id, 'sub_1');
         expect(result[0].depth, 0);
+      },
+    );
+
+    test(
+      'buildHierarchy with asParentContainers emits ParentContainerNode with urgent flag',
+      () {
+        final parent = Task(
+          id: 'parent_1',
+          title: 'Parent',
+          createdAt: now,
+          isUrgent: false,
+        );
+        final urgentSubtask = Task(
+          id: 'sub_1',
+          title: 'Urgent Subtask',
+          parentId: 'parent_1',
+          createdAt: now,
+          isUrgent: true,
+        );
+
+        final result = TaskHierarchyUtils.buildHierarchy([
+          urgentSubtask,
+          parent,
+        ], asParentContainers: true);
+
+        expect(result.length, 2);
+        expect(result[0], isA<ParentContainerNode>());
+        final container = result[0] as ParentContainerNode;
+        expect(container.task.id, 'parent_1');
+        expect(container.totalSubtasks, 1);
+        expect(container.hasUrgentChild, isTrue);
+
+        expect(result[1], isA<TaskNode>());
+        expect((result[1] as TaskNode).task.id, 'sub_1');
+        expect(result[1].depth, 1);
+      },
+    );
+
+    test(
+      'buildHierarchy with asParentContainers updates urgent flag when subtask is non-urgent',
+      () {
+        final parent = Task(
+          id: 'parent_1',
+          title: 'Parent',
+          createdAt: now,
+          isUrgent: false,
+        );
+        final normalSubtask = Task(
+          id: 'sub_1',
+          title: 'Normal Subtask',
+          parentId: 'parent_1',
+          createdAt: now,
+          isUrgent: false,
+        );
+
+        final result = TaskHierarchyUtils.buildHierarchy([
+          normalSubtask,
+          parent,
+        ], asParentContainers: true);
+
+        expect(result.length, 2);
+        expect(result[0], isA<ParentContainerNode>());
+        final container = result[0] as ParentContainerNode;
+        expect(container.hasUrgentChild, isFalse);
+      },
+    );
+
+    test(
+      'buildHierarchy with asParentContainers does not treat blockers as parent containers',
+      () {
+        final blocker = Task(
+          id: 'blocker_1',
+          title: 'Blocker Task',
+          createdAt: now,
+          isUrgent: false,
+        );
+        final blockedTask = Task(
+          id: 'blocked_1',
+          title: 'Blocked Task',
+          blockedById: 'blocker_1',
+          createdAt: now,
+          isUrgent: true,
+        );
+
+        final result = TaskHierarchyUtils.buildHierarchy([
+          blockedTask,
+          blocker,
+        ], asParentContainers: true);
+
+        expect(result.length, 2);
+        expect(result[0], isA<TaskNode>());
+        expect((result[0] as TaskNode).task.id, 'blocker_1');
+        expect(result[0].depth, 0);
+
+        expect(result[1], isA<TaskNode>());
+        expect((result[1] as TaskNode).task.id, 'blocked_1');
+        expect(result[1].depth, 1);
       },
     );
   });

@@ -96,8 +96,8 @@ class TaskReorderUtils {
     required SettingsState settings,
   }) {
     final sameGroupTasks = nodes
-        .whereType<TaskNode>()
         .map((n) => n.task)
+        .whereType<Task>()
         .where((t) => inSameGroup(t, draggedTask, settings))
         .toList();
 
@@ -110,7 +110,7 @@ class TaskReorderUtils {
     int targetCount = 0;
     for (int i = 0; i < newIndex && i < nodes.length; i++) {
       final n = nodes[i];
-      if (n is TaskNode && inSameGroup(n.task, draggedTask, settings)) {
+      if (n.task != null && inSameGroup(n.task!, draggedTask, settings)) {
         targetCount++;
       }
     }
@@ -142,8 +142,8 @@ class TaskReorderUtils {
     if (!selectedTaskIds.contains(draggedTask.id)) return null;
 
     final sameGroupTasks = nodes
-        .whereType<TaskNode>()
         .map((n) => n.task)
+        .whereType<Task>()
         .where((t) => inSameGroup(t, draggedTask, settings))
         .toList();
 
@@ -159,9 +159,9 @@ class TaskReorderUtils {
     int targetCount = 0;
     for (int i = 0; i < newIndex && i < nodes.length; i++) {
       final n = nodes[i];
-      if (n is TaskNode &&
-          inSameGroup(n.task, draggedTask, settings) &&
-          !selectedTaskIds.contains(n.task.id)) {
+      if (n.task != null &&
+          inSameGroup(n.task!, draggedTask, settings) &&
+          !selectedTaskIds.contains(n.task!.id)) {
         targetCount++;
       }
     }

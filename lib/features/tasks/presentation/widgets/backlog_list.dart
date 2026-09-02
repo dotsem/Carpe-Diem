@@ -1,5 +1,7 @@
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_empty_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_group_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -18,6 +20,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
+import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 
 class BacklogList extends ConsumerWidget {
   final String searchQuery;
@@ -72,45 +75,9 @@ class BacklogList extends ConsumerWidget {
 
     if (activeTasks.isEmpty && completedTasks.isEmpty) {
       onOrderedIdsChanged([]);
-      return Center(
-        child: _isFiltering(filter)
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.filter_list_alt,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('No items found'),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      ref.read(filterProvider.notifier).clearFilter();
-                    },
-                    child: const Text('Remove Filters'),
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.inbox_rounded,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No backlog tasks',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
+      return BacklogEmptyPlaceholder(
+        isFiltering: _isFiltering(filter),
+        onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
       );
     }
 
@@ -123,22 +90,24 @@ class BacklogList extends ConsumerWidget {
       activeTasks,
       allTasks: allAvailableTasks,
       collapsedParentIds: collapsedParentIds,
+      asParentContainers: true,
     );
     final completedHierarchical = TaskHierarchyUtils.buildHierarchy(
       completedTasks,
       allTasks: allAvailableTasks,
       collapsedParentIds: collapsedParentIds,
+      asParentContainers: true,
     );
 
     final List<String> orderedIds = [];
     for (final n in activeHierarchical) {
-      if (n is TaskNode) {
-        orderedIds.add(n.task.id);
+      if (n.task != null) {
+        orderedIds.add(n.task!.id);
       }
     }
     for (final n in completedHierarchical) {
-      if (n is TaskNode) {
-        orderedIds.add(n.task.id);
+      if (n.task != null) {
+        orderedIds.add(n.task!.id);
       }
     }
 
@@ -148,7 +117,51 @@ class BacklogList extends ConsumerWidget {
 
     Widget buildNode(TaskHierarchyNode n) {
       Widget child;
-      if (n is TaskNode) {
+      if (n is ParentContainerNode) {
+        final focusNode = itemFocusNodes.putIfAbsent(
+          n.task.id,
+          () => FocusNode(debugLabel: 'ParentTask_${n.task.id}'),
+        );
+        final subtasks = allTasks
+            .where((t) => t.parentId == n.task.id)
+            .toList();
+        final isChecked = TaskSelectionUtils.getParentSelectionState(
+          parentId: n.task.id,
+          subtasks: subtasks,
+          selectedTaskIds: selectedTaskIds.toSet(),
+        );
+
+        child = ParentGroupHeader(
+          key: ValueKey('parent_${n.task.id}'),
+          node: n,
+          project: n.task.projectId != null
+              ? projectState.getById(n.task.projectId!)
+              : null,
+          focusNode: focusNode,
+          isChecked: isChecked,
+          selectionMode: true,
+          onToggle: (value) => onSelectedChanged(n.task),
+          onTap: () {
+            ref
+                .read(collapsedSubtasksProvider.notifier)
+                .toggleCollapse(n.task.id);
+          },
+          onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
+            context,
+            ref,
+            n.task,
+            allTasks,
+            localPosition,
+            renderBox,
+            onAction: () {
+              if (selectedTaskIds.contains(n.task.id)) {
+                onSelectedChanged(n.task);
+              }
+            },
+          ),
+          trailing: trailingBuilder(context, n.task),
+        );
+      } else if (n is TaskNode) {
         final isNested = n.isBundledUnderParent;
         final focusNode = itemFocusNodes.putIfAbsent(
           n.task.id,
@@ -208,12 +221,13 @@ class BacklogList extends ConsumerWidget {
             final child = buildNode(node);
 
             Widget draggableChild = child;
-            if (node is TaskNode) {
-              final isSelected = selectedTaskIds.contains(node.task.id);
+            if (node.task != null) {
+              final task = node.task!;
+              final isSelected = selectedTaskIds.contains(task.id);
               draggableChild = PlatformDraggable<Task>(
-                data: node.task,
+                data: task,
                 feedback: TaskDragProxy(
-                  task: node.task,
+                  task: task,
                   selectedCount: isSelected ? selectedTaskIds.length : 1,
                   width: constraints.maxWidth - 32,
                 ),

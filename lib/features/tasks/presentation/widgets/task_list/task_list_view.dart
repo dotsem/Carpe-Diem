@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
+import 'package:carpe_diem/core/utils/task_sort_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_components.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_done_section.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 
 class TaskListView extends ConsumerStatefulWidget {
@@ -31,6 +33,7 @@ class TaskListView extends ConsumerStatefulWidget {
   final ValueChanged<List<String>>? onOrderedIdsChanged;
   final bool enablePlanShortcut;
   final VoidCallback? onClearSelection;
+  final bool asParentContainers;
 
   const TaskListView({
     super.key,
@@ -54,6 +57,7 @@ class TaskListView extends ConsumerStatefulWidget {
     this.onOrderedIdsChanged,
     this.enablePlanShortcut = false,
     this.onClearSelection,
+    this.asParentContainers = false,
   }) : padding = padding ?? const EdgeInsets.symmetric(vertical: 16);
 
   @override
@@ -114,38 +118,7 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         itemToString: (t) => '${t.title} ${t.description ?? ''}',
       );
     } else {
-      allTasks.sort((a, b) {
-        if (a.isUrgent && !b.isUrgent) return -1;
-        if (!a.isUrgent && b.isUrgent) return 1;
-
-        final settings = ref.read(settingsProvider);
-
-        if (settings.prioritizeOverdue) {
-          if (a.isOverdue && !b.isOverdue) return -1;
-          if (!a.isOverdue && b.isOverdue) return 1;
-        }
-
-        final deadlineComp = () {
-          if (a.deadline == b.deadline) return 0;
-          if (a.deadline == null) return 1;
-          if (b.deadline == null) return -1;
-          return a.deadline!.compareTo(b.deadline!);
-        }();
-
-        if (settings.prioritizeDeadlines && deadlineComp != 0) {
-          return deadlineComp;
-        }
-
-        final aSort = a.sortOrder.isEmpty ? '~' : a.sortOrder;
-        final bSort = b.sortOrder.isEmpty ? '~' : b.sortOrder;
-        final sortComp = aSort.compareTo(bSort);
-        if (sortComp != 0) return sortComp;
-
-        final createdComp = b.createdAt.compareTo(a.createdAt);
-        if (createdComp != 0) return createdComp;
-
-        return deadlineComp;
-      });
+      TaskSortUtils.sortTasks(allTasks, ref.read(settingsProvider));
     }
 
     final activeTasks = allTasks.where((t) => !t.status.isDone).toList();
@@ -159,24 +132,25 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
 
     _orderedItemIds.clear();
 
-    void addTasksToOrder(List<Task> categoryTasks) {
+    List<TaskHierarchyNode> getHierarchyNodes(List<Task> categoryTasks) {
       if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
-        for (final t in categoryTasks) {
-          _orderedItemIds.add(t.id);
-        }
-      } else {
-        final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
-          ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-          ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
-        final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
-        final flattened = TaskHierarchyUtils.buildHierarchy(
-          categoryTasks,
-          allTasks: allAvailableTasks,
-          collapsedParentIds: collapsedParentIds,
-        );
-        for (final n in flattened) {
-          if (n is TaskNode) _orderedItemIds.add(n.task.id);
-        }
+        return categoryTasks.map((t) => TaskNode(t, 0)).toList();
+      }
+      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
+        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
+        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+      final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
+      return TaskHierarchyUtils.buildHierarchy(
+        categoryTasks,
+        allTasks: allAvailableTasks,
+        collapsedParentIds: collapsedParentIds,
+        asParentContainers: widget.asParentContainers,
+      );
+    }
+
+    void addTasksToOrder(List<Task> categoryTasks) {
+      for (final n in getHierarchyNodes(categoryTasks)) {
+        if (n.task != null) _orderedItemIds.add(n.task!.id);
       }
     }
 
@@ -191,11 +165,11 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
 
     int nodeIndex = 0;
     Widget buildNode(TaskHierarchyNode node, bool Function(Task) overdueFn) {
-      final isTaskNode = node is TaskNode;
+      final task = node.task;
       FocusNode? focusNode;
       bool autofocus = false;
 
-      if (isTaskNode) {
+      if (task != null) {
         final isFirst = nodeIndex == 0;
         autofocus =
             nodeIndex == 0 &&
@@ -204,20 +178,20 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         focusNode = (isFirst && widget.firstNode != null)
             ? widget.firstNode!
             : _itemFocusNodes.putIfAbsent(
-                node.task.id,
-                () => FocusNode(debugLabel: 'Task_${node.task.id}'),
+                task.id,
+                () => FocusNode(debugLabel: 'Task_${task.id}'),
               );
 
         if (isFirst && widget.firstNode != null) {
-          _itemFocusNodes[node.task.id] = widget.firstNode!;
+          _itemFocusNodes[task.id] = widget.firstNode!;
         }
         nodeIndex++;
       }
 
       return TaskHierarchyItem(
         node: node,
-        taskIsOverdue: isTaskNode ? overdueFn(node.task) : false,
-        showScheduleDate: isTaskNode ? widget.showScheduleDate : false,
+        taskIsOverdue: task != null ? overdueFn(task) : false,
+        showScheduleDate: task != null ? widget.showScheduleDate : false,
         autofocus: autofocus,
         focusNode: focusNode,
         isReadOnly: widget.isReadOnly,
@@ -230,27 +204,7 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       );
     }
 
-    List<Widget> buildHierarchy(
-      List<Task> categoryTasks,
-      bool Function(Task) overdueFn,
-    ) {
-      if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
-        return categoryTasks
-            .map((t) => buildNode(TaskNode(t, 0), overdueFn))
-            .toList();
-      }
-      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
-        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
-
-      final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
-      final flattened = TaskHierarchyUtils.buildHierarchy(
-        categoryTasks,
-        allTasks: allAvailableTasks,
-        collapsedParentIds: collapsedParentIds,
-      );
-      return flattened.map((n) => buildNode(n, overdueFn)).toList();
-    }
+    final activeNodes = getHierarchyNodes(activeTasks);
 
     return TaskListKeyboardShortcuts(
       enablePlanShortcut: widget.enablePlanShortcut,
@@ -284,62 +238,26 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         padding: widget.padding,
         children: [
           if (activeTasks.isNotEmpty)
-            Builder(
-              builder: (context) {
-                final allAvailableTasks =
-                    {for (var t in taskState.tasks) t.id: t}
-                      ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-                      ..addAll({
-                        for (var t in taskState.unscheduledTasks) t.id: t,
-                      });
-                final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
-                final activeNodes =
-                    widget.searchQuery != null && widget.searchQuery!.isNotEmpty
-                    ? activeTasks.map((t) => TaskNode(t, 0)).toList()
-                    : TaskHierarchyUtils.buildHierarchy(
-                        activeTasks,
-                        allTasks: allAvailableTasks,
-                        collapsedParentIds: collapsedParentIds,
-                      );
-                return ActiveTaskReorderableList(
-                  nodes: activeNodes,
-                  widgets: activeNodes
-                      .map((n) => buildNode(n, isOverdue))
-                      .toList(),
-                  selectedTaskIds: widget.selectedTaskIds,
-                  isReorderEnabled:
-                      widget.searchQuery == null || widget.searchQuery!.isEmpty,
-                  onReorder: (task, newSortOrder) =>
-                      taskNotifier.reorderTask(task, newSortOrder),
-                  onMultiReorder: (newSortOrders) =>
-                      taskNotifier.bulkReorderTasks(newSortOrders),
-                );
-              },
+            ActiveTaskReorderableList(
+              nodes: activeNodes,
+              widgets: activeNodes.map((n) => buildNode(n, isOverdue)).toList(),
+              selectedTaskIds: widget.selectedTaskIds,
+              isReorderEnabled:
+                  widget.searchQuery == null || widget.searchQuery!.isEmpty,
+              onReorder: (task, newSortOrder) =>
+                  taskNotifier.reorderTask(task, newSortOrder),
+              onMultiReorder: (newSortOrders) =>
+                  taskNotifier.bulkReorderTasks(newSortOrders),
             ),
           if (doneCategory.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            TaskListSectionHeader(
-              title: 'Done',
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              amount: doneCategory.length,
-              onTap: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
-              trailing: AnimatedRotation(
-                duration: const Duration(milliseconds: 200),
-                turns: _isDoneExpanded ? 0.5 : 0,
-                child: Icon(
-                  Icons.expand_more,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              child: _isDoneExpanded
-                  ? Column(children: buildHierarchy(doneCategory, (_) => false))
-                  : const SizedBox(width: double.infinity),
+            TaskListDoneSection(
+              count: doneCategory.length,
+              isExpanded: _isDoneExpanded,
+              onToggle: () =>
+                  setState(() => _isDoneExpanded = !_isDoneExpanded),
+              children: getHierarchyNodes(
+                doneCategory,
+              ).map((n) => buildNode(n, (_) => false)).toList(),
             ),
           ],
         ],
