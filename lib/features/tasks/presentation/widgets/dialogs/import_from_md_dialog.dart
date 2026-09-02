@@ -58,8 +58,8 @@ class _ImportFromMDDialogState extends ConsumerState<ImportFromMDDialog> {
     ref
         .read(taskProvider.notifier)
         .importTasksFromMarkdown(
-          _controller.text,
-          widget.project?.id ?? _selectedProjectId!,
+          markdown: _controller.text,
+          projectId: widget.project?.id ?? _selectedProjectId!,
         );
     Navigator.pop(context);
   }

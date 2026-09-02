@@ -75,16 +75,16 @@ class BacklogDialogHandlers {
     }
   }
 
-  static void showBulkDeleteConfirm(
-    BuildContext context,
-    WidgetRef ref,
-    List<String> selectedTaskIds,
-    VoidCallback onCompleted,
-  ) {
+  static void showBulkDeleteConfirm({
+    required BuildContext context,
+    required WidgetRef ref,
+    required List<String> selectedTaskIds,
+    required VoidCallback onCompleted,
+  }) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirm Deletion'),
+        title: const Text('Delete Tasks'),
         content: Text(
           'Are you sure you want to delete ${selectedTaskIds.length} tasks?',
         ),
@@ -104,7 +104,7 @@ class BacklogDialogHandlers {
             onPressed: () async {
               await ref
                   .read(taskProvider.notifier)
-                  .bulkDeleteTasks(selectedTaskIds);
+                  .bulkDeleteTasks(taskIds: selectedTaskIds);
               onCompleted();
               if (ctx.mounted) {
                 Navigator.of(ctx).pop();

@@ -133,7 +133,7 @@ class ProjectDetailDialogHandlers {
             onPressed: () async {
               await ref
                   .read(taskProvider.notifier)
-                  .bulkDeleteTasks(selectedTaskIds);
+                  .bulkDeleteTasks(taskIds: selectedTaskIds);
               onCompleted();
               if (ctx.mounted) {
                 Navigator.of(ctx).pop();

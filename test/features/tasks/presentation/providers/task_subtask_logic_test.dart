@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/tasks/data/models/subtask_completion_conflict.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -234,8 +235,10 @@ void main() {
         ).thenAnswer((_) async => [grandChild]);
         when(() => mockTaskRepo.getByParent('gc1')).thenAnswer((_) async => []);
 
-        final notifier = container.read(taskProvider.notifier);
-        final subtasks = await notifier.getAllSubtasksFromRepo('p1');
+        final subtasks = await SubtaskService.getAllSubtasksFromRepo(
+          repo: mockTaskRepo,
+          parentId: 'p1',
+        );
 
         expect(subtasks.length, equals(2));
         expect(subtasks.map((t) => t.id), containsAll(['c1', 'gc1']));
@@ -270,10 +273,14 @@ void main() {
         when(
           () => mockTaskRepo.getByParent('sub1'),
         ).thenAnswer((_) async => []);
+        when(
+          () => mockTaskRepo.getById('p1'),
+        ).thenAnswer((_) async => createTestTask(id: 'p1', title: 'P1'));
+        when(() => mockTaskRepo.getById('sub1')).thenAnswer((_) async => sub);
         when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
 
         final notifier = container.read(taskProvider.notifier);
-        await notifier.bulkDeleteTasks(['p1']);
+        await notifier.bulkDeleteTasks(taskIds: ['p1']);
 
         verify(() => mockTaskRepo.delete('sub1')).called(1);
         verify(() => mockTaskRepo.delete('p1')).called(1);

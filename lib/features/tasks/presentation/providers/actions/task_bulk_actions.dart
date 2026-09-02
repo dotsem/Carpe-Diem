@@ -1,20 +1,15 @@
+import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/domain/services/deadline_propagation_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_markdown_parser.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 
-class TaskBulkNotifier extends Notifier<void> {
-  @override
-  void build() {}
-
+extension TaskBulkActions on TaskNotifier {
   Future<void> bulkUpdateTasks({
     required List<String> taskIds,
-    required List<Task> currentStateTasks,
-    required Future<void> Function() onRefresh,
     bool? isUrgent,
     bool updateUrgent = false,
     DateTime? scheduledDate,
@@ -30,7 +25,6 @@ class TaskBulkNotifier extends Notifier<void> {
     bool updateBlockedById = false,
     bool clearBlockedById = false,
   }) async {
-    final repo = ref.read(taskRepositoryProvider);
     final projectRepo = ref.read(projectRepositoryProvider);
     final settings = ref.read(settingsProvider);
 
@@ -46,14 +40,9 @@ class TaskBulkNotifier extends Notifier<void> {
       }
     }
 
+    final commands = <Command>[];
     for (final id in taskIds) {
-      Task? task;
-      try {
-        task = currentStateTasks.firstWhere((t) => t.id == id);
-      } catch (_) {
-        task = await repo.getById(id);
-      }
-
+      final task = tasksState.getById(id) ?? await repo.getById(id);
       if (task != null) {
         final updated = task.copyWith(
           isUrgent: updateUrgent ? isUrgent : null,
@@ -68,25 +57,37 @@ class TaskBulkNotifier extends Notifier<void> {
           blockedById: updateBlockedById ? blockedById : null,
           clearBlockedBy: clearBlockedById,
         );
-        await repo.update(updated);
-        if (settings.inheritParentDeadline && updated.deadline != null) {
-          await DeadlinePropagationService.propagateDeadline(
+        commands.add(
+          UpdateCommand(
             repo: repo,
-            task: updated,
-            inheritParentDeadline: settings.inheritParentDeadline,
-          );
+            previous: task,
+            next: updated,
+            displayName: task.title,
+          ),
+        );
+        if (settings.inheritParentDeadline && updated.deadline != null) {
+          final propCmds =
+              await DeadlinePropagationService.buildPropagationCommands(
+                repo: repo,
+                task: updated,
+                inheritParentDeadline: settings.inheritParentDeadline,
+              );
+          commands.addAll(propCmds);
         }
       }
     }
-    await onRefresh();
-    ToastUtils.showSuccess("Updated ${taskIds.length} tasks");
+
+    if (commands.isNotEmpty) {
+      final compound = CompoundCommand(
+        commands,
+        'Update ${commands.length} tasks',
+      );
+      await executeCommand(compound);
+      ToastUtils.showSuccess("Updated ${taskIds.length} tasks");
+    }
   }
 
-  Future<void> bulkDeleteTasks({
-    required List<String> taskIds,
-    required Future<void> Function() onRefresh,
-  }) async {
-    final repo = ref.read(taskRepositoryProvider);
+  Future<void> bulkDeleteTasks({required List<String> taskIds}) async {
     final allIdsToDelete = <String>{...taskIds};
     for (final id in taskIds) {
       final subtasks = await SubtaskService.getAllSubtasksFromRepo(
@@ -97,19 +98,36 @@ class TaskBulkNotifier extends Notifier<void> {
         allIdsToDelete.add(s.id);
       }
     }
+
+    final commands = <Command>[];
     for (final id in allIdsToDelete) {
-      await repo.delete(id);
+      final task = tasksState.getById(id) ?? await repo.getById(id);
+      if (task != null) {
+        commands.add(
+          DeleteCommand(
+            repo: repo,
+            item: task,
+            id: task.id,
+            displayName: task.title,
+          ),
+        );
+      }
     }
-    await onRefresh();
-    ToastUtils.showSuccess('Deleted ${allIdsToDelete.length} tasks');
+
+    if (commands.isNotEmpty) {
+      final compound = CompoundCommand(
+        commands,
+        'Delete ${commands.length} tasks',
+      );
+      await executeCommand(compound);
+      ToastUtils.showSuccess('Deleted ${allIdsToDelete.length} tasks');
+    }
   }
 
   Future<void> importTasksFromMarkdown({
     required String markdown,
     required String? projectId,
-    required Future<void> Function() onRefresh,
   }) async {
-    final repo = ref.read(taskRepositoryProvider);
     final projectRepo = ref.read(projectRepositoryProvider);
     final settings = ref.read(settingsProvider);
 
@@ -120,16 +138,29 @@ class TaskBulkNotifier extends Notifier<void> {
       projectDeadline = project?.deadline;
     }
 
+    final commands = <Command>[];
     for (final task in tasks) {
-      await repo.insert(
-        task.copyWith(projectId: projectId, deadline: projectDeadline),
+      final resolved = task.copyWith(
+        projectId: projectId,
+        deadline: projectDeadline,
+      );
+      commands.add(
+        CreateCommand(
+          repo: repo,
+          item: resolved,
+          id: resolved.id,
+          displayName: resolved.title,
+        ),
       );
     }
-    await onRefresh();
-    ToastUtils.showSuccess('Imported ${tasks.length} tasks from markdown');
+
+    if (commands.isNotEmpty) {
+      final compound = CompoundCommand(
+        commands,
+        'Import ${tasks.length} tasks',
+      );
+      await executeCommand(compound);
+      ToastUtils.showSuccess('Imported ${tasks.length} tasks from markdown');
+    }
   }
 }
-
-final taskBulkProvider = NotifierProvider<TaskBulkNotifier, void>(() {
-  return TaskBulkNotifier();
-});

@@ -98,7 +98,6 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
   @override
   Widget build(BuildContext context) {
     final taskState = ref.watch(taskProvider);
-    final taskNotifier = ref.read(taskProvider.notifier);
 
     bool isOverdue(Task t) => t.isOverdue;
 
@@ -211,6 +210,7 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
       onPlanToday: () {
+        final taskNotifier = ref.read(taskProvider.notifier);
         if (widget.selectedTaskIds.isNotEmpty) {
           taskNotifier
               .scheduleTasksForToday(widget.selectedTaskIds.toList())
@@ -223,6 +223,7 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         }
       },
       onPlanTomorrow: () {
+        final taskNotifier = ref.read(taskProvider.notifier);
         if (widget.selectedTaskIds.isNotEmpty) {
           taskNotifier
               .scheduleTasksForTomorrow(widget.selectedTaskIds.toList())
@@ -231,7 +232,9 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
               });
         } else {
           final taskId = _getFocusedTaskId();
-          if (taskId != null) taskNotifier.scheduleTasksForTomorrow([taskId]);
+          if (taskId != null) {
+            taskNotifier.scheduleTasksForTomorrow([taskId]);
+          }
         }
       },
       child: ListView(
@@ -244,10 +247,12 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
               selectedTaskIds: widget.selectedTaskIds,
               isReorderEnabled:
                   widget.searchQuery == null || widget.searchQuery!.isEmpty,
-              onReorder: (task, newSortOrder) =>
-                  taskNotifier.reorderTask(task, newSortOrder),
-              onMultiReorder: (newSortOrders) =>
-                  taskNotifier.bulkReorderTasks(newSortOrders),
+              onReorder: (task, newSortOrder) => ref
+                  .read(taskProvider.notifier)
+                  .reorderTask(task, newSortOrder),
+              onMultiReorder: (newSortOrders) => ref
+                  .read(taskProvider.notifier)
+                  .bulkReorderTasks(newSortOrders),
             ),
           if (doneCategory.isNotEmpty) ...[
             TaskListDoneSection(
