@@ -253,33 +253,26 @@ class _ActiveToggle extends StatelessWidget {
     return InkWell(
       onTap: () => onChanged(!isActive),
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Project status',
-                    style: TextStyle(fontWeight: FontWeight.w500),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isActive
+                      ? 'Tasks can be added to this project'
+                      : 'Project is archived. Tasks cannot be added.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                  Text(
-                    isActive
-                        ? 'Tasks can be added to this project'
-                        : 'Project is archived. Tasks cannot be added.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Switch(value: isActive, onChanged: onChanged),
-          ],
-        ),
+          ),
+          Switch(value: isActive, onChanged: onChanged),
+        ],
       ),
     );
   }
