@@ -19,6 +19,7 @@ import 'package:carpe_diem/features/projects/presentation/widgets/project_detail
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_task_trailing_button.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_fab.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
+import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 
 class ProjectDetailScreen extends ConsumerStatefulWidget {
   final String projectId;
@@ -230,6 +231,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                   .toList();
                               return TaskListView(
                                 tasks: filteredTasks,
+                                asParentContainers: true,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 24,
                                 ),
@@ -271,9 +273,16 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                 onClearSelection: () =>
                                     setState(() => _selectedTaskIds.clear()),
                                 onSelectedChanged: (task) => setState(() {
-                                  _selectedTaskIds.contains(task.id)
-                                      ? _selectedTaskIds.remove(task.id)
-                                      : _selectedTaskIds.add(task.id);
+                                  final updated =
+                                      TaskSelectionUtils.toggleSelection(
+                                        task: task,
+                                        allTasks: _tasks,
+                                        currentSelectedIds: _selectedTaskIds
+                                            .toSet(),
+                                      );
+                                  _selectedTaskIds
+                                    ..clear()
+                                    ..addAll(updated);
                                 }),
                                 onEdit: (task) =>
                                     ProjectDetailDialogHandlers.showEditTask(

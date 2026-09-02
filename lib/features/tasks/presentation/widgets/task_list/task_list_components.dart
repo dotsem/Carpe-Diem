@@ -1,20 +1,20 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_group_header.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
+import 'package:carpe_diem/core/utils/task_selection_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+export 'active_task_reorderable_list.dart';
 
 class TaskListSectionHeader extends StatelessWidget {
   final String title;
@@ -107,7 +107,52 @@ class TaskHierarchyItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Widget child;
-    if (node is TaskNode) {
+    if (node is ParentContainerNode) {
+      final parentNode = node as ParentContainerNode;
+      final projectState = ref.watch(projectProvider);
+      final taskState = ref.watch(taskProvider);
+      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
+        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
+        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+      final subtasks = allAvailableTasks.values
+          .where((t) => t.parentId == parentNode.task.id)
+          .toList();
+
+      child = ParentGroupHeader(
+        key: ValueKey('parent_${parentNode.task.id}'),
+        node: parentNode,
+        project: parentNode.task.projectId != null
+            ? projectState.getById(parentNode.task.projectId!)
+            : null,
+        focusNode: focusNode,
+        isChecked: selectionMode
+            ? TaskSelectionUtils.getParentSelectionState(
+                parentId: parentNode.task.id,
+                subtasks: subtasks,
+                selectedTaskIds: selectedTaskIds,
+              )
+            : false,
+        selectionMode: selectionMode,
+        onToggle: isReadOnly
+            ? null
+            : (value) => onSelectedChanged?.call(parentNode.task),
+        onTap: isReadOnly
+            ? null
+            : () {
+                ref
+                    .read(collapsedSubtasksProvider.notifier)
+                    .toggleCollapse(parentNode.task.id);
+              },
+        onContextMenu: isReadOnly
+            ? null
+            : onContextMenu != null
+            ? (pos, box) => onContextMenu!(context, parentNode.task, pos, box)
+            : null,
+        trailing: isReadOnly
+            ? const SizedBox.shrink()
+            : trailingBuilder?.call(context, parentNode.task),
+      );
+    } else if (node is TaskNode) {
       final taskNode = node as TaskNode;
       final isNested = taskNode.isBundledUnderParent;
       final projectState = ref.watch(projectProvider);
@@ -245,106 +290,6 @@ class TaskListKeyboardShortcuts extends StatelessWidget {
         },
         child: child,
       ),
-    );
-  }
-}
-
-class ActiveTaskReorderableList extends ConsumerWidget {
-  final List<TaskHierarchyNode> nodes;
-  final List<Widget> widgets;
-  final Set<String> selectedTaskIds;
-  final void Function(Task task, String newSortOrder) onReorder;
-  final void Function(Map<String, String> newSortOrders)? onMultiReorder;
-  final bool isReorderEnabled;
-
-  const ActiveTaskReorderableList({
-    super.key,
-    required this.nodes,
-    required this.widgets,
-    this.selectedTaskIds = const {},
-    required this.onReorder,
-    this.onMultiReorder,
-    this.isReorderEnabled = true,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (!isReorderEnabled) {
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: widgets.length,
-        itemBuilder: (context, index) => widgets[index],
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: widgets.length,
-          itemBuilder: (context, index) {
-            final node = index < nodes.length ? nodes[index] : null;
-            final child = widgets[index];
-
-            Widget draggableChild = child;
-            if (node is TaskNode) {
-              final isSelected = selectedTaskIds.contains(node.task.id);
-              draggableChild = PlatformDraggable<Task>(
-                data: node.task,
-                feedback: TaskDragProxy(
-                  task: node.task,
-                  selectedCount: isSelected ? selectedTaskIds.length : 1,
-                  width: constraints.maxWidth,
-                ),
-                childWhenDragging: Opacity(opacity: 0.3, child: child),
-                child: child,
-              );
-            }
-
-            return TaskDropZoneWrapper(
-              index: index,
-              onDrop: (task, newIndex) {
-                final settings = ref.read(settingsProvider);
-                if (selectedTaskIds.isNotEmpty) {
-                  final newSortOrders = TaskReorderUtils.handleMultiReorder(
-                    nodes: nodes,
-                    draggedTask: task,
-                    newIndex: newIndex,
-                    selectedTaskIds: selectedTaskIds.toSet(),
-                    settings: settings,
-                  );
-                  if (newSortOrders != null && newSortOrders.isNotEmpty) {
-                    onMultiReorder?.call(newSortOrders);
-                  } else {
-                    final newSortOrder = TaskReorderUtils.handleReorder(
-                      nodes: nodes,
-                      draggedTask: task,
-                      newIndex: newIndex,
-                      settings: settings,
-                    );
-                    if (newSortOrder != null) {
-                      onReorder(task, newSortOrder);
-                    }
-                  }
-                } else {
-                  final newSortOrder = TaskReorderUtils.handleReorder(
-                    nodes: nodes,
-                    draggedTask: task,
-                    newIndex: newIndex,
-                    settings: settings,
-                  );
-                  if (newSortOrder != null) {
-                    onReorder(task, newSortOrder);
-                  }
-                }
-              },
-              child: draggableChild,
-            );
-          },
-        );
-      },
     );
   }
 }

@@ -17,6 +17,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/shortcuts/backlog_shortcuts.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
+import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 
 class BacklogScreen extends ConsumerStatefulWidget {
   const BacklogScreen({super.key});
@@ -193,9 +194,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     searchQuery: _searchQuery,
                     selectedTaskIds: _selectedTaskIds,
                     onSelectedChanged: (task) => setState(() {
-                      _selectedTaskIds.contains(task.id)
-                          ? _selectedTaskIds.remove(task.id)
-                          : _selectedTaskIds.add(task.id);
+                      final updated = TaskSelectionUtils.toggleSelection(
+                        task: task,
+                        allTasks: provider.unscheduledTasks,
+                        currentSelectedIds: _selectedTaskIds.toSet(),
+                      );
+                      _selectedTaskIds
+                        ..clear()
+                        ..addAll(updated);
                     }),
                     onEdit: (task) =>
                         BacklogDialogHandlers.showEditTask(context, task),

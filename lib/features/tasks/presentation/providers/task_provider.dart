@@ -597,6 +597,13 @@ class TaskNotifier extends Notifier<TaskState> {
       if (task != null) {
         final updated = task.copyWith(scheduledDate: normalizedDate);
         await _repo.update(updated);
+
+        final subtasks = await _repo.getByParent(task.id);
+        for (final subtask in subtasks) {
+          if (subtask.scheduledDate == null && !subtask.isCompleted) {
+            await _repo.update(subtask.copyWith(scheduledDate: normalizedDate));
+          }
+        }
       }
     }
     await _refreshAll();
