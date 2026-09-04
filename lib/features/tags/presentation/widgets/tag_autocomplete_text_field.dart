@@ -9,6 +9,7 @@ import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dar
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 
+// TODO: revisit this file & clean up
 class TagAutocompleteTextField extends ConsumerStatefulWidget {
   final TextEditingController controller;
   final FocusNode? focusNode;
@@ -36,6 +37,7 @@ class _TagAutocompleteTextFieldState
     extends ConsumerState<TagAutocompleteTextField> {
   final _overlayController = OverlayPortalController();
   final _layerLink = LayerLink();
+  final _scrollController = ScrollController();
   late final FocusNode _focusNode;
 
   String? _activeQuery;
@@ -54,25 +56,17 @@ class _TagAutocompleteTextFieldState
       if (!_overlayController.isShowing) return KeyEventResult.ignored;
 
       final allTags = ref.read(tagProvider).tags;
-      final query = _activeQuery;
-      if (query == null) return KeyEventResult.ignored;
-
-      final suggestions = allTags
-          .where((t) => t.name.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      final suggestions = _filterSuggestions(allTags, _activeQuery);
       if (suggestions.isEmpty) return KeyEventResult.ignored;
 
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-          setState(() {
-            _selectedIndex = (_selectedIndex + 1) % suggestions.length;
-          });
+          _updateSelectedIndex((_selectedIndex + 1) % suggestions.length);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-          setState(() {
-            _selectedIndex =
-                (_selectedIndex - 1 + suggestions.length) % suggestions.length;
-          });
+          _updateSelectedIndex(
+            (_selectedIndex - 1 + suggestions.length) % suggestions.length,
+          );
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.numpadEnter) {
@@ -80,15 +74,44 @@ class _TagAutocompleteTextFieldState
           _selectTag(suggestions[_selectedIndex]);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-          setState(() {
-            _activeQuery = null;
-          });
+          _resetQuery();
           _overlayController.hide();
           return KeyEventResult.handled;
         }
       }
       return KeyEventResult.ignored;
     };
+  }
+
+  void _updateSelectedIndex(int index) {
+    setState(() => _selectedIndex = index);
+    _scrollToIndex(index);
+  }
+
+  void _scrollToIndex(int index) {
+    if (!_scrollController.hasClients || index < 0) return;
+    const itemHeight = 36.0;
+    final itemTop = index * itemHeight;
+    final itemBottom = itemTop + itemHeight;
+    final scrollOffset = _scrollController.offset;
+    final viewport = _scrollController.position.viewportDimension;
+
+    if (itemBottom > scrollOffset + viewport) {
+      _scrollController.animateTo(
+        (itemBottom - viewport).clamp(
+          0.0,
+          _scrollController.position.maxScrollExtent,
+        ),
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+      );
+    } else if (itemTop < scrollOffset) {
+      _scrollController.animateTo(
+        itemTop.clamp(0.0, _scrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -102,6 +125,7 @@ class _TagAutocompleteTextFieldState
 
   @override
   void dispose() {
+    _scrollController.dispose();
     widget.controller.removeListener(_onTextChanged);
     if (widget.focusNode == null) {
       _focusNode.dispose();
@@ -109,6 +133,21 @@ class _TagAutocompleteTextFieldState
       _focusNode.removeListener(_onFocusChanged);
     }
     super.dispose();
+  }
+
+  List<Tag> _filterSuggestions(List<Tag> allTags, String? query) {
+    if (query == null) return const [];
+    final lower = query.toLowerCase();
+    return allTags.where((t) => t.name.toLowerCase().contains(lower)).toList();
+  }
+
+  void _resetQuery() {
+    setState(() {
+      _activeQuery = null;
+      _queryStart = null;
+      _queryEnd = null;
+      _selectedIndex = 0;
+    });
   }
 
   void _onTextChanged() {
@@ -123,14 +162,14 @@ class _TagAutocompleteTextFieldState
     if (activeQuery != null) {
       final query = activeQuery.query;
       final allTags = ref.read(tagProvider).tags;
-      final suggestions = allTags
-          .where((t) => t.name.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      final suggestions = _filterSuggestions(allTags, query);
+
+      if (_activeQuery != query && _scrollController.hasClients) {
+        _scrollController.jumpTo(0.0);
+      }
 
       setState(() {
-        if (_activeQuery != query) {
-          _selectedIndex = 0;
-        }
+        if (_activeQuery != query) _selectedIndex = 0;
         _activeQuery = query;
         _queryStart = activeQuery.startIndex;
         _queryEnd = activeQuery.endIndex;
@@ -141,12 +180,7 @@ class _TagAutocompleteTextFieldState
         _overlayController.hide();
       }
     } else {
-      setState(() {
-        _activeQuery = null;
-        _queryStart = null;
-        _queryEnd = null;
-        _selectedIndex = 0;
-      });
+      _resetQuery();
       _overlayController.hide();
     }
   }
@@ -168,17 +202,12 @@ class _TagAutocompleteTextFieldState
     final after = text.substring(end);
 
     final keepTagsInTitle = ref.read(settingsProvider).keepTagsInTitle;
-    String newText;
-    int newCursorOffset;
-
-    if (keepTagsInTitle) {
-      newText = '$before#${tag.name} $after';
-      newCursorOffset = start + tag.name.length + 2;
-    } else {
-      newText = '$before $after'.replaceAll(RegExp(r'\s+'), ' ').trimLeft();
-      newCursorOffset = before.length;
-      if (newCursorOffset > newText.length) newCursorOffset = newText.length;
-    }
+    final newText = keepTagsInTitle
+        ? '$before#${tag.name} $after'
+        : '$before $after'.replaceAll(RegExp(r'\s+'), ' ').trimLeft();
+    final newCursorOffset = keepTagsInTitle
+        ? start + tag.name.length + 2
+        : before.length.clamp(0, newText.length);
 
     widget.controller.text = newText;
     widget.controller.selection = TextSelection.fromPosition(
@@ -186,25 +215,14 @@ class _TagAutocompleteTextFieldState
     );
 
     widget.onTagSelected?.call(tag);
-
-    setState(() {
-      _activeQuery = null;
-      _queryStart = null;
-      _queryEnd = null;
-      _selectedIndex = 0;
-    });
+    _resetQuery();
     _overlayController.hide();
   }
 
   @override
   Widget build(BuildContext context) {
     final allTags = ref.watch(tagProvider).tags;
-    final query = _activeQuery;
-    final suggestions = query == null
-        ? <Tag>[]
-        : allTags
-              .where((t) => t.name.toLowerCase().contains(query.toLowerCase()))
-              .toList();
+    final suggestions = _filterSuggestions(allTags, _activeQuery);
 
     return OverlayPortal(
       controller: _overlayController,
@@ -235,11 +253,13 @@ class _TagAutocompleteTextFieldState
                 child: Container(
                   constraints: const BoxConstraints(maxHeight: 180),
                   child: SingleChildScrollView(
+                    controller: _scrollController,
+                    primary: false,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        for (int i = 0; i < suggestions.length; i++) ...[
+                        for (int i = 0; i < suggestions.length; i++)
                           TagSuggestionItem(
                             tag: suggestions[i],
                             isSelected: i == _selectedIndex,
@@ -250,7 +270,6 @@ class _TagAutocompleteTextFieldState
                                 Icons.tag,
                             onTap: () => _selectTag(suggestions[i]),
                           ),
-                        ],
                       ],
                     ),
                   ),
