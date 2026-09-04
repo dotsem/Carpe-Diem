@@ -298,7 +298,7 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       parentId: _parentId,
       selectedLabelIds: _selectedLabelIds,
       selectedTagIds: _selectedTagIds,
-      placement: _placement ?? TaskPlacement.bottom,
+      placement: _placement,
       initialTask: widget.initialTask,
     );
   }

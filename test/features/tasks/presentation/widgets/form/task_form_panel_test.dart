@@ -254,5 +254,35 @@ void main() {
         );
       },
     );
+
+    testWidgets(
+      'editing existing task without placement does not reposition task',
+      (tester) async {
+        final existingTask = createTestTask(
+          id: 't_edit',
+          title: 'Existing Task',
+        ).copyWith(sortOrder: '0|h00000:');
+
+        when(
+          () => repos.mockTaskRepo.getById('t_edit'),
+        ).thenAnswer((_) async => existingTask);
+        when(
+          () => repos.mockTaskRepo.update(any()),
+        ).thenAnswer((_) async => {});
+
+        await tester.pumpWidget(buildTestWidget(initialTask: existingTask));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Save Changes'));
+        await tester.pumpAndSettle();
+
+        final captured = verify(
+          () => repos.mockTaskRepo.update(captureAny()),
+        ).captured;
+        expect(captured.isNotEmpty, isTrue);
+        final updatedTask = captured.first as Task;
+        expect(updatedTask.sortOrder, equals('0|h00000:'));
+      },
+    );
   });
 }
