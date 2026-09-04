@@ -38,6 +38,8 @@ class TagSuggestionItem extends StatelessWidget {
             Expanded(
               child: Text(
                 '#${tag.name}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected

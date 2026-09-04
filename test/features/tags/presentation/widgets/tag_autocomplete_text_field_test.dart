@@ -245,5 +245,54 @@ void main() {
         expect(controller.text, equals('Hello #work '));
       },
     );
+
+    testWidgets(
+      'scrolls dropdown when navigating past visible items with arrow down',
+      (tester) async {
+        final mockTags = [
+          for (var i = 0; i < 10; i++) Tag(id: 't$i', name: 'tag$i'),
+        ];
+        when(() => mockTagRepo.getAll()).thenAnswer((_) async => mockTags);
+
+        final container = ProviderContainer(
+          overrides: [
+            tagRepositoryProvider.overrideWithValue(mockTagRepo),
+            tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
+          ],
+        );
+
+        await container.read(tagProvider.notifier).loadTags();
+        await container.read(tagIconProvider.notifier).loadIcons();
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              home: Scaffold(
+                body: TagAutocompleteTextField(controller: controller),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextField), '#');
+        await tester.pumpAndSettle();
+
+        final scrollableFinder = find.descendant(
+          of: find.byType(SingleChildScrollView),
+          matching: find.byType(Scrollable),
+        );
+        final scrollable = tester.state<ScrollableState>(scrollableFinder);
+        expect(scrollable.position.pixels, equals(0.0));
+
+        for (int i = 0; i < 6; i++) {
+          await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+          await tester.pumpAndSettle();
+        }
+
+        expect(scrollable.position.pixels, greaterThan(0.0));
+      },
+    );
   });
 }
