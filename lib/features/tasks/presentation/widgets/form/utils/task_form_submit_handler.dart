@@ -23,7 +23,7 @@ abstract final class TaskFormSubmitHandler {
     required String? parentId,
     required List<String> selectedLabelIds,
     required List<String> selectedTagIds,
-    required TaskPlacement placement,
+    TaskPlacement? placement,
     required Task? initialTask,
   }) async {
     final parsedTagNames = TagParser.parseTags(rawTitle);
@@ -88,7 +88,10 @@ abstract final class TaskFormSubmitHandler {
               tagIds: finalTagIds,
               isUrgent: placement == TaskPlacement.urgent,
             ),
-            placement: placement,
+            placement:
+                (initialTask.isUrgent && placement == TaskPlacement.urgent)
+                ? null
+                : placement,
           );
     } else {
       ref
@@ -98,7 +101,7 @@ abstract final class TaskFormSubmitHandler {
             description: trimmedDesc,
             scheduledDate: scheduledDate,
             projectId: selectedProjectId,
-            placement: placement,
+            placement: placement ?? TaskPlacement.bottom,
             deadline: deadline,
             blockedById: blockedById,
             parentId: parentId,
