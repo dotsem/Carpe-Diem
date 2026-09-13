@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import '../../../../helpers/mock_repositories.dart';
 
@@ -16,12 +17,19 @@ void main() {
 
   group('projects', () {
     late MockProjectRepository mockRepo;
+    late MockKeyValueRepository mockSettingsRepo;
     late ProviderContainer container;
 
     setUp(() {
       mockRepo = MockProjectRepository();
+      mockSettingsRepo = MockKeyValueRepository();
+      when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
+
       container = ProviderContainer(
-        overrides: [projectRepositoryProvider.overrideWithValue(mockRepo)],
+        overrides: [
+          projectRepositoryProvider.overrideWithValue(mockRepo),
+          keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
+        ],
       );
     });
 
@@ -96,6 +104,66 @@ void main() {
             ),
           ),
         ).called(1);
+      },
+    );
+
+    test(
+      'filteredProjectsProvider filters projects based on active filter',
+      () async {
+        final p1 = Project(
+          id: 'p1',
+          name: 'Urgent',
+          color: Colors.red,
+          isUrgent: true,
+          createdAt: DateTime.now(),
+        );
+        final p2 = Project(
+          id: 'p2',
+          name: 'Normal',
+          color: Colors.blue,
+          isUrgent: false,
+          createdAt: DateTime.now(),
+        );
+
+        when(() => mockRepo.getAll()).thenAnswer((_) async => [p1, p2]);
+        await container.read(projectProvider.notifier).loadProjects();
+
+        expect(container.read(filteredProjectsProvider).length, equals(2));
+
+        container.read(filterProvider.notifier).setUrgentFilter(true);
+
+        final filtered = container.read(filteredProjectsProvider);
+        expect(filtered.length, equals(1));
+        expect(filtered.first.id, equals('p1'));
+      },
+    );
+
+    test(
+      'activeFilteredProjectsProvider filters out inactive projects',
+      () async {
+        final active = Project(
+          id: 'p1',
+          name: 'Active',
+          color: Colors.green,
+          isActive: true,
+          createdAt: DateTime.now(),
+        );
+        final inactive = Project(
+          id: 'p2',
+          name: 'Inactive',
+          color: Colors.grey,
+          isActive: false,
+          createdAt: DateTime.now(),
+        );
+
+        when(
+          () => mockRepo.getAll(),
+        ).thenAnswer((_) async => [active, inactive]);
+        await container.read(projectProvider.notifier).loadProjects();
+
+        final result = container.read(activeFilteredProjectsProvider);
+        expect(result.length, equals(1));
+        expect(result.first.id, equals('p1'));
       },
     );
   });
