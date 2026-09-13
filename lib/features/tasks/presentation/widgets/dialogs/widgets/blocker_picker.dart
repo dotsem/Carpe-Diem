@@ -1,9 +1,11 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/searchable_dropdown.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BlockerPicker extends StatelessWidget {
+class BlockerPicker extends ConsumerWidget {
   final List<Task> availableTasks;
   final String? selectedBlockerId;
   final String? currentTaskId;
@@ -36,7 +38,9 @@ class BlockerPicker extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final taskMap = {for (final t in availableTasks) t.id: t};
+
     final selectableTasks = availableTasks
         .where((t) => !t.isCompleted)
         .where((t) => t.id != currentTaskId)
@@ -45,12 +49,18 @@ class BlockerPicker extends StatelessWidget {
 
     final selectedTask = selectedBlockerId == null
         ? null
-        : availableTasks.where((t) => t.id == selectedBlockerId).firstOrNull;
+        : (availableTasks.where((t) => t.id == selectedBlockerId).firstOrNull ??
+              ref.watch(taskByIdProvider(selectedBlockerId!)).valueOrNull);
+
+    final items =
+        selectedTask != null && !selectableTasks.contains(selectedTask)
+        ? [selectedTask, ...selectableTasks]
+        : selectableTasks;
 
     return SearchableDropdown<Task>(
       borderless: borderless,
       menuController: menuController,
-      items: selectableTasks,
+      items: items,
       selectedItem: selectedTask,
       onChanged: (task) => onChanged(task?.id),
       nameGetter: (t) => t?.title ?? 'No blocker',
@@ -65,8 +75,9 @@ class BlockerPicker extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           );
         }
+        final isCandidateBlocked = t.isBlockedBy(taskMap[t.blockedById]);
         return Icon(
-          Icons.task_alt,
+          isCandidateBlocked ? Icons.lock_clock : Icons.task_alt,
           size: 14,
           color: t.isUrgent
               ? AppColors.error

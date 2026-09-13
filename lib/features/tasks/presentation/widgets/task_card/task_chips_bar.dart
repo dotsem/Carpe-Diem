@@ -61,17 +61,10 @@ class TaskChipsBar extends ConsumerWidget {
     final collapsedSet = ref.watch(collapsedSubtasksProvider);
     final isCollapsedSubtasks = collapsedSet.contains(task.id);
 
-    final taskState = ref.watch(taskProvider);
-    final blocker = task.blockedById != null
-        ? taskState.getById(task.blockedById!)
-        : null;
-    final isBlocked =
-        task.blockedById != null && blocker != null && !blocker.isCompleted;
-
     final hasChips =
         project != null ||
         isOverdue ||
-        (isBlocked && !task.isCompleted) ||
+        task.isBlocked ||
         task.status.isInProgress ||
         task.deadline != null ||
         labels.isNotEmpty ||
@@ -85,8 +78,7 @@ class TaskChipsBar extends ConsumerWidget {
       spacing: 4,
       runSpacing: 4,
       children: [
-        if (isBlocked && !task.isCompleted)
-          BlockedChip(blockerTitle: blocker.title),
+        if (task.isBlocked) BlockedChip(blockerTitle: task.blockerTitle),
         if (subtasks.isNotEmpty)
           SubtaskProgressChip(
             completedCount: subtasks.where((t) => t.isCompleted).length,

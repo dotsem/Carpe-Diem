@@ -21,7 +21,7 @@ class _ParentBreadcrumbHeaderState
 
   @override
   Widget build(BuildContext context) {
-    final parentTaskAsync = ref.watch(parentTaskProvider(widget.parentId));
+    final parentTaskAsync = ref.watch(taskByIdProvider(widget.parentId));
     final parentTask = parentTaskAsync.valueOrNull;
     if (parentTask == null) return const SizedBox.shrink();
 

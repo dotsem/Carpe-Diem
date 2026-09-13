@@ -41,14 +41,14 @@ void main() {
       verify(() => mockTaskRepo.getByParent('parent1')).called(1);
     });
 
-    test('parentTaskProvider returns parent task by ID', () async {
+    test('taskByIdProvider returns parent task by ID', () async {
       final parent = createTestTask(id: 'parent1', title: 'Parent Task');
 
       when(
         () => mockTaskRepo.getById('parent1'),
       ).thenAnswer((_) async => parent);
 
-      final result = await container.read(parentTaskProvider('parent1').future);
+      final result = await container.read(taskByIdProvider('parent1').future);
 
       expect(result, isNotNull);
       expect(result!.title, equals('Parent Task'));
