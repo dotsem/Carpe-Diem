@@ -21,7 +21,7 @@ void main() {
     late MockProjectRepository mockProjectRepo;
     late MockTaskRepository mockTaskRepo;
     late MockHistoryRepository mockHistoryRepo;
-    late MockSettingsRepository mockSettingsRepo;
+    late MockKeyValueRepository mockSettingsRepo;
     late ProviderContainer container;
 
     setUp(() {
@@ -30,7 +30,7 @@ void main() {
       mockProjectRepo = MockProjectRepository();
       mockTaskRepo = MockTaskRepository();
       mockHistoryRepo = MockHistoryRepository();
-      mockSettingsRepo = MockSettingsRepository();
+      mockSettingsRepo = MockKeyValueRepository();
 
       when(() => mockTagRepo.repositoryName).thenReturn('tags');
       when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
@@ -64,7 +64,7 @@ void main() {
           projectRepositoryProvider.overrideWithValue(mockProjectRepo),
           taskRepositoryProvider.overrideWithValue(mockTaskRepo),
           historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
-          settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+          keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
         ],
       );
     });

@@ -81,7 +81,7 @@ void main() {
     testWidgets(
       'inserts tag name on suggestion tap when keepTagsInTitle is true',
       (tester) async {
-        final mockSettingsRepo = MockSettingsRepository();
+        final mockSettingsRepo = MockKeyValueRepository();
         when(
           () => mockSettingsRepo.getAll(),
         ).thenAnswer((_) async => {'keep_tags_in_title': 'true'});
@@ -90,7 +90,7 @@ void main() {
           overrides: [
             tagRepositoryProvider.overrideWithValue(mockTagRepo),
             tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
-            settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+            keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
           ],
         );
 
@@ -134,7 +134,7 @@ void main() {
     testWidgets(
       'strips tag name and returns on suggestion tap when keepTagsInTitle is false',
       (tester) async {
-        final mockSettingsRepo = MockSettingsRepository();
+        final mockSettingsRepo = MockKeyValueRepository();
         when(
           () => mockSettingsRepo.getAll(),
         ).thenAnswer((_) async => {'keep_tags_in_title': 'false'});
@@ -143,7 +143,7 @@ void main() {
           overrides: [
             tagRepositoryProvider.overrideWithValue(mockTagRepo),
             tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
-            settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+            keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
           ],
         );
 
@@ -187,7 +187,7 @@ void main() {
     testWidgets(
       'selects suggestion on enter key and ignores when ctrl or meta is pressed',
       (tester) async {
-        final mockSettingsRepo = MockSettingsRepository();
+        final mockSettingsRepo = MockKeyValueRepository();
         when(
           () => mockSettingsRepo.getAll(),
         ).thenAnswer((_) async => {'keep_tags_in_title': 'true'});
@@ -196,7 +196,7 @@ void main() {
           overrides: [
             tagRepositoryProvider.overrideWithValue(mockTagRepo),
             tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
-            settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+            keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
           ],
         );
 

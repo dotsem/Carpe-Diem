@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 
@@ -23,22 +27,49 @@ class FilterState {
 }
 
 class FilterNotifier extends Notifier<FilterState> {
+  late final IKeyValueRepository _repo;
+
   @override
   FilterState build() {
-    if (ref.read(settingsProvider).persistentFilter) {
-      final filter = TaskFilter.fromMap(
-        ref.read(settingsProvider).persistentFilterValues,
-      );
-      return FilterState(filter: filter);
-    }
+    _repo = ref.watch(keyValueRepositoryProvider);
     return const FilterState();
+  }
+
+  Future<void> loadFilter() async {
+    if (!ref.read(settingsProvider).persistentFilter) return;
+    try {
+      final raw = await _repo.get(SettingsConstants.keyPersistentFilterValues);
+      if (raw != null && raw.isNotEmpty) {
+        final map = jsonDecode(raw) as Map<String, dynamic>;
+        state = state.copyWith(filter: TaskFilter.fromMap(map));
+      }
+    } catch (e) {
+      debugPrint('Failed to load filter: $e');
+    }
+  }
+
+  Future<void> saveFilter() async {
+    try {
+      await _repo.set(
+        SettingsConstants.keyPersistentFilterValues,
+        jsonEncode(state.filter.toMap()),
+      );
+    } catch (e) {
+      debugPrint('Failed to save filter: $e');
+    }
+  }
+
+  Future<void> clearPersistedFilter() async {
+    try {
+      await _repo.delete(SettingsConstants.keyPersistentFilterValues);
+    } catch (e) {
+      debugPrint('Failed to clear persisted filter: $e');
+    }
   }
 
   void _persistIfEnabled() {
     if (ref.read(settingsProvider).persistentFilter) {
-      ref
-          .read(settingsProvider.notifier)
-          .setPersistentFilterValues(state.filter.toMap());
+      saveFilter();
     }
   }
 

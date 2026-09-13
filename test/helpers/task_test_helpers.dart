@@ -50,7 +50,7 @@ class TestTaskRepositories {
   final MockTaskRepository mockTaskRepo;
   final MockProjectRepository mockProjectRepo;
   final MockHistoryRepository mockHistoryRepo;
-  final MockSettingsRepository mockSettingsRepo;
+  final MockKeyValueRepository mockSettingsRepo;
   final MockLabelRepository mockLabelRepo;
   final MockTagRepository mockTagRepo;
   final MockTagIconRepository mockTagIconRepo;
@@ -59,14 +59,14 @@ class TestTaskRepositories {
     MockTaskRepository? taskRepo,
     MockProjectRepository? projectRepo,
     MockHistoryRepository? historyRepo,
-    MockSettingsRepository? settingsRepo,
+    MockKeyValueRepository? settingsRepo,
     MockLabelRepository? labelRepo,
     MockTagRepository? tagRepo,
     MockTagIconRepository? tagIconRepo,
   }) : mockTaskRepo = taskRepo ?? MockTaskRepository(),
        mockProjectRepo = projectRepo ?? MockProjectRepository(),
        mockHistoryRepo = historyRepo ?? MockHistoryRepository(),
-       mockSettingsRepo = settingsRepo ?? MockSettingsRepository(),
+       mockSettingsRepo = settingsRepo ?? MockKeyValueRepository(),
        mockLabelRepo = labelRepo ?? MockLabelRepository(),
        mockTagRepo = tagRepo ?? MockTagRepository(),
        mockTagIconRepo = tagIconRepo ?? MockTagIconRepository();
@@ -101,7 +101,7 @@ class TestTaskRepositories {
     taskRepositoryProvider.overrideWithValue(mockTaskRepo),
     projectRepositoryProvider.overrideWithValue(mockProjectRepo),
     historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
-    settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+    keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
     labelRepositoryProvider.overrideWithValue(mockLabelRepo),
     tagRepositoryProvider.overrideWithValue(mockTagRepo),
     tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),

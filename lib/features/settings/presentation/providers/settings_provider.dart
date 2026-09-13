@@ -1,139 +1,119 @@
 import 'dart:convert';
 
+import 'package:carpe_diem/core/utils/key_value_map_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart'
+    show FilterInteractionMethod;
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 
 class SettingsState {
   final Map<String, String> _map;
 
   const SettingsState(this._map);
 
-  String _get(String key, String defaultValue) => _map[key] ?? defaultValue;
-
-  int _getInt(String key, int defaultValue) =>
-      int.tryParse(_get(key, '')) ?? defaultValue;
-
-  double _getDouble(String key, double defaultValue) =>
-      double.tryParse(_get(key, '')) ?? defaultValue;
-
-  bool _getBool(String key, bool defaultValue) =>
-      _get(key, defaultValue.toString()) == 'true';
-
-  T _getEnum<T extends Enum>(String key, List<T> values, T defaultValue) {
-    final valueStr = _get(key, defaultValue.name);
-    return values.firstWhere(
-      (e) => e.name == valueStr,
-      orElse: () => defaultValue,
-    );
-  }
-
-  TaskLayout get taskLayout => _getEnum(
+  TaskLayout get taskLayout => _map.getEnum(
     SettingsConstants.keyTaskLayout,
     TaskLayout.values,
     TaskLayout.list,
   );
-  int get maxPlanningDays => _getInt(
+  int get maxPlanningDays => _map.getInt(
     SettingsConstants.keyMaxPlanningDays,
     SettingsConstants.maxPlanningDaysAhead,
   );
-  int get firstDayOfWeek => _getInt(
+  int get firstDayOfWeek => _map.getInt(
     SettingsConstants.keyFirstDayOfWeek,
     SettingsConstants.firstDayOfWeek,
   );
-  int get taskCompletionDelay => _getInt(
+  int get taskCompletionDelay => _map.getInt(
     SettingsConstants.keyTaskDelay,
     SettingsConstants.taskCompletionDelaySeconds,
   );
-  bool get inheritParentDeadline => _getBool(
+  bool get inheritParentDeadline => _map.getBool(
     SettingsConstants.keyInheritParentDeadline,
     SettingsConstants.inheritParentDeadline,
   );
-  bool get prioritizeDeadlines => _getBool(
+  bool get prioritizeDeadlines => _map.getBool(
     SettingsConstants.keyPrioritizeDeadlines,
     SettingsConstants.prioritizeDeadlines,
   );
-  bool get prioritizeOverdue => _getBool(
+  bool get prioritizeOverdue => _map.getBool(
     SettingsConstants.keyPrioritizeOverdue,
     SettingsConstants.prioritizeOverdue,
   );
-  bool get inheritProjectDeadline => _getBool(
+  bool get inheritProjectDeadline => _map.getBool(
     SettingsConstants.keyInheritProjectDeadline,
     SettingsConstants.inheritProjectDeadline,
   );
-  ThemeMode get themeMode => _getEnum(
+  ThemeMode get themeMode => _map.getEnum(
     SettingsConstants.keyThemeMode,
     ThemeMode.values,
     ThemeMode.system,
   );
-  double get taskGradientWidth => _getDouble(
+  double get taskGradientWidth => _map.getDouble(
     SettingsConstants.keyTaskGradientWidth,
     SettingsConstants.defaultTaskGradientWidth,
   );
-  bool get compactMode => _getBool(
+  bool get compactMode => _map.getBool(
     SettingsConstants.keyCompactMode,
     SettingsConstants.defaultCompactMode,
   );
-  bool get showDescriptionOnCard => _getBool(
+  bool get showDescriptionOnCard => _map.getBool(
     SettingsConstants.keyShowDescriptionOnCard,
     SettingsConstants.defaultShowDescriptionOnCard,
   );
   String? get defaultProjectId => _map[SettingsConstants.keyDefaultProjectId];
 
-  int get historyRetention => _getInt(
+  int get historyRetention => _map.getInt(
     SettingsConstants.keyHistoryRetention,
     SettingsConstants.defaultHistoryRetention,
   );
-  String get defaultStatsPeriod => _get(
+  String get defaultStatsPeriod => _map.getString(
     SettingsConstants.keyDefaultStatsPeriod,
     SettingsConstants.defaultStatsPeriod,
   );
-  bool get showActiveProjectsOnly => _getBool(
+  bool get showActiveProjectsOnly => _map.getBool(
     SettingsConstants.keyShowActiveProjectsOnly,
     SettingsConstants.defaultShowActiveProjectsOnly,
   );
-  bool get enableRandomTask => _getBool(
+  bool get enableRandomTask => _map.getBool(
     SettingsConstants.keyEnableRandomTask,
     SettingsConstants.defaultEnableRandomTask,
   );
-  FilterInteractionMethod get filterInteractionMethod => _getEnum(
+  FilterInteractionMethod get filterInteractionMethod => _map.getEnum(
     SettingsConstants.keyFilterInteractionMethod,
     FilterInteractionMethod.values,
     FilterInteractionMethod.cycle,
   );
-  bool get persistentFilter => _getBool(
+  bool get persistentFilter => _map.getBool(
     SettingsConstants.keyPersistentFilter,
     SettingsConstants.defaultPersistentFilter,
   );
-  Map<String, dynamic> get persistentFilterValues => Map.from(
-    jsonDecode(_get(SettingsConstants.keyPersistentFilterValues, '{}')),
-  );
-  Absorption get tagAbsorption => _getEnum(
+  Absorption get tagAbsorption => _map.getEnum(
     SettingsConstants.keyTagAbsorption,
     Absorption.values,
     SettingsConstants.defaultTagAbsorption,
   );
-  bool get keepTagsInTitle => _getBool(
+  bool get keepTagsInTitle => _map.getBool(
     SettingsConstants.keyKeepTagsInTitle,
     SettingsConstants.defaultKeepTagsInTitle,
   );
-  bool get showHashtagInTitle => _getBool(
+  bool get showHashtagInTitle => _map.getBool(
     SettingsConstants.keyShowHashtagInTitle,
     SettingsConstants.defaultShowHashtagInTitle,
   );
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
-  late final ISettingsRepository _repo;
+  late final IKeyValueRepository _repo;
   final Map<String, Future<void>> _writeQueues = {};
 
   @override
   SettingsState build() {
-    _repo = ref.watch(settingsRepositoryProvider);
+    _repo = ref.watch(keyValueRepositoryProvider);
     return const SettingsState({});
   }
 
@@ -227,8 +207,6 @@ class SettingsNotifier extends Notifier<SettingsState> {
       _set(SettingsConstants.keyFilterInteractionMethod, method);
   Future<void> setPersistentFilter(bool value) =>
       _set(SettingsConstants.keyPersistentFilter, value);
-  Future<void> setPersistentFilterValues(Map<String, dynamic> values) =>
-      _set(SettingsConstants.keyPersistentFilterValues, values);
   Future<void> setTagAbsorption(Absorption absorption) =>
       _set(SettingsConstants.keyTagAbsorption, absorption);
   Future<void> setKeepTagsInTitle(bool value) =>

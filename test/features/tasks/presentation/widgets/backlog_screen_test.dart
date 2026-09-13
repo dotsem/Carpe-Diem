@@ -14,7 +14,7 @@ void main() {
     late MockProjectRepository mockProjectRepo;
     late MockLabelRepository mockLabelRepo;
     late MockHistoryRepository mockHistoryRepo;
-    late MockSettingsRepository mockSettingsRepo;
+    late MockKeyValueRepository mockSettingsRepo;
     late MockTagRepository mockTagRepo;
     late MockTagIconRepository mockTagIconRepo;
 
@@ -23,7 +23,7 @@ void main() {
       mockProjectRepo = MockProjectRepository();
       mockLabelRepo = MockLabelRepository();
       mockHistoryRepo = MockHistoryRepository();
-      mockSettingsRepo = MockSettingsRepository();
+      mockSettingsRepo = MockKeyValueRepository();
       mockTagRepo = MockTagRepository();
       mockTagIconRepo = MockTagIconRepository();
 
@@ -66,7 +66,7 @@ void main() {
               projectRepositoryProvider.overrideWithValue(mockProjectRepo),
               labelRepositoryProvider.overrideWithValue(mockLabelRepo),
               historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
-              settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+              keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
               tagRepositoryProvider.overrideWithValue(mockTagRepo),
               tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
             ],

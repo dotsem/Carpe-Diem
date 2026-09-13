@@ -123,7 +123,7 @@ abstract class ITagRepository implements ICrudRepository<Tag> {
   Future<void> delete(String id);
 }
 
-abstract class ISettingsRepository {
+abstract class IKeyValueRepository {
   Future<void> set(String key, String value);
   Future<String?> get(String key);
   Future<void> delete(String key);

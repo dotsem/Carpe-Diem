@@ -15,7 +15,7 @@ final databaseProvider = Provider<Database>((ref) {
   );
 });
 
-final settingsRepositoryProvider = Provider<ISettingsRepository>((ref) {
+final keyValueRepositoryProvider = Provider<IKeyValueRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return SettingsRepository(db);
 });
