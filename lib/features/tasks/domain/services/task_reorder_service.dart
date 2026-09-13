@@ -1,7 +1,9 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/lexorank_utils.dart';
 import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/core/utils/task_sort_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
@@ -108,41 +110,16 @@ class TaskReorderService {
   }) {
     if (!currentList.any((t) => t.id == updatedTask.id)) return currentList;
 
+    final settings = SettingsState({
+      SettingsConstants.keyPrioritizeDeadlines: prioritizeDeadlines.toString(),
+      SettingsConstants.keyPrioritizeOverdue: prioritizeOverdue.toString(),
+    });
+
     final updatedList = currentList
         .map((t) => t.id == updatedTask.id ? updatedTask : t)
         .toList();
 
-    updatedList.sort((a, b) {
-      if (a.isUrgent && !b.isUrgent) return -1;
-      if (!a.isUrgent && b.isUrgent) return 1;
-
-      if (prioritizeOverdue) {
-        if (a.isOverdue && !b.isOverdue) return -1;
-        if (!a.isOverdue && b.isOverdue) return 1;
-      }
-
-      final deadlineComp = () {
-        if (a.deadline == b.deadline) return 0;
-        if (a.deadline == null) return 1;
-        if (b.deadline == null) return -1;
-        return a.deadline!.compareTo(b.deadline!);
-      }();
-
-      if (prioritizeDeadlines && deadlineComp != 0) {
-        return deadlineComp;
-      }
-
-      final aSort = a.sortOrder.isEmpty ? '~' : a.sortOrder;
-      final bSort = b.sortOrder.isEmpty ? '~' : b.sortOrder;
-      final sortComp = aSort.compareTo(bSort);
-      if (sortComp != 0) return sortComp;
-
-      final createdComp = b.createdAt.compareTo(a.createdAt);
-      if (createdComp != 0) return createdComp;
-
-      return deadlineComp;
-    });
-
+    TaskSortUtils.sortTasks(updatedList, settings);
     return updatedList;
   }
 

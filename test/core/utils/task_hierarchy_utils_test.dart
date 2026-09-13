@@ -236,5 +236,46 @@ void main() {
         expect(result[1].depth, 0);
       },
     );
+
+    test(
+      'buildHierarchy does not pull parent above another root task when subtask appears first',
+      () {
+        final parent = Task(
+          id: 'parent_1',
+          title: 'Parent 1',
+          createdAt: now,
+          sortOrder: 'b0',
+        );
+        final otherRoot = Task(
+          id: 'root_2',
+          title: 'Root 2',
+          createdAt: now,
+          sortOrder: 'a0',
+        );
+        final subtask = Task(
+          id: 'sub_1',
+          title: 'Subtask 1',
+          parentId: 'parent_1',
+          createdAt: now,
+          sortOrder: '0',
+        );
+
+        final result = TaskHierarchyUtils.buildHierarchy([
+          subtask,
+          otherRoot,
+          parent,
+        ]);
+
+        expect(result.length, 3);
+        expect((result[0] as TaskNode).task.id, 'root_2');
+        expect(result[0].depth, 0);
+
+        expect((result[1] as TaskNode).task.id, 'parent_1');
+        expect(result[1].depth, 0);
+
+        expect((result[2] as TaskNode).task.id, 'sub_1');
+        expect(result[2].depth, 1);
+      },
+    );
   });
 }
