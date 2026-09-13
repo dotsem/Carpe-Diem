@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -22,7 +23,14 @@ class BacklogDialogHandlers {
   }
 
   static void showAddTask(BuildContext context, {WidgetRef? ref}) {
-    context.openRightSidebar(AddTaskPanel());
+    final tabState = ref?.read(backlogLabelTabProvider);
+    final initialLabelIds =
+        tabState?.scope == BacklogLabelTabScope.label &&
+            tabState?.labelId != null
+        ? [tabState!.labelId!]
+        : null;
+
+    context.openRightSidebar(AddTaskPanel(initialLabelIds: initialLabelIds));
   }
 
   static void showImportFromMD(BuildContext context) {

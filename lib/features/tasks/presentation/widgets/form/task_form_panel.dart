@@ -28,6 +28,7 @@ class TaskFormPanel extends ConsumerStatefulWidget {
   final DateTime? initialDate;
   final String? initialProjectId;
   final String? initialParentId;
+  final List<String>? initialLabelIds;
 
   const TaskFormPanel({
     super.key,
@@ -35,6 +36,7 @@ class TaskFormPanel extends ConsumerStatefulWidget {
     this.initialDate,
     this.initialProjectId,
     this.initialParentId,
+    this.initialLabelIds,
   });
 
   @override
@@ -91,6 +93,9 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       _selectedProjectId = widget.initialProjectId;
       _placement = TaskPlacement.bottom;
       _parentId = widget.initialParentId;
+      _selectedLabelIds = widget.initialLabelIds != null
+          ? List.from(widget.initialLabelIds!)
+          : [];
 
       _titleController = TagHighlightingController(
         getExistingTagNames: () =>

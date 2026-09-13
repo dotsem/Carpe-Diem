@@ -1,6 +1,7 @@
 import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +37,7 @@ void main() async {
   await container.read(settingsProvider.notifier).loadSettings();
   await container.read(filterProvider.notifier).loadFilter();
   await container.read(labelProvider.notifier).loadLabels();
+  await container.read(backlogLabelTabProvider.notifier).loadLastActiveTab();
   await container.read(tagProvider.notifier).loadTags();
   await container.read(tagIconProvider.notifier).loadIcons();
   await container.read(projectProvider.notifier).loadProjects();

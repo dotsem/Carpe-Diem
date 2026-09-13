@@ -9,11 +9,13 @@ class AddTaskPanel extends RightSidebarPanel {
   final DateTime? initialDate;
   final String? initialProjectId;
   final String? initialParentId;
+  final List<String>? initialLabelIds;
 
   const AddTaskPanel({
     this.initialDate,
     this.initialProjectId,
     this.initialParentId,
+    this.initialLabelIds,
   });
 
   @override
@@ -23,11 +25,16 @@ class AddTaskPanel extends RightSidebarPanel {
           runtimeType == other.runtimeType &&
           initialDate == other.initialDate &&
           initialProjectId == other.initialProjectId &&
-          initialParentId == other.initialParentId;
+          initialParentId == other.initialParentId &&
+          initialLabelIds == other.initialLabelIds;
 
   @override
-  int get hashCode =>
-      Object.hash(initialDate, initialProjectId, initialParentId);
+  int get hashCode => Object.hash(
+    initialDate,
+    initialProjectId,
+    initialParentId,
+    initialLabelIds,
+  );
 }
 
 class EditTaskPanel extends RightSidebarPanel {

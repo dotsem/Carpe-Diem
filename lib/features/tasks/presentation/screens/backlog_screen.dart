@@ -1,3 +1,5 @@
+import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_label_tab_bar.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -104,10 +106,17 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final provider = ref.watch(taskProvider);
+    ref.listen(backlogLabelTabProvider, (previous, next) {
+      setState(
+        () => _selectedTaskIds.clear(),
+      ); // TODO: cheap hack, maybe cary them over with an indicator in the multi select bar
+    });
 
     return BacklogShortcuts(
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
+      onPrevTab: () => ref.read(backlogLabelTabProvider.notifier).prevTab(),
+      onNextTab: () => ref.read(backlogLabelTabProvider.notifier).nextTab(),
       onShowFilter: () => BacklogDialogHandlers.showFilterDialog(context, ref),
       onFocusSearch: () => _searchFocusNode.requestFocus(),
       onUnfocusSearch: () {
@@ -120,7 +129,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
           }
         }
       },
-      onNewTask: () => BacklogDialogHandlers.showAddTask(context),
+      onNewTask: () => BacklogDialogHandlers.showAddTask(context, ref: ref),
       onPlanTask: () =>
           _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForToday),
       onPlanTaskTomorrow: () => _scheduleTasks(
@@ -153,7 +162,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     ],
                     FilledButton.icon(
                       onPressed: () =>
-                          BacklogDialogHandlers.showAddTask(context),
+                          BacklogDialogHandlers.showAddTask(context, ref: ref),
                       icon: const Icon(Icons.add),
                       label: const Text('Add Task'),
                     ),
@@ -161,6 +170,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     _buildHeaderActions(context),
                   ],
                 ),
+                BacklogLabelTabBar(),
                 FilterBar(
                   filter: ref.watch(filterProvider).filter,
                   isBypassed: ref.watch(filterProvider).isBypassed,
