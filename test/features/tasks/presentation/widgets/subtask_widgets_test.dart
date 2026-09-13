@@ -80,7 +80,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              parentTaskProvider('p1').overrideWith((ref) => parentTask),
+              taskByIdProvider('p1').overrideWith((ref) => parentTask),
               ...repos.providerOverrides,
             ],
             child: const MaterialApp(

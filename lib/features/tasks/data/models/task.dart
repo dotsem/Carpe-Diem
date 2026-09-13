@@ -17,8 +17,16 @@ class Task {
   final String sortOrder;
   final List<String> labelIds;
   final List<String> tagIds;
+  final String? blockerTitle;
+  final TaskStatus? blockerStatus;
 
   bool get isCompleted => status.isDone;
+
+  bool get isBlocked =>
+      !isCompleted &&
+      blockedById != null &&
+      blockerStatus != null &&
+      !blockerStatus!.isDone;
 
   bool get isOverdue {
     if (isCompleted) return false;
@@ -36,6 +44,12 @@ class Task {
     return scheduledOverdue || deadlineOverdue;
   }
 
+  bool isBlockedBy(Task? blocker) =>
+      !isCompleted &&
+      blockedById != null &&
+      blocker != null &&
+      !blocker.isCompleted;
+
   const Task({
     required this.id,
     required this.title,
@@ -52,6 +66,8 @@ class Task {
     this.sortOrder = '',
     this.labelIds = const [],
     this.tagIds = const [],
+    this.blockerTitle,
+    this.blockerStatus,
   });
 
   Map<String, dynamic> toMap() => {
@@ -97,6 +113,10 @@ class Task {
     sortOrder: (map['sortOrder'] as String?) ?? '',
     labelIds: labelIds,
     tagIds: tagIds,
+    blockerTitle: map['blockerTitle'] as String?,
+    blockerStatus: map['blockerStatus'] != null
+        ? TaskStatus.values[map['blockerStatus'] as int]
+        : null,
   );
 
   Task copyWith({
@@ -118,6 +138,10 @@ class Task {
     String? sortOrder,
     List<String>? labelIds,
     List<String>? tagIds,
+    String? blockerTitle,
+    bool clearBlockerTitle = false,
+    TaskStatus? blockerStatus,
+    bool clearBlockerStatus = false,
   }) => Task(
     id: id,
     title: title ?? this.title,
@@ -138,5 +162,11 @@ class Task {
     sortOrder: sortOrder ?? this.sortOrder,
     labelIds: labelIds ?? this.labelIds,
     tagIds: tagIds ?? this.tagIds,
+    blockerTitle: clearBlockerTitle
+        ? null
+        : (blockerTitle ?? this.blockerTitle),
+    blockerStatus: clearBlockerStatus
+        ? null
+        : (blockerStatus ?? this.blockerStatus),
   );
 }

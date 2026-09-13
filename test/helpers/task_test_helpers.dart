@@ -22,6 +22,8 @@ Task createTestTask({
   String sortOrder = '',
   List<String> labelIds = const [],
   List<String> tagIds = const [],
+  String? blockerTitle,
+  TaskStatus? blockerStatus,
 }) {
   return Task(
     id: id,
@@ -39,6 +41,8 @@ Task createTestTask({
     sortOrder: sortOrder,
     labelIds: labelIds,
     tagIds: tagIds,
+    blockerTitle: blockerTitle,
+    blockerStatus: blockerStatus,
   );
 }
 

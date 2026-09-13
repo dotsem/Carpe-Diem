@@ -146,3 +146,32 @@ class ScheduledChip extends StatelessWidget {
     );
   }
 }
+
+class BlockedChip extends StatelessWidget {
+  final String? blockerTitle;
+
+  const BlockedChip({super.key, this.blockerTitle});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.error;
+    final message = blockerTitle != null && blockerTitle!.isNotEmpty
+        ? 'Blocked by: $blockerTitle'
+        : 'Task is blocked';
+
+    return Tooltip(
+      message: message,
+      child: SmallChip(
+        color: color.withValues(alpha: 0.15),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock_outline, size: 10, color: color),
+            const SizedBox(width: 4),
+            Text('Blocked', style: TextStyle(fontSize: 11, color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+}

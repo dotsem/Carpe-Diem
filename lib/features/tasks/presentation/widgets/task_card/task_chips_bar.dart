@@ -64,6 +64,7 @@ class TaskChipsBar extends ConsumerWidget {
     final hasChips =
         project != null ||
         isOverdue ||
+        task.isBlocked ||
         task.status.isInProgress ||
         task.deadline != null ||
         labels.isNotEmpty ||
@@ -77,6 +78,7 @@ class TaskChipsBar extends ConsumerWidget {
       spacing: 4,
       runSpacing: 4,
       children: [
+        if (task.isBlocked) BlockedChip(blockerTitle: task.blockerTitle),
         if (subtasks.isNotEmpty)
           SubtaskProgressChip(
             completedCount: subtasks.where((t) => t.isCompleted).length,

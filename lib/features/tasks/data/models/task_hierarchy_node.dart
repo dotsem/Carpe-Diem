@@ -34,15 +34,3 @@ class ParentContainerNode extends TaskHierarchyNode {
     this.isCollapsed = false,
   }) : super(depth);
 }
-
-class BlockerIndicatorNode extends TaskHierarchyNode {
-  final String blockerId;
-  final String blockerTitle;
-  final String blockedTaskId;
-  const BlockerIndicatorNode({
-    required this.blockerId,
-    required this.blockerTitle,
-    required this.blockedTaskId,
-    required int depth,
-  }) : super(depth);
-}

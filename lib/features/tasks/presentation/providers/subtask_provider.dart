@@ -12,13 +12,10 @@ final subtasksProvider = FutureProvider.family<List<Task>, String>((
   return repo.getByParent(parentId);
 });
 
-final parentTaskProvider = FutureProvider.family<Task?, String>((
-  ref,
-  parentId,
-) async {
+final taskByIdProvider = FutureProvider.family<Task?, String>((ref, id) async {
   ref.watch(taskProvider);
   final repo = ref.watch(taskRepositoryProvider);
-  return repo.getById(parentId);
+  return repo.getById(id);
 });
 
 class CollapsedSubtasksNotifier extends Notifier<Set<String>> {

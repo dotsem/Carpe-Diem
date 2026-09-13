@@ -1,9 +1,11 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/searchable_dropdown.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BlockerPicker extends StatelessWidget {
+class BlockerPicker extends ConsumerWidget {
   final List<Task> availableTasks;
   final String? selectedBlockerId;
   final String? currentTaskId;
@@ -36,7 +38,7 @@ class BlockerPicker extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final selectableTasks = availableTasks
         .where((t) => !t.isCompleted)
         .where((t) => t.id != currentTaskId)
@@ -45,12 +47,18 @@ class BlockerPicker extends StatelessWidget {
 
     final selectedTask = selectedBlockerId == null
         ? null
-        : availableTasks.where((t) => t.id == selectedBlockerId).firstOrNull;
+        : (availableTasks.where((t) => t.id == selectedBlockerId).firstOrNull ??
+              ref.watch(taskByIdProvider(selectedBlockerId!)).valueOrNull);
+
+    final items =
+        selectedTask != null && !selectableTasks.contains(selectedTask)
+        ? [selectedTask, ...selectableTasks]
+        : selectableTasks;
 
     return SearchableDropdown<Task>(
       borderless: borderless,
       menuController: menuController,
-      items: selectableTasks,
+      items: items,
       selectedItem: selectedTask,
       onChanged: (task) => onChanged(task?.id),
       nameGetter: (t) => t?.title ?? 'No blocker',
@@ -65,21 +73,19 @@ class BlockerPicker extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           );
         }
+        if (t.isCompleted) {
+          return const Icon(
+            Icons.lock_open_outlined,
+            size: 14,
+            color: AppColors.success,
+          );
+        }
         return Icon(
-          Icons.task_alt,
+          Icons.lock_outline,
           size: 14,
-          color: t.isUrgent
-              ? AppColors.error
-              : Theme.of(context).colorScheme.onSurfaceVariant,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         );
       },
-      prefixIcon: Icon(
-        selectedTask != null ? Icons.lock : Icons.lock_open_outlined,
-        size: 16,
-        color: selectedTask != null
-            ? AppColors.accent
-            : Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
     );
   }
 }

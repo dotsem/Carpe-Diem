@@ -6,6 +6,12 @@ import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 class TaskRepository extends ITaskRepository {
   final Database _db;
 
+  static const _baseSelect = '''
+    SELECT DISTINCT t.*, blocker.title AS blockerTitle, blocker.status AS blockerStatus
+    FROM tasks t
+    LEFT JOIN tasks blocker ON t.blockedById = blocker.id
+  ''';
+
   TaskRepository(this._db);
 
   Future<List<Task>> _loadTasksWithRelations(
@@ -57,7 +63,7 @@ class TaskRepository extends ITaskRepository {
     bool prioritizeOverdue = false,
   }) async {
     final maps = await _db.rawQuery('''
-      SELECT DISTINCT t.* FROM tasks t
+      $_baseSelect
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE p.isActive IS NULL OR p.isActive = 1
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
@@ -67,7 +73,7 @@ class TaskRepository extends ITaskRepository {
 
   @override
   Future<Task?> getById(String id) async {
-    final maps = await _db.query('tasks', where: 'id = ?', whereArgs: [id]);
+    final maps = await _db.rawQuery('$_baseSelect WHERE t.id = ?', [id]);
     if (maps.isEmpty) return null;
 
     final labelIds = await _getLabelIds(id);
@@ -77,21 +83,17 @@ class TaskRepository extends ITaskRepository {
 
   @override
   Future<List<Task>> getByBlockedBy(String taskId) async {
-    final maps = await _db.query(
-      'tasks',
-      where: 'blockedById = ?',
-      whereArgs: [taskId],
-    );
+    final maps = await _db.rawQuery('$_baseSelect WHERE t.blockedById = ?', [
+      taskId,
+    ]);
     return _loadTasksWithRelations(maps);
   }
 
   @override
   Future<List<Task>> getByParent(String parentId) async {
-    final maps = await _db.query(
-      'tasks',
-      where: 'parentId = ?',
-      whereArgs: [parentId],
-      orderBy: _getOrderBy(),
+    final maps = await _db.rawQuery(
+      '$_baseSelect WHERE t.parentId = ? ORDER BY ${_getOrderBy(tableAlias: 't')}',
+      [parentId],
     );
     return _loadTasksWithRelations(maps);
   }
@@ -108,7 +110,7 @@ class TaskRepository extends ITaskRepository {
 
     final maps = await _db.rawQuery(
       '''
-      SELECT DISTINCT t.* FROM tasks t
+      $_baseSelect
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE ((date(t.scheduledDate) = date(?)) OR (t.completedAt >= ? AND t.completedAt < ?))
       AND (p.isActive IS NULL OR p.isActive = 1)
@@ -133,7 +135,7 @@ class TaskRepository extends ITaskRepository {
     ).toIso8601String();
     final maps = await _db.rawQuery(
       '''
-      SELECT DISTINCT t.* FROM tasks t
+      $_baseSelect
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE (t.scheduledDate IS NOT NULL AND t.scheduledDate < ? AND t.status != ?)
       AND (p.isActive IS NULL OR p.isActive = 1)
@@ -151,7 +153,7 @@ class TaskRepository extends ITaskRepository {
     bool prioritizeOverdue = false,
   }) async {
     final maps = await _db.rawQuery('''
-      SELECT DISTINCT t.* FROM tasks t
+      $_baseSelect
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE t.scheduledDate IS NULL
       AND (p.isActive IS NULL OR p.isActive = 1)
@@ -167,14 +169,13 @@ class TaskRepository extends ITaskRepository {
     bool prioritizeDeadlines = true,
     bool prioritizeOverdue = false,
   }) async {
-    final maps = await _db.query(
-      'tasks',
-      where: 'projectId = ?',
-      whereArgs: [projectId],
-      orderBy: _getOrderBy(
-        prioritizeDeadlines: prioritizeDeadlines,
-        prioritizeOverdue: prioritizeOverdue,
-      ),
+    final maps = await _db.rawQuery(
+      '''
+      $_baseSelect
+      WHERE t.projectId = ?
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
+    ''',
+      [projectId],
     );
 
     return _loadTasksWithRelations(maps);
@@ -186,14 +187,13 @@ class TaskRepository extends ITaskRepository {
     bool prioritizeDeadlines = true,
     bool prioritizeOverdue = false,
   }) async {
-    final maps = await _db.query(
-      'tasks',
-      where: 'projectId = ? AND scheduledDate IS NULL',
-      whereArgs: [projectId],
-      orderBy: _getOrderBy(
-        prioritizeDeadlines: prioritizeDeadlines,
-        prioritizeOverdue: prioritizeOverdue,
-      ),
+    final maps = await _db.rawQuery(
+      '''
+      $_baseSelect
+      WHERE t.projectId = ? AND t.scheduledDate IS NULL
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
+    ''',
+      [projectId],
     );
 
     return _loadTasksWithRelations(maps);
@@ -207,7 +207,7 @@ class TaskRepository extends ITaskRepository {
   }) async {
     final maps = await _db.rawQuery(
       '''
-      SELECT DISTINCT t.* FROM tasks t
+      $_baseSelect
       LEFT JOIN projects p ON t.projectId = p.id
       LEFT JOIN project_labels pl ON t.projectId = pl.projectId
       LEFT JOIN task_labels tl ON t.id = tl.taskId
