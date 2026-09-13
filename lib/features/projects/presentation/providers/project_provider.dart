@@ -1,6 +1,5 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
@@ -146,9 +145,6 @@ class ProjectNotifier extends Notifier<ProjectState> {
           ),
         );
     ref.read(filterProvider.notifier).removeProjectFilter(project.id);
-    await ref
-        .read(settingsProvider.notifier)
-        .setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadProjects();
   }
 

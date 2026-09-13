@@ -43,7 +43,6 @@ class SettingsConstants {
   static const String keyEnableRandomTask = 'enable_random_task';
   static const String keyFilterInteractionMethod = 'filter_interaction_method';
   static const String keyPersistentFilter = 'persistent_filter';
-  static const String keyPersistentFilterValues = 'persistent_filter_values';
   static const String keyTagAbsorption = 'tag_absorption';
   static const String keyKeepTagsInTitle = 'keep_tags_in_title';
   static const String keyShowHashtagInTitle = 'show_hashtag_in_title';

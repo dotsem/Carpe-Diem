@@ -31,18 +31,18 @@ class CustomMockUndoRedoNotifier extends UndoRedoNotifier {
 void main() {
   group('GlobalShortcuts Undo/Redo Tests', () {
     late CustomMockUndoRedoNotifier mockUndoRedoNotifier;
-    late MockSettingsRepository mockSettingsRepo;
+    late MockKeyValueRepository mockSettingsRepo;
     late ProviderContainer container;
 
     setUp(() {
       mockUndoRedoNotifier = CustomMockUndoRedoNotifier();
-      mockSettingsRepo = MockSettingsRepository();
+      mockSettingsRepo = MockKeyValueRepository();
       when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
 
       container = ProviderContainer(
         overrides: [
           undoRedoProvider.overrideWith(() => mockUndoRedoNotifier),
-          settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+          keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
         ],
       );
     });

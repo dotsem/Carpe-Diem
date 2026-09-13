@@ -48,14 +48,12 @@ class FilteringSection extends ConsumerWidget {
               subtitle: 'Remembers filters between app sessions',
               value: settings.persistentFilter,
               onChanged: (value) {
-                if (value) {
-                  settingsNotifier.setPersistentFilterValues(
-                    ref.read(filterProvider).filter.toMap(),
-                  );
-                } else {
-                  settingsNotifier.setPersistentFilterValues({});
-                }
                 settingsNotifier.setPersistentFilter(value);
+                if (value) {
+                  ref.read(filterProvider.notifier).saveFilter();
+                } else {
+                  ref.read(filterProvider.notifier).clearPersistedFilter();
+                }
               },
             ),
           ],

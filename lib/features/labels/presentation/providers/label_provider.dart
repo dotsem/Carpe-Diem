@@ -1,6 +1,5 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -107,9 +106,6 @@ class LabelNotifier extends Notifier<LabelState> {
           ),
         );
     ref.read(filterProvider.notifier).removeLabelFilter(id);
-    await ref
-        .read(settingsProvider.notifier)
-        .setPersistentFilterValues(ref.read(filterProvider).filter.toMap());
     await loadLabels();
     await ref.read(projectProvider.notifier).loadProjects();
     await ref.read(taskProvider.notifier).refreshTasks();

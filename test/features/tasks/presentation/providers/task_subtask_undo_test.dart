@@ -19,7 +19,7 @@ void main() {
     late MockProjectRepository mockProjectRepo;
     late MockLabelRepository mockLabelRepo;
     late MockHistoryRepository mockHistoryRepo;
-    late MockSettingsRepository mockSettingsRepo;
+    late MockKeyValueRepository mockSettingsRepo;
     late ProviderContainer container;
 
     setUp(() {
@@ -27,7 +27,7 @@ void main() {
       mockProjectRepo = MockProjectRepository();
       mockLabelRepo = MockLabelRepository();
       mockHistoryRepo = MockHistoryRepository();
-      mockSettingsRepo = MockSettingsRepository();
+      mockSettingsRepo = MockKeyValueRepository();
 
       when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
 
@@ -37,7 +37,7 @@ void main() {
           projectRepositoryProvider.overrideWithValue(mockProjectRepo),
           labelRepositoryProvider.overrideWithValue(mockLabelRepo),
           historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
-          settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+          keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
         ],
       );
     });

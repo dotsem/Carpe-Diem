@@ -11,16 +11,17 @@ import '../../../../helpers/mock_repositories.dart';
 
 void main() {
   group('filter', () {
-    late MockSettingsRepository mockRepo;
+    late MockKeyValueRepository mockRepo;
     late ProviderContainer container;
 
     setUp(() {
-      mockRepo = MockSettingsRepository();
+      mockRepo = MockKeyValueRepository();
       when(() => mockRepo.getAll()).thenAnswer((_) async => {});
       when(() => mockRepo.set(any(), any())).thenAnswer((_) async => {});
+      when(() => mockRepo.get(any())).thenAnswer((_) async => null);
 
       container = ProviderContainer(
-        overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
+        overrides: [keyValueRepositoryProvider.overrideWithValue(mockRepo)],
       );
     });
 
@@ -84,14 +85,15 @@ void main() {
       'initializes with persisted filter when persistentFilter is true',
       () async {
         final persistedFilter = const TaskFilter(isUrgent: true);
-        when(() => mockRepo.getAll()).thenAnswer(
-          (_) async => {
-            'persistent_filter': 'true',
-            'persistent_filter_values': jsonEncode(persistedFilter.toMap()),
-          },
-        );
+        when(
+          () => mockRepo.getAll(),
+        ).thenAnswer((_) async => {'persistent_filter': 'true'});
+        when(
+          () => mockRepo.get('persistent_filter_values'),
+        ).thenAnswer((_) async => jsonEncode(persistedFilter.toMap()));
 
         await container.read(settingsProvider.notifier).loadSettings();
+        await container.read(filterProvider.notifier).loadFilter();
 
         final state = container.read(filterProvider);
         expect(state.filter.isUrgent, true);
@@ -102,14 +104,15 @@ void main() {
       'does not initialize with persisted filter when persistentFilter is false',
       () async {
         final persistedFilter = const TaskFilter(isUrgent: true);
-        when(() => mockRepo.getAll()).thenAnswer(
-          (_) async => {
-            'persistent_filter': 'false',
-            'persistent_filter_values': jsonEncode(persistedFilter.toMap()),
-          },
-        );
+        when(
+          () => mockRepo.getAll(),
+        ).thenAnswer((_) async => {'persistent_filter': 'false'});
+        when(
+          () => mockRepo.get('persistent_filter_values'),
+        ).thenAnswer((_) async => jsonEncode(persistedFilter.toMap()));
 
         await container.read(settingsProvider.notifier).loadSettings();
+        await container.read(filterProvider.notifier).loadFilter();
 
         final state = container.read(filterProvider);
         expect(state.filter.isEmpty, true);

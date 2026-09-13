@@ -1,7 +1,7 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 
-class SettingsRepository implements ISettingsRepository {
+class SettingsRepository implements IKeyValueRepository {
   final Database _db;
 
   SettingsRepository(this._db);

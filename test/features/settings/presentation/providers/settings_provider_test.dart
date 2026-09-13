@@ -10,13 +10,13 @@ import '../../../../helpers/mock_repositories.dart';
 
 void main() {
   group('settings', () {
-    late MockSettingsRepository mockRepo;
+    late MockKeyValueRepository mockRepo;
     late ProviderContainer container;
 
     setUp(() {
-      mockRepo = MockSettingsRepository();
+      mockRepo = MockKeyValueRepository();
       container = ProviderContainer(
-        overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
+        overrides: [keyValueRepositoryProvider.overrideWithValue(mockRepo)],
       );
     });
 

@@ -15,14 +15,14 @@ import '../../../../helpers/mock_repositories.dart';
 
 void main() {
   group('filter', () {
-    late MockSettingsRepository mockSettingsRepo;
+    late MockKeyValueRepository mockSettingsRepo;
     late MockProjectRepository mockProjectRepo;
     late MockTaskRepository mockTaskRepo;
     late MockHistoryRepository mockHistoryRepo;
     late ProviderContainer container;
 
     setUp(() {
-      mockSettingsRepo = MockSettingsRepository();
+      mockSettingsRepo = MockKeyValueRepository();
       mockProjectRepo = MockProjectRepository();
       mockTaskRepo = MockTaskRepository();
       mockHistoryRepo = MockHistoryRepository();
@@ -33,7 +33,7 @@ void main() {
 
       container = ProviderContainer(
         overrides: [
-          settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
+          keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
           projectRepositoryProvider.overrideWithValue(mockProjectRepo),
           taskRepositoryProvider.overrideWithValue(mockTaskRepo),
           historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
