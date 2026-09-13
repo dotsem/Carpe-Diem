@@ -1,3 +1,5 @@
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -143,6 +145,40 @@ void main() {
 
           final state = container.read(backlogLabelTabProvider);
           expect(state.scope, BacklogLabelTabScope.all);
+        },
+      );
+
+      test('deleting active label resets state to all and persists', () async {
+        await container.read(labelProvider.notifier).loadLabels();
+        container.read(backlogLabelTabProvider.notifier).selectLabel('l1');
+
+        when(
+          () => mockLabelRepo.getAll(),
+        ).thenAnswer((_) async => [testLabel2]);
+        await container.read(labelProvider.notifier).loadLabels();
+
+        final state = container.read(backlogLabelTabProvider);
+        expect(state.scope, BacklogLabelTabScope.all);
+        verify(
+          () => mockRepo.set(keyLastActiveTab, 'all'),
+        ).called(greaterThanOrEqualTo(1));
+      });
+
+      test(
+        'excluding active label in filter resets state to all and persists',
+        () async {
+          await container.read(labelProvider.notifier).loadLabels();
+          container.read(backlogLabelTabProvider.notifier).selectLabel('l1');
+
+          container
+              .read(filterProvider.notifier)
+              .setFilter(const TaskFilter(labelIdsExcluded: {'l1'}));
+
+          final state = container.read(backlogLabelTabProvider);
+          expect(state.scope, BacklogLabelTabScope.all);
+          verify(
+            () => mockRepo.set(keyLastActiveTab, 'all'),
+          ).called(greaterThanOrEqualTo(1));
         },
       );
     });

@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:flutter/material.dart';
@@ -64,6 +65,22 @@ class BacklogLabelTabNotifier extends Notifier<BacklogLabelTabState> {
         selectAll();
       } else if (state.scope == BacklogLabelTabScope.label &&
           !next.labels.any((l) => l.id == state.labelId)) {
+        selectAll();
+      }
+    });
+    ref.listen(filterProvider, (previous, next) {
+      if (next.isBypassed) return;
+      final filter = next.filter;
+      if (state.scope == BacklogLabelTabScope.label) {
+        final isExcluded = filter.labelIdsExcluded.contains(state.labelId);
+        final isNotIncluded =
+            filter.labelIdsIncluded.isNotEmpty &&
+            !filter.labelIdsIncluded.contains(state.labelId);
+        if (isExcluded || isNotIncluded) {
+          selectAll();
+        }
+      } else if (state.scope == BacklogLabelTabScope.inbox &&
+          filter.labelIdsIncluded.isNotEmpty) {
         selectAll();
       }
     });

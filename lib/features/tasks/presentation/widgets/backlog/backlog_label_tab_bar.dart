@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/utils/color_utils.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -37,18 +38,31 @@ class _BacklogLabelTabBarState extends ConsumerState<BacklogLabelTabBar>
 
   @override
   Widget build(BuildContext context) {
-    final labels = ref.watch(labelProvider).labels;
+    final allLabels = ref.watch(labelProvider).labels;
     final state = ref.watch(backlogLabelTabProvider);
     final notifier = ref.read(backlogLabelTabProvider.notifier);
+    final filterState = ref.watch(filterProvider);
+    final filter = filterState.filter;
+    final isBypassed = filterState.isBypassed;
 
-    if (labels.isEmpty) return const SizedBox.shrink();
+    final labels = isBypassed
+        ? allLabels
+        : allLabels.where((label) {
+            if (filter.labelIdsExcluded.contains(label.id)) return false;
+            if (filter.labelIdsIncluded.isNotEmpty &&
+                !filter.labelIdsIncluded.contains(label.id)) {
+              return false;
+            }
+            return true;
+          }).toList();
+
+    if (allLabels.isEmpty) return const SizedBox.shrink();
 
     final currentIndex = state.getIndex(labels);
     _syncController(labels.length + 2, currentIndex);
 
     ref.listen(backlogLabelTabProvider, (prev, next) {
-      final currentLabels = ref.read(labelProvider).labels;
-      final newIndex = next.getIndex(currentLabels);
+      final newIndex = next.getIndex(labels);
       if (_controller != null &&
           !_controller!.indexIsChanging &&
           _controller!.index != newIndex &&

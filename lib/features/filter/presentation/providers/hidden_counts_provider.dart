@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -52,6 +53,7 @@ final hiddenUnscheduledTasksCountProvider = Provider<int>((ref) {
   final filter = filterState.filter;
   if (filter.isEmpty) return 0;
 
+  final tabState = ref.watch(backlogLabelTabProvider);
   final taskState = ref.watch(taskProvider);
   final projectState = ref.watch(projectProvider);
   final unscheduled = taskState.unscheduledTasks;
@@ -61,6 +63,15 @@ final hiddenUnscheduledTasksCountProvider = Provider<int>((ref) {
     final project = task.projectId != null
         ? projectState.getById(task.projectId!)
         : null;
+    final combinedLabels = {...task.labelIds, ...?project?.labelIds};
+
+    final matchesTab = switch (tabState.scope) {
+      BacklogLabelTabScope.all => true,
+      BacklogLabelTabScope.inbox => combinedLabels.isEmpty,
+      BacklogLabelTabScope.label => combinedLabels.contains(tabState.labelId),
+    };
+    if (!matchesTab) continue;
+
     if (!filter.applyToTask(task, project?.labelIds ?? [])) {
       hidden++;
     }
