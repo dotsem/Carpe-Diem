@@ -1,5 +1,5 @@
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog_empty_placeholder.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_empty_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_group_header.dart';
 import 'package:flutter/material.dart';
