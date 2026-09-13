@@ -1,7 +1,32 @@
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 
+/// Utility for constructing structured task hierarchy trees from flat task lists.
+///
+/// Hierarchy Rules
+/// - Parent-Child Composition: Grouping is governed strictly by [Task.parentId].
+///   Dependencies such as [Task.blockedById] are distinct from hierarchy and do
+///   not cause nesting.
+/// - Top-Level Ordering: Only true root tasks (`parentId == null`) or orphan
+///   subtasks whose parent is absent from the view are emitted at depth 0.
+///   Subtasks in view are emitted exclusively under their parent, so their local
+///   `sortOrder` values cannot pull or push parent positions in the root list.
+/// - Effective Urgency: A root task is promoted to the urgent section at the
+///   top of the list if it is urgent itself or contains at least one active,
+///   incomplete urgent subtask in the current view. Root tasks within each section
+///   strictly preserve their own relative root sort order.
+/// - Nesting Modes: If [asParentContainers] is `true`, parents with subtasks
+///   in view are emitted as a [ParentContainerNode] summarizing subtask counts and
+///   urgency. When `false`, they are emitted as a standard [TaskNode] with depth 0,
+///   followed by indented child [TaskNode] items at depth 1+.
 class TaskHierarchyUtils {
+  /// Builds a flattened hierarchy of [TaskHierarchyNode] items from [categoryTasks].
+  ///
+  /// [categoryTasks] contains the tasks visible in the current category/list.
+  /// [allTasks] is an optional broader lookup map used to calculate accurate total,
+  /// completed, and urgent subtask counts when subtasks span beyond the current view.
+  /// [collapsedParentIds] specifies which parent containers have their subtasks hidden.
+  /// [asParentContainers] toggles between parent container cards and plain task nodes.
   static List<TaskHierarchyNode> buildHierarchy(
     List<Task> categoryTasks, {
     Map<String, Task>? allTasks,
