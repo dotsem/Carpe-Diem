@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+
+const String keyPersistentFilterValues =
+    'persistent_filter_values'; // TODO: relocate this to a centralized place
 
 class FilterState {
   final TaskFilter filter;
@@ -38,7 +40,7 @@ class FilterNotifier extends Notifier<FilterState> {
   Future<void> loadFilter() async {
     if (!ref.read(settingsProvider).persistentFilter) return;
     try {
-      final raw = await _repo.get(SettingsConstants.keyPersistentFilterValues);
+      final raw = await _repo.get(keyPersistentFilterValues);
       if (raw != null && raw.isNotEmpty) {
         final map = jsonDecode(raw) as Map<String, dynamic>;
         state = state.copyWith(filter: TaskFilter.fromMap(map));
@@ -51,7 +53,7 @@ class FilterNotifier extends Notifier<FilterState> {
   Future<void> saveFilter() async {
     try {
       await _repo.set(
-        SettingsConstants.keyPersistentFilterValues,
+        keyPersistentFilterValues,
         jsonEncode(state.filter.toMap()),
       );
     } catch (e) {
@@ -61,7 +63,7 @@ class FilterNotifier extends Notifier<FilterState> {
 
   Future<void> clearPersistedFilter() async {
     try {
-      await _repo.delete(SettingsConstants.keyPersistentFilterValues);
+      await _repo.delete(keyPersistentFilterValues);
     } catch (e) {
       debugPrint('Failed to clear persisted filter: $e');
     }
