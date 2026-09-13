@@ -173,6 +173,15 @@ void main() {
           status: TaskStatus.todo,
           sortOrder: '0',
         );
+        final normalBacklogSub = Task(
+          id: 's2',
+          title: 'Normal Backlog Subtask',
+          parentId: 'p1',
+          createdAt: now,
+          isUrgent: false,
+          status: TaskStatus.todo,
+          sortOrder: '1',
+        );
         final normalBacklogRoot = Task(
           id: 'r2',
           title: 'Normal Root in Backlog',
@@ -182,19 +191,22 @@ void main() {
         );
 
         final result = TaskHierarchyUtils.buildHierarchy(
-          [normalBacklogRoot, parent],
+          [normalBacklogRoot, parent, normalBacklogSub],
           allTasks: {
             'r2': normalBacklogRoot,
             'p1': parent,
             's1': plannedUrgentSub,
+            's2': normalBacklogSub,
           },
           asParentContainers: true,
         );
 
-        expect(result.length, 2);
+        expect(result.length, 3);
         expect(result[0].task!.id, 'r2');
         expect(result[1].task!.id, 'p1');
+        expect(result[1], isA<ParentContainerNode>());
         expect((result[1] as ParentContainerNode).hasUrgentChild, isFalse);
+        expect(result[2].task!.id, 's2');
       },
     );
   });
