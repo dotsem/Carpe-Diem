@@ -147,8 +147,54 @@ void main() {
         expect(result.length, 4);
         expect((result[0] as TaskNode).task.id, 'pa');
         expect((result[1] as TaskNode).task.id, 'sa');
+        expect(result[2], isA<TaskNode>());
         expect((result[2] as TaskNode).task.id, 'pb');
         expect((result[3] as TaskNode).task.id, 'sb');
+      },
+    );
+
+    test(
+      'buildHierarchy does not elevate parent in backlog when urgent subtask is planned elsewhere',
+      () {
+        final parent = Task(
+          id: 'p1',
+          title: 'Parent in Backlog',
+          createdAt: now,
+          isUrgent: false,
+          sortOrder: 'b0',
+        );
+        final plannedUrgentSub = Task(
+          id: 's1',
+          title: 'Planned Urgent Subtask',
+          parentId: 'p1',
+          scheduledDate: now.add(const Duration(days: 1)),
+          createdAt: now,
+          isUrgent: true,
+          status: TaskStatus.todo,
+          sortOrder: '0',
+        );
+        final normalBacklogRoot = Task(
+          id: 'r2',
+          title: 'Normal Root in Backlog',
+          createdAt: now,
+          isUrgent: false,
+          sortOrder: 'a0',
+        );
+
+        final result = TaskHierarchyUtils.buildHierarchy(
+          [normalBacklogRoot, parent],
+          allTasks: {
+            'r2': normalBacklogRoot,
+            'p1': parent,
+            's1': plannedUrgentSub,
+          },
+          asParentContainers: true,
+        );
+
+        expect(result.length, 2);
+        expect(result[0].task!.id, 'r2');
+        expect(result[1].task!.id, 'p1');
+        expect((result[1] as ParentContainerNode).hasUrgentChild, isFalse);
       },
     );
   });

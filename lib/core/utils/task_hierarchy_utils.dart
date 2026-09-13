@@ -23,11 +23,6 @@ class TaskHierarchyUtils {
     final emitted = <String>{};
 
     bool hasUrgentSubtask(String taskId) {
-      if (allTasks != null) {
-        return allTasks.values.any(
-          (t) => t.parentId == taskId && t.isUrgent && !t.isCompleted,
-        );
-      }
       final children = childrenOf[taskId];
       if (children == null) return false;
       return children.any((id) {
