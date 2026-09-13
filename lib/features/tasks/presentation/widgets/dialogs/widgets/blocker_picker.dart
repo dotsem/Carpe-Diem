@@ -39,8 +39,6 @@ class BlockerPicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final taskMap = {for (final t in availableTasks) t.id: t};
-
     final selectableTasks = availableTasks
         .where((t) => !t.isCompleted)
         .where((t) => t.id != currentTaskId)
@@ -75,22 +73,19 @@ class BlockerPicker extends ConsumerWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           );
         }
-        final isCandidateBlocked = t.isBlockedBy(taskMap[t.blockedById]);
+        if (t.isCompleted) {
+          return const Icon(
+            Icons.lock_open_outlined,
+            size: 14,
+            color: AppColors.success,
+          );
+        }
         return Icon(
-          isCandidateBlocked ? Icons.lock_clock : Icons.task_alt,
+          Icons.lock_outline,
           size: 14,
-          color: t.isUrgent
-              ? AppColors.error
-              : Theme.of(context).colorScheme.onSurfaceVariant,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         );
       },
-      prefixIcon: Icon(
-        selectedTask != null ? Icons.lock : Icons.lock_open_outlined,
-        size: 16,
-        color: selectedTask != null
-            ? AppColors.accent
-            : Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
     );
   }
 }
