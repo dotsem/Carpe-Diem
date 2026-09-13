@@ -19,14 +19,16 @@ class RightSidebarPanelBody extends ConsumerWidget {
         :final initialDate,
         :final initialProjectId,
         :final initialParentId,
+        :final initialLabelIds,
       ) =>
         TaskFormPanel(
           key: ValueKey(
-            'add_task_${initialParentId ?? ''}_${initialProjectId ?? ''}_${initialDate ?? ''}',
+            'add_task_${initialParentId ?? ''}_${initialProjectId ?? ''}_${initialDate ?? ''}_${initialLabelIds ?? ''}',
           ),
           initialDate: initialDate,
           initialProjectId: initialProjectId,
           initialParentId: initialParentId,
+          initialLabelIds: initialLabelIds,
         ),
       EditTaskPanel(:final taskId) => Consumer(
         builder: (context, ref, child) {

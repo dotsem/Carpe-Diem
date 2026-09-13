@@ -127,7 +127,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
           }
         }
       },
-      onNewTask: () => BacklogDialogHandlers.showAddTask(context),
+      onNewTask: () => BacklogDialogHandlers.showAddTask(context, ref: ref),
       onPlanTask: () =>
           _scheduleTasks(ref.read(taskProvider.notifier).scheduleTasksForToday),
       onPlanTaskTomorrow: () => _scheduleTasks(
@@ -160,7 +160,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     ],
                     FilledButton.icon(
                       onPressed: () =>
-                          BacklogDialogHandlers.showAddTask(context),
+                          BacklogDialogHandlers.showAddTask(context, ref: ref),
                       icon: const Icon(Icons.add),
                       label: const Text('Add Task'),
                     ),
