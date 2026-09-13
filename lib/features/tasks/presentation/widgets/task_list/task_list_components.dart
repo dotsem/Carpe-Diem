@@ -6,7 +6,6 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_group_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
@@ -199,13 +198,6 @@ class TaskHierarchyItem extends ConsumerWidget {
         trailing: isReadOnly
             ? const SizedBox.shrink()
             : trailingBuilder?.call(context, taskNode.task),
-      );
-    } else if (node is BlockerIndicatorNode) {
-      final blockerNode = node as BlockerIndicatorNode;
-      child = BlockerIndicator(
-        blockerId: blockerNode.blockerId,
-        blockerTitle: blockerNode.blockerTitle,
-        blockedTaskId: blockerNode.blockedTaskId,
       );
     } else {
       return const SizedBox.shrink();

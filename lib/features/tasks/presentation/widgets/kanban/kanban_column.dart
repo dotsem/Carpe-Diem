@@ -12,8 +12,6 @@ import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provide
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_collapsed_column.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -219,15 +217,6 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                               onContextMenu: widget.onContextMenu,
                               onEdit: widget.onEdit,
                               focusNode: focusNode,
-                            );
-                          } else if (node is BlockerIndicatorNode) {
-                            childWidget = TaskHierarchyIndicator(
-                              depth: node.depth,
-                              child: BlockerIndicator(
-                                blockerId: node.blockerId,
-                                blockerTitle: node.blockerTitle,
-                                blockedTaskId: node.blockedTaskId,
-                              ),
                             );
                           }
 

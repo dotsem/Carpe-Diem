@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/blocker_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
@@ -197,12 +196,6 @@ class BacklogList extends ConsumerWidget {
             },
           ),
           trailing: trailingBuilder(context, n.task),
-        );
-      } else if (n is BlockerIndicatorNode) {
-        child = BlockerIndicator(
-          blockerId: n.blockerId,
-          blockerTitle: n.blockerTitle,
-          blockedTaskId: n.blockedTaskId,
         );
       } else {
         return const SizedBox.shrink();
