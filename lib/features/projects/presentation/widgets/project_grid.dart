@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid_section.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
@@ -141,20 +140,13 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final filteredBySearch = provider.projects.where((p) {
+    final filtered = ref.watch(filteredProjectsProvider);
+    final filteredProjects = filtered.where((p) {
       if (widget.searchQuery.isEmpty) return true;
       final query = widget.searchQuery.toLowerCase();
       return p.name.toLowerCase().contains(query) ||
           (p.description?.toLowerCase().contains(query) ?? false);
     }).toList();
-
-    final filter = ref
-        .watch(filterProvider)
-        .activeFilter
-        .limitTo(projects: false);
-    final filteredProjects = filteredBySearch
-        .where((p) => filter.applyToProject(p))
-        .toList();
     final activeProjects = filteredProjects.where((p) => p.isActive).toList();
     final inactiveProjects = filteredProjects
         .where((p) => !p.isActive)

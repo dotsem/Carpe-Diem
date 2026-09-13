@@ -133,19 +133,17 @@ class ProjectList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final projectState = ref.watch(projectProvider);
-    final projects = projectState.projects.where((p) => p.isActive).toList()
-      ..sort((a, b) => a.compareTo(b));
+    final activeProjects = ref.watch(activeFilteredProjectsProvider);
 
     final groups = <bool, List<Project>>{};
-    for (final project in projects) {
+    for (final project in activeProjects) {
       groups.putIfAbsent(project.isUrgent, () => []).add(project);
     }
 
     final urgencies = groups.keys.toList()
       ..sort((a, b) => (a == b) ? 0 : (a ? -1 : 1));
 
-    if (projects.isEmpty) {
+    if (activeProjects.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

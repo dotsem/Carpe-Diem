@@ -178,3 +178,17 @@ class ProjectNotifier extends Notifier<ProjectState> {
 final projectProvider = NotifierProvider<ProjectNotifier, ProjectState>(() {
   return ProjectNotifier();
 });
+
+final filteredProjectsProvider = Provider<List<Project>>((ref) {
+  final projects = ref.watch(projectProvider).projects;
+  final filter = ref
+      .watch(filterProvider)
+      .activeFilter
+      .limitTo(projects: false);
+
+  return projects.where((p) => filter.applyToProject(p)).toList();
+});
+
+final activeFilteredProjectsProvider = Provider<List<Project>>((ref) {
+  return ref.watch(filteredProjectsProvider).where((p) => p.isActive).toList();
+});
