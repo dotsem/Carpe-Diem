@@ -1,4 +1,3 @@
-import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_label_tab_bar.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -162,7 +161,6 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     _buildHeaderActions(context),
                   ],
                 ),
-                BacklogLabelTabBar(),
                 FilterBar(
                   filter: ref.watch(filterProvider).filter,
                   isBypassed: ref.watch(filterProvider).isBypassed,
