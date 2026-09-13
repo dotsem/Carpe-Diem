@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_empty_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
@@ -41,8 +42,10 @@ class BacklogList extends ConsumerWidget {
     required this.trailingBuilder,
   });
 
-  bool _isFiltering(TaskFilter filter) =>
-      searchQuery.isNotEmpty || !filter.isEmpty;
+  bool _isFiltering(TaskFilter filter, BacklogLabelTabState labelTab) =>
+      searchQuery.isNotEmpty ||
+      !filter.isEmpty ||
+      labelTab.scope != BacklogLabelTabScope.all;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,11 +55,22 @@ class BacklogList extends ConsumerWidget {
     }
 
     final projectState = ref.watch(projectProvider);
+    final labelTab = ref.watch(backlogLabelTabProvider);
     final filter = ref.watch(filterProvider).activeFilter;
+
     var allTasks = provider.unscheduledTasks.where((t) {
       final project = t.projectId != null
           ? projectState.getById(t.projectId!)
           : null;
+      final combinedLabels = {...t.labelIds, ...?project?.labelIds};
+
+      final matchesLabelScope = switch (labelTab.scope) {
+        BacklogLabelTabScope.all => true,
+        BacklogLabelTabScope.inbox => combinedLabels.isEmpty,
+        BacklogLabelTabScope.label => combinedLabels.contains(labelTab.labelId),
+      };
+      if (!matchesLabelScope) return false;
+
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
@@ -75,8 +89,11 @@ class BacklogList extends ConsumerWidget {
     if (activeTasks.isEmpty && completedTasks.isEmpty) {
       onOrderedIdsChanged([]);
       return BacklogEmptyPlaceholder(
-        isFiltering: _isFiltering(filter),
-        onClearFilter: () => ref.read(filterProvider.notifier).clearFilter(),
+        isFiltering: _isFiltering(filter, labelTab),
+        onClearFilter: () {
+          ref.read(filterProvider.notifier).clearFilter();
+          ref.read(backlogLabelTabProvider.notifier).selectAll();
+        },
       );
     }
 
