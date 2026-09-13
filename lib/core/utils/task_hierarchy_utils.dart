@@ -22,6 +22,25 @@ class TaskHierarchyUtils {
     final result = <TaskHierarchyNode>[];
     final emitted = <String>{};
 
+    bool hasUrgentSubtask(String taskId) {
+      if (allTasks != null) {
+        return allTasks.values.any(
+          (t) => t.parentId == taskId && t.isUrgent && !t.isCompleted,
+        );
+      }
+      final children = childrenOf[taskId];
+      if (children == null) return false;
+      return children.any((id) {
+        final t = taskMap[id];
+        return t != null && t.isUrgent && !t.isCompleted;
+      });
+    }
+
+    bool isEffectivelyUrgent(Task task) {
+      if (task.isUrgent && !task.isCompleted) return true;
+      return hasUrgentSubtask(task.id);
+    }
+
     void emit(String taskId, int depth) {
       if (!emitted.add(taskId)) return;
       final task = taskMap[taskId];
@@ -40,7 +59,7 @@ class TaskHierarchyUtils {
             ? allTasks.values.where((t) => t.parentId == taskId).toList()
             : subtasksInView.map((id) => taskMap[id]!).toList();
 
-        final hasUrgent = allSubtasks.any((t) => t.isUrgent && !t.isCompleted);
+        final hasUrgent = hasUrgentSubtask(taskId);
         final completedCount = allSubtasks.where((t) => t.isCompleted).length;
         final plannedCount = allSubtasks
             .where((t) => t.scheduledDate != null && !t.isCompleted)
@@ -77,21 +96,26 @@ class TaskHierarchyUtils {
       }
     }
 
-    String? findRootId(String id, Set<String> visited) {
-      if (!visited.add(id)) return null;
-      final task = taskMap[id];
-      if (task == null) return null;
-
-      if (task.parentId != null && taskMap.containsKey(task.parentId)) {
-        return findRootId(task.parentId!, visited);
+    for (final task in tasks) {
+      final isSubtaskInView =
+          task.parentId != null && taskMap.containsKey(task.parentId);
+      if (!isSubtaskInView && isEffectivelyUrgent(task)) {
+        emit(task.id, 0);
       }
-
-      return id;
     }
 
     for (final task in tasks) {
-      final rootId = findRootId(task.id, {});
-      emit(rootId ?? task.id, 0);
+      final isSubtaskInView =
+          task.parentId != null && taskMap.containsKey(task.parentId);
+      if (!isSubtaskInView) {
+        emit(task.id, 0);
+      }
+    }
+
+    for (final task in tasks) {
+      if (!emitted.contains(task.id)) {
+        emit(task.id, 0);
+      }
     }
 
     return result;
