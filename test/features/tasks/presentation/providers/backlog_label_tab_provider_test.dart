@@ -181,6 +181,89 @@ void main() {
           ).called(greaterThanOrEqualTo(1));
         },
       );
+
+      test(
+        'nextTab cycles forward through all -> l1 -> l2 -> inbox -> all',
+        () async {
+          await container.read(labelProvider.notifier).loadLabels();
+          final notifier = container.read(backlogLabelTabProvider.notifier);
+
+          notifier.nextTab();
+          expect(
+            container.read(backlogLabelTabProvider).scope,
+            BacklogLabelTabScope.label,
+          );
+          expect(container.read(backlogLabelTabProvider).labelId, 'l1');
+
+          notifier.nextTab();
+          expect(
+            container.read(backlogLabelTabProvider).scope,
+            BacklogLabelTabScope.label,
+          );
+          expect(container.read(backlogLabelTabProvider).labelId, 'l2');
+
+          notifier.nextTab();
+          expect(
+            container.read(backlogLabelTabProvider).scope,
+            BacklogLabelTabScope.inbox,
+          );
+
+          notifier.nextTab();
+          expect(
+            container.read(backlogLabelTabProvider).scope,
+            BacklogLabelTabScope.all,
+          );
+        },
+      );
+
+      test(
+        'prevTab cycles backward through all -> inbox -> l2 -> l1 -> all',
+        () async {
+          await container.read(labelProvider.notifier).loadLabels();
+          final notifier = container.read(backlogLabelTabProvider.notifier);
+
+          notifier.prevTab();
+          expect(
+            container.read(backlogLabelTabProvider).scope,
+            BacklogLabelTabScope.inbox,
+          );
+
+          notifier.prevTab();
+          expect(
+            container.read(backlogLabelTabProvider).scope,
+            BacklogLabelTabScope.label,
+          );
+          expect(container.read(backlogLabelTabProvider).labelId, 'l2');
+
+          notifier.prevTab();
+          expect(
+            container.read(backlogLabelTabProvider).scope,
+            BacklogLabelTabScope.label,
+          );
+          expect(container.read(backlogLabelTabProvider).labelId, 'l1');
+
+          notifier.prevTab();
+          expect(
+            container.read(backlogLabelTabProvider).scope,
+            BacklogLabelTabScope.all,
+          );
+        },
+      );
+
+      test('nextTab skips labels excluded by filter', () async {
+        await container.read(labelProvider.notifier).loadLabels();
+        container
+            .read(filterProvider.notifier)
+            .setFilter(const TaskFilter(labelIdsExcluded: {'l1'}));
+        final notifier = container.read(backlogLabelTabProvider.notifier);
+
+        notifier.nextTab();
+        expect(
+          container.read(backlogLabelTabProvider).scope,
+          BacklogLabelTabScope.label,
+        );
+        expect(container.read(backlogLabelTabProvider).labelId, 'l2');
+      });
     });
   });
 }

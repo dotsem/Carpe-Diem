@@ -64,7 +64,6 @@ class _BacklogLabelTabBarState extends ConsumerState<BacklogLabelTabBar>
     ref.listen(backlogLabelTabProvider, (prev, next) {
       final newIndex = next.getIndex(labels);
       if (_controller != null &&
-          !_controller!.indexIsChanging &&
           _controller!.index != newIndex &&
           newIndex < _controller!.length) {
         _controller!.animateTo(newIndex);

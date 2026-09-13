@@ -126,6 +126,51 @@ class BacklogLabelTabNotifier extends Notifier<BacklogLabelTabState> {
     state = BacklogLabelTabState.label(labelId);
     saveLastActiveTab();
   }
+
+  List<Label> _getVisibleLabels() {
+    final allLabels = ref.read(labelProvider).labels;
+    final filterState = ref.read(filterProvider);
+    if (filterState.isBypassed) return allLabels;
+    final filter = filterState.filter;
+    return allLabels.where((label) {
+      if (filter.labelIdsExcluded.contains(label.id)) return false;
+      if (filter.labelIdsIncluded.isNotEmpty &&
+          !filter.labelIdsIncluded.contains(label.id)) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  void nextTab() {
+    final allLabels = ref.read(labelProvider).labels;
+    if (allLabels.isEmpty) return;
+    final visible = _getVisibleLabels();
+    final total = visible.length + 2;
+    final currentIndex = state.getIndex(visible);
+    final targetIndex = (currentIndex + 1) % total;
+    _selectByIndex(targetIndex, visible);
+  }
+
+  void prevTab() {
+    final allLabels = ref.read(labelProvider).labels;
+    if (allLabels.isEmpty) return;
+    final visible = _getVisibleLabels();
+    final total = visible.length + 2;
+    final currentIndex = state.getIndex(visible);
+    final targetIndex = (currentIndex - 1 + total) % total;
+    _selectByIndex(targetIndex, visible);
+  }
+
+  void _selectByIndex(int index, List<Label> visible) {
+    if (index == 0) {
+      selectAll();
+    } else if (index == visible.length + 1) {
+      selectInbox();
+    } else if (index > 0 && index <= visible.length) {
+      selectLabel(visible[index - 1].id);
+    }
+  }
 }
 
 final backlogLabelTabProvider =

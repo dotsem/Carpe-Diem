@@ -115,6 +115,8 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     return BacklogShortcuts(
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
+      onPrevTab: () => ref.read(backlogLabelTabProvider.notifier).prevTab(),
+      onNextTab: () => ref.read(backlogLabelTabProvider.notifier).nextTab(),
       onShowFilter: () => BacklogDialogHandlers.showFilterDialog(context, ref),
       onFocusSearch: () => _searchFocusNode.requestFocus(),
       onUnfocusSearch: () {

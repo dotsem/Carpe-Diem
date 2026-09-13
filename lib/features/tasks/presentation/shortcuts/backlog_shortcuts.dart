@@ -18,6 +18,8 @@ class BacklogShortcuts extends ConsumerWidget {
   final Widget child;
   final VoidCallback onMoveNext;
   final VoidCallback onMovePrev;
+  final VoidCallback onPrevTab;
+  final VoidCallback onNextTab;
   final VoidCallback onShowFilter;
   final VoidCallback onFocusSearch;
   final VoidCallback onUnfocusSearch;
@@ -30,6 +32,8 @@ class BacklogShortcuts extends ConsumerWidget {
     required this.child,
     required this.onMoveNext,
     required this.onMovePrev,
+    required this.onPrevTab,
+    required this.onNextTab,
     required this.onShowFilter,
     required this.onFocusSearch,
     required this.onUnfocusSearch,
@@ -51,6 +55,14 @@ class BacklogShortcuts extends ConsumerWidget {
           const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
           const CharacterActivator(DownKeys.char): const MoveNextIntent(),
           const CharacterActivator(UpKeys.char): const MovePrevIntent(),
+          const CharacterActivator(LeftKeys.char): const MoveLeftIntent(),
+          const CharacterActivator(LeftKeys.upper): const MoveLeftIntent(),
+          const SingleActivator(AppKeyBindings.arrowLeft):
+              const MoveLeftIntent(),
+          const CharacterActivator(RightKeys.char): const MoveRightIntent(),
+          const CharacterActivator(RightKeys.upper): const MoveRightIntent(),
+          const SingleActivator(AppKeyBindings.arrowRight):
+              const MoveRightIntent(),
           const CharacterActivator(FilterKeys.char): const FilterIntent(),
           const SingleActivator(TodayKeys.keyboardKey, control: true):
               const PlanTaskIntent(),
@@ -70,6 +82,10 @@ class BacklogShortcuts extends ConsumerWidget {
             ),
             MovePrevIntent: NonTypingAction<MovePrevIntent>(
               (_) => onMovePrev(),
+            ),
+            MoveLeftIntent: NonTypingAction<MoveLeftIntent>((_) => onPrevTab()),
+            MoveRightIntent: NonTypingAction<MoveRightIntent>(
+              (_) => onNextTab(),
             ),
             FilterIntent: NonTypingAction<FilterIntent>((_) => onShowFilter()),
             FocusSearchIntent: NonTypingAction<FocusSearchIntent>(

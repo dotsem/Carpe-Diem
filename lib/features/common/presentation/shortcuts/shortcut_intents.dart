@@ -291,6 +291,11 @@ final projectDialogShortcutEntries = [
 
 final backlogShortcutEntries = [
   const ShortcutEntry(
+    key: '${LeftKeys.char} / ${RightKeys.char}',
+    description: 'Switch tab / domain',
+    category: 'Backlog',
+  ),
+  const ShortcutEntry(
     key: '${DownKeys.char} / ${UpKeys.char}',
     description: 'Focus next / prev',
     category: 'Backlog',
