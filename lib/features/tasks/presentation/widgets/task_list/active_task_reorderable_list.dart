@@ -37,58 +37,54 @@ class ActiveTaskReorderableList extends ConsumerWidget {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: widgets.length,
-          itemBuilder: (context, index) {
-            final node = index < nodes.length ? nodes[index] : null;
-            final child = widgets[index];
+    final urgentSectionEnd = TaskReorderUtils.getUrgentSectionEndIndex(nodes);
 
-            Widget draggableChild = child;
-            if (node?.task != null) {
-              final task = node!.task!;
-              final isSelected = selectedTaskIds.contains(task.id);
-              draggableChild = PlatformDraggable<Task>(
-                data: task,
-                feedback: TaskDragProxy(
-                  task: task,
-                  selectedCount: isSelected ? selectedTaskIds.length : 1,
-                  width: constraints.maxWidth,
-                ),
-                childWhenDragging: Opacity(opacity: 0.3, child: child),
-                child: child,
-              );
-            }
+    return TaskDropZoneScope(
+      urgentSectionEndIndex: urgentSectionEnd,
+      itemCount: widgets.length,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widgets.length,
+            itemBuilder: (context, index) {
+              final node = index < nodes.length ? nodes[index] : null;
+              final child = widgets[index];
 
-            return TaskDropZoneWrapper(
-              index: index,
-              onDrop: (task, newIndex) {
-                final settings = ref.read(settingsProvider);
-                if (selectedTaskIds.isNotEmpty) {
-                  final newSortOrders = TaskReorderUtils.handleMultiReorder(
-                    nodes: nodes,
-                    draggedTask: task,
-                    newIndex: newIndex,
-                    selectedTaskIds: selectedTaskIds.toSet(),
-                    settings: settings,
-                  );
-                  if (newSortOrders != null && newSortOrders.isNotEmpty) {
-                    onMultiReorder?.call(newSortOrders);
-                  } else {
-                    final newSortOrder = TaskReorderUtils.handleReorder(
+              Widget draggableChild = child;
+              if (node?.task != null) {
+                final task = node!.task!;
+                final isSelected = selectedTaskIds.contains(task.id);
+                draggableChild = PlatformDraggable<Task>(
+                  data: task,
+                  feedback: TaskDragProxy(
+                    task: task,
+                    selectedCount: isSelected ? selectedTaskIds.length : 1,
+                    width: constraints.maxWidth,
+                  ),
+                  childWhenDragging: Opacity(opacity: 0.3, child: child),
+                  child: child,
+                );
+              }
+
+              return TaskDropZoneWrapper(
+                index: index,
+                onDrop: (task, newIndex) {
+                  final settings = ref.read(settingsProvider);
+                  if (selectedTaskIds.isNotEmpty) {
+                    final newSortOrders = TaskReorderUtils.handleMultiReorder(
                       nodes: nodes,
                       draggedTask: task,
                       newIndex: newIndex,
+                      selectedTaskIds: selectedTaskIds.toSet(),
                       settings: settings,
                     );
-                    if (newSortOrder != null) {
-                      onReorder(task, newSortOrder);
+                    if (newSortOrders != null && newSortOrders.isNotEmpty) {
+                      onMultiReorder?.call(newSortOrders);
+                      return;
                     }
                   }
-                } else {
                   final newSortOrder = TaskReorderUtils.handleReorder(
                     nodes: nodes,
                     draggedTask: task,
@@ -98,13 +94,13 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                   if (newSortOrder != null) {
                     onReorder(task, newSortOrder);
                   }
-                }
-              },
-              child: draggableChild,
-            );
-          },
-        );
-      },
+                },
+                child: draggableChild,
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

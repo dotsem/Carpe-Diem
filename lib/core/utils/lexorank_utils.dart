@@ -181,10 +181,10 @@ class LexoRankUtils {
     if (prev == null) {
       if (next == null) return defaultRank;
       final firstCode = next.isNotEmpty ? next.codeUnitAt(0) : 109;
-      if (firstCode > 48) {
-        return String.fromCharCode(48 + ((firstCode - 48) ~/ 2));
+      if (firstCode > 33) {
+        return String.fromCharCode(33 + ((firstCode - 33) ~/ 2));
       }
-      return 'Zz';
+      return '!';
     }
     if (next == null) {
       final lastCode = prev.isNotEmpty ? prev.codeUnitAt(0) : 109;
@@ -194,7 +194,14 @@ class LexoRankUtils {
       return '${prev}V';
     }
     if (prev == next) return '${prev}V';
-    return '${prev}V';
+    if (prev.length == 1 && next.length == 1) {
+      final p = prev.codeUnitAt(0);
+      final n = next.codeUnitAt(0);
+      if (n - p > 1) {
+        return String.fromCharCode(p + (n - p) ~/ 2);
+      }
+    }
+    return '${prev}U';
   }
 
   static String generateTop(String? currentFirst) =>

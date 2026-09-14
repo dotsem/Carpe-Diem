@@ -77,6 +77,17 @@ void main() {
 
       final bottom = LexoRankUtils.generateBottom('m');
       expect(bottom.compareTo('m'), greaterThan(0));
+
+      final topZero = LexoRankUtils.generateTop('0');
+      expect(topZero.compareTo('0'), lessThan(0));
+
+      final mid = LexoRankUtils.generateBetween('0', '2');
+      expect(mid.compareTo('0'), greaterThan(0));
+      expect(mid.compareTo('2'), lessThan(0));
+
+      final midAdjacent = LexoRankUtils.generateBetween('0', '1');
+      expect(midAdjacent.compareTo('0'), greaterThan(0));
+      expect(midAdjacent.compareTo('1'), lessThan(0));
     });
   });
 }

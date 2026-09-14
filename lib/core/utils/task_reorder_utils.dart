@@ -87,6 +87,30 @@ class TaskReorderUtils {
     return '~';
   }
 
+  /// Find the boundary index in [nodes] where the urgent section ends.
+  /// All nodes before this index are effectively urgent.
+  static int getUrgentSectionEndIndex(List<TaskHierarchyNode> nodes) {
+    int urgentEnd = 0;
+    for (int i = 0; i < nodes.length; i++) {
+      final node = nodes[i];
+      final isRoot = switch (node) {
+        ParentContainerNode p => p.depth == 0,
+        TaskNode t => t.depth == 0 && !t.isBundledUnderParent,
+        _ => true,
+      };
+      if (isRoot) {
+        final isUrgent = switch (node) {
+          ParentContainerNode p => p.task.isUrgent || p.hasUrgentChild,
+          TaskNode t => t.task.isUrgent,
+          _ => node.task?.isUrgent ?? false,
+        };
+        if (!isUrgent) return i;
+      }
+      urgentEnd = i + 1;
+    }
+    return urgentEnd;
+  }
+
   /// Calculate the new sort order for a single task when moved to a new position in a group.
   /// Returns the new sort order for the task, or null if no change is needed.
   static String? handleReorder({
@@ -95,7 +119,19 @@ class TaskReorderUtils {
     required int newIndex,
     required SettingsState settings,
   }) {
-    final sameGroupTasks = nodes
+    final urgentSectionEnd = getUrgentSectionEndIndex(nodes);
+    final isDraggedUrgent = draggedTask.isUrgent;
+    final effectiveIndex = !isDraggedUrgent && newIndex < urgentSectionEnd
+        ? urgentSectionEnd
+        : (isDraggedUrgent && newIndex > urgentSectionEnd
+              ? urgentSectionEnd
+              : newIndex);
+
+    final sectionNodes = !isDraggedUrgent
+        ? nodes.sublist(urgentSectionEnd)
+        : nodes.sublist(0, urgentSectionEnd);
+
+    final sameGroupTasks = sectionNodes
         .map((n) => n.task)
         .whereType<Task>()
         .where((t) => inSameGroup(t, draggedTask, settings))
@@ -108,7 +144,8 @@ class TaskReorderUtils {
     );
 
     int targetCount = 0;
-    for (int i = 0; i < newIndex && i < nodes.length; i++) {
+    final startIndex = !isDraggedUrgent ? urgentSectionEnd : 0;
+    for (int i = startIndex; i < effectiveIndex && i < nodes.length; i++) {
       final n = nodes[i];
       if (n.task != null && inSameGroup(n.task!, draggedTask, settings)) {
         targetCount++;
@@ -141,7 +178,19 @@ class TaskReorderUtils {
   }) {
     if (!selectedTaskIds.contains(draggedTask.id)) return null;
 
-    final sameGroupTasks = nodes
+    final urgentSectionEnd = getUrgentSectionEndIndex(nodes);
+    final isDraggedUrgent = draggedTask.isUrgent;
+    final effectiveIndex = !isDraggedUrgent && newIndex < urgentSectionEnd
+        ? urgentSectionEnd
+        : (isDraggedUrgent && newIndex > urgentSectionEnd
+              ? urgentSectionEnd
+              : newIndex);
+
+    final sectionNodes = !isDraggedUrgent
+        ? nodes.sublist(urgentSectionEnd)
+        : nodes.sublist(0, urgentSectionEnd);
+
+    final sameGroupTasks = sectionNodes
         .map((n) => n.task)
         .whereType<Task>()
         .where((t) => inSameGroup(t, draggedTask, settings))
@@ -157,7 +206,8 @@ class TaskReorderUtils {
       ..removeWhere((t) => selectedTaskIds.contains(t.id));
 
     int targetCount = 0;
-    for (int i = 0; i < newIndex && i < nodes.length; i++) {
+    final startIndex = !isDraggedUrgent ? urgentSectionEnd : 0;
+    for (int i = startIndex; i < effectiveIndex && i < nodes.length; i++) {
       final n = nodes[i];
       if (n.task != null &&
           inSameGroup(n.task!, draggedTask, settings) &&
