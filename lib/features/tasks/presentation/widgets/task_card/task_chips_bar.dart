@@ -9,6 +9,7 @@ import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dar
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_board.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/subtask_progress_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,7 +95,8 @@ class TaskChipsBar extends ConsumerWidget {
             },
           ),
         if (isOverdue && !task.isCompleted) const OverdueChip(),
-        if (task.status.isInProgress) const StatusChip(),
+        if (task.status.isInProgress && !KanbanScope.of(context))
+          const StatusChip(),
         if (task.deadline != null) DeadlineChip(deadline: task.deadline!),
         if (showScheduleDate &&
             task.scheduledDate != null &&

@@ -9,6 +9,16 @@ import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_column.dart';
 
+class KanbanScope extends InheritedWidget {
+  const KanbanScope({super.key, required super.child});
+
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<KanbanScope>() != null;
+
+  @override
+  bool updateShouldNotify(KanbanScope oldWidget) => false;
+}
+
 class KanbanBoard extends ConsumerStatefulWidget {
   final List<Task> tasks;
   final void Function(Task task, TaskStatus status) onStatusChange;
@@ -104,81 +114,84 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
       });
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 800;
-        final isExpanded = !isNarrow || _forceExpanded || _isDraggingOver;
+    return KanbanScope(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 800;
+          final isExpanded = !isNarrow || _forceExpanded || _isDraggingOver;
 
-        final standardColumnWidth = (constraints.maxWidth - 32) / 3;
-        final responsiveColumnWidth = isNarrow
-            ? (constraints.maxWidth - 16) / 2 - 20
-            : standardColumnWidth;
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: responsiveColumnWidth,
-                  child: KanbanColumn(
-                    title: 'Todo',
-                    titleColor: Theme.of(context).colorScheme.onSurface,
-                    tasks: todo,
-                    acceptedStatus: TaskStatus.todo,
+          final standardColumnWidth = (constraints.maxWidth - 32) / 3;
+          final responsiveColumnWidth = isNarrow
+              ? (constraints.maxWidth - 16) / 2 - 20
+              : standardColumnWidth;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: responsiveColumnWidth,
+                    child: KanbanColumn(
+                      title: 'Todo',
+                      titleColor: Theme.of(context).colorScheme.onSurface,
+                      tasks: todo,
+                      acceptedStatus: TaskStatus.todo,
+                      onStatusChange: widget.onStatusChange,
+                      onContextMenu: widget.onContextMenu,
+                      onEdit: widget.onEdit,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    width: responsiveColumnWidth,
+                    child: KanbanColumn(
+                      title: 'In Progress',
+                      titleColor: AppColors.accent,
+                      tasks: inProgress,
+                      acceptedStatus: TaskStatus.inProgress,
+                      onStatusChange: widget.onStatusChange,
+                      onContextMenu: widget.onContextMenu,
+                      onEdit: widget.onEdit,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ItemSizeTransitionBuilder(
+                    isExpanded: isExpanded,
+                    width: responsiveColumnWidth,
+                    isNarrow: isNarrow,
+                    doneTasks: done,
                     onStatusChange: widget.onStatusChange,
                     onContextMenu: widget.onContextMenu,
                     onEdit: widget.onEdit,
+                    itemFocusNodes: widget.itemFocusNodes,
+                    scrollController: _scrollController,
+                    forceExpanded: _forceExpanded,
+                    isDraggingOver: _isDraggingOver,
+                    isTransitioning: _isTransitioning,
+                    onToggle: () {
+                      setState(() {
+                        _forceExpanded = !_forceExpanded;
+                        _isTransitioning = true;
+                      });
+                    },
+                    onDragEntering: () {
+                      setState(() {
+                        _isDraggingOver = true;
+                        _isTransitioning = true;
+                      });
+                    },
+                    onDragExiting: () =>
+                        setState(() => _isDraggingOver = false),
                   ),
-                ),
-                const SizedBox(width: 16),
-                SizedBox(
-                  width: responsiveColumnWidth,
-                  child: KanbanColumn(
-                    title: 'In Progress',
-                    titleColor: AppColors.accent,
-                    tasks: inProgress,
-                    acceptedStatus: TaskStatus.inProgress,
-                    onStatusChange: widget.onStatusChange,
-                    onContextMenu: widget.onContextMenu,
-                    onEdit: widget.onEdit,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ItemSizeTransitionBuilder(
-                  isExpanded: isExpanded,
-                  width: responsiveColumnWidth,
-                  isNarrow: isNarrow,
-                  doneTasks: done,
-                  onStatusChange: widget.onStatusChange,
-                  onContextMenu: widget.onContextMenu,
-                  onEdit: widget.onEdit,
-                  itemFocusNodes: widget.itemFocusNodes,
-                  scrollController: _scrollController,
-                  forceExpanded: _forceExpanded,
-                  isDraggingOver: _isDraggingOver,
-                  isTransitioning: _isTransitioning,
-                  onToggle: () {
-                    setState(() {
-                      _forceExpanded = !_forceExpanded;
-                      _isTransitioning = true;
-                    });
-                  },
-                  onDragEntering: () {
-                    setState(() {
-                      _isDraggingOver = true;
-                      _isTransitioning = true;
-                    });
-                  },
-                  onDragExiting: () => setState(() => _isDraggingOver = false),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
