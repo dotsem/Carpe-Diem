@@ -42,6 +42,7 @@ class MultiSelectSearchableDropdown<T> extends StatefulWidget {
 
 class _MultiSelectSearchableDropdownState<T>
     extends State<MultiSelectSearchableDropdown<T>> {
+  static const int _maxItemsWithoutSearch = 1; // TODO: maybe add this as param?
   final MenuController _menuController = MenuController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -136,7 +137,7 @@ class _MultiSelectSearchableDropdownState<T>
       controller: _menuController,
       onOpen: () {
         _searchController.clear();
-        if (widget.items.length > 5) {
+        if (widget.items.length > _maxItemsWithoutSearch) {
           _searchFocusNode.requestFocus();
         }
         setState(() {
@@ -161,7 +162,7 @@ class _MultiSelectSearchableDropdownState<T>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.items.length > 5) ...[
+                if (widget.items.length > _maxItemsWithoutSearch) ...[
                   FuzzySearchBar(
                     controller: _searchController,
                     focusNode: _searchFocusNode,
