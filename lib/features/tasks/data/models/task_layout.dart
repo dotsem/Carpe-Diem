@@ -3,6 +3,9 @@ enum TaskLayout {
   kanban;
 
   static TaskLayout fromString(String name) {
-    return TaskLayout.values.firstWhere((e) => e.name == name);
+    return TaskLayout.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => TaskLayout.list,
+    );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
@@ -38,6 +39,7 @@ class HomePlannerPane extends ConsumerWidget {
 
     final projectState = ref.watch(projectProvider);
     final filter = ref.watch(filterProvider).activeFilter;
+    final taskLayout = ref.watch(taskLayoutProvider);
     final settings = ref.watch(settingsProvider);
     final showActiveOnly = settings.showActiveProjectsOnly;
     final isToday = selectedDate.isToday;
@@ -58,7 +60,7 @@ class HomePlannerPane extends ConsumerWidget {
       return filter.applyToTask(t, project?.labelIds ?? []);
     }).toList();
 
-    if (settings.taskLayout == TaskLayout.kanban) {
+    if (taskLayout == TaskLayout.kanban) {
       return KanbanBoard(
         tasks: [...(isToday ? overdue : []), ...allTasks],
         onStatusChange: (task, status) async {

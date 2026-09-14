@@ -2,6 +2,7 @@ import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/core/utils/midnight_timer.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
@@ -92,7 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     ref.watch(taskProvider);
     final filterState = ref.watch(filterProvider);
-    final settings = ref.watch(settingsProvider);
+    final taskLayout = ref.watch(taskLayoutProvider);
     final selectedDate = ref.watch(selectedDateProvider);
     final isToday = selectedDate.isToday;
     final daysFromToday = selectedDate.daysFromToday;
@@ -101,13 +102,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onPrevDay: () => _changeDay(-1),
       onNextDay: () => _changeDay(1),
       onNewTask: () => _showAddTask(context),
-      onToggleLayout: () {
-        final currentLayout = settings.taskLayout;
-        final nextLayout = currentLayout == TaskLayout.list
-            ? TaskLayout.kanban
-            : TaskLayout.list;
-        ref.read(settingsProvider.notifier).setTaskLayout(nextLayout);
-      },
+      onToggleLayout: () =>
+          ref.read(taskLayoutProvider.notifier).toggleLayout(),
       onShowFilter: () => _showFilterDialog(context),
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
@@ -131,21 +127,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     },
               actions: [
                 IconButton(
-                  onPressed: () {
-                    final currentLayout = settings.taskLayout;
-                    final nextLayout = currentLayout == TaskLayout.list
-                        ? TaskLayout.kanban
-                        : TaskLayout.list;
-                    ref
-                        .read(settingsProvider.notifier)
-                        .setTaskLayout(nextLayout);
-                  },
+                  onPressed: () =>
+                      ref.read(taskLayoutProvider.notifier).toggleLayout(),
                   icon: Icon(
-                    settings.taskLayout == TaskLayout.list
+                    taskLayout == TaskLayout.list
                         ? Icons.view_kanban
                         : Icons.view_list,
                   ),
-                  tooltip: settings.taskLayout == TaskLayout.list
+                  tooltip: taskLayout == TaskLayout.list
                       ? 'Kanban view'
                       : 'List view',
                 ),
