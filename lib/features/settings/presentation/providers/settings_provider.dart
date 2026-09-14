@@ -4,7 +4,6 @@ import 'package:carpe_diem/core/utils/key_value_map_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart'
     show FilterInteractionMethod;
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
@@ -15,11 +14,6 @@ class SettingsState {
 
   const SettingsState(this._map);
 
-  TaskLayout get taskLayout => _map.getEnum(
-    SettingsConstants.keyTaskLayout,
-    TaskLayout.values,
-    TaskLayout.list,
-  );
   int get maxPlanningDays => _map.getInt(
     SettingsConstants.keyMaxPlanningDays,
     SettingsConstants.maxPlanningDaysAhead,
@@ -168,8 +162,6 @@ class SettingsNotifier extends Notifier<SettingsState> {
     await writeTask;
   }
 
-  Future<void> setTaskLayout(TaskLayout layout) =>
-      _set(SettingsConstants.keyTaskLayout, layout);
   Future<void> setMaxPlanningDays(int days) =>
       _set(SettingsConstants.keyMaxPlanningDays, days);
   Future<void> setFirstDayOfWeek(int day) =>
