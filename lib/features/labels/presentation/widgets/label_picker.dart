@@ -77,7 +77,7 @@ class LabelPicker extends ConsumerWidget {
           leadingBuilder: (l) =>
               CircleAvatar(backgroundColor: l.color, radius: 5),
           onChanged: onSelected,
-          buttonLabel: '+ Label',
+          buttonLabel: 'Label',
           searchHint: 'Search labels...',
           allowAdd: allowAdd,
           addNewLabel: 'New Label',

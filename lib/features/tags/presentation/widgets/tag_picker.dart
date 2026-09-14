@@ -76,7 +76,7 @@ class TagPicker extends ConsumerWidget {
             size: 16,
           ),
           onChanged: onSelected,
-          buttonLabel: '+ Tag',
+          buttonLabel: 'Tag',
           searchHint: 'Search tags...',
           allowAdd: allowAdd,
           addNewLabel: 'New Tag',
