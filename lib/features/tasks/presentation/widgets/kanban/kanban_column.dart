@@ -193,70 +193,78 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                         allTasks: allAvailableTasks,
                         collapsedParentIds: collapsedParentIds,
                       );
-                      return ListView.builder(
-                        padding: const EdgeInsets.all(8),
-                        itemCount: hierarchical.length,
-                        itemBuilder: (context, index) {
-                          final node = hierarchical[index];
-                          Widget childWidget = const SizedBox.shrink();
-
-                          if (node is TaskNode) {
-                            final task = node.task;
-                            final focusNode = widget.itemFocusNodes
-                                ?.putIfAbsent(
-                                  task.id,
-                                  () => FocusNode(
-                                    debugLabel: 'KanbanTask_${task.id}',
-                                  ),
-                                );
-                            childWidget = KanbanCard(
-                              key: ValueKey(task.id),
-                              node: node,
-                              tasks: widget.tasks,
-                              projectNotifier: projectNotifier,
-                              onContextMenu: widget.onContextMenu,
-                              onEdit: widget.onEdit,
-                              focusNode: focusNode,
-                            );
-                          }
-
-                          return TaskDropZoneWrapper(
-                            index: index,
-                            onHover: (hovered) {
-                              setState(() {
-                                if (hovered) {
-                                  _hoveredChildren++;
-                                } else {
-                                  _hoveredChildren--;
-                                }
-                              });
-                            },
-                            onDrop: (task, newIndex) {
-                              final settings = ref.read(settingsProvider);
-                              final newSortOrder =
-                                  TaskReorderUtils.handleReorder(
-                                    nodes: hierarchical,
-                                    draggedTask: task,
-                                    newIndex: newIndex,
-                                    settings: settings,
-                                  );
-                              if (task.status != widget.acceptedStatus) {
-                                final updatedTask = task.copyWith(
-                                  sortOrder: newSortOrder ?? task.sortOrder,
-                                );
-                                widget.onStatusChange(
-                                  updatedTask,
-                                  widget.acceptedStatus,
-                                );
-                              } else if (newSortOrder != null) {
-                                ref
-                                    .read(taskProvider.notifier)
-                                    .reorderTask(task, newSortOrder);
-                              }
-                            },
-                            child: childWidget,
+                      final urgentSectionEnd =
+                          TaskReorderUtils.getUrgentSectionEndIndex(
+                            hierarchical,
                           );
-                        },
+                      return TaskDropZoneScope(
+                        urgentSectionEndIndex: urgentSectionEnd,
+                        itemCount: hierarchical.length,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: hierarchical.length,
+                          itemBuilder: (context, index) {
+                            final node = hierarchical[index];
+                            Widget childWidget = const SizedBox.shrink();
+
+                            if (node is TaskNode) {
+                              final task = node.task;
+                              final focusNode = widget.itemFocusNodes
+                                  ?.putIfAbsent(
+                                    task.id,
+                                    () => FocusNode(
+                                      debugLabel: 'KanbanTask_${task.id}',
+                                    ),
+                                  );
+                              childWidget = KanbanCard(
+                                key: ValueKey(task.id),
+                                node: node,
+                                tasks: widget.tasks,
+                                projectNotifier: projectNotifier,
+                                onContextMenu: widget.onContextMenu,
+                                onEdit: widget.onEdit,
+                                focusNode: focusNode,
+                              );
+                            }
+
+                            return TaskDropZoneWrapper(
+                              index: index,
+                              onHover: (hovered) {
+                                setState(() {
+                                  if (hovered) {
+                                    _hoveredChildren++;
+                                  } else {
+                                    _hoveredChildren--;
+                                  }
+                                });
+                              },
+                              onDrop: (task, newIndex) {
+                                final settings = ref.read(settingsProvider);
+                                final newSortOrder =
+                                    TaskReorderUtils.handleReorder(
+                                      nodes: hierarchical,
+                                      draggedTask: task,
+                                      newIndex: newIndex,
+                                      settings: settings,
+                                    );
+                                if (task.status != widget.acceptedStatus) {
+                                  final updatedTask = task.copyWith(
+                                    sortOrder: newSortOrder ?? task.sortOrder,
+                                  );
+                                  widget.onStatusChange(
+                                    updatedTask,
+                                    widget.acceptedStatus,
+                                  );
+                                } else if (newSortOrder != null) {
+                                  ref
+                                      .read(taskProvider.notifier)
+                                      .reorderTask(task, newSortOrder);
+                                }
+                              },
+                              child: childWidget,
+                            );
+                          },
+                        ),
                       );
                     },
                   ),

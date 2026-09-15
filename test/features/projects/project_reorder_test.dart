@@ -11,21 +11,21 @@ void main() {
       name: 'Project 1',
       color: Colors.blue,
       createdAt: now,
-      sortOrder: 'a',
+      sortOrder: 'a0',
     );
     final p2 = Project(
       id: '2',
       name: 'Project 2',
       color: Colors.green,
       createdAt: now,
-      sortOrder: 'b',
+      sortOrder: 'a1',
     );
     final p3 = Project(
       id: '3',
       name: 'Project 3',
       color: Colors.red,
       createdAt: now,
-      sortOrder: 'c',
+      sortOrder: 'a2',
     );
 
     final projects = [p1, p2, p3];

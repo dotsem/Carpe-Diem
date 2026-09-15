@@ -221,61 +221,57 @@ class BacklogList extends ConsumerWidget {
       return TaskHierarchyIndicator(depth: n.depth, child: child);
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          itemCount: activeHierarchical.length,
-          itemBuilder: (context, index) {
-            final node = activeHierarchical[index];
-            final child = buildNode(node);
+    final urgentSectionEnd = TaskReorderUtils.getUrgentSectionEndIndex(
+      activeHierarchical,
+    );
 
-            Widget draggableChild = child;
-            if (node.task != null) {
-              final task = node.task!;
-              final isSelected = selectedTaskIds.contains(task.id);
-              draggableChild = PlatformDraggable<Task>(
-                data: task,
-                feedback: TaskDragProxy(
-                  task: task,
-                  selectedCount: isSelected ? selectedTaskIds.length : 1,
-                  width: constraints.maxWidth - 32,
-                ),
-                childWhenDragging: Opacity(opacity: 0.3, child: child),
-                child: child,
-              );
-            }
+    return TaskDropZoneScope(
+      urgentSectionEndIndex: urgentSectionEnd,
+      itemCount: activeHierarchical.length,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            itemCount: activeHierarchical.length,
+            itemBuilder: (context, index) {
+              final node = activeHierarchical[index];
+              final child = buildNode(node);
 
-            return TaskDropZoneWrapper(
-              index: index,
-              onDrop: (task, newIndex) {
-                final settings = ref.read(settingsProvider);
-                if (selectedTaskIds.isNotEmpty) {
-                  final newSortOrders = TaskReorderUtils.handleMultiReorder(
-                    nodes: activeHierarchical,
-                    draggedTask: task,
-                    newIndex: newIndex,
-                    selectedTaskIds: selectedTaskIds.toSet(),
-                    settings: settings,
-                  );
-                  if (newSortOrders != null && newSortOrders.isNotEmpty) {
-                    ref
-                        .read(taskProvider.notifier)
-                        .bulkReorderTasks(newSortOrders);
-                  } else {
-                    final newSortOrder = TaskReorderUtils.handleReorder(
+              Widget draggableChild = child;
+              if (node.task != null) {
+                final task = node.task!;
+                final isSelected = selectedTaskIds.contains(task.id);
+                draggableChild = PlatformDraggable<Task>(
+                  data: task,
+                  feedback: TaskDragProxy(
+                    task: task,
+                    selectedCount: isSelected ? selectedTaskIds.length : 1,
+                    width: constraints.maxWidth - 32,
+                  ),
+                  childWhenDragging: Opacity(opacity: 0.3, child: child),
+                  child: child,
+                );
+              }
+
+              return TaskDropZoneWrapper(
+                index: index,
+                onDrop: (task, newIndex) {
+                  final settings = ref.read(settingsProvider);
+                  if (selectedTaskIds.isNotEmpty) {
+                    final newSortOrders = TaskReorderUtils.handleMultiReorder(
                       nodes: activeHierarchical,
                       draggedTask: task,
                       newIndex: newIndex,
+                      selectedTaskIds: selectedTaskIds.toSet(),
                       settings: settings,
                     );
-                    if (newSortOrder != null) {
+                    if (newSortOrders != null && newSortOrders.isNotEmpty) {
                       ref
                           .read(taskProvider.notifier)
-                          .reorderTask(task, newSortOrder);
+                          .bulkReorderTasks(newSortOrders);
+                      return;
                     }
                   }
-                } else {
                   final newSortOrder = TaskReorderUtils.handleReorder(
                     nodes: activeHierarchical,
                     draggedTask: task,
@@ -287,13 +283,13 @@ class BacklogList extends ConsumerWidget {
                         .read(taskProvider.notifier)
                         .reorderTask(task, newSortOrder);
                   }
-                }
-              },
-              child: draggableChild,
-            );
-          },
-        );
-      },
+                },
+                child: draggableChild,
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

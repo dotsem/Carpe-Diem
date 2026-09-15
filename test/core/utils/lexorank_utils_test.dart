@@ -71,12 +71,13 @@ void main() {
       expect(mid.compareTo('a0'), greaterThan(0));
     });
 
-    test('handles legacy fallback keys', () {
-      final top = LexoRankUtils.generateTop('m');
-      expect(top.compareTo('m'), lessThan(0));
-
-      final bottom = LexoRankUtils.generateBottom('m');
-      expect(bottom.compareTo('m'), greaterThan(0));
+    test('falls back gracefully on unparseable rank keys', () {
+      expect(LexoRankUtils.generateBetween('invalid', null), equals('a0'));
+      expect(LexoRankUtils.generateBetween(null, 'invalid'), equals('a0'));
+      expect(
+        LexoRankUtils.generateBetween('invalid', 'invalid2'),
+        equals('a0'),
+      );
     });
   });
 }
