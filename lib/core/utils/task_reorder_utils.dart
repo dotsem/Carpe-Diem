@@ -62,6 +62,28 @@ class TaskReorderUtils {
     );
   }
 
+  /// Checks whether moving a task from [currentIndex] to [targetIndex] results in no change to its position.
+  static bool isPositionUnchanged({
+    required int currentIndex,
+    required int targetIndex,
+  }) {
+    if (currentIndex < 0) return false;
+    return targetIndex == currentIndex || targetIndex == currentIndex + 1;
+  }
+
+  /// Checks whether moving [draggedTask] to [targetIndex] in [nodes] results in no change to its position.
+  static bool isPositionUnchangedInNodes({
+    required Task draggedTask,
+    required int targetIndex,
+    required List<TaskHierarchyNode> nodes,
+  }) {
+    final currentIndex = nodes.indexWhere((n) => n.task?.id == draggedTask.id);
+    return isPositionUnchanged(
+      currentIndex: currentIndex,
+      targetIndex: targetIndex,
+    );
+  }
+
   static bool inSameGroup(Task a, Task b, SettingsState settings) {
     if (a.parentId != b.parentId) return false;
 

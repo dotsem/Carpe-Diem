@@ -42,6 +42,12 @@ class ActiveTaskReorderableList extends ConsumerWidget {
     return TaskDropZoneScope(
       urgentSectionEndIndex: urgentSectionEnd,
       itemCount: widgets.length,
+      isPositionUnchanged: (task, targetIndex) =>
+          TaskReorderUtils.isPositionUnchangedInNodes(
+            draggedTask: task,
+            targetIndex: targetIndex,
+            nodes: nodes,
+          ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return ListView.builder(

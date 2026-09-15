@@ -115,17 +115,10 @@ class BacklogList extends ConsumerWidget {
       asParentContainers: true,
     );
 
-    final List<String> orderedIds = [];
-    for (final n in activeHierarchical) {
-      if (n.task != null) {
-        orderedIds.add(n.task!.id);
-      }
-    }
-    for (final n in completedHierarchical) {
-      if (n.task != null) {
-        orderedIds.add(n.task!.id);
-      }
-    }
+    final orderedIds = [
+      ...activeHierarchical.map((n) => n.task?.id).whereType<String>(),
+      ...completedHierarchical.map((n) => n.task?.id).whereType<String>(),
+    ];
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       onOrderedIdsChanged(orderedIds);
@@ -228,6 +221,12 @@ class BacklogList extends ConsumerWidget {
     return TaskDropZoneScope(
       urgentSectionEndIndex: urgentSectionEnd,
       itemCount: activeHierarchical.length,
+      isPositionUnchanged: (task, targetIndex) =>
+          TaskReorderUtils.isPositionUnchangedInNodes(
+            draggedTask: task,
+            targetIndex: targetIndex,
+            nodes: activeHierarchical,
+          ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return ListView.builder(

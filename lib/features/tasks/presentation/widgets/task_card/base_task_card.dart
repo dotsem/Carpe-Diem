@@ -137,6 +137,7 @@ class BaseTaskCard extends StatelessWidget {
                       if (leading != null) SizedBox(width: compactMode ? 6 : 8),
                       Expanded(
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (task.parentId != null && !hideProjectInfo)

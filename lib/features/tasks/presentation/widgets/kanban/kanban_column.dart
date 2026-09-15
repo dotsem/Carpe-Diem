@@ -200,6 +200,12 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                       return TaskDropZoneScope(
                         urgentSectionEndIndex: urgentSectionEnd,
                         itemCount: hierarchical.length,
+                        isPositionUnchanged: (task, targetIndex) =>
+                            TaskReorderUtils.isPositionUnchangedInNodes(
+                              draggedTask: task,
+                              targetIndex: targetIndex,
+                              nodes: hierarchical,
+                            ),
                         child: ListView.builder(
                           padding: const EdgeInsets.all(8),
                           itemCount: hierarchical.length,
