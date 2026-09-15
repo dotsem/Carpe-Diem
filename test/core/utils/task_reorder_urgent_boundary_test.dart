@@ -159,44 +159,41 @@ void main() {
       },
     );
 
-    test(
-      'dragging between bottom urgent and top normal with legacy rank 0',
-      () {
-        final u = Task(
-          id: 'u',
-          title: 'U',
-          isUrgent: true,
-          createdAt: now,
-          sortOrder: 'y',
-        );
-        final n1 = Task(
-          id: 'n1',
-          title: 'N1',
-          isUrgent: false,
-          createdAt: now,
-          sortOrder: '0',
-        );
-        final n2 = Task(
-          id: 'n2',
-          title: 'N2',
-          isUrgent: false,
-          createdAt: now,
-          sortOrder: 'p',
-        );
+    test('dragging between bottom urgent and top normal with base62 rank', () {
+      final u = Task(
+        id: 'u',
+        title: 'U',
+        isUrgent: true,
+        createdAt: now,
+        sortOrder: 'a0',
+      );
+      final n1 = Task(
+        id: 'n1',
+        title: 'N1',
+        isUrgent: false,
+        createdAt: now,
+        sortOrder: 'a8',
+      );
+      final n2 = Task(
+        id: 'n2',
+        title: 'N2',
+        isUrgent: false,
+        createdAt: now,
+        sortOrder: 'aG',
+      );
 
-        final listNodes = [TaskNode(u, 0), TaskNode(n1, 0), TaskNode(n2, 0)];
+      final listNodes = [TaskNode(u, 0), TaskNode(n1, 0), TaskNode(n2, 0)];
 
-        final res = TaskReorderUtils.handleReorder(
-          nodes: listNodes,
-          draggedTask: n2,
-          newIndex: 1,
-          settings: settings,
-        );
+      final res = TaskReorderUtils.handleReorder(
+        nodes: listNodes,
+        draggedTask: n2,
+        newIndex: 1,
+        settings: settings,
+      );
 
-        expect(res, isNotNull);
-        expect(res!.compareTo(n1.sortOrder), lessThan(0));
-      },
-    );
+      expect(res, isNotNull);
+      expect(res!.compareTo(n1.sortOrder), lessThan(0));
+    });
 
     test(
       'dragging below parent container with urgent child places task before top normal',

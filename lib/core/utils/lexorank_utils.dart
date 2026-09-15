@@ -132,12 +132,7 @@ class LexoRankUtils {
     final parsedP = prev != null ? _parseKey(prev) : null;
     final parsedN = next != null ? _parseKey(next) : null;
 
-    // Handle legacy fallback if neither is formatted as base62 key
-    // TODO: may need to remove this in the future
-    if ((prev != null && parsedP == null) ||
-        (next != null && parsedN == null)) {
-      return _legacyBetween(prev, next);
-    }
+    if (parsedP == null && parsedN == null) return defaultRank;
 
     if (parsedP == null) {
       // generate before next
@@ -176,33 +171,6 @@ class LexoRankUtils {
     // Same integer head -> interpolate fractions
     final frac = _midpointFraction(parsedP.fraction, parsedN.fraction);
     return '${parsedP.intPrefix}$frac';
-  }
-
-  static String _legacyBetween(String? prev, String? next) {
-    if (prev == null) {
-      if (next == null) return defaultRank;
-      final firstCode = next.isNotEmpty ? next.codeUnitAt(0) : 109;
-      if (firstCode > 33) {
-        return String.fromCharCode(33 + ((firstCode - 33) ~/ 2));
-      }
-      return '!';
-    }
-    if (next == null) {
-      final lastCode = prev.isNotEmpty ? prev.codeUnitAt(0) : 109;
-      if (lastCode < 122) {
-        return String.fromCharCode(lastCode + ((122 - lastCode) ~/ 2));
-      }
-      return '${prev}V';
-    }
-    if (prev == next) return '${prev}V';
-    if (prev.length == 1 && next.length == 1) {
-      final p = prev.codeUnitAt(0);
-      final n = next.codeUnitAt(0);
-      if (n - p > 1) {
-        return String.fromCharCode(p + (n - p) ~/ 2);
-      }
-    }
-    return '${prev}U';
   }
 
   static String generateTop(String? currentFirst) =>
