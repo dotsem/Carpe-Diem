@@ -198,7 +198,7 @@ void main() {
       await tester.enterText(find.byType(TextField).first, 'Dropdown Task');
       await tester.pumpAndSettle();
 
-      final addLabelButton = find.text('+ Label');
+      final addLabelButton = find.text('Label');
       if (addLabelButton.evaluate().isNotEmpty) {
         await tester.ensureVisible(addLabelButton);
         await tester.pumpAndSettle();

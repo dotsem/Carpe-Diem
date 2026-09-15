@@ -118,10 +118,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('work'), findsOneWidget);
-      expect(find.text('+ Tag'), findsOneWidget);
+      expect(find.text('Tag'), findsOneWidget);
       expect(find.text('personal'), findsNothing);
 
-      await tester.tap(find.text('+ Tag'));
+      await tester.tap(find.text('Tag'));
       await tester.pumpAndSettle();
 
       expect(find.text('personal'), findsOneWidget);
