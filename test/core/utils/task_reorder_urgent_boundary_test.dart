@@ -242,5 +242,99 @@ void main() {
         expect(res!.compareTo(n1.sortOrder), lessThan(0));
       },
     );
+
+    test(
+      'isPositionUnchanged correctly identifies same vs different positions',
+      () {
+        // Current index 1 (item at index 1)
+        expect(
+          TaskReorderUtils.isPositionUnchanged(currentIndex: 1, targetIndex: 1),
+          isTrue,
+        );
+        expect(
+          TaskReorderUtils.isPositionUnchanged(currentIndex: 1, targetIndex: 2),
+          isTrue,
+        );
+        expect(
+          TaskReorderUtils.isPositionUnchanged(currentIndex: 1, targetIndex: 0),
+          isFalse,
+        );
+        expect(
+          TaskReorderUtils.isPositionUnchanged(currentIndex: 1, targetIndex: 3),
+          isFalse,
+        );
+
+        // Current index not found (-1)
+        expect(
+          TaskReorderUtils.isPositionUnchanged(
+            currentIndex: -1,
+            targetIndex: 0,
+          ),
+          isFalse,
+        );
+        expect(
+          TaskReorderUtils.isPositionUnchanged(
+            currentIndex: -1,
+            targetIndex: 1,
+          ),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'isPositionUnchangedInNodes detects position changes in node list',
+      () {
+        final listNodes = [
+          TaskNode(urgent1, 0),
+          TaskNode(normal1, 0),
+          TaskNode(normal2, 0),
+        ];
+
+        // normal1 is at index 1
+        expect(
+          TaskReorderUtils.isPositionUnchangedInNodes(
+            draggedTask: normal1,
+            targetIndex: 1,
+            nodes: listNodes,
+          ),
+          isTrue,
+        );
+        expect(
+          TaskReorderUtils.isPositionUnchangedInNodes(
+            draggedTask: normal1,
+            targetIndex: 2,
+            nodes: listNodes,
+          ),
+          isTrue,
+        );
+        expect(
+          TaskReorderUtils.isPositionUnchangedInNodes(
+            draggedTask: normal1,
+            targetIndex: 0,
+            nodes: listNodes,
+          ),
+          isFalse,
+        );
+        expect(
+          TaskReorderUtils.isPositionUnchangedInNodes(
+            draggedTask: normal1,
+            targetIndex: 3,
+            nodes: listNodes,
+          ),
+          isFalse,
+        );
+
+        // Task not in list (urgent2)
+        expect(
+          TaskReorderUtils.isPositionUnchangedInNodes(
+            draggedTask: urgent2,
+            targetIndex: 0,
+            nodes: listNodes,
+          ),
+          isFalse,
+        );
+      },
+    );
   });
 }
