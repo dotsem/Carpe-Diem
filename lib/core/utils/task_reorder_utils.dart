@@ -3,32 +3,9 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/core/utils/lexorank_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_position_info.dart';
 
-class TaskPositionInfo {
-  final int indexInList;
-  final int indexInGroup;
-  final bool isFirstInGroup;
-  final bool isLastInGroup;
-  final bool isFirstInList;
-  final bool isLastInList;
-
-  const TaskPositionInfo({
-    required this.indexInList,
-    required this.indexInGroup,
-    required this.isFirstInGroup,
-    required this.isLastInGroup,
-    required this.isFirstInList,
-    required this.isLastInList,
-  });
-
-  const TaskPositionInfo.notFound()
-    : indexInList = -1,
-      indexInGroup = -1,
-      isFirstInGroup = false,
-      isLastInGroup = false,
-      isFirstInList = false,
-      isLastInList = false;
-}
+export 'package:carpe_diem/features/tasks/data/models/task_position_info.dart';
 
 class TaskReorderUtils {
   /// Get position info for a task in a list of tasks.
@@ -149,6 +126,14 @@ class TaskReorderUtils {
               ? urgentSectionEnd
               : newIndex);
 
+    if (isPositionUnchangedInNodes(
+      draggedTask: draggedTask,
+      targetIndex: effectiveIndex,
+      nodes: nodes,
+    )) {
+      return null;
+    }
+
     final sectionNodes = !isDraggedUrgent
         ? nodes.sublist(urgentSectionEnd)
         : nodes.sublist(0, urgentSectionEnd);
@@ -207,6 +192,14 @@ class TaskReorderUtils {
         : (isDraggedUrgent && newIndex > urgentSectionEnd
               ? urgentSectionEnd
               : newIndex);
+
+    if (isPositionUnchangedInNodes(
+      draggedTask: draggedTask,
+      targetIndex: effectiveIndex,
+      nodes: nodes,
+    )) {
+      return null;
+    }
 
     final sectionNodes = !isDraggedUrgent
         ? nodes.sublist(urgentSectionEnd)
