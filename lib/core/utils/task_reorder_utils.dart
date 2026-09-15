@@ -5,8 +5,6 @@ import 'package:carpe_diem/core/utils/lexorank_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_position_info.dart';
 
-export 'package:carpe_diem/features/tasks/data/models/task_position_info.dart';
-
 class TaskReorderUtils {
   /// Get position info for a task in a list of tasks.
   /// If task is not found, returns [TaskPositionInfo.notFound].
