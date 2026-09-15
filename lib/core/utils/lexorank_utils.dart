@@ -133,6 +133,7 @@ class LexoRankUtils {
     final parsedN = next != null ? _parseKey(next) : null;
 
     // Handle legacy fallback if neither is formatted as base62 key
+    // TODO: may need to remove this in the future
     if ((prev != null && parsedP == null) ||
         (next != null && parsedN == null)) {
       return _legacyBetween(prev, next);
