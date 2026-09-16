@@ -57,6 +57,7 @@ class HiddenItemsIndicator extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
+          mouseCursor: SystemMouseCursors.click,
           onTap:
               onTap ??
               () {

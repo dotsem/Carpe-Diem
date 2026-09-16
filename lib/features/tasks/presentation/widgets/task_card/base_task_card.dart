@@ -100,6 +100,7 @@ class BaseTaskCard extends StatelessWidget {
           focusNode: focusNode,
           autofocus: autofocus,
           onTap: onTap,
+          mouseCursor: SystemMouseCursors.click,
           onFocusChange: onFocusChange,
           onSecondaryTapDown: onContextMenu != null
               ? (details) => onContextMenu!(

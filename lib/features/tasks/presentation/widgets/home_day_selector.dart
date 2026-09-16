@@ -34,44 +34,47 @@ class HomeDaySelector extends ConsumerWidget {
             final day = days[index];
             final isSelected = selectedDate.normalize == day;
             final dayOfWeek = DateFormat('E').format(day);
-            return GestureDetector(
-              onTap: () {
-                ref.read(selectedDateProvider.notifier).state = day;
-                ref.read(taskProvider.notifier).loadTasksForDate(day);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 52,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.accent
-                      : Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      dayOfWeek,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isSelected
-                            ? Colors.white
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
+            return MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () {
+                  ref.read(selectedDateProvider.notifier).state = day;
+                  ref.read(taskProvider.notifier).loadTasksForDate(day);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 52,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.accent
+                        : Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        dayOfWeek,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isSelected
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${day.day}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected
-                            ? Colors.white
-                            : Theme.of(context).colorScheme.onSurface,
+                      const SizedBox(height: 4),
+                      Text(
+                        '${day.day}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );

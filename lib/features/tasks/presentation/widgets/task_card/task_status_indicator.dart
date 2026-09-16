@@ -36,40 +36,46 @@ class TaskStatusIndicator extends ConsumerWidget {
     final isPending = timerNotifier.isTaskPending(task.id);
 
     if (task.status.isInProgress) {
-      return GestureDetector(
-        onTap: onToggleAction,
-        child: Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isPending
-                ? AppColors.accent.withValues(alpha: 0.5)
-                : AppColors.accent.withValues(alpha: 0.3),
-            border: Border.all(color: AppColors.accent, width: 2),
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onToggleAction,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isPending
+                  ? AppColors.accent.withValues(alpha: 0.5)
+                  : AppColors.accent.withValues(alpha: 0.3),
+              border: Border.all(color: AppColors.accent, width: 2),
+            ),
+            child: isPending
+                ? const Icon(Icons.close, size: 14, color: AppColors.accent)
+                : null,
           ),
-          child: isPending
-              ? const Icon(Icons.close, size: 14, color: AppColors.accent)
-              : null,
         ),
       );
     }
 
     if (task.status.isTodo) {
-      return GestureDetector(
-        onTap: onToggleAction,
-        child: Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.success.withValues(alpha: 0.1),
-            border: Border.all(color: AppColors.success, width: 2),
-          ),
-          child: const Icon(
-            Icons.play_arrow_rounded,
-            size: 16,
-            color: AppColors.success,
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onToggleAction,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.success.withValues(alpha: 0.1),
+              border: Border.all(color: AppColors.success, width: 2),
+            ),
+            child: const Icon(
+              Icons.play_arrow_rounded,
+              size: 16,
+              color: AppColors.success,
+            ),
           ),
         ),
       );

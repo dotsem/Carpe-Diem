@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -25,13 +26,10 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           provider.startTask(task);
           onAction?.call();
         },
-        child: const ListTile(
-          leading: Icon(Icons.play_circle_outline, color: AppColors.success),
-          title: Text(
-            'Start (In Progress)',
-            style: TextStyle(color: AppColors.success),
-          ),
-          dense: true,
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.play_circle_outline),
+          title: 'Start (In Progress)',
+          color: AppColors.success,
         ),
       ),
       PopupMenuItem(
@@ -39,13 +37,10 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           provider.completeTask(task);
           onAction?.call();
         },
-        child: const ListTile(
-          leading: Icon(Icons.check_circle_outline, color: AppColors.success),
-          title: Text(
-            'Mark as Done',
-            style: TextStyle(color: AppColors.success),
-          ),
-          dense: true,
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.check_circle_outline),
+          title: 'Mark as Done',
+          color: AppColors.success,
         ),
       ),
     ]);
@@ -56,10 +51,9 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           provider.updateTaskStatus(task, TaskStatus.todo);
           onAction?.call();
         },
-        child: const ListTile(
+        child: const ContextMenuItemTile(
           leading: Icon(Icons.undo),
-          title: Text('Back to Todo'),
-          dense: true,
+          title: 'Back to Todo',
         ),
       ),
       PopupMenuItem(
@@ -67,13 +61,10 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           provider.updateTaskStatus(task, TaskStatus.done);
           onAction?.call();
         },
-        child: const ListTile(
-          leading: Icon(Icons.check_circle_outline, color: AppColors.success),
-          title: Text(
-            'Mark as Done',
-            style: TextStyle(color: AppColors.success),
-          ),
-          dense: true,
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.check_circle_outline),
+          title: 'Mark as Done',
+          color: AppColors.success,
         ),
       ),
     ]);
@@ -84,10 +75,9 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           provider.updateTaskStatus(task, TaskStatus.todo);
           onAction?.call();
         },
-        child: const ListTile(
+        child: const ContextMenuItemTile(
           leading: Icon(Icons.undo),
-          title: Text('Back to Todo'),
-          dense: true,
+          title: 'Back to Todo',
         ),
       ),
       PopupMenuItem(
@@ -95,10 +85,9 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
           provider.updateTaskStatus(task, TaskStatus.inProgress);
           onAction?.call();
         },
-        child: const ListTile(
+        child: const ContextMenuItemTile(
           leading: Icon(Icons.play_arrow),
-          title: Text('Back to In Progress'),
-          dense: true,
+          title: 'Back to In Progress',
         ),
       ),
     ]);

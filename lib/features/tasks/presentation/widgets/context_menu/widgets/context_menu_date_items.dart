@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -66,13 +67,10 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
         PopupMenuItem(
           onTap: () =>
               scheduleTarget(DateTime.now().add(const Duration(days: 1))),
-          child: const ListTile(
-            leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
-            title: Text(
-              'Reschedule for Tomorrow',
-              style: TextStyle(color: AppColors.info),
-            ),
-            dense: true,
+          child: const ContextMenuItemTile(
+            leading: Icon(Icons.next_plan_outlined),
+            title: 'Reschedule for Tomorrow',
+            color: AppColors.info,
           ),
         ),
       );
@@ -86,13 +84,10 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
         items.add(
           PopupMenuItem(
             onTap: () => scheduleTarget(nextMonday),
-            child: const ListTile(
-              leading: Icon(Icons.next_week_outlined, color: AppColors.info),
-              title: Text(
-                'Reschedule for Next Week',
-                style: TextStyle(color: AppColors.info),
-              ),
-              dense: true,
+            child: const ContextMenuItemTile(
+              leading: Icon(Icons.next_week_outlined),
+              title: 'Reschedule for Next Week',
+              color: AppColors.info,
             ),
           ),
         );
@@ -101,19 +96,13 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
       items.add(
         PopupMenuItem(
           onTap: () => scheduleTarget(DateTime.now()),
-          child: ListTile(
+          child: ContextMenuItemTile(
             leading: Transform.flip(
               flipX: true,
-              child: const Icon(
-                Icons.next_plan_outlined,
-                color: AppColors.info,
-              ),
+              child: const Icon(Icons.next_plan_outlined),
             ),
-            title: const Text(
-              'Reschedule for Today',
-              style: TextStyle(color: AppColors.info),
-            ),
-            dense: true,
+            title: 'Reschedule for Today',
+            color: AppColors.info,
           ),
         ),
       );
@@ -126,13 +115,10 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
               selectedDate.day + 1,
             ),
           ),
-          child: const ListTile(
-            leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
-            title: Text(
-              'Reschedule for Next Day',
-              style: TextStyle(color: AppColors.info),
-            ),
-            dense: true,
+          child: const ContextMenuItemTile(
+            leading: Icon(Icons.next_plan_outlined),
+            title: 'Reschedule for Next Day',
+            color: AppColors.info,
           ),
         ),
       );
@@ -141,25 +127,19 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
     items.addAll([
       PopupMenuItem(
         onTap: () => scheduleTarget(DateTime.now()),
-        child: const ListTile(
-          leading: Icon(Icons.schedule_outlined, color: AppColors.info),
-          title: Text(
-            'Schedule for Today',
-            style: TextStyle(color: AppColors.info),
-          ),
-          dense: true,
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.schedule_outlined),
+          title: 'Schedule for Today',
+          color: AppColors.info,
         ),
       ),
       PopupMenuItem(
         onTap: () =>
             scheduleTarget(DateTime.now().add(const Duration(days: 1))),
-        child: const ListTile(
-          leading: Icon(Icons.next_plan_outlined, color: AppColors.info),
-          title: Text(
-            'Schedule for Tomorrow',
-            style: TextStyle(color: AppColors.info),
-          ),
-          dense: true,
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.next_plan_outlined),
+          title: 'Schedule for Tomorrow',
+          color: AppColors.info,
         ),
       ),
     ]);

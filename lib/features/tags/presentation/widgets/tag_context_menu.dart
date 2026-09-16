@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/edit_tag_dialog.dart';
@@ -34,10 +35,9 @@ void showTagContextMenu(
           context: context,
           builder: (context) => EditTagDialog(tag: tag),
         ),
-        child: const ListTile(
+        child: const ContextMenuItemTile(
           leading: Icon(Icons.edit),
-          title: Text('Edit'),
-          dense: true,
+          title: 'Edit',
         ),
       ),
       PopupMenuItem(
@@ -49,10 +49,10 @@ void showTagContextMenu(
             onConfirm: () => provider.deleteTag(tag.id),
           ),
         ),
-        child: const ListTile(
-          leading: Icon(Icons.delete, color: AppColors.error),
-          title: Text('Delete', style: TextStyle(color: AppColors.error)),
-          dense: true,
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.delete),
+          title: 'Delete',
+          color: AppColors.error,
         ),
       ),
     ],

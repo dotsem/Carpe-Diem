@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/dialogs/edit_label_dialog.dart';
@@ -34,10 +35,9 @@ void showLabelContextMenu(
           context: context,
           builder: (context) => EditLabelDialog(label: label),
         ),
-        child: const ListTile(
+        child: const ContextMenuItemTile(
           leading: Icon(Icons.edit),
-          title: Text('Edit'),
-          dense: true,
+          title: 'Edit',
         ),
       ),
       PopupMenuItem(
@@ -49,10 +49,10 @@ void showLabelContextMenu(
             onConfirm: () => provider.deleteLabel(label.id),
           ),
         ),
-        child: const ListTile(
-          leading: Icon(Icons.delete, color: AppColors.error),
-          title: Text('Delete', style: TextStyle(color: AppColors.error)),
-          dense: true,
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.delete),
+          title: 'Delete',
+          color: AppColors.error,
         ),
       ),
     ],
