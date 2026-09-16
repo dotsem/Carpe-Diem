@@ -58,6 +58,33 @@ class TaskStatusIndicator extends ConsumerWidget {
       );
     }
 
+    if (task.status.isReview) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onToggleAction,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isPending
+                  ? AppColors.review.withValues(alpha: 0.5)
+                  : AppColors.review.withValues(alpha: 0.2),
+              border: Border.all(color: AppColors.review, width: 2),
+            ),
+            child: isPending
+                ? const Icon(Icons.close, size: 14, color: AppColors.review)
+                : const Icon(
+                    Icons.rate_review_outlined,
+                    size: 13,
+                    color: AppColors.review,
+                  ),
+          ),
+        ),
+      );
+    }
+
     if (task.status.isTodo) {
       return MouseRegion(
         cursor: SystemMouseCursors.click,

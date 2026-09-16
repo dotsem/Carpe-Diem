@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -190,6 +191,112 @@ void main() {
                 (t) => t.status,
                 'status',
                 TaskStatus.todo,
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'toggleComplete transitions inProgress to review when reviewState is enabled',
+      () async {
+        await container.read(settingsProvider.notifier).setReviewState(true);
+        final inProgressTask = createTestTask(
+          id: 't1',
+          status: TaskStatus.inProgress,
+        );
+        when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+
+        final notifier = container.read(taskProvider.notifier);
+        await notifier.toggleComplete(inProgressTask);
+
+        verify(
+          () => mockTaskRepo.update(
+            any(
+              that: isA<Task>().having(
+                (t) => t.status,
+                'status',
+                TaskStatus.review,
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'toggleComplete transitions inProgress to done when reviewState is disabled',
+      () async {
+        await container.read(settingsProvider.notifier).setReviewState(false);
+        final inProgressTask = createTestTask(
+          id: 't1',
+          status: TaskStatus.inProgress,
+        );
+        when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+
+        final notifier = container.read(taskProvider.notifier);
+        await notifier.toggleComplete(inProgressTask);
+
+        verify(
+          () => mockTaskRepo.update(
+            any(
+              that: isA<Task>().having(
+                (t) => t.status,
+                'status',
+                TaskStatus.done,
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'toggleComplete transitions review to done when reviewState is disabled',
+      () async {
+        await container.read(settingsProvider.notifier).setReviewState(false);
+        final reviewTask = createTestTask(id: 't1', status: TaskStatus.review);
+        when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+
+        final notifier = container.read(taskProvider.notifier);
+        await notifier.toggleComplete(reviewTask);
+
+        verify(
+          () => mockTaskRepo.update(
+            any(
+              that: isA<Task>().having(
+                (t) => t.status,
+                'status',
+                TaskStatus.done,
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'toggleComplete transitions review to done when reviewState is enabled',
+      () async {
+        await container.read(settingsProvider.notifier).setReviewState(true);
+        final reviewTask = createTestTask(id: 't1', status: TaskStatus.review);
+        when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+
+        final notifier = container.read(taskProvider.notifier);
+        await notifier.toggleComplete(reviewTask);
+
+        verify(
+          () => mockTaskRepo.update(
+            any(
+              that: isA<Task>().having(
+                (t) => t.status,
+                'status',
+                TaskStatus.done,
               ),
             ),
           ),

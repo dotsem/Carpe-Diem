@@ -23,6 +23,7 @@ class AppColors {
   static const success = Color(0xFF4CAF50);
   static const info = Color(0xFF2196F3);
   static const warning = Color.fromARGB(255, 231, 209, 4);
+  static const review = Color.fromARGB(255, 254, 6, 254);
 
   // Helper getters (backwards compatibility or default)
   static Color get background => backgroundDark;

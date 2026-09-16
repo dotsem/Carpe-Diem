@@ -3,7 +3,10 @@ import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const months = [
   'Jan',
@@ -46,17 +49,20 @@ class OverdueChip extends StatelessWidget {
   }
 }
 
-class StatusChip extends StatelessWidget {
-  const StatusChip({super.key});
+class StatusChip extends ConsumerWidget {
+  final Task task;
+  const StatusChip({super.key, required this.task});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showReview =
+        task.status.isReview && ref.watch(settingsProvider).reviewState;
+    final color = showReview ? AppColors.review : AppColors.accent;
+    final label = showReview ? 'Review' : 'In Progress';
+
     return SmallChip(
-      color: AppColors.accent.withValues(alpha: 0.2),
-      child: const Text(
-        'In Progress',
-        style: TextStyle(fontSize: 11, color: AppColors.accent),
-      ),
+      color: color.withValues(alpha: 0.2),
+      child: Text(label, style: TextStyle(fontSize: 11, color: color)),
     );
   }
 }

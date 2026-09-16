@@ -209,29 +209,42 @@ class TaskNotifier extends Notifier<TaskState> {
     Task task, {
     bool useTimer = false,
   }) async {
+    final settings = ref.read(settingsProvider);
     final timerNotifier = ref.read(taskTimerProvider.notifier);
     if (timerNotifier.isTaskPending(task.id)) {
       timerNotifier.cancelPending(task.id);
       return null;
     }
+
+    Future<SubtaskCompletionConflict?> completeTaskWithPossibleTimer(
+      Task task,
+    ) async {
+      final conflict = await checkSubtaskConflict(task);
+      if (conflict != null) return conflict;
+      if (useTimer) {
+        timerNotifier.startPending(
+          task.id,
+          settings.taskCompletionDelay,
+          () => completeTask(task),
+        );
+      } else {
+        await completeTask(task);
+      }
+      return null;
+    }
+
     switch (task.status) {
       case TaskStatus.todo:
         await startTask(task);
         return null;
       case TaskStatus.inProgress:
-        final conflict = await checkSubtaskConflict(task);
-        if (conflict != null) return conflict;
-        if (useTimer) {
-          final s = ref.read(settingsProvider);
-          timerNotifier.startPending(
-            task.id,
-            s.taskCompletionDelay,
-            () => completeTask(task),
-          );
-        } else {
-          await completeTask(task);
+        if (settings.reviewState) {
+          await updateTaskStatus(task, TaskStatus.review);
+          return null;
         }
-        return null;
+        return completeTaskWithPossibleTimer(task);
+      case TaskStatus.review:
+        return completeTaskWithPossibleTimer(task);
       case TaskStatus.done:
         await updateTaskStatus(task, TaskStatus.todo);
         return null;
