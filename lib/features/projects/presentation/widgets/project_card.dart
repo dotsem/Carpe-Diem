@@ -5,6 +5,7 @@ import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -42,13 +43,11 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
       ),
       items: [
         PopupMenuItem(
-          child: ListTile(
+          child: ContextMenuItemTile(
             leading: Icon(
               isActive ? Icons.archive_outlined : Icons.unarchive_outlined,
             ),
-            title: Text(isActive ? 'Archive Project' : 'Restore Project'),
-            contentPadding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
+            title: isActive ? 'Archive Project' : 'Restore Project',
           ),
           onTap: () => projectNotifier.toggleProjectActive(widget.project),
         ),
@@ -83,6 +82,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
               child: InkWell(
                 focusNode: widget.focusNode,
                 onTap: widget.onTap,
+                mouseCursor: SystemMouseCursors.click,
                 onFocusChange: (focused) {
                   if (focused && mounted) {
                     Scrollable.ensureVisible(

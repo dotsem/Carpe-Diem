@@ -155,6 +155,7 @@ class AppTheme {
           iconSize: 24,
           backgroundColor: colorScheme.surface,
           foregroundColor: colorScheme.onSurface,
+          enabledMouseCursor: SystemMouseCursors.click,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -163,6 +164,40 @@ class AppTheme {
           minimumSize: const Size(40, 40),
           fixedSize: const Size.fromHeight(40),
           iconSize: 24,
+          enabledMouseCursor: SystemMouseCursors.click,
+        ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          enabledMouseCursor: SystemMouseCursors.click,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          enabledMouseCursor: SystemMouseCursors.click,
+        ),
+      ),
+      checkboxTheme: const CheckboxThemeData(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+      ),
+      radioTheme: const RadioThemeData(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+      ),
+      switchTheme: const SwitchThemeData(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+      ),
+      listTileTheme: const ListTileThemeData(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+      ),
+      popupMenuTheme: const PopupMenuThemeData(
+        mouseCursor: WidgetStateMouseCursor.clickable,
+      ),
+      menuButtonTheme: MenuButtonThemeData(
+        style: MenuItemButton.styleFrom(
+          enabledMouseCursor: SystemMouseCursors.click,
         ),
       ),
     );

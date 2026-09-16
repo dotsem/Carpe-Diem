@@ -49,6 +49,7 @@ class SidebarProjectsHiddenBadge extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
+          mouseCursor: SystemMouseCursors.click,
           onTap: () {
             ref.read(filterProvider.notifier).toggleBypass();
           },

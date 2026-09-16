@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
@@ -57,36 +58,33 @@ void showTaskCardContextMenu(
             initialParentId: task.id,
           ),
         ),
-        child: const ListTile(
+        child: const ContextMenuItemTile(
           leading: Icon(Icons.add_task),
-          title: Text('Add subtask'),
-          dense: true,
+          title: 'Add subtask',
         ),
       ),
     PopupMenuItem(
       onTap: () => context.openRightSidebar(EditTaskPanel(task.id)),
-
-      child: const ListTile(
+      child: const ContextMenuItemTile(
         leading: Icon(Icons.edit),
-        title: Text('Edit'),
-        dense: true,
+        title: 'Edit',
       ),
     ),
     if (task.scheduledDate != null)
       PopupMenuItem(
         onTap: () => _unscheduleTask(context, task, provider, onAction),
-        child: const ListTile(
-          leading: Icon(Icons.remove_circle_outline, color: AppColors.warning),
-          title: Text('Unschedule', style: TextStyle(color: AppColors.warning)),
-          dense: true,
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.remove_circle_outline),
+          title: 'Unschedule',
+          color: AppColors.warning,
         ),
       ),
     PopupMenuItem(
       onTap: () => _showDeleteTask(context, task, provider, onAction),
-      child: const ListTile(
-        leading: Icon(Icons.delete, color: AppColors.error),
-        title: Text('Delete', style: TextStyle(color: AppColors.error)),
-        dense: true,
+      child: const ContextMenuItemTile(
+        leading: Icon(Icons.delete),
+        title: 'Delete',
+        color: AppColors.error,
       ),
     ),
   ]);
