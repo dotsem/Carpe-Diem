@@ -48,6 +48,14 @@ class PlanningSection extends ConsumerWidget {
               value: settings.enableRandomTask,
               onChanged: (value) => settingsNotifier.setEnableRandomTask(value),
             ),
+            SettingsSwitchTile(
+              icon: Icons.approval,
+              title: 'Show review state',
+              subtitle:
+                  'Adds an extra review state between in progress & done. When disabled, any tasks in review are shown as in progress',
+              value: settings.reviewState,
+              onChanged: (value) => settingsNotifier.setReviewState(value),
+            ),
           ],
         ),
       ],

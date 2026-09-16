@@ -109,7 +109,7 @@ class _TaskCardState extends ConsumerState<TaskCard>
 
     if (widget.task.status.isDone) {
       widget.onToggle(value);
-    } else if (widget.task.status.isInProgress) {
+    } else if (widget.task.status.isInProgress || widget.task.status.isReview) {
       final isNowPending = !timerNotifier.isTaskPending(widget.task.id);
       taskNotifier.toggleComplete(widget.task, useTimer: widget.useTimer);
 
@@ -155,7 +155,9 @@ class _TaskCardState extends ConsumerState<TaskCard>
           foregroundPainter: isPending
               ? TaskProgressBorderPainter(
                   progress: _controller.value,
-                  color: AppColors.accent,
+                  color: widget.task.status.isReview
+                      ? AppColors.review
+                      : AppColors.accent,
                   width: 3.0,
                   borderRadius: 12.0,
                 )

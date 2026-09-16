@@ -99,6 +99,10 @@ class SettingsState {
     SettingsConstants.keyShowHashtagInTitle,
     SettingsConstants.defaultShowHashtagInTitle,
   );
+  bool get reviewState => _map.getBool(
+    SettingsConstants.keyReviewState,
+    SettingsConstants.defaultReviewState,
+  );
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -205,6 +209,8 @@ class SettingsNotifier extends Notifier<SettingsState> {
       _set(SettingsConstants.keyKeepTagsInTitle, value);
   Future<void> setShowHashtagInTitle(bool value) =>
       _set(SettingsConstants.keyShowHashtagInTitle, value);
+  Future<void> setReviewState(bool value) =>
+      _set(SettingsConstants.keyReviewState, value);
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

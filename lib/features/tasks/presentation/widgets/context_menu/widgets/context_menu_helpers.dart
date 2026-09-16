@@ -17,82 +17,134 @@ List<PopupMenuEntry<void>> buildProgressStateItems(
   VoidCallback? onAction,
 }) {
   final items = <PopupMenuEntry<void>>[];
-  final provider = ref.read(taskProvider.notifier);
+  final settings = ref.watch(settingsProvider);
 
   if (task.status.isTodo) {
     items.addAll([
-      PopupMenuItem(
-        onTap: () {
-          provider.startTask(task);
-          onAction?.call();
-        },
-        child: const ContextMenuItemTile(
-          leading: Icon(Icons.play_circle_outline),
-          title: 'Start (In Progress)',
-          color: AppColors.success,
-        ),
-      ),
-      PopupMenuItem(
-        onTap: () {
-          provider.completeTask(task);
-          onAction?.call();
-        },
-        child: const ContextMenuItemTile(
-          leading: Icon(Icons.check_circle_outline),
-          title: 'Mark as Done',
-          color: AppColors.success,
-        ),
-      ),
+      _buildStartInProgress(ref, task, onAction),
+      _buildMarkAsDone(ref, task, onAction),
     ]);
-  } else if (task.status.isInProgress) {
+  } else if (task.status.isInProgress ||
+      (!settings.reviewState && task.status.isReview)) {
     items.addAll([
-      PopupMenuItem(
-        onTap: () {
-          provider.updateTaskStatus(task, TaskStatus.todo);
-          onAction?.call();
-        },
-        child: const ContextMenuItemTile(
-          leading: Icon(Icons.undo),
-          title: 'Back to Todo',
-        ),
-      ),
-      PopupMenuItem(
-        onTap: () {
-          provider.updateTaskStatus(task, TaskStatus.done);
-          onAction?.call();
-        },
-        child: const ContextMenuItemTile(
-          leading: Icon(Icons.check_circle_outline),
-          title: 'Mark as Done',
-          color: AppColors.success,
-        ),
-      ),
+      _buildBackToTodo(ref, task, onAction),
+      ?_buildMarkForReview(ref, task, settings.reviewState, onAction),
+      _buildMarkAsDone(ref, task, onAction),
+    ]);
+  } else if (task.status.isReview) {
+    items.addAll([
+      _buildBackToTodo(ref, task, onAction),
+      _buildBackToInProgress(ref, task, onAction),
+      _buildMarkAsDone(ref, task, onAction),
     ]);
   } else if (task.status.isDone) {
     items.addAll([
-      PopupMenuItem(
-        onTap: () {
-          provider.updateTaskStatus(task, TaskStatus.todo);
-          onAction?.call();
-        },
-        child: const ContextMenuItemTile(
-          leading: Icon(Icons.undo),
-          title: 'Back to Todo',
-        ),
-      ),
-      PopupMenuItem(
-        onTap: () {
-          provider.updateTaskStatus(task, TaskStatus.inProgress);
-          onAction?.call();
-        },
-        child: const ContextMenuItemTile(
-          leading: Icon(Icons.play_arrow),
-          title: 'Back to In Progress',
-        ),
-      ),
+      _buildBackToTodo(ref, task, onAction),
+      _buildBackToInProgress(ref, task, onAction),
+      ?_buildMarkForReview(ref, task, settings.reviewState, onAction),
     ]);
   }
   return items;
+}
+
+PopupMenuItem<void> _buildMarkAsDone(
+  WidgetRef ref,
+  Task task,
+  VoidCallback? onAction,
+) {
+  final provider = ref.read(taskProvider.notifier);
+
+  return PopupMenuItem(
+    onTap: () {
+      provider.updateTaskStatus(task, TaskStatus.done);
+      onAction?.call();
+    },
+    child: const ContextMenuItemTile(
+      leading: Icon(Icons.check_circle_outline),
+      title: 'Mark as Done',
+      color: AppColors.success,
+    ),
+  );
+}
+
+PopupMenuItem<void> _buildStartInProgress(
+  WidgetRef ref,
+  Task task,
+  VoidCallback? onAction,
+) {
+  final provider = ref.read(taskProvider.notifier);
+
+  return PopupMenuItem(
+    onTap: () {
+      provider.updateTaskStatus(task, TaskStatus.inProgress);
+      onAction?.call();
+    },
+    child: const ContextMenuItemTile(
+      leading: Icon(Icons.play_circle_outline),
+      title: 'Start (In Progress)',
+      color: AppColors.success,
+    ),
+  );
+}
+
+PopupMenuItem<void>? _buildMarkForReview(
+  WidgetRef ref,
+  Task task,
+  bool reviewStateEnabled,
+  VoidCallback? onAction,
+) {
+  final provider = ref.read(taskProvider.notifier);
+
+  return reviewStateEnabled
+      ? PopupMenuItem(
+          onTap: () {
+            provider.updateTaskStatus(task, TaskStatus.review);
+            onAction?.call();
+          },
+          child: const ContextMenuItemTile(
+            leading: Icon(Icons.approval),
+            title: 'Mark for Review',
+          ),
+        )
+      : null;
+}
+
+PopupMenuItem<void> _buildBackToTodo(
+  WidgetRef ref,
+  Task task,
+  VoidCallback? onAction,
+) {
+  final provider = ref.read(taskProvider.notifier);
+
+  return PopupMenuItem(
+    onTap: () {
+      provider.updateTaskStatus(task, TaskStatus.todo);
+      onAction?.call();
+    },
+    child: const ContextMenuItemTile(
+      leading: Icon(Icons.undo),
+      title: 'Back to Todo',
+    ),
+  );
+}
+
+PopupMenuItem<void> _buildBackToInProgress(
+  WidgetRef ref,
+  Task task,
+  VoidCallback? onAction,
+) {
+  final provider = ref.read(taskProvider.notifier);
+
+  return PopupMenuItem(
+    onTap: () {
+      provider.updateTaskStatus(task, TaskStatus.inProgress);
+      onAction?.call();
+    },
+    child: const ContextMenuItemTile(
+      leading: Icon(Icons.play_arrow),
+      title: 'Back to In Progress',
+    ),
+  );
 }
 
 PopupMenuItem<void> buildTopRow(

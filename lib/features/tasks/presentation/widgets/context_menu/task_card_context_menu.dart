@@ -45,8 +45,9 @@ void showTaskCardContextMenu(
       onAction,
     ),
   );
-
+  items.add(PopupMenuDivider(indent: 12, endIndent: 12));
   items.addAll(buildProgressStateItems(context, ref, task, onAction: onAction));
+  items.add(PopupMenuDivider(indent: 12, endIndent: 12));
 
   items.addAll([
     if (task.parentId == null)
@@ -79,6 +80,8 @@ void showTaskCardContextMenu(
           color: AppColors.warning,
         ),
       ),
+    PopupMenuDivider(indent: 12, endIndent: 12, color: AppColors.error),
+
     PopupMenuItem(
       onTap: () => _showDeleteTask(context, task, provider, onAction),
       child: const ContextMenuItemTile(

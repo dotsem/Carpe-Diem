@@ -95,8 +95,9 @@ class TaskChipsBar extends ConsumerWidget {
             },
           ),
         if (isOverdue && !task.isCompleted) const OverdueChip(),
-        if (task.status.isInProgress && !KanbanScope.of(context))
-          const StatusChip(),
+        if ((task.status.isInProgress || task.status.isReview) &&
+            !KanbanScope.of(context))
+          StatusChip(task: task),
         if (task.deadline != null) DeadlineChip(deadline: task.deadline!),
         if (showScheduleDate &&
             task.scheduledDate != null &&
