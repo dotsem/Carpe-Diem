@@ -11,6 +11,7 @@ class Task {
   final bool isUrgent;
   final DateTime? deadline;
   final DateTime createdAt;
+  final DateTime? updatedAt;
   final DateTime? completedAt;
   final String? blockedById;
   final String? parentId;
@@ -60,6 +61,7 @@ class Task {
     this.isUrgent = false,
     this.deadline,
     required this.createdAt,
+    this.updatedAt,
     this.completedAt,
     this.blockedById,
     this.parentId,
@@ -81,6 +83,7 @@ class Task {
     'isUrgent': isUrgent ? 1 : 0,
     'deadline': deadline?.normalize.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
     'completedAt': completedAt?.toIso8601String(),
     'blockedById': blockedById,
     'parentId': parentId,
@@ -105,6 +108,9 @@ class Task {
         ? DateTime.parse(map['deadline'] as String)
         : null,
     createdAt: DateTime.parse(map['createdAt'] as String),
+    updatedAt: map['updatedAt'] != null
+        ? DateTime.parse(map['updatedAt'] as String)
+        : null,
     completedAt: map['completedAt'] != null
         ? DateTime.parse(map['completedAt'] as String)
         : null,
@@ -130,6 +136,7 @@ class Task {
     bool? isUrgent,
     DateTime? deadline,
     bool clearDeadline = false,
+    DateTime? updatedAt,
     DateTime? completedAt,
     String? blockedById,
     bool clearBlockedBy = false,
@@ -154,6 +161,7 @@ class Task {
     isUrgent: isUrgent ?? this.isUrgent,
     deadline: clearDeadline ? null : (deadline ?? this.deadline),
     createdAt: createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     completedAt: status == TaskStatus.done
         ? (completedAt ?? DateTime.now())
         : (status != null && !status.isDone ? null : this.completedAt),

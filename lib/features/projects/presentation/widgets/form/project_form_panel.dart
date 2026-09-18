@@ -5,6 +5,7 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/color_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/entity_timestamps_info.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/section_card.dart';
@@ -172,6 +173,11 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
                 firstDate: widget.project?.createdAt,
               ),
             ),
+            if (isEditing && widget.project != null)
+              EntityTimestampsInfo(
+                createdAt: widget.project!.createdAt,
+                updatedAt: widget.project!.updatedAt,
+              ),
           ],
         ),
       ),

@@ -50,6 +50,7 @@ class DatabaseHelper {
     );
   }
 
+  //! don't update this, use migrations instead
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE projects (
