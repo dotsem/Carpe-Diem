@@ -5,6 +5,7 @@ class MidnightTimer with WidgetsBindingObserver {
   final DateTime Function() _clock;
   VoidCallback? _onDayChanged;
   Timer? _timer;
+  Timer? _heartbeatTimer;
   late DateTime _lastDateCheck;
 
   /// clock is injected for testability, defaults to DateTime.now
@@ -17,6 +18,15 @@ class MidnightTimer with WidgetsBindingObserver {
     _onDayChanged = onDayChanged;
     WidgetsBinding.instance.addObserver(this);
     _scheduleNextMidnight();
+    _startHeartbeat();
+  }
+
+  void _startHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => checkDayChange(),
+    );
   }
 
   void _scheduleNextMidnight() {
@@ -30,17 +40,18 @@ class MidnightTimer with WidgetsBindingObserver {
   }
 
   void _onTimerFired() {
-    _checkDayChangeAndReschedule();
+    checkDayChange();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _checkDayChangeAndReschedule();
+      checkDayChange();
     }
   }
 
-  void _checkDayChangeAndReschedule() {
+  /// checks whether the day changed since last check and reschedules midnight if needed.
+  void checkDayChange() {
     final now = _clock();
     final today = DateTime(now.year, now.month, now.day);
     final lastDate = DateTime(
@@ -52,12 +63,13 @@ class MidnightTimer with WidgetsBindingObserver {
     if (today.isAfter(lastDate)) {
       _lastDateCheck = now;
       _onDayChanged?.call();
+      _scheduleNextMidnight();
     }
-    _scheduleNextMidnight();
   }
 
   void dispose() {
     _timer?.cancel();
+    _heartbeatTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _onDayChanged = null;
   }

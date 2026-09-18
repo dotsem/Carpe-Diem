@@ -39,6 +39,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
 
+    _checkAndResetStaleDate();
     _midnightTimer.start(_handleDayChange);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -48,15 +49,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
+  void _checkAndResetStaleDate() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDate = ref.read(selectedDateProvider);
+    if (selectedDate.normalize.isBefore(today)) {
+      ref.read(selectedDateProvider.notifier).state = now;
+    }
+  }
+
   void _handleDayChange() {
     if (!mounted) return;
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
 
     final selectedDate = ref.read(selectedDateProvider);
-    if (selectedDate.normalize == yesterday) {
+    if (selectedDate.normalize.isBefore(today)) {
       ref.read(selectedDateProvider.notifier).state = now;
       ref.read(taskProvider.notifier).loadTasksForDate(now);
     }
@@ -97,6 +106,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final selectedDate = ref.watch(selectedDateProvider);
     final isToday = selectedDate.isToday;
     final daysFromToday = selectedDate.daysFromToday;
+
+    if (daysFromToday < 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleDayChange();
+      });
+    }
 
     return HomeShortcuts(
       onPrevDay: () => _changeDay(-1),

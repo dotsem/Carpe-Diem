@@ -1,5 +1,8 @@
+import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/navigation_item.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +26,17 @@ class SideNav extends ConsumerWidget {
     if (isMobile) {
       Navigator.of(context).pop();
     }
+  }
+
+  void _onTodayTap(BuildContext context, WidgetRef ref) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDate = ref.read(selectedDateProvider);
+    if (selectedDate.normalize.isBefore(today)) {
+      ref.read(selectedDateProvider.notifier).state = now;
+      ref.read(taskProvider.notifier).loadTasksForDate(now);
+    }
+    _navigateTo(context, '/');
   }
 
   @override
@@ -54,7 +68,7 @@ class SideNav extends ConsumerWidget {
             label: 'Today',
             shortcutHint: TodayKeys.upper,
             isSelected: currentPath == '/',
-            onTap: () => _navigateTo(context, '/'),
+            onTap: () => _onTodayTap(context, ref),
           ),
           NavigationItem(
             icon: Icons.inbox_rounded,
