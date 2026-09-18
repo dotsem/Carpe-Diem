@@ -225,6 +225,7 @@ class TaskRepository extends ITaskRepository {
   Future<void> insert(Task task) async {
     await _db.transaction((txn) async {
       final map = task.toMap();
+      map['updatedAt'] ??= task.createdAt.toIso8601String();
       if (task.projectId != null) {
         final projectExists = (await txn.rawQuery(
           'SELECT 1 FROM projects WHERE id = ?',
@@ -282,6 +283,7 @@ class TaskRepository extends ITaskRepository {
     await _db.transaction((txn) async {
       final map = task.toMap();
       map.remove('id');
+      map['updatedAt'] = DateTime.now().toIso8601String();
       if (task.projectId != null) {
         final projectExists = (await txn.rawQuery(
           'SELECT 1 FROM projects WHERE id = ?',

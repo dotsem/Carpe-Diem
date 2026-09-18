@@ -4,6 +4,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/pla
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/projects_and_blockers_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/task_form_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_delete_handler.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/entity_timestamps_info.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_details_loader.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_submit_handler.dart';
 import 'package:flutter/material.dart';
@@ -270,6 +271,11 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
               const SizedBox(height: 16),
               SubtasksListSection(parentTask: widget.initialTask!),
             ],
+            if (isEditing && widget.initialTask != null)
+              EntityTimestampsInfo(
+                createdAt: widget.initialTask!.createdAt,
+                updatedAt: widget.initialTask!.updatedAt,
+              ),
           ],
         ),
       ),

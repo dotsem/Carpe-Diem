@@ -36,7 +36,9 @@ class ProjectRepository extends IProjectRepository {
   @override
   Future<void> insert(Project project) async {
     await _db.transaction((txn) async {
-      await txn.insert('projects', project.toMap());
+      final map = project.toMap();
+      map['updatedAt'] ??= project.createdAt.toIso8601String();
+      await txn.insert('projects', map);
       for (final labelId in project.labelIds) {
         final labelExists = (await txn.rawQuery(
           'SELECT 1 FROM labels WHERE id = ?',
@@ -57,6 +59,7 @@ class ProjectRepository extends IProjectRepository {
     await _db.transaction((txn) async {
       final map = project.toMap();
       map.remove('id');
+      map['updatedAt'] = DateTime.now().toIso8601String();
       await txn.update(
         'projects',
         map,

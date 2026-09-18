@@ -36,6 +36,7 @@ class Project implements Comparable<Project> {
     'isUrgent': isUrgent ? 1 : 0,
     'deadline': deadline?.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
     'isActive': isActive ? 1 : 0,
     'sortOrder': sortOrder,
   };
@@ -68,6 +69,7 @@ class Project implements Comparable<Project> {
     bool? isUrgent,
     List<String>? labelIds,
     DateTime? deadline,
+    DateTime? updatedAt,
     bool? isActive,
     String? sortOrder,
   }) => Project(
@@ -79,7 +81,7 @@ class Project implements Comparable<Project> {
     labelIds: labelIds ?? this.labelIds,
     deadline: deadline ?? this.deadline,
     createdAt: createdAt,
-    updatedAt: updatedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
     isActive: isActive ?? this.isActive,
     sortOrder: sortOrder ?? this.sortOrder,
   );
