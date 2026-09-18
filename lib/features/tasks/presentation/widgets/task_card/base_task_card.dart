@@ -172,7 +172,9 @@ class BaseTaskCard extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.only(top: 1),
                                 child: Text(
-                                  task.description!,
+                                  task.description!.contains('\n')
+                                      ? '${task.description!.split('\n').first.trim()}...'
+                                      : task.description!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
