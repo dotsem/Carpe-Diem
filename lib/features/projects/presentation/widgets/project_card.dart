@@ -56,11 +56,21 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
   }
 
   @override
+  void didUpdateWidget(covariant ProjectCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.focusNode == null && oldWidget.focusNode != null) {
+      _isFocused = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: widget.focusNode ?? ChangeNotifier(),
       builder: (context, _) {
-        final hasFocus = (widget.focusNode?.hasFocus ?? false) || _isFocused;
+        final hasFocus = widget.focusNode != null
+            ? widget.focusNode!.hasFocus
+            : _isFocused;
         return Opacity(
           opacity: widget.project.isActive ? 1.0 : 0.6,
           child: SizedBox(
@@ -91,7 +101,9 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                       alignment: 0.5,
                     );
                   }
-                  setState(() => _isFocused = focused);
+                  if (widget.focusNode == null) {
+                    setState(() => _isFocused = focused);
+                  }
                 },
                 onSecondaryTapDown: (details) =>
                     _showContextMenu(context, details.globalPosition),

@@ -61,11 +61,13 @@ class _ProjectGridSectionState extends State<ProjectGridSection> {
             () => FocusNode(debugLabel: 'Project_${p.id}'),
           );
           final cardWidget = ProjectCard(
+            key: ValueKey('card_${p.id}'),
             project: p,
             focusNode: focusNode,
             onTap: () => widget.onProjectTap(p.id),
           );
           return PlatformDraggable<Project>(
+            key: ValueKey(p.id),
             data: p,
             feedback: ProjectDragProxy(project: p),
             childWhenDragging: Opacity(opacity: 0.3, child: cardWidget),
@@ -128,6 +130,7 @@ class _ProjectGridSectionState extends State<ProjectGridSection> {
           () => FocusNode(debugLabel: 'Project_${p.id}'),
         );
         final cardWidget = ProjectCard(
+          key: ValueKey('card_${p.id}'),
           project: p,
           focusNode: focusNode,
           onTap: () => widget.onProjectTap(p.id),
