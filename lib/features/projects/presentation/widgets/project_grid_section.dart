@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 class ProjectGridSection extends StatefulWidget {
   final List<Project> projects;
   final Map<String, FocusNode> itemFocusNodes;
+  final String? highlightedProjectId;
   final ValueChanged<String> onProjectTap;
   final void Function(Project project, String newSortOrder) onReorder;
 
@@ -16,6 +17,7 @@ class ProjectGridSection extends StatefulWidget {
     super.key,
     required this.projects,
     required this.itemFocusNodes,
+    this.highlightedProjectId,
     required this.onProjectTap,
     required this.onReorder,
   });
@@ -64,6 +66,7 @@ class _ProjectGridSectionState extends State<ProjectGridSection> {
             key: ValueKey('card_${p.id}'),
             project: p,
             focusNode: focusNode,
+            isHighlighted: p.id == widget.highlightedProjectId,
             onTap: () => widget.onProjectTap(p.id),
           );
           return PlatformDraggable<Project>(
@@ -133,6 +136,7 @@ class _ProjectGridSectionState extends State<ProjectGridSection> {
           key: ValueKey('card_${p.id}'),
           project: p,
           focusNode: focusNode,
+          isHighlighted: p.id == widget.highlightedProjectId,
           onTap: () => widget.onProjectTap(p.id),
         );
 

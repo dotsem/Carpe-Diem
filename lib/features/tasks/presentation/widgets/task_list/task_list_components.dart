@@ -80,6 +80,7 @@ class TaskHierarchyItem extends ConsumerWidget {
   final bool autofocus;
   final FocusNode? focusNode;
   final bool isReadOnly;
+  final bool isHighlighted;
   final bool selectionMode;
   final Set<String> selectedTaskIds;
   final ValueChanged<Task>? onSelectedChanged;
@@ -95,6 +96,7 @@ class TaskHierarchyItem extends ConsumerWidget {
     required this.autofocus,
     this.focusNode,
     required this.isReadOnly,
+    this.isHighlighted = false,
     required this.selectionMode,
     required this.selectedTaskIds,
     this.onSelectedChanged,
@@ -167,6 +169,7 @@ class TaskHierarchyItem extends ConsumerWidget {
         hideProjectGradient: false,
         isOverdue: taskIsOverdue,
         autofocus: autofocus,
+        isHighlighted: isHighlighted,
         focusNode: focusNode,
         onToggle: isReadOnly
             ? (_) {}

@@ -20,6 +20,7 @@ class BaseTaskCard extends StatelessWidget {
   final bool showStrikeThroughOnCompleted;
 
   final bool isFocused;
+  final bool isHighlighted;
 
   final bool compactMode;
   final bool showDescriptionOnCard;
@@ -48,6 +49,7 @@ class BaseTaskCard extends StatelessWidget {
     this.showScheduleDate = false,
     this.showStrikeThroughOnCompleted = true,
     this.isFocused = false,
+    this.isHighlighted = false,
     this.compactMode = false,
     this.showDescriptionOnCard = true,
     this.showHashtagInTitle = true,
@@ -63,12 +65,13 @@ class BaseTaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasHighlight = isFocused || isHighlighted;
     return Card(
       margin: EdgeInsets.symmetric(vertical: compactMode ? 2 : 4),
       child: Ink(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: isFocused
+          border: hasHighlight
               ? Border.all(color: AppColors.accent, width: 2)
               : null,
           gradient:

@@ -24,6 +24,7 @@ class TaskCard extends ConsumerStatefulWidget {
   final bool showScheduleDate;
   final bool showStrikeThroughOnCompleted;
   final bool autofocus;
+  final bool isHighlighted;
   final FocusNode? focusNode;
   final Widget? leading;
 
@@ -49,6 +50,7 @@ class TaskCard extends ConsumerStatefulWidget {
     this.useTimer = true,
     this.showScheduleDate = false,
     this.autofocus = false,
+    this.isHighlighted = false,
     this.focusNode,
     this.leading,
     this.compactOverride,
@@ -184,6 +186,7 @@ class _TaskCardState extends ConsumerState<TaskCard>
         showScheduleDate: widget.showScheduleDate,
         showStrikeThroughOnCompleted: widget.showStrikeThroughOnCompleted,
         isFocused: _isFocused,
+        isHighlighted: widget.isHighlighted,
         compactMode: isCompact,
         showDescriptionOnCard: showDescription,
         showHashtagInTitle: settings.showHashtagInTitle,

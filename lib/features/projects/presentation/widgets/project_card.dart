@@ -13,12 +13,14 @@ class ProjectCard extends ConsumerStatefulWidget {
   final Project project;
   final VoidCallback? onTap;
   final FocusNode? focusNode;
+  final bool isHighlighted;
 
   const ProjectCard({
     super.key,
     required this.project,
     this.onTap,
     this.focusNode,
+    this.isHighlighted = false,
   });
 
   @override
@@ -68,9 +70,11 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
     return ListenableBuilder(
       listenable: widget.focusNode ?? ChangeNotifier(),
       builder: (context, _) {
-        final hasFocus = widget.focusNode != null
-            ? widget.focusNode!.hasFocus
-            : _isFocused;
+        final hasFocus =
+            (widget.focusNode != null
+                ? widget.focusNode!.hasFocus
+                : _isFocused) ||
+            widget.isHighlighted;
         return Opacity(
           opacity: widget.project.isActive ? 1.0 : 0.6,
           child: SizedBox(
