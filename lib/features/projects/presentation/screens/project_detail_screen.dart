@@ -39,9 +39,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   bool _isLoading = true;
   List<Task> _tasks = [];
   final List<String> _selectedTaskIds = [];
-  final FocusNode _firstItemFocusNode = FocusNode(
-    debugLabel: 'ProjectDetailFirstItem',
-  );
   final List<String> _orderedItemIds = [];
   final Map<String, FocusNode> _itemFocusNodes = {};
 
@@ -54,8 +51,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       if (event is KeyDownEvent &&
           (event.logicalKey == LogicalKeyboardKey.arrowDown ||
               event.logicalKey == LogicalKeyboardKey.enter) &&
-          _tasks.isNotEmpty) {
-        _firstItemFocusNode.requestFocus();
+          _orderedItemIds.isNotEmpty) {
+        _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
         return KeyEventResult.handled;
       }
       return KeyEventResult.ignored;
@@ -67,7 +64,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mainFocusNode.dispose();
-    for (final node in {..._itemFocusNodes.values, _firstItemFocusNode}) {
+    for (final node in _itemFocusNodes.values) {
       node.dispose();
     }
     super.dispose();
@@ -96,7 +93,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     orderedItemIds: _orderedItemIds,
     itemFocusNodes: _itemFocusNodes,
     delta: delta,
-    firstItemFocusNode: _firstItemFocusNode,
     debugLabelPrefix: 'ProjectTask',
   );
 
@@ -137,8 +133,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       onUnfocusSearch: () {
         if (_searchFocusNode.hasFocus) {
           _searchFocusNode.unfocus();
-          if (_tasks.isNotEmpty) {
-            _firstItemFocusNode.requestFocus();
+          if (_orderedItemIds.isNotEmpty) {
+            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
           } else {
             _mainFocusNode.requestFocus();
           }
@@ -192,8 +188,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         _searchQuery = value;
                       }),
                       onSubmitted: (_) {
-                        if (_tasks.isNotEmpty) {
-                          _firstItemFocusNode.requestFocus();
+                        if (_orderedItemIds.isNotEmpty) {
+                          _itemFocusNodes[_orderedItemIds.first]
+                              ?.requestFocus();
                         }
                       },
                     ),
@@ -266,7 +263,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                 itemFocusNodes: _itemFocusNodes,
                                 searchQuery: _searchQuery,
                                 enablePlanShortcut: true,
-                                firstNode: _firstItemFocusNode,
                                 showScheduleDate: true,
                                 selectionMode: true,
                                 selectedTaskIds: _selectedTaskIds.toSet(),

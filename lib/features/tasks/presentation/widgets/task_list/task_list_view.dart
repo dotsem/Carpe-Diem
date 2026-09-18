@@ -28,7 +28,6 @@ class TaskListView extends ConsumerStatefulWidget {
   final ValueChanged<Task>? onEdit;
   final bool initialDoneExpanded;
   final bool isReadOnly;
-  final FocusNode? firstNode;
   final Map<String, FocusNode>? itemFocusNodes;
   final ValueChanged<List<String>>? onOrderedIdsChanged;
   final bool enablePlanShortcut;
@@ -52,7 +51,6 @@ class TaskListView extends ConsumerStatefulWidget {
     this.onEdit,
     this.initialDoneExpanded = false,
     this.isReadOnly = false,
-    this.firstNode,
     this.itemFocusNodes,
     this.onOrderedIdsChanged,
     this.enablePlanShortcut = false,
@@ -80,9 +78,7 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
   @override
   void dispose() {
     for (final node in _localItemFocusNodes.values) {
-      if (node != widget.firstNode) {
-        node.dispose();
-      }
+      node.dispose();
     }
     super.dispose();
   }
@@ -91,7 +87,6 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
     orderedItemIds: _orderedItemIds,
     itemFocusNodes: _itemFocusNodes,
     delta: delta,
-    firstItemFocusNode: widget.firstNode,
     debugLabelPrefix: 'TaskListTask',
   );
 
@@ -169,21 +164,14 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       bool autofocus = false;
 
       if (task != null) {
-        final isFirst = nodeIndex == 0;
         autofocus =
             nodeIndex == 0 &&
             widget.searchQuery == null &&
-            widget.firstNode == null;
-        focusNode = (isFirst && widget.firstNode != null)
-            ? widget.firstNode!
-            : _itemFocusNodes.putIfAbsent(
-                task.id,
-                () => FocusNode(debugLabel: 'Task_${task.id}'),
-              );
-
-        if (isFirst && widget.firstNode != null) {
-          _itemFocusNodes[task.id] = widget.firstNode!;
-        }
+            widget.itemFocusNodes == null;
+        focusNode = _itemFocusNodes.putIfAbsent(
+          task.id,
+          () => FocusNode(debugLabel: 'Task_${task.id}'),
+        );
         nodeIndex++;
       }
 
@@ -273,6 +261,5 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
   String? _getFocusedTaskId() => FocusUtils.getFocusedId(
     orderedItemIds: _orderedItemIds,
     itemFocusNodes: _itemFocusNodes,
-    firstItemFocusNode: widget.firstNode,
   );
 }
