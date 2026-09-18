@@ -22,6 +22,7 @@ class TaskListView extends ConsumerStatefulWidget {
   final Widget? emptyPlaceholder;
   final bool showScheduleDate;
   final String? searchQuery;
+  final String? highlightedTaskId;
   final Set<String> selectedTaskIds;
   final bool selectionMode;
   final ValueChanged<Task>? onSelectedChanged;
@@ -45,6 +46,7 @@ class TaskListView extends ConsumerStatefulWidget {
     this.emptyPlaceholder,
     this.showScheduleDate = false,
     this.searchQuery,
+    this.highlightedTaskId,
     this.selectionMode = false,
     this.selectedTaskIds = const {},
     this.onSelectedChanged,
@@ -182,6 +184,7 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         autofocus: autofocus,
         focusNode: focusNode,
         isReadOnly: widget.isReadOnly,
+        isHighlighted: task != null && task.id == widget.highlightedTaskId,
         selectionMode: widget.selectionMode,
         selectedTaskIds: widget.selectedTaskIds,
         onSelectedChanged: widget.onSelectedChanged,

@@ -30,6 +30,7 @@ class BacklogList extends ConsumerWidget {
   final Map<String, FocusNode> itemFocusNodes;
   final ValueChanged<List<String>> onOrderedIdsChanged;
   final Widget Function(BuildContext, Task) trailingBuilder;
+  final String? highlightedTaskId;
 
   const BacklogList({
     super.key,
@@ -40,6 +41,7 @@ class BacklogList extends ConsumerWidget {
     required this.itemFocusNodes,
     required this.onOrderedIdsChanged,
     required this.trailingBuilder,
+    this.highlightedTaskId,
   });
 
   bool _isFiltering(TaskFilter filter, BacklogLabelTabState labelTab) =>
@@ -116,9 +118,9 @@ class BacklogList extends ConsumerWidget {
     );
 
     final orderedIds = [
-      ...activeHierarchical.map((n) => n.task?.id).whereType<String>(),
-      ...completedHierarchical.map((n) => n.task?.id).whereType<String>(),
-    ];
+      ...activeHierarchical,
+      ...completedHierarchical,
+    ].map((n) => n.task?.id).whereType<String>().toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       onOrderedIdsChanged(orderedIds);
@@ -149,6 +151,7 @@ class BacklogList extends ConsumerWidget {
           focusNode: focusNode,
           isChecked: isChecked,
           selectionMode: true,
+          isHighlighted: n.task.id == highlightedTaskId,
           onToggle: (value) => onSelectedChanged(n.task),
           onTap: () {
             ref
@@ -188,6 +191,7 @@ class BacklogList extends ConsumerWidget {
           isChecked: selectedTaskIds.contains(n.task.id),
           selectionMode: true,
           focusNode: focusNode,
+          isHighlighted: n.task.id == highlightedTaskId,
           onToggle: (value) {
             onSelectedChanged(n.task);
           },

@@ -199,5 +199,99 @@ void main() {
         }
       },
     );
+
+    testWidgets(
+      'ProjectCard renders accent border when isHighlighted is true without focus',
+      (tester) async {
+        final project = Project(
+          id: 'p1',
+          name: 'Alpha',
+          color: Colors.blue,
+          createdAt: DateTime.now(),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: buildOverrides(),
+            child: MaterialApp(
+              home: Scaffold(
+                body: ProjectCard(
+                  key: const ValueKey('card_p1'),
+                  project: project,
+                  isHighlighted: true,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final Card card = tester.widget(find.widgetWithText(Card, 'Alpha'));
+        final shape = card.shape! as RoundedRectangleBorder;
+        expect(shape.side.color, AppColors.accent);
+        expect(shape.side.width, 2);
+      },
+    );
+
+    testWidgets(
+      'TaskListView passes highlight to TaskCard matching highlightedTaskId',
+      (tester) async {
+        final task1 = Task(
+          id: 't-1',
+          title: 'First Task',
+          status: TaskStatus.todo,
+          createdAt: DateTime(2025, 1, 1),
+        );
+        final task2 = Task(
+          id: 't-2',
+          title: 'Second Task',
+          status: TaskStatus.todo,
+          createdAt: DateTime(2025, 1, 2),
+        );
+        final itemFocusNodes = <String, FocusNode>{};
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: buildOverrides(),
+            child: MaterialApp(
+              home: Scaffold(
+                body: TaskListView(
+                  tasks: [task1, task2],
+                  searchQuery: 'Task',
+                  itemFocusNodes: itemFocusNodes,
+                  highlightedTaskId: 't-1',
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final ink1 = tester.widget<Ink>(
+          find.descendant(
+            of: find.widgetWithText(Card, 'First Task'),
+            matching: find.byType(Ink),
+          ),
+        );
+        final decoration1 = ink1.decoration! as BoxDecoration;
+        expect(decoration1.border, isNotNull);
+        final border1 = decoration1.border! as Border;
+        expect(border1.top.color, AppColors.accent);
+        expect(border1.top.width, 2);
+
+        final ink2 = tester.widget<Ink>(
+          find.descendant(
+            of: find.widgetWithText(Card, 'Second Task'),
+            matching: find.byType(Ink),
+          ),
+        );
+        final decoration2 = ink2.decoration! as BoxDecoration;
+        expect(decoration2.border, isNull);
+
+        for (final node in itemFocusNodes.values) {
+          node.dispose();
+        }
+      },
+    );
   });
 }

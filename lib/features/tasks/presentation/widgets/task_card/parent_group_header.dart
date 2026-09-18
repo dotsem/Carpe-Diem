@@ -26,6 +26,7 @@ class ParentGroupHeader extends ConsumerStatefulWidget {
   final VoidCallback? onTap;
   final void Function(Offset localPosition, RenderBox renderBox)? onContextMenu;
   final Widget? trailing;
+  final bool isHighlighted;
 
   const ParentGroupHeader({
     super.key,
@@ -38,6 +39,7 @@ class ParentGroupHeader extends ConsumerStatefulWidget {
     this.onTap,
     this.onContextMenu,
     this.trailing,
+    this.isHighlighted = false,
   });
 
   @override
@@ -99,10 +101,16 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isUrgent
-                  ? AppColors.error.withValues(alpha: 0.4)
-                  : colorScheme.outlineVariant.withValues(alpha: 0.5),
-              width: isUrgent ? 1.5 : 1,
+              color:
+                  (widget.focusNode?.hasFocus ?? false) || widget.isHighlighted
+                  ? colorScheme.primary
+                  : (isUrgent
+                        ? AppColors.error.withValues(alpha: 0.4)
+                        : colorScheme.outlineVariant.withValues(alpha: 0.5)),
+              width:
+                  (widget.focusNode?.hasFocus ?? false) || widget.isHighlighted
+                  ? 2
+                  : (isUrgent ? 1.5 : 1),
             ),
           ),
           child: Row(

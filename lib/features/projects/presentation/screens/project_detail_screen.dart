@@ -9,7 +9,6 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
-import 'package:flutter/services.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
@@ -20,6 +19,7 @@ import 'package:carpe_diem/features/projects/presentation/widgets/project_detail
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_fab.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/task_selection_utils.dart';
+import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
 
 class ProjectDetailScreen extends ConsumerStatefulWidget {
   final String projectId;
@@ -41,26 +41,52 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   final List<String> _selectedTaskIds = [];
   final List<String> _orderedItemIds = [];
   final Map<String, FocusNode> _itemFocusNodes = {};
+  String? _highlightedTaskId;
 
   @override
   void initState() {
     super.initState();
     _loadTasks();
 
+    _searchFocusNode.addListener(_handleSearchFocusChange);
     _searchFocusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent &&
-          (event.logicalKey == LogicalKeyboardKey.arrowDown ||
-              event.logicalKey == LogicalKeyboardKey.enter) &&
-          _orderedItemIds.isNotEmpty) {
-        _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-        return KeyEventResult.handled;
-      }
-      return KeyEventResult.ignored;
+      return SearchNavigationUtils.handleSearchKeyEvent(
+        event: event,
+        orderedIds: _orderedItemIds,
+        currentHighlightId: _highlightedTaskId,
+        itemFocusNodes: _itemFocusNodes,
+        onHighlightChanged: (newId) =>
+            setState(() => _highlightedTaskId = newId),
+        onSelect: () {
+          if (_highlightedTaskId != null) {
+            final task = _tasks
+                .where((t) => t.id == _highlightedTaskId)
+                .firstOrNull;
+            if (task != null) {
+              ProjectDetailDialogHandlers.showEditTask(context, task);
+            }
+          }
+        },
+        onEscape: () {
+          _searchFocusNode.unfocus();
+          setState(() => _highlightedTaskId = null);
+          if (_orderedItemIds.isNotEmpty) {
+            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+          } else {
+            _mainFocusNode.requestFocus();
+          }
+        },
+      );
     };
+  }
+
+  void _handleSearchFocusChange() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _searchFocusNode.removeListener(_handleSearchFocusChange);
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mainFocusNode.dispose();
@@ -102,6 +128,16 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       _loadTasks(showLoading: false);
     });
 
+    final isSearching = _searchFocusNode.hasFocus;
+    if (isSearching && _orderedItemIds.isNotEmpty) {
+      if (_highlightedTaskId == null ||
+          !_orderedItemIds.contains(_highlightedTaskId)) {
+        _highlightedTaskId = _orderedItemIds.first;
+      }
+    } else if (!isSearching) {
+      _highlightedTaskId = null;
+    }
+
     final project = ref.watch(projectProvider).getById(widget.projectId);
 
     if (project == null) {
@@ -133,6 +169,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       onUnfocusSearch: () {
         if (_searchFocusNode.hasFocus) {
           _searchFocusNode.unfocus();
+          setState(() => _highlightedTaskId = null);
           if (_orderedItemIds.isNotEmpty) {
             _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
           } else {
@@ -188,7 +225,17 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         _searchQuery = value;
                       }),
                       onSubmitted: (_) {
-                        if (_orderedItemIds.isNotEmpty) {
+                        if (_highlightedTaskId != null) {
+                          final task = _tasks
+                              .where((t) => t.id == _highlightedTaskId)
+                              .firstOrNull;
+                          if (task != null) {
+                            ProjectDetailDialogHandlers.showEditTask(
+                              context,
+                              task,
+                            );
+                          }
+                        } else if (_orderedItemIds.isNotEmpty) {
                           _itemFocusNodes[_orderedItemIds.first]
                               ?.requestFocus();
                         }
@@ -259,7 +306,20 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                 onOrderedIdsChanged: (ids) {
                                   _orderedItemIds.clear();
                                   _orderedItemIds.addAll(ids);
+                                  final isSearching = _searchFocusNode.hasFocus;
+                                  if (isSearching && ids.isNotEmpty) {
+                                    if (_highlightedTaskId == null ||
+                                        !ids.contains(_highlightedTaskId)) {
+                                      setState(
+                                        () => _highlightedTaskId = ids.first,
+                                      );
+                                    }
+                                  } else if (!isSearching &&
+                                      _highlightedTaskId != null) {
+                                    setState(() => _highlightedTaskId = null);
+                                  }
                                 },
+                                highlightedTaskId: _highlightedTaskId,
                                 itemFocusNodes: _itemFocusNodes,
                                 searchQuery: _searchQuery,
                                 enablePlanShortcut: true,

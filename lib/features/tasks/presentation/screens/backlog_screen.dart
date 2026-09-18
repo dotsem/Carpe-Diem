@@ -2,7 +2,6 @@ import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_t
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_label_tab_bar.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -20,6 +19,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/screen_header.da
 import 'package:carpe_diem/features/tasks/presentation/shortcuts/backlog_shortcuts.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/core/utils/task_selection_utils.dart';
+import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
 
 class BacklogScreen extends ConsumerStatefulWidget {
   const BacklogScreen({super.key});
@@ -38,6 +38,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
 
   String _searchQuery = '';
   final List<String> _selectedTaskIds = [];
+  String? _highlightedTaskId;
 
   @override
   void initState() {
@@ -46,23 +47,46 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
       ref.read(taskProvider.notifier).loadUnscheduledTasks();
     });
 
+    _searchFocusNode.addListener(_handleSearchFocusChange);
     _searchFocusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.arrowDown ||
-            event.logicalKey == LogicalKeyboardKey.enter) {
-          if (_orderedItemIds.isNotEmpty) {
-            final firstNode = _itemFocusNodes[_orderedItemIds.first];
-            firstNode?.requestFocus();
-            return KeyEventResult.handled;
+      return SearchNavigationUtils.handleSearchKeyEvent(
+        event: event,
+        orderedIds: _orderedItemIds,
+        currentHighlightId: _highlightedTaskId,
+        itemFocusNodes: _itemFocusNodes,
+        onHighlightChanged: (newId) =>
+            setState(() => _highlightedTaskId = newId),
+        onSelect: () {
+          if (_highlightedTaskId != null) {
+            final tasks = ref.read(taskProvider).unscheduledTasks;
+            final task = tasks
+                .where((t) => t.id == _highlightedTaskId)
+                .firstOrNull;
+            if (task != null) {
+              BacklogDialogHandlers.showEditTask(context, task);
+            }
           }
-        }
-      }
-      return KeyEventResult.ignored;
+        },
+        onEscape: () {
+          _searchFocusNode.unfocus();
+          setState(() => _highlightedTaskId = null);
+          if (_orderedItemIds.isNotEmpty) {
+            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+          } else {
+            _mainFocusNode.requestFocus();
+          }
+        },
+      );
     };
+  }
+
+  void _handleSearchFocusChange() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _searchFocusNode.removeListener(_handleSearchFocusChange);
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mainFocusNode.dispose();
@@ -106,6 +130,16 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final provider = ref.watch(taskProvider);
+
+    final isSearching = _searchFocusNode.hasFocus;
+    if (isSearching && _orderedItemIds.isNotEmpty) {
+      if (_highlightedTaskId == null ||
+          !_orderedItemIds.contains(_highlightedTaskId)) {
+        _highlightedTaskId = _orderedItemIds.first;
+      }
+    } else if (!isSearching) {
+      _highlightedTaskId = null;
+    }
     ref.listen(backlogLabelTabProvider, (previous, next) {
       setState(
         () => _selectedTaskIds.clear(),
@@ -122,6 +156,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
       onUnfocusSearch: () {
         if (_searchFocusNode.hasFocus) {
           _searchFocusNode.unfocus();
+          setState(() => _highlightedTaskId = null);
           if (_orderedItemIds.isNotEmpty) {
             _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
           } else {
@@ -192,7 +227,15 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                       _searchQuery = value;
                     }),
                     onSubmitted: (_) {
-                      if (_orderedItemIds.isNotEmpty) {
+                      if (_highlightedTaskId != null) {
+                        final tasks = ref.read(taskProvider).unscheduledTasks;
+                        final task = tasks
+                            .where((t) => t.id == _highlightedTaskId)
+                            .firstOrNull;
+                        if (task != null) {
+                          BacklogDialogHandlers.showEditTask(context, task);
+                        }
+                      } else if (_orderedItemIds.isNotEmpty) {
                         _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
                       }
                     },
@@ -202,6 +245,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                 Expanded(
                   child: BacklogList(
                     searchQuery: _searchQuery,
+                    highlightedTaskId: _highlightedTaskId,
                     selectedTaskIds: _selectedTaskIds,
                     onSelectedChanged: (task) => setState(() {
                       final updated = TaskSelectionUtils.toggleSelection(
@@ -219,6 +263,15 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     onOrderedIdsChanged: (ids) {
                       _orderedItemIds.clear();
                       _orderedItemIds.addAll(ids);
+                      final isSearching = _searchFocusNode.hasFocus;
+                      if (isSearching && ids.isNotEmpty) {
+                        if (_highlightedTaskId == null ||
+                            !ids.contains(_highlightedTaskId)) {
+                          setState(() => _highlightedTaskId = ids.first);
+                        }
+                      } else if (!isSearching && _highlightedTaskId != null) {
+                        setState(() => _highlightedTaskId = null);
+                      }
                     },
                     trailingBuilder: (ctx, task) =>
                         _taskTrailing(ctx, task, provider.unscheduledTasks),

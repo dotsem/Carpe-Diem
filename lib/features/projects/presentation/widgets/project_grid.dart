@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid_section.dart';
+import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 
@@ -30,27 +30,41 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
   final Map<String, FocusNode> _itemFocusNodes = {};
   final List<String> _orderedItemIds = [];
   bool _temporarilyShowArchived = false;
+  String? _highlightedProjectId;
 
   @override
   void initState() {
     super.initState();
+    widget.searchFocusNode.addListener(_handleSearchFocusChange);
     widget.searchFocusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.arrowDown ||
-            event.logicalKey == LogicalKeyboardKey.enter) {
-          if (_orderedItemIds.isNotEmpty) {
-            final firstNode = _itemFocusNodes[_orderedItemIds.first];
-            firstNode?.requestFocus();
-            return KeyEventResult.handled;
+      return SearchNavigationUtils.handleSearchKeyEvent(
+        event: event,
+        orderedIds: _orderedItemIds,
+        currentHighlightId: _highlightedProjectId,
+        allowHorizontal: true,
+        itemFocusNodes: _itemFocusNodes,
+        onHighlightChanged: (newId) =>
+            setState(() => _highlightedProjectId = newId),
+        onSelect: () {
+          if (_highlightedProjectId != null) {
+            context.go('/projects/$_highlightedProjectId');
           }
-        }
-      }
-      return KeyEventResult.ignored;
+        },
+        onEscape: () {
+          widget.searchFocusNode.unfocus();
+          requestFirstItemFocus();
+        },
+      );
     };
+  }
+
+  void _handleSearchFocusChange() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    widget.searchFocusNode.removeListener(_handleSearchFocusChange);
     for (final node in _itemFocusNodes.values) {
       node.dispose();
     }
@@ -59,6 +73,7 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
   }
 
   void requestFirstItemFocus() {
+    setState(() => _highlightedProjectId = null);
     if (_orderedItemIds.isNotEmpty) {
       _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
     } else {
@@ -193,6 +208,16 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
       _orderedItemIds.add(p.id);
     }
 
+    final isSearching = widget.searchFocusNode.hasFocus;
+    if (isSearching && _orderedItemIds.isNotEmpty) {
+      if (_highlightedProjectId == null ||
+          !_orderedItemIds.contains(_highlightedProjectId)) {
+        _highlightedProjectId = _orderedItemIds.first;
+      }
+    } else if (!isSearching) {
+      _highlightedProjectId = null;
+    }
+
     final settings = ref.watch(settingsProvider);
     final showActiveOnly = settings.showActiveProjectsOnly;
 
@@ -206,6 +231,7 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
             ProjectGridSection(
               projects: activeProjects,
               itemFocusNodes: _itemFocusNodes,
+              highlightedProjectId: _highlightedProjectId,
               onProjectTap: (id) => context.go('/projects/$id'),
               onReorder: (project, newSortOrder) {
                 ref
@@ -232,6 +258,7 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
             ProjectGridSection(
               projects: inactiveProjects,
               itemFocusNodes: _itemFocusNodes,
+              highlightedProjectId: _highlightedProjectId,
               onProjectTap: (id) => context.go('/projects/$id'),
               onReorder: (project, newSortOrder) {
                 ref
