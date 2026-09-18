@@ -59,5 +59,44 @@ void main() {
         timer.dispose();
       },
     );
+
+    testWidgets('heartbeat timer fires and detects day rollover after wake', (
+      tester,
+    ) async {
+      var currentTime = DateTime(2026, 7, 27, 14, 0, 0);
+      final timer = MidnightTimer(clock: () => currentTime);
+      var called = false;
+
+      timer.start(() {
+        called = true;
+      });
+
+      expect(called, isFalse);
+
+      currentTime = DateTime(2026, 7, 28, 9, 0, 0);
+      await tester.pump(const Duration(seconds: 30));
+
+      expect(called, isTrue);
+      timer.dispose();
+    });
+
+    test('manual checkDayChange triggers callback if day changed', () {
+      var currentTime = DateTime(2026, 7, 27, 12, 0, 0);
+      final timer = MidnightTimer(clock: () => currentTime);
+      var called = false;
+
+      timer.start(() {
+        called = true;
+      });
+
+      timer.checkDayChange();
+      expect(called, isFalse);
+
+      currentTime = DateTime(2026, 7, 29, 10, 0, 0);
+      timer.checkDayChange();
+      expect(called, isTrue);
+
+      timer.dispose();
+    });
   });
 }
