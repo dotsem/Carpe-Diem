@@ -208,8 +208,7 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
 
     if (isEditing) {
       final p = widget.project!;
-      final updatedProject = Project(
-        id: p.id,
+      final updatedProject = p.copyWith(
         name: name,
         description: _descController.text.trim().isEmpty
             ? null
@@ -218,8 +217,6 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
         isUrgent: _isUrgent,
         labelIds: _selectedLabelIds,
         deadline: _deadline,
-        createdAt: p.createdAt,
-        updatedAt: DateTime.now(),
         isActive: _isActive,
       );
       ref.read(projectProvider.notifier).updateProject(updatedProject);
