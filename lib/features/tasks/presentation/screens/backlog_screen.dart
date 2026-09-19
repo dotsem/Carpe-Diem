@@ -195,14 +195,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                       ),
                       const SizedBox(width: 8),
                     ],
+                    _buildHeaderActions(context),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () =>
                           BacklogDialogHandlers.showAddTask(context, ref: ref),
                       icon: const Icon(Icons.add),
                       label: const Text('Add Task'),
                     ),
-                    const SizedBox(width: 8),
-                    _buildHeaderActions(context),
                   ],
                 ),
                 BacklogLabelTabBar(),
