@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -177,9 +178,25 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
               const UndoIntent(),
           const CharacterActivator(RedoKeys.char, control: true):
               const RedoIntent(),
+
+          // TODO: may remove ctrl+k
+          const SingleActivator(LogicalKeyboardKey.keyK, control: true):
+              const OpenCommandPaletteIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyK, meta: true):
+              const OpenCommandPaletteIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyP, control: true):
+              const OpenCommandPaletteIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyP, meta: true):
+              const OpenCommandPaletteIntent(),
         },
         child: Actions(
           actions: {
+            OpenCommandPaletteIntent: NonTypingAction<OpenCommandPaletteIntent>(
+              (intent) {
+                debugPrint('Shortcut: OpenCommandPalette');
+                CommandPalette.show();
+              },
+            ),
             MoveNextIntent: NonTypingAction<MoveNextIntent>((intent) {
               debugPrint('Shortcut: MoveNext');
               FocusManager.instance.primaryFocus?.focusInDirection(
