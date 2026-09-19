@@ -1,6 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 
+class OpenCommandPaletteIntent extends Intent {
+  const OpenCommandPaletteIntent();
+}
+
 class NavigateToTodayIntent extends Intent {
   const NavigateToTodayIntent();
 }
@@ -139,6 +143,11 @@ final globalShortcutEntries = [
   const ShortcutEntry(
     key: HelpKeys.char,
     description: 'Toggle shortcut help',
+    category: 'Global',
+  ),
+  const ShortcutEntry(
+    key: 'Ctrl + K',
+    description: 'Open Command Palette',
     category: 'Global',
   ),
   const ShortcutEntry(

@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/shortcut_hint_badge.dart';
 import 'package:flutter/material.dart';
 
 class NavigationItem extends StatelessWidget {
@@ -67,27 +68,13 @@ class NavigationItem extends StatelessWidget {
                   ),
                 ),
                 if (shortcutHint != null)
-                  Container(
+                  ShortcutHintBadge(
+                    label: shortcutHint!,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 4,
                       vertical: 2,
                     ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHigh.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      shortcutHint!,
-                      style: TextStyle(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    fontSize: 12,
                   ),
               ],
             ),
