@@ -16,7 +16,6 @@ import 'package:carpe_diem/features/projects/presentation/widgets/project_detail
 import 'package:carpe_diem/features/projects/presentation/shortcuts/project_detail_shortcuts.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_dialog_handlers.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_task_trailing_button.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_fab.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
@@ -210,6 +209,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         builder: (_) => ImportFromMDDialog(project: project),
                       ).then((_) => setState(() {}));
                     },
+                    onAddTask: () => ProjectDetailDialogHandlers.showAddTask(
+                      context,
+                      widget.projectId,
+                    ),
                   ),
                   Divider(
                     color: Theme.of(context).colorScheme.surfaceContainerHigh,
@@ -423,14 +426,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 ),
               ),
             ],
-          ),
-          floatingActionButton: ProjectDetailFab(
-            isActive: project.isActive,
-            color: project.color,
-            onPressed: () => ProjectDetailDialogHandlers.showAddTask(
-              context,
-              widget.projectId,
-            ),
           ),
         ),
       ),
