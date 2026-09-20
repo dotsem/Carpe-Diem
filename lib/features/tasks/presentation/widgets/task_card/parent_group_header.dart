@@ -13,6 +13,7 @@ import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dar
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_task_hover_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,6 +27,7 @@ class ParentGroupHeader extends ConsumerStatefulWidget {
   final VoidCallback? onTap;
   final void Function(Offset localPosition, RenderBox renderBox)? onContextMenu;
   final Widget? trailing;
+  final Widget Function(BuildContext context, bool isHovered)? trailingBuilder;
   final bool isHighlighted;
 
   const ParentGroupHeader({
@@ -39,6 +41,7 @@ class ParentGroupHeader extends ConsumerStatefulWidget {
     this.onTap,
     this.onContextMenu,
     this.trailing,
+    this.trailingBuilder,
     this.isHighlighted = false,
   });
 
@@ -47,12 +50,17 @@ class ParentGroupHeader extends ConsumerStatefulWidget {
 }
 
 class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
+  bool _isHovered = false;
+
   @override
   Widget build(BuildContext context) {
     final task = widget.node.task;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isUrgent = widget.node.hasUrgentChild || task.isUrgent;
+    final hasHighlight =
+        (widget.focusNode?.hasFocus ?? false) || widget.isHighlighted;
+    final isHoveredOrFocused = _isHovered || hasHighlight;
 
     final progressText =
         '${widget.node.completedSubtasks}/${widget.node.totalSubtasks}';
@@ -78,11 +86,16 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
         .whereType<Tag>()
         .toList();
 
+    final customTrailing =
+        widget.trailingBuilder?.call(context, isHoveredOrFocused) ??
+        widget.trailing;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         focusNode: widget.focusNode,
         borderRadius: BorderRadius.circular(10),
+        onHover: (hovered) => setState(() => _isHovered = hovered),
         onTap:
             widget.onTap ??
             () {
@@ -101,16 +114,12 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color:
-                  (widget.focusNode?.hasFocus ?? false) || widget.isHighlighted
+              color: hasHighlight
                   ? colorScheme.primary
                   : (isUrgent
                         ? AppColors.error.withValues(alpha: 0.4)
                         : colorScheme.outlineVariant.withValues(alpha: 0.5)),
-              width:
-                  (widget.focusNode?.hasFocus ?? false) || widget.isHighlighted
-                  ? 2
-                  : (isUrgent ? 1.5 : 1),
+              width: hasHighlight ? 2 : (isUrgent ? 1.5 : 1),
             ),
           ),
           child: Row(
@@ -130,6 +139,9 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
                 visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                tooltip: widget.node.isCollapsed
+                    ? 'Expand subtasks'
+                    : 'Collapse subtasks',
                 icon: Icon(
                   widget.node.isCollapsed
                       ? Icons.keyboard_arrow_right_rounded
@@ -185,76 +197,95 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
               ),
               if (isUrgent) ...[
                 const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.priority_high_rounded,
-                        size: 12,
-                        color: AppColors.error,
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        'Urgent',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                Tooltip(
+                  message: 'Urgent task or subtask',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.priority_high_rounded,
+                          size: 12,
                           color: AppColors.error,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 2),
+                        Text(
+                          'Urgent',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
               if (widget.node.plannedSubtasks > 0) ...[
                 const SizedBox(width: 6),
-                SmallChip(
-                  color: colorScheme.secondaryContainer.withValues(alpha: 0.6),
-                  borderRadius: 6,
-                  child: Text(
-                    '${widget.node.plannedSubtasks} planned',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: colorScheme.onSecondaryContainer,
+                Tooltip(
+                  message: '${widget.node.plannedSubtasks} planned subtasks',
+                  child: SmallChip(
+                    color: colorScheme.secondaryContainer.withValues(
+                      alpha: 0.6,
+                    ),
+                    borderRadius: 6,
+                    child: Text(
+                      '${widget.node.plannedSubtasks} planned',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSecondaryContainer,
+                      ),
                     ),
                   ),
                 ),
               ],
               const SizedBox(width: 6),
-              SmallChip(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: 6,
-                child: Text(
-                  progressText,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurfaceVariant,
+              Tooltip(
+                message: '$progressText subtasks completed',
+                child: SmallChip(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: 6,
+                  child: Text(
+                    progressText,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ),
-              if (widget.trailing != null) ...[
-                const SizedBox(width: 4),
-                widget.trailing!,
-              ] else
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 16),
-                  visualDensity: VisualDensity.compact,
-                  tooltip: 'Edit parent task',
-                  onPressed: () {
-                    context.openRightSidebar(EditTaskPanel(task.id), ref);
-                  },
+              ClipRect(
+                child: AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  child: isHoveredOrFocused
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child:
+                              customTrailing ??
+                              ParentTaskHoverActions(
+                                task: task,
+                                onEdit: () => context.openRightSidebar(
+                                  EditTaskPanel(task.id),
+                                  ref,
+                                ),
+                              ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
+              ),
             ],
           ),
         ),

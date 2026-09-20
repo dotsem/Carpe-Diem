@@ -100,5 +100,70 @@ void main() {
       );
       expect(selected, containsAll(['p1', 's1', 's2']));
     });
+
+    test(
+      'selectRange selects all items between lastSelectedTaskId and target',
+      () {
+        final t1 = Task(id: 't1', title: 'T1', createdAt: now);
+        final t2 = Task(id: 't2', title: 'T2', createdAt: now);
+        final t3 = Task(id: 't3', title: 'T3', createdAt: now);
+        final t4 = Task(id: 't4', title: 'T4', createdAt: now);
+        final list = [t1, t2, t3, t4];
+
+        final selected = TaskSelectionUtils.selectRange(
+          targetTask: t4,
+          lastSelectedTaskId: 't2',
+          orderedIds: ['t1', 't2', 't3', 't4'],
+          currentSelectedIds: {'t1'},
+          allTasks: list,
+        );
+
+        expect(selected, containsAll(['t2', 't3', 't4']));
+        expect(selected, isNot(contains('t1')));
+      },
+    );
+
+    test(
+      'selectRange shrinks selection range when Shift+clicking closer to anchor',
+      () {
+        final t1 = Task(id: 't1', title: 'T1', createdAt: now);
+        final t2 = Task(id: 't2', title: 'T2', createdAt: now);
+        final t3 = Task(id: 't3', title: 'T3', createdAt: now);
+        final t4 = Task(id: 't4', title: 'T4', createdAt: now);
+        final t5 = Task(id: 't5', title: 'T5', createdAt: now);
+        final list = [t1, t2, t3, t4, t5];
+
+        // Anchor is t1, target is t3 (was previously selected up to t5)
+        final selected = TaskSelectionUtils.selectRange(
+          targetTask: t3,
+          lastSelectedTaskId: 't1',
+          orderedIds: ['t1', 't2', 't3', 't4', 't5'],
+          currentSelectedIds: {'t1', 't2', 't3', 't4', 't5'},
+          allTasks: list,
+        );
+
+        expect(selected, equals({'t1', 't2', 't3'}));
+        expect(selected, isNot(contains('t4')));
+        expect(selected, isNot(contains('t5')));
+      },
+    );
+
+    test('handleSelection performs range selection when shift is pressed', () {
+      final t1 = Task(id: 't1', title: 'T1', createdAt: now);
+      final t2 = Task(id: 't2', title: 'T2', createdAt: now);
+      final t3 = Task(id: 't3', title: 'T3', createdAt: now);
+      final list = [t1, t2, t3];
+
+      final selected = TaskSelectionUtils.handleSelection(
+        task: t3,
+        lastSelectedTaskId: 't1',
+        orderedIds: ['t1', 't2', 't3'],
+        currentSelectedIds: {},
+        allTasks: list,
+        isShiftPressed: true,
+      );
+
+      expect(selected, containsAll(['t1', 't2', 't3']));
+    });
   });
 }

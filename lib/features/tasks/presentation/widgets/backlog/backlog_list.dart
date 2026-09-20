@@ -1,15 +1,11 @@
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_empty_placeholder.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_group_header.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_hierarchy_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
@@ -20,7 +16,6 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
-import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 
 class BacklogList extends ConsumerWidget {
   final String searchQuery;
@@ -29,7 +24,7 @@ class BacklogList extends ConsumerWidget {
   final ValueChanged<Task> onEdit;
   final Map<String, FocusNode> itemFocusNodes;
   final ValueChanged<List<String>> onOrderedIdsChanged;
-  final Widget Function(BuildContext, Task) trailingBuilder;
+  final Widget Function(BuildContext, Task)? trailingBuilder;
   final String? highlightedTaskId;
 
   const BacklogList({
@@ -40,7 +35,7 @@ class BacklogList extends ConsumerWidget {
     required this.onEdit,
     required this.itemFocusNodes,
     required this.onOrderedIdsChanged,
-    required this.trailingBuilder,
+    this.trailingBuilder,
     this.highlightedTaskId,
   });
 
@@ -52,13 +47,9 @@ class BacklogList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = ref.watch(taskProvider);
-    if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     final projectState = ref.watch(projectProvider);
-    final labelTab = ref.watch(backlogLabelTabProvider);
     final filter = ref.watch(filterProvider).activeFilter;
+    final labelTab = ref.watch(backlogLabelTabProvider);
 
     var allTasks = provider.unscheduledTasks.where((t) {
       final project = t.projectId != null
@@ -126,98 +117,6 @@ class BacklogList extends ConsumerWidget {
       onOrderedIdsChanged(orderedIds);
     });
 
-    Widget buildNode(TaskHierarchyNode n) {
-      Widget child;
-      if (n is ParentContainerNode) {
-        final focusNode = itemFocusNodes.putIfAbsent(
-          n.task.id,
-          () => FocusNode(debugLabel: 'ParentTask_${n.task.id}'),
-        );
-        final subtasks = allTasks
-            .where((t) => t.parentId == n.task.id)
-            .toList();
-        final isChecked = TaskSelectionUtils.getParentSelectionState(
-          parentId: n.task.id,
-          subtasks: subtasks,
-          selectedTaskIds: selectedTaskIds.toSet(),
-        );
-
-        child = ParentGroupHeader(
-          key: ValueKey('parent_${n.task.id}'),
-          node: n,
-          project: n.task.projectId != null
-              ? projectState.getById(n.task.projectId!)
-              : null,
-          focusNode: focusNode,
-          isChecked: isChecked,
-          selectionMode: true,
-          isHighlighted: n.task.id == highlightedTaskId,
-          onToggle: (value) => onSelectedChanged(n.task),
-          onTap: () {
-            ref
-                .read(collapsedSubtasksProvider.notifier)
-                .toggleCollapse(n.task.id);
-          },
-          onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
-            context,
-            ref,
-            n.task,
-            allTasks,
-            localPosition,
-            renderBox,
-            onAction: () {
-              if (selectedTaskIds.contains(n.task.id)) {
-                onSelectedChanged(n.task);
-              }
-            },
-          ),
-          trailing: trailingBuilder(context, n.task),
-        );
-      } else if (n is TaskNode) {
-        final isNested = n.isBundledUnderParent;
-        final focusNode = itemFocusNodes.putIfAbsent(
-          n.task.id,
-          () => FocusNode(debugLabel: 'Task_${n.task.id}'),
-        );
-
-        child = TaskCard(
-          key: ValueKey(n.task.id),
-          task: n.task,
-          project: n.task.projectId != null
-              ? projectState.getById(n.task.projectId!)
-              : null,
-          hideProjectInfo: isNested,
-          hideProjectGradient: false,
-          isChecked: selectedTaskIds.contains(n.task.id),
-          selectionMode: true,
-          focusNode: focusNode,
-          isHighlighted: n.task.id == highlightedTaskId,
-          onToggle: (value) {
-            onSelectedChanged(n.task);
-          },
-          onTap: () => onEdit(n.task),
-          onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
-            context,
-            ref,
-            n.task,
-            allTasks,
-            localPosition,
-            renderBox,
-            onAction: () {
-              if (selectedTaskIds.contains(n.task.id)) {
-                onSelectedChanged(n.task);
-              }
-            },
-          ),
-          trailing: trailingBuilder(context, n.task),
-        );
-      } else {
-        return const SizedBox.shrink();
-      }
-
-      return TaskHierarchyIndicator(depth: n.depth, child: child);
-    }
-
     final urgentSectionEnd = TaskReorderUtils.getUrgentSectionEndIndex(
       activeHierarchical,
     );
@@ -238,7 +137,16 @@ class BacklogList extends ConsumerWidget {
             itemCount: activeHierarchical.length,
             itemBuilder: (context, index) {
               final node = activeHierarchical[index];
-              final child = buildNode(node);
+              final child = BacklogHierarchyItem(
+                node: node,
+                allTasks: allTasks,
+                selectedTaskIds: selectedTaskIds,
+                highlightedTaskId: highlightedTaskId,
+                itemFocusNodes: itemFocusNodes,
+                onSelectedChanged: onSelectedChanged,
+                onEdit: onEdit,
+                trailingBuilder: trailingBuilder,
+              );
 
               Widget draggableChild = child;
               if (node.task != null) {

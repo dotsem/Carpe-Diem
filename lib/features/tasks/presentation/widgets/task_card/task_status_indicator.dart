@@ -25,10 +25,13 @@ class TaskStatusIndicator extends ConsumerWidget {
     final bool effectiveIsChecked = isChecked ?? task.isCompleted;
 
     if (selectionMode) {
-      return Checkbox(
-        value: isChecked ?? false,
-        onChanged: onToggle,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      return Tooltip(
+        message: 'Select task',
+        child: Checkbox(
+          value: isChecked ?? false,
+          onChanged: onToggle,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        ),
       );
     }
 
@@ -36,85 +39,97 @@ class TaskStatusIndicator extends ConsumerWidget {
     final isPending = timerNotifier.isTaskPending(task.id);
 
     if (task.status.isInProgress) {
-      return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: onToggleAction,
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isPending
-                  ? AppColors.accent.withValues(alpha: 0.5)
-                  : AppColors.accent.withValues(alpha: 0.3),
-              border: Border.all(color: AppColors.accent, width: 2),
+      return Tooltip(
+        message: isPending ? 'Cancel completion' : 'Complete task',
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: onToggleAction,
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isPending
+                    ? AppColors.accent.withValues(alpha: 0.5)
+                    : AppColors.accent.withValues(alpha: 0.3),
+                border: Border.all(color: AppColors.accent, width: 2),
+              ),
+              child: isPending
+                  ? const Icon(Icons.close, size: 14, color: AppColors.accent)
+                  : null,
             ),
-            child: isPending
-                ? const Icon(Icons.close, size: 14, color: AppColors.accent)
-                : null,
           ),
         ),
       );
     }
 
     if (task.status.isReview) {
-      return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: onToggleAction,
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isPending
-                  ? AppColors.review.withValues(alpha: 0.5)
-                  : AppColors.review.withValues(alpha: 0.2),
-              border: Border.all(color: AppColors.review, width: 2),
+      return Tooltip(
+        message: isPending ? 'Cancel completion' : 'Complete review',
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: onToggleAction,
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isPending
+                    ? AppColors.review.withValues(alpha: 0.5)
+                    : AppColors.review.withValues(alpha: 0.2),
+                border: Border.all(color: AppColors.review, width: 2),
+              ),
+              child: isPending
+                  ? const Icon(Icons.close, size: 14, color: AppColors.review)
+                  : const Icon(
+                      Icons.rate_review_outlined,
+                      size: 13,
+                      color: AppColors.review,
+                    ),
             ),
-            child: isPending
-                ? const Icon(Icons.close, size: 14, color: AppColors.review)
-                : const Icon(
-                    Icons.rate_review_outlined,
-                    size: 13,
-                    color: AppColors.review,
-                  ),
           ),
         ),
       );
     }
 
     if (task.status.isTodo) {
-      return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: onToggleAction,
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.success.withValues(alpha: 0.1),
-              border: Border.all(color: AppColors.success, width: 2),
-            ),
-            child: const Icon(
-              Icons.play_arrow_rounded,
-              size: 16,
-              color: AppColors.success,
+      return Tooltip(
+        message: 'Start task',
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: onToggleAction,
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.success.withValues(alpha: 0.1),
+                border: Border.all(color: AppColors.success, width: 2),
+              ),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                size: 16,
+                color: AppColors.success,
+              ),
             ),
           ),
         ),
       );
     }
 
-    return Checkbox(
-      value: effectiveIsChecked,
-      onChanged: (value) => onToggleAction(),
-      fillColor: isPending
-          ? WidgetStateProperty.all(AppColors.accent.withValues(alpha: 0.5))
-          : null,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+    return Tooltip(
+      message: effectiveIsChecked ? 'Reopen task' : 'Complete task',
+      child: Checkbox(
+        value: effectiveIsChecked,
+        onChanged: (value) => onToggleAction(),
+        fillColor: isPending
+            ? WidgetStateProperty.all(AppColors.accent.withValues(alpha: 0.5))
+            : null,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
     );
   }
 }

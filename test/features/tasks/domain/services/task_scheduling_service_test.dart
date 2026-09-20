@@ -115,7 +115,7 @@ void main() {
           expect(compound.commands.length, equals(2));
           expect(
             compound.description,
-            contains('Schedule "Parent Task" and 1 subtask'),
+            contains('Scheduled "Parent Task" and 1 subtask'),
           );
         },
       );
@@ -175,7 +175,7 @@ void main() {
           expect(compound.commands.length, equals(2));
           expect(
             compound.description,
-            contains('Unschedule "Parent" and 1 subtask'),
+            contains('Unscheduled "Parent" and 1 subtask'),
           );
         },
       );

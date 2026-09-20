@@ -85,4 +85,78 @@ class TaskSelectionUtils {
     }
     return newSet;
   }
+
+  /// Selects a range of tasks between `lastSelectedTaskId` and `targetTask`
+  /// using the provided `orderedIds` display sequence.
+  static Set<String> selectRange({
+    required Task targetTask,
+    required String? lastSelectedTaskId,
+    required List<String> orderedIds,
+    required Set<String> currentSelectedIds,
+    required List<Task> allTasks,
+  }) {
+    if (lastSelectedTaskId == null ||
+        !orderedIds.contains(lastSelectedTaskId)) {
+      return toggleSelection(
+        task: targetTask,
+        allTasks: allTasks,
+        currentSelectedIds: currentSelectedIds,
+      );
+    }
+
+    final startIndex = orderedIds.indexOf(lastSelectedTaskId);
+    final endIndex = orderedIds.indexOf(targetTask.id);
+
+    if (startIndex == -1 || endIndex == -1) {
+      return toggleSelection(
+        task: targetTask,
+        allTasks: allTasks,
+        currentSelectedIds: currentSelectedIds,
+      );
+    }
+
+    final minIdx = startIndex < endIndex ? startIndex : endIndex;
+    final maxIdx = startIndex < endIndex ? endIndex : startIndex;
+
+    final rangeIds = orderedIds.sublist(minIdx, maxIdx + 1);
+    final newSet = <String>{...rangeIds};
+
+    final taskMap = {for (var t in allTasks) t.id: t};
+    for (final id in rangeIds) {
+      final task = taskMap[id];
+      if (task != null) {
+        final subtasks = allTasks.where((t) => t.parentId == task.id);
+        for (final sub in subtasks) {
+          newSet.add(sub.id);
+        }
+      }
+    }
+
+    return newSet;
+  }
+
+  /// Handles selection toggles, performing a range selection if `isShiftPressed` is true.
+  static Set<String> handleSelection({
+    required Task task,
+    required String? lastSelectedTaskId,
+    required List<String> orderedIds,
+    required Set<String> currentSelectedIds,
+    required List<Task> allTasks,
+    required bool isShiftPressed,
+  }) {
+    if (isShiftPressed && lastSelectedTaskId != null) {
+      return selectRange(
+        targetTask: task,
+        lastSelectedTaskId: lastSelectedTaskId,
+        orderedIds: orderedIds,
+        currentSelectedIds: currentSelectedIds,
+        allTasks: allTasks,
+      );
+    }
+    return toggleSelection(
+      task: task,
+      allTasks: allTasks,
+      currentSelectedIds: currentSelectedIds,
+    );
+  }
 }

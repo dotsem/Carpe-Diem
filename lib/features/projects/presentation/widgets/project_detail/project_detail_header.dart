@@ -14,6 +14,7 @@ class ProjectDetailHeader extends ConsumerWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onImportMd;
+  final VoidCallback onAddTask;
 
   const ProjectDetailHeader({
     super.key,
@@ -21,6 +22,7 @@ class ProjectDetailHeader extends ConsumerWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onImportMd,
+    required this.onAddTask,
   });
 
   @override
@@ -32,7 +34,7 @@ class ProjectDetailHeader extends ConsumerWidget {
         .toList();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 28, 0, 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Stack(
         children: [
           if (project.isUrgent)
@@ -54,7 +56,7 @@ class ProjectDetailHeader extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                  padding: const EdgeInsets.only(bottom: 8.0),
                   child: Row(
                     children: [
                       Container(
@@ -70,7 +72,7 @@ class ProjectDetailHeader extends ConsumerWidget {
                         child: Text(
                           project.name,
                           style: TextStyle(
-                            fontSize: 32,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
@@ -108,6 +110,14 @@ class ProjectDetailHeader extends ConsumerWidget {
                           }
                         },
                       ),
+                      if (project.isActive) ...[
+                        const SizedBox(width: 8),
+                        FilledButton.icon(
+                          onPressed: onAddTask,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Task'),
+                        ),
+                      ],
                     ],
                   ),
                 ),
