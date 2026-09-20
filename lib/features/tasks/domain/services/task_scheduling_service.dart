@@ -3,6 +3,7 @@ import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:intl/intl.dart';
 
 class TaskSchedulingService {
   static Future<void> autoScheduleDeadlines({
@@ -25,6 +26,12 @@ class TaskSchedulingService {
     }
   }
 
+  static String _formatDateLabel(DateTime date) {
+    if (date.isToday) return 'today';
+    if (date.isTomorrow) return 'tomorrow';
+    return DateFormat('MMM d').format(date);
+  }
+
   static Command buildScheduleCascadeCommand({
     required ITaskRepository repo,
     required Task task,
@@ -34,6 +41,7 @@ class TaskSchedulingService {
   }) {
     final normalizedDate = date.normalize;
     final updatedParent = task.copyWith(scheduledDate: normalizedDate);
+    final dateLabel = _formatDateLabel(date);
 
     if (cascadeChildren) {
       final incompleteSubtasks = subtasks.where((t) => !t.isCompleted).toList();
@@ -44,6 +52,7 @@ class TaskSchedulingService {
             previous: task,
             next: updatedParent,
             displayName: task.title,
+            customDescription: 'Scheduled "${task.title}" for $dateLabel',
           ),
         ];
         for (final subtask in incompleteSubtasks) {
@@ -56,15 +65,17 @@ class TaskSchedulingService {
               previous: subtask,
               next: updatedSubtask,
               displayName: subtask.title,
+              customDescription:
+                  'Scheduled subtask "${subtask.title}" for $dateLabel',
             ),
           );
         }
         final actionWord = task.scheduledDate != null
-            ? 'Reschedule'
-            : 'Schedule';
+            ? 'Rescheduled'
+            : 'Scheduled';
         return CompoundCommand(
           commands,
-          '$actionWord "${task.title}" and ${incompleteSubtasks.length} subtask(s)',
+          '$actionWord "${task.title}" and ${incompleteSubtasks.length} subtask(s) for $dateLabel',
         );
       }
     }
@@ -74,6 +85,7 @@ class TaskSchedulingService {
       previous: task,
       next: updatedParent,
       displayName: task.title,
+      customDescription: 'Scheduled "${task.title}" for $dateLabel',
     );
   }
 
@@ -100,6 +112,7 @@ class TaskSchedulingService {
             previous: task,
             next: updatedParent,
             displayName: task.title,
+            customDescription: 'Unscheduled "${task.title}"',
           ),
         ];
         for (final subtask in scheduledSubtasks) {
@@ -113,12 +126,13 @@ class TaskSchedulingService {
               previous: subtask,
               next: updatedSubtask,
               displayName: subtask.title,
+              customDescription: 'Unscheduled subtask "${subtask.title}"',
             ),
           );
         }
         return CompoundCommand(
           commands,
-          'Unschedule "${task.title}" and ${scheduledSubtasks.length} subtask(s)',
+          'Unscheduled "${task.title}" and ${scheduledSubtasks.length} subtask(s)',
         );
       }
     }
@@ -128,6 +142,7 @@ class TaskSchedulingService {
       previous: task,
       next: updatedParent,
       displayName: task.title,
+      customDescription: 'Unscheduled "${task.title}"',
     );
   }
 
@@ -138,6 +153,7 @@ class TaskSchedulingService {
     required Future<Task?> Function(String id) getTaskById,
   }) async {
     final normalizedDate = date.normalize;
+    final dateLabel = _formatDateLabel(date);
     final commands = <Command>[];
 
     for (final id in taskIds) {
@@ -150,6 +166,7 @@ class TaskSchedulingService {
             previous: task,
             next: updated,
             displayName: task.title,
+            customDescription: 'Scheduled "${task.title}" for $dateLabel',
           ),
         );
 
@@ -164,6 +181,8 @@ class TaskSchedulingService {
                 previous: subtask,
                 next: subtask.copyWith(scheduledDate: normalizedDate),
                 displayName: subtask.title,
+                customDescription:
+                    'Scheduled subtask "${subtask.title}" for $dateLabel',
               ),
             );
           }
@@ -173,7 +192,10 @@ class TaskSchedulingService {
 
     if (commands.isEmpty) return null;
     if (commands.length == 1) return commands.first;
-    return CompoundCommand(commands, 'Schedule ${commands.length} tasks');
+    return CompoundCommand(
+      commands,
+      'Scheduled ${commands.length} tasks for $dateLabel',
+    );
   }
 
   static Task? pickRandomTask(List<Task> availableTasks) {

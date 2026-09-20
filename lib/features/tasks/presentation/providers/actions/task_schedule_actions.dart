@@ -1,11 +1,9 @@
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_scheduling_service.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:intl/intl.dart';
 
 extension TaskScheduleActions on TaskNotifier {
   Future<void> rescheduleOverdue(Task task, DateTime newDate) async {
@@ -74,7 +72,6 @@ extension TaskScheduleActions on TaskNotifier {
 
   Future<void> scheduleTasksForToday(List<String> taskIds) async {
     await scheduleTasksForDate(taskIds, DateTime.now());
-    ToastUtils.showSuccess('Tasks scheduled for today');
   }
 
   Future<void> scheduleTasksForTomorrow(List<String> taskIds) async {
@@ -82,7 +79,6 @@ extension TaskScheduleActions on TaskNotifier {
       taskIds,
       DateTime.now().add(const Duration(days: 1)),
     );
-    ToastUtils.showSuccess('Tasks scheduled for tomorrow');
   }
 
   Future<void> scheduleTasksForNextDay(
@@ -96,9 +92,6 @@ extension TaskScheduleActions on TaskNotifier {
     );
     final normalized = nextDay.normalize;
     await scheduleTasksForDate(taskIds, normalized);
-    ToastUtils.showSuccess(
-      'Tasks scheduled for ${DateFormat('MMM d').format(normalized)}',
-    );
   }
 
   Future<void> scheduleTasksForNextWorkDay(List<String> taskIds) async {
@@ -107,7 +100,6 @@ extension TaskScheduleActions on TaskNotifier {
       taskIds,
       DateTime.now().next(settings.firstDayOfWeek),
     );
-    ToastUtils.showSuccess('Tasks scheduled for next week');
   }
 
   Future<Task?> pickAndScheduleRandomTask(List<Task> availableTasks) async {
