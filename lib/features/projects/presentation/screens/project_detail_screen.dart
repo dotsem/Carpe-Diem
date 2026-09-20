@@ -4,6 +4,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
@@ -37,6 +38,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   bool _isLoading = true;
   List<Task> _tasks = [];
   final List<String> _selectedTaskIds = [];
+  String? _lastSelectedTaskId;
   final List<String> _orderedItemIds = [];
   final Map<String, FocusNode> _itemFocusNodes = {};
   String? _highlightedTaskId;
@@ -97,7 +99,11 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   @override
   void didUpdateWidget(covariant ProjectDetailScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.projectId != widget.projectId) _loadTasks();
+    if (oldWidget.projectId != widget.projectId) {
+      _selectedTaskIds.clear();
+      _lastSelectedTaskId = null;
+      _loadTasks();
+    }
   }
 
   Future<void> _loadTasks({bool showLoading = true}) async {
@@ -150,7 +156,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     }
 
     final selectedTasksAlreadyScheduled = _selectedTaskIds
-        .map((id) => _tasks.firstWhere((t) => t.id == id))
+        .map((id) => _tasks.where((t) => t.id == id).firstOrNull)
+        .whereType<Task>()
         .every((task) => task.scheduledDate != null);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -323,16 +330,26 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                 showScheduleDate: true,
                                 selectionMode: true,
                                 selectedTaskIds: _selectedTaskIds.toSet(),
-                                onClearSelection: () =>
-                                    setState(() => _selectedTaskIds.clear()),
+                                onClearSelection: () => setState(() {
+                                  _selectedTaskIds.clear();
+                                  _lastSelectedTaskId = null;
+                                }),
                                 onSelectedChanged: (task) => setState(() {
+                                  final isShift =
+                                      HardwareKeyboard.instance.isShiftPressed;
                                   final updated =
-                                      TaskSelectionUtils.toggleSelection(
+                                      TaskSelectionUtils.handleSelection(
                                         task: task,
-                                        allTasks: _tasks,
+                                        lastSelectedTaskId: _lastSelectedTaskId,
+                                        orderedIds: _orderedItemIds,
                                         currentSelectedIds: _selectedTaskIds
                                             .toSet(),
+                                        allTasks: _tasks,
+                                        isShiftPressed: isShift,
                                       );
+                                  if (!isShift || _lastSelectedTaskId == null) {
+                                    _lastSelectedTaskId = task.id;
+                                  }
                                   _selectedTaskIds
                                     ..clear()
                                     ..addAll(updated);
@@ -377,10 +394,12 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   },
                   onBulkEdit: () {
                     if (_selectedTaskIds.length == 1) {
-                      final task = _tasks.firstWhere(
-                        (t) => t.id == _selectedTaskIds.first,
-                      );
-                      ProjectDetailDialogHandlers.showEditTask(context, task);
+                      final task = _tasks
+                          .where((t) => t.id == _selectedTaskIds.first)
+                          .firstOrNull;
+                      if (task != null) {
+                        ProjectDetailDialogHandlers.showEditTask(context, task);
+                      }
                     } else {
                       ProjectDetailDialogHandlers.showBulkEdit(
                         context: context,
@@ -393,9 +412,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   },
                   onBulkDelete: () {
                     if (_selectedTaskIds.length == 1) {
-                      final task = _tasks.firstWhere(
-                        (t) => t.id == _selectedTaskIds.first,
-                      );
+                      final task = _tasks
+                          .where((t) => t.id == _selectedTaskIds.first)
+                          .firstOrNull;
+                      if (task == null) return;
                       showDialog(
                         context: context,
                         builder: (ctx) => DeleteDialog(

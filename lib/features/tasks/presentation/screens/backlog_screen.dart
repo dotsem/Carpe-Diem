@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_label_tab_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -36,6 +37,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
 
   String _searchQuery = '';
   final List<String> _selectedTaskIds = [];
+  String? _lastSelectedTaskId;
   String? _highlightedTaskId;
 
   @override
@@ -246,11 +248,18 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     highlightedTaskId: _highlightedTaskId,
                     selectedTaskIds: _selectedTaskIds,
                     onSelectedChanged: (task) => setState(() {
-                      final updated = TaskSelectionUtils.toggleSelection(
+                      final isShift = HardwareKeyboard.instance.isShiftPressed;
+                      final updated = TaskSelectionUtils.handleSelection(
                         task: task,
-                        allTasks: provider.unscheduledTasks,
+                        lastSelectedTaskId: _lastSelectedTaskId,
+                        orderedIds: _orderedItemIds,
                         currentSelectedIds: _selectedTaskIds.toSet(),
+                        allTasks: provider.unscheduledTasks,
+                        isShiftPressed: isShift,
                       );
+                      if (!isShift || _lastSelectedTaskId == null) {
+                        _lastSelectedTaskId = task.id;
+                      }
                       _selectedTaskIds
                         ..clear()
                         ..addAll(updated);
@@ -281,8 +290,10 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
               bottom: 16,
               child: BulkPlanningBar(
                 selectedCount: _selectedTaskIds.length,
-                onClearSelection: () =>
-                    setState(() => _selectedTaskIds.clear()),
+                onClearSelection: () => setState(() {
+                  _selectedTaskIds.clear();
+                  _lastSelectedTaskId = null;
+                }),
                 onScheduleToday: () => _scheduleTasks(
                   ref.read(taskProvider.notifier).scheduleTasksForToday,
                 ),

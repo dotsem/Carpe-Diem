@@ -10,6 +10,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_ca
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hover_actions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskHierarchyItem extends ConsumerWidget {
@@ -30,14 +31,14 @@ class TaskHierarchyItem extends ConsumerWidget {
   const TaskHierarchyItem({
     super.key,
     required this.node,
-    required this.taskIsOverdue,
-    required this.showScheduleDate,
-    required this.autofocus,
+    this.taskIsOverdue = false,
+    this.showScheduleDate = false,
+    this.autofocus = false,
     this.focusNode,
-    required this.isReadOnly,
+    this.isReadOnly = false,
     this.isHighlighted = false,
-    required this.selectionMode,
-    required this.selectedTaskIds,
+    this.selectionMode = false,
+    this.selectedTaskIds = const {},
     this.onSelectedChanged,
     this.onEdit,
     this.onContextMenu,
@@ -46,10 +47,10 @@ class TaskHierarchyItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final projectState = ref.watch(projectProvider);
     Widget child;
     if (node is ParentContainerNode) {
       final parentNode = node as ParentContainerNode;
-      final projectState = ref.watch(projectProvider);
       final taskState = ref.watch(taskProvider);
       final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
         ..addAll({for (var t in taskState.overdueTasks) t.id: t})
@@ -57,6 +58,9 @@ class TaskHierarchyItem extends ConsumerWidget {
       final subtasks = allAvailableTasks.values
           .where((t) => t.parentId == parentNode.task.id)
           .toList();
+      final focusNode =
+          this.focusNode ??
+          FocusNode(debugLabel: 'ParentTask_${parentNode.task.id}');
 
       child = ParentGroupHeader(
         key: ValueKey('parent_${parentNode.task.id}'),
@@ -79,9 +83,18 @@ class TaskHierarchyItem extends ConsumerWidget {
         onTap: isReadOnly
             ? null
             : () {
-                ref
-                    .read(collapsedSubtasksProvider.notifier)
-                    .toggleCollapse(parentNode.task.id);
+                final isModifierPressed =
+                    HardwareKeyboard.instance.isShiftPressed ||
+                    HardwareKeyboard.instance.isControlPressed ||
+                    HardwareKeyboard.instance.isMetaPressed;
+                if ((isModifierPressed || selectedTaskIds.isNotEmpty) &&
+                    onSelectedChanged != null) {
+                  onSelectedChanged!(parentNode.task);
+                } else {
+                  ref
+                      .read(collapsedSubtasksProvider.notifier)
+                      .toggleCollapse(parentNode.task.id);
+                }
               },
         onContextMenu: isReadOnly
             ? null
@@ -98,7 +111,6 @@ class TaskHierarchyItem extends ConsumerWidget {
     } else if (node is TaskNode) {
       final taskNode = node as TaskNode;
       final isNested = taskNode.isBundledUnderParent;
-      final projectState = ref.watch(projectProvider);
       final taskNotifier = ref.read(taskProvider.notifier);
       final taskState = ref.watch(taskProvider);
       final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
@@ -136,7 +148,20 @@ class TaskHierarchyItem extends ConsumerWidget {
             ? selectedTaskIds.contains(taskNode.task.id)
             : null,
         selectionMode: selectionMode,
-        onTap: isReadOnly ? () {} : () => onEdit?.call(taskNode.task),
+        onTap: isReadOnly
+            ? () {}
+            : () {
+                final isModifierPressed =
+                    HardwareKeyboard.instance.isShiftPressed ||
+                    HardwareKeyboard.instance.isControlPressed ||
+                    HardwareKeyboard.instance.isMetaPressed;
+                if ((isModifierPressed || selectedTaskIds.isNotEmpty) &&
+                    onSelectedChanged != null) {
+                  onSelectedChanged!(taskNode.task);
+                } else {
+                  onEdit?.call(taskNode.task);
+                }
+              },
         showScheduleDate: showScheduleDate,
         onContextMenu: isReadOnly
             ? null

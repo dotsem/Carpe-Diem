@@ -9,6 +9,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_ca
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hover_actions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BacklogHierarchyItem extends ConsumerWidget {
@@ -40,13 +41,13 @@ class BacklogHierarchyItem extends ConsumerWidget {
 
     if (node is ParentContainerNode) {
       final parentNode = node as ParentContainerNode;
-      final focusNode = itemFocusNodes.putIfAbsent(
-        parentNode.task.id,
-        () => FocusNode(debugLabel: 'ParentTask_${parentNode.task.id}'),
-      );
       final subtasks = allTasks
           .where((t) => t.parentId == parentNode.task.id)
           .toList();
+      final focusNode = itemFocusNodes.putIfAbsent(
+        parentNode.task.id,
+        () => FocusNode(debugLabel: 'Parent_${parentNode.task.id}'),
+      );
       final isChecked = TaskSelectionUtils.getParentSelectionState(
         parentId: parentNode.task.id,
         subtasks: subtasks,
@@ -65,9 +66,17 @@ class BacklogHierarchyItem extends ConsumerWidget {
         isHighlighted: parentNode.task.id == highlightedTaskId,
         onToggle: (value) => onSelectedChanged(parentNode.task),
         onTap: () {
-          ref
-              .read(collapsedSubtasksProvider.notifier)
-              .toggleCollapse(parentNode.task.id);
+          final isModifierPressed =
+              HardwareKeyboard.instance.isShiftPressed ||
+              HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed;
+          if (isModifierPressed || selectedTaskIds.isNotEmpty) {
+            onSelectedChanged(parentNode.task);
+          } else {
+            ref
+                .read(collapsedSubtasksProvider.notifier)
+                .toggleCollapse(parentNode.task.id);
+          }
         },
         onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
           context,
@@ -107,7 +116,17 @@ class BacklogHierarchyItem extends ConsumerWidget {
         focusNode: focusNode,
         isHighlighted: taskNode.task.id == highlightedTaskId,
         onToggle: (value) => onSelectedChanged(taskNode.task),
-        onTap: () => onEdit(taskNode.task),
+        onTap: () {
+          final isModifierPressed =
+              HardwareKeyboard.instance.isShiftPressed ||
+              HardwareKeyboard.instance.isControlPressed ||
+              HardwareKeyboard.instance.isMetaPressed;
+          if (isModifierPressed || selectedTaskIds.isNotEmpty) {
+            onSelectedChanged(taskNode.task);
+          } else {
+            onEdit(taskNode.task);
+          }
+        },
         onContextMenu: (localPosition, renderBox) => showTaskCardContextMenu(
           context,
           ref,
