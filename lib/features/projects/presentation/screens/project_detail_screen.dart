@@ -15,7 +15,6 @@ import 'package:carpe_diem/features/common/presentation/providers/window_title_p
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_header.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/project_detail_shortcuts.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_dialog_handlers.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_task_trailing_button.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
@@ -290,11 +289,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                       filteredTasks,
                                       pos,
                                       box,
-                                    ),
-                                trailingBuilder: (ctx, task) =>
-                                    ProjectTaskTrailingButton(
-                                      task: task,
-                                      tasks: filteredTasks,
                                     ),
                                 emptyPlaceholder: Center(
                                   child: Text(

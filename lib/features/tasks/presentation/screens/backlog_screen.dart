@@ -1,10 +1,8 @@
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_label_tab_bar.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
@@ -273,8 +271,6 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                         setState(() => _highlightedTaskId = null);
                       }
                     },
-                    trailingBuilder: (ctx, task) =>
-                        _taskTrailing(ctx, task, provider.unscheduledTasks),
                   ),
                 ),
               ],
@@ -304,15 +300,12 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                       context,
                       ref,
                       _selectedTaskIds,
-                      () {
-                        setState(() => _selectedTaskIds.clear());
-                      },
+                      () => setState(() => _selectedTaskIds.clear()),
                     );
                   }
                 },
                 onBulkDelete: () {
                   if (_selectedTaskIds.length == 1) {
-                    final provider = ref.read(taskProvider);
                     final task = provider.unscheduledTasks.firstWhere(
                       (t) => t.id == _selectedTaskIds.first,
                     );
@@ -368,40 +361,6 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
           BacklogDialogHandlers.showImportFromMD(context);
         }
       },
-    );
-  }
-
-  Widget _taskTrailing(BuildContext context, Task task, List<Task> tasks) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Builder(
-          builder: (buttonContext) {
-            return IconButton(
-              icon: const Icon(Icons.more_vert, size: 18),
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              onPressed: () {
-                final RenderBox renderBox =
-                    buttonContext.findRenderObject() as RenderBox;
-                final localPosition = Offset.zero;
-                showTaskCardContextMenu(
-                  context,
-                  ref,
-                  task,
-                  tasks,
-                  localPosition,
-                  renderBox,
-                  onAction: () {
-                    if (_selectedTaskIds.contains(task.id)) {
-                      setState(() => _selectedTaskIds.remove(task.id));
-                    }
-                  },
-                );
-              },
-            );
-          },
-        ),
-      ],
     );
   }
 }

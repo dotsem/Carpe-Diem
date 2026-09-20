@@ -93,7 +93,6 @@ class HomePlannerPane extends ConsumerWidget {
       overdueTasks: isToday ? overdue : [],
       onContextMenu: (ctx, task, pos, box) =>
           showTaskCardContextMenu(ctx, ref, task, allTasks, pos, box),
-      trailingBuilder: (ctx, task) => _taskTrailing(ctx, ref, task, allTasks),
       onOrderedIdsChanged: onOrderedIdsChanged,
       itemFocusNodes: itemFocusNodes,
       onEdit: onEdit,
@@ -126,40 +125,6 @@ class HomePlannerPane extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _taskTrailing(
-    BuildContext context,
-    WidgetRef ref,
-    Task task,
-    List<Task> allTasks,
-  ) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Builder(
-          builder: (buttonContext) {
-            return IconButton(
-              icon: const Icon(Icons.more_vert, size: 18),
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              onPressed: () {
-                final RenderBox renderBox =
-                    buttonContext.findRenderObject() as RenderBox;
-                const localPosition = Offset.zero;
-                showTaskCardContextMenu(
-                  context,
-                  ref,
-                  task,
-                  allTasks,
-                  localPosition,
-                  renderBox,
-                );
-              },
-            );
-          },
-        ),
-      ],
     );
   }
 

@@ -17,6 +17,7 @@ class TaskCard extends ConsumerStatefulWidget {
   final ValueChanged<bool?> onToggle;
   final VoidCallback onTap;
   final Widget? trailing;
+  final Widget Function(BuildContext context, bool isHovered)? trailingBuilder;
   final bool isOverdue;
   final bool selectionMode;
   final bool? isChecked;
@@ -43,6 +44,7 @@ class TaskCard extends ConsumerStatefulWidget {
     required this.onToggle,
     required this.onTap,
     this.trailing,
+    this.trailingBuilder,
     this.isOverdue = false,
     this.selectionMode = false,
     this.showStrikeThroughOnCompleted = true,
@@ -180,6 +182,7 @@ class _TaskCardState extends ConsumerState<TaskCard>
               onToggleAction: () => _handleToggle(null),
             ),
         trailing: widget.trailing,
+        trailingBuilder: widget.trailingBuilder,
         isOverdue: isOverdue,
         selectionMode: widget.selectionMode,
         showDone: showDone,

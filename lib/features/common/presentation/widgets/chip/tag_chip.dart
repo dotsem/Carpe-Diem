@@ -17,27 +17,30 @@ class TagChip extends ConsumerWidget {
     final tagIcons = ref.watch(tagIconProvider);
     final icon = tagIcons[tag.name.trim().toLowerCase()] ?? Icons.tag;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: verticalPadding),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: displayColor),
-          const SizedBox(width: 4),
-          Text(
-            tag.name,
-            style: TextStyle(
-              color: displayColor,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
+    return Tooltip(
+      message: 'Tag: #${tag.name}',
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: verticalPadding),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: displayColor),
+            const SizedBox(width: 4),
+            Text(
+              tag.name,
+              style: TextStyle(
+                color: displayColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -7,11 +7,12 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 
-class BaseTaskCard extends StatelessWidget {
+class BaseTaskCard extends StatefulWidget {
   final Task task;
   final Project? project;
   final Widget? leading;
   final Widget? trailing;
+  final Widget Function(BuildContext context, bool isHovered)? trailingBuilder;
 
   final bool isOverdue;
   final bool selectionMode;
@@ -43,6 +44,7 @@ class BaseTaskCard extends StatelessWidget {
     this.project,
     this.leading,
     this.trailing,
+    this.trailingBuilder,
     this.isOverdue = false,
     this.selectionMode = false,
     this.showDone = false,
@@ -64,141 +66,171 @@ class BaseTaskCard extends StatelessWidget {
   });
 
   @override
+  State<BaseTaskCard> createState() => _BaseTaskCardState();
+}
+
+class _BaseTaskCardState extends State<BaseTaskCard> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    final hasHighlight = isFocused || isHighlighted;
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: compactMode ? 2 : 4),
-      child: Ink(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: hasHighlight
-              ? Border.all(color: AppColors.accent, width: 2)
-              : null,
-          gradient:
-              (project?.color != null &&
-                  !(hideProjectGradient ?? hideProjectInfo))
-              ? LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.surface,
-                    Theme.of(context).colorScheme.surface,
-                    project!.color
-                        .themeDependentColor(context)
-                        .withValues(alpha: 0),
-                    project!.color
-                        .themeDependentColor(context)
-                        .withValues(alpha: 0.4),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  stops: [
-                    0.0,
-                    (1.0 - taskGradientWidth).clamp(0.0, 1.0),
-                    (1.0 - taskGradientWidth).clamp(0.0, 1.0),
-                    1.0,
-                  ],
-                )
-              : null,
-        ),
-        child: InkWell(
-          focusNode: focusNode,
-          autofocus: autofocus,
-          onTap: onTap,
-          mouseCursor: SystemMouseCursors.click,
-          onFocusChange: onFocusChange,
-          onSecondaryTapDown: onContextMenu != null
-              ? (details) => onContextMenu!(
-                  details.localPosition,
-                  context.findRenderObject() as RenderBox,
-                )
-              : null,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: compactMode ? 4 : 8,
-            ),
-            child: Stack(
-              children: [
-                if (task.isUrgent)
-                  Positioned(
-                    // TODO: make widget
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 6,
-                      decoration: BoxDecoration(
-                        color: AppColors.error,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                Padding(
-                  padding: EdgeInsets.only(left: task.isUrgent ? 14 : 0),
-                  child: Row(
-                    children: [
-                      ?leading,
-                      if (leading != null) SizedBox(width: compactMode ? 6 : 8),
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (task.parentId != null && !hideProjectInfo)
-                              ParentBreadcrumbHeader(parentId: task.parentId!),
-                            Text(
-                              showHashtagInTitle
-                                  ? task.title
-                                  : TagParser.hideHashtagSymbols(task.title),
-                              style: TextStyle(
-                                fontSize: compactMode ? 14 : 15,
-                                fontWeight: FontWeight.w500,
-                                decoration:
-                                    (!selectionMode &&
-                                        showDone &&
-                                        showStrikeThroughOnCompleted)
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: (showDone && !selectionMode)
-                                    ? Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant
-                                    : Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            if (showDescriptionOnCard &&
-                                task.description != null &&
-                                task.description!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 1),
-                                child: Text(
-                                  task.description!.contains('\n')
-                                      ? '${task.description!.split('\n').first.trim()}...'
-                                      : task.description!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: compactMode ? 12 : 13,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                            TaskChipsBar(
-                              task: task,
-                              project: hideProjectInfo ? null : project,
-                              isOverdue: isOverdue && !showDone,
-                              showScheduleDate: showScheduleDate,
-                            ),
-                          ],
+    final hasHighlight = widget.isFocused || widget.isHighlighted;
+    final isHoveredOrFocused =
+        _isHovered || widget.isFocused || widget.isHighlighted;
+
+    Widget? trailingWidget = widget.trailing;
+    if (widget.trailingBuilder != null) {
+      trailingWidget = widget.trailingBuilder!(context, isHoveredOrFocused);
+    }
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Card(
+        margin: EdgeInsets.symmetric(vertical: widget.compactMode ? 2 : 4),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: hasHighlight
+                ? Border.all(color: AppColors.accent, width: 2)
+                : null,
+            gradient:
+                (widget.project?.color != null &&
+                    !(widget.hideProjectGradient ?? widget.hideProjectInfo))
+                ? LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.surface,
+                      Theme.of(context).colorScheme.surface,
+                      widget.project!.color
+                          .themeDependentColor(context)
+                          .withValues(alpha: 0),
+                      widget.project!.color
+                          .themeDependentColor(context)
+                          .withValues(alpha: 0.4),
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    stops: [
+                      0.0,
+                      (1.0 - widget.taskGradientWidth).clamp(0.0, 1.0),
+                      (1.0 - widget.taskGradientWidth).clamp(0.0, 1.0),
+                      1.0,
+                    ],
+                  )
+                : null,
+          ),
+          child: InkWell(
+            focusNode: widget.focusNode,
+            autofocus: widget.autofocus,
+            onTap: widget.onTap,
+            mouseCursor: SystemMouseCursors.click,
+            onHover: (hovered) => setState(() => _isHovered = hovered),
+            onFocusChange: widget.onFocusChange,
+            onSecondaryTapDown: widget.onContextMenu != null
+                ? (details) => widget.onContextMenu!(
+                    details.localPosition,
+                    context.findRenderObject() as RenderBox,
+                  )
+                : null,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: widget.compactMode ? 4 : 8,
+              ),
+              child: Stack(
+                children: [
+                  if (widget.task.isUrgent)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 6,
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      ?trailing,
-                    ],
+                    ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: widget.task.isUrgent ? 14 : 0,
+                    ),
+                    child: Row(
+                      children: [
+                        ?widget.leading,
+                        if (widget.leading != null)
+                          SizedBox(width: widget.compactMode ? 6 : 8),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (widget.task.parentId != null &&
+                                  !widget.hideProjectInfo)
+                                ParentBreadcrumbHeader(
+                                  parentId: widget.task.parentId!,
+                                ),
+                              Text(
+                                widget.showHashtagInTitle
+                                    ? widget.task.title
+                                    : TagParser.hideHashtagSymbols(
+                                        widget.task.title,
+                                      ),
+                                style: TextStyle(
+                                  fontSize: widget.compactMode ? 14 : 15,
+                                  fontWeight: FontWeight.w500,
+                                  decoration:
+                                      (!widget.selectionMode &&
+                                          widget.showDone &&
+                                          widget.showStrikeThroughOnCompleted)
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                  color:
+                                      (widget.showDone && !widget.selectionMode)
+                                      ? Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant
+                                      : Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              if (widget.showDescriptionOnCard &&
+                                  widget.task.description != null &&
+                                  widget.task.description!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 1),
+                                  child: Text(
+                                    widget.task.description!.contains('\n')
+                                        ? '${widget.task.description!.split('\n').first.trim()}...'
+                                        : widget.task.description!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: widget.compactMode ? 12 : 13,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              TaskChipsBar(
+                                task: widget.task,
+                                project: widget.hideProjectInfo
+                                    ? null
+                                    : widget.project,
+                                isOverdue: widget.isOverdue && !widget.showDone,
+                                showScheduleDate: widget.showScheduleDate,
+                              ),
+                            ],
+                          ),
+                        ),
+                        ?trailingWidget,
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
