@@ -2,14 +2,20 @@
 
 All notable changes to Carpe Diem will be documented in this file.
 
+## v0.5.0 - Desktop & UI Overhaul
+
+- **Desktop Overhaul:** Optimize desktop UI layout and interaction models.
+- **Split Backlog By Labels:** Split backlog into separate lists based on labels.
+- **Dialog Overhaul:** Streamline modals and integrate more controls into sidebars.
+
 ## v0.4.0 - Core Features & Provider Architecture
 
-- [x] **Undo & Redo:** Undo and redo system for task actions.
-- [x] **Sub-tasks:** Hierarchical sub-task support and cascade completion.
-- [x] **Tags:** Support adding tags to tasks with inline autocomplete.
-- [x] **Sorting Overhaul:** LexoRank continuous drag-and-drop sorting.
-- [x] **Grouped Settings:** Category-based settings navigation in a dedicated sidebar.
-- [x] **Architecture Refactor:** Modularized task provider into domain services.
+- **Undo & Redo:** Undo and redo system for task actions.
+- **Sub-tasks:** Hierarchical sub-task support and cascade completion.
+- **Tags:** Support adding tags to tasks with inline autocomplete.
+- **Sorting Overhaul:** LexoRank continuous drag-and-drop sorting.
+- **Grouped Settings:** Category-based settings navigation in a dedicated sidebar.
+- **Architecture Refactor:** Modularized task provider into domain services.
 
 ## v0.3.0 - Riverpod Migration & Refactor
 

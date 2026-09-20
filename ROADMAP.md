@@ -4,15 +4,7 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 ---
 
-## Current Scope: v0.5.0 (Desktop & UI Overhaul)
-
-- [x] **Desktop Overhaul:** Optimize desktop UI layout and interaction models.
-- [x] **Split Backlog By Labels:** Split backlog into separate lists based on labels.
-- [x] **Dialog Overhaul:** Streamline modals and integrate more controls into sidebars.
-
----
-
-## Planned: v0.6.0 (Advanced Features & Markdown Tools)
+## Current Scope: v0.6.0 (Advanced Features & Markdown Tools)
 
 - [ ] **Markdown Import Preview:** Live preview before importing markdown files.
 - [ ] **File Watcher:** Watch markdown files (like Roadmap.md) for live sync.
@@ -21,7 +13,7 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 ---
 
-## Future: v0.7.0 (Cross Platform)
+## Planned: v0.7.0 (Cross Platform)
 
 - [ ] **Mobile Support:** Optimized layouts for Android and iOS form factors.
 
