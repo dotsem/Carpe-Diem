@@ -6,26 +6,27 @@
   <img alt="Plan The Day" src="assets/github/subtitle-light-text.png" width="300">
 </picture>
 
-A day by day planner built for productivity.
+A structured local-first day-by-day planner built with Flutter to manage multiple projects with high variety and zero friction.
 
 ## Design Philosophy
 
 Carpe Diem is built upon 3 important design philosophies:
 
-1. 📅 **Plan day by day**
-2. 🗂️ **Work with multiple projects with big variety easily**
-3. 🚀 **Productivity first**
-
-You are not limited to the day by day planning. You can plan max one week ahead.
+1. 📅 **Plan Day-by-Day**: Focus on today and tomorrow, with a maximum 7-day planning window to prevent task hoarding.
+2. 🗂️ **Multi-Project Agility**: Organize tasks across isolated projects with labels, priorities, and deadlines.
+3. 🚀 **Productivity First**: No Electron bloat, native fast performance, highly optimized UI for keyboard navigation and quick input.
 
 ---
 
-## Main workflow
+## Main Workflow
 
 ```mermaid
 flowchart TD
-  A(Gather tasks/ideas in the backlog) --> B(Select tasks you want to work on today)
-  B --> C(Complete or reschedule todays tasks)
+  A[Backlog] --> B[Plan Today / Tomorrow]
+  B --> C[Execute via Kanban or List View]
+  C --> D{End of Day}
+  D -->|Done| E[History & Statistics]
+  D -->|Unfinished| F[Auto-carryover / Reschedule]
 
 ```
 
@@ -33,65 +34,59 @@ flowchart TD
 
 ## Features
 
-- 📅 Plan easily for today or tomorrow
-- 📋 Visualize your tasks for today in a list or kanban view
-- 🗂️ Manage multiple projects easily
-- 🏷️ Add priorities and labels to tasks and projects
-- ⏰ Add deadlines to tasks and projects
-- 📥 Import tasks from markdown
-- ✏️ Bulk edit tasks
-- 🚫 Add blockers to tasks
+- 📅 **7-Day Planning Window**: Plan for today, tomorrow, or up to a week ahead with automatic carryover for overdue tasks.
+- 📋 **Flexible Daily Views**: Switch between a 3-column Kanban board (To Do, In Progress, Done) and a compact list view.
+- 🗂️ **Projects & Backlog**: Keep backlog tasks organized by project and partitioned by labels until you're ready to schedule them.
+- 🌲 **Subtasks**: Break complex tasks down into smaller actionable steps.
+- 🏷️ **Labels & #Tags**: Categorize by project labels and flexible inline `#tags`.
+- 🚫 **Task Blockers**: Mark dependencies to see which prerequisites must be finished first.
+- 📊 **History & Insights**: Review completed work and track completion trends across custom time ranges.
+- 📥 **Markdown Import**: Import task lists directly from `.md` files into projects.
+- 🔒 **Local-First**: All data is stored locally on your device in SQLite—fast, offline, and private.
 
 ## Platforms
 
-The app is currently only available for desktop but will be available on mobile in the future!
+- **Desktop (Primary)**: Linux, Windows, macOS.
 
->[!IMPORTANT]
->The app is currently tested on Linux and Windows, but because of Flutters nature it should also work on MacOS
+>[!NOTE]
+>The app is tested on Linux and Windows, but because of Flutter's nature it should also work on macOS.
 
-## Possibilities
+- **Mobile & Web (Planned)**: Android and iOS layouts planned (see [ROADMAP.md](./ROADMAP.md)).
 
-### 🗂️ Projects
+## Getting Started
 
-Create projects to organize tasks. Projects can have labels to identify it, priorities and deadlines to organize it. You can add as many projects as you need.
+### Prerequisites
 
-### 📝 Tasks
+- Latest stable Flutter SDK
+- Platform C++ build toolchains for your target platform
 
-Tasks can be added to projects (or not). Tasks will automatically land in the backlog where they are waiting to be picked up. Tasks inherit the labels from the project they are part of and can have additional labels to identify it. Tasks can have priorities to organize it and deadlines to keep track of it. You can add as many tasks as you need.
+### Run Locally
 
-### 📅 Plan Tasks
+```bash
+flutter pub get
+flutter run
+```
 
-Tasks can be planned for today, tomorrow or up to 7 days ahead. When a task is planned without a deadline, it is expected to be completed that day; if not, it will be carried over to the next day with an overdue label. 
+### Testing & Code Quality
 
-Tasks with a deadline will be carried over to the next day with an overdue label if not completed by the deadline. If not picked up the day of the deadline, they will be automatically scheduled.
+```bash
+flutter test
+flutter analyze
+```
 
-### 📋 Kanban & List View
+## Goals
 
-Today's tasks can be visualized in a kanban view or a list view. The kanban view is a visual representation of the tasks in 3 columns (todo, in progress, done), while the list view is a more compact representation of the tasks. Both views are updated in real-time.
+The main goal of this project was to have a planning app that follows a strict "one day at a time" mindset. 
 
-### 🚫 Blockers
+I also hate Electron apps gobbling up my RAM, so choosing Flutter was a no-brainer for me. The app should 
+serve its purpose without unnecessary bloat and still be cross-platform.
 
-A task can be blocked by another task. When a task is blocked, it is expected to be completed before the task that is blocking it. While it is not enforced, it does give a good indication of what needs to be done first.
-
-### 🛠️ Tools at hand
-
-Managing tasks has been made easy. Use bulk edit to edit multiple tasks in the backlog at once. Easily plan tasks for today, tomorrow or for next workday (on fridays).
-Import tasks from markdown files and automatically assign them to a project.
-
-
-## Releases
-
-First release is out (v0.1.0)
-
-Follow the [ROADMAP.md](./ROADMAP.md) to follow the development of the app.
-
-## More features?
-
-I'm always open to suggestions for new features. If you have any ideas, please feel free to share them with me.
-I'm currently adding features that I think are useful.
+Another goal was not to include too many 'unnecessary' features. 
+No need for every possible feature under the sun. Just the essentials, done right.
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request or request new features.
 The more people use this app, the more it can be improved for the good of everyone.
 Read more about it in the [CONTRIBUTING.md](./CONTRIBUTING.md) file.
+Track version releases in [CHANGELOG.md](./CHANGELOG.md).
