@@ -34,6 +34,7 @@ void main() {
       int urgentSectionEndIndex = 0,
       int itemCount = 4,
       bool Function(Task, int)? isPositionUnchanged,
+      bool Function(Task, int)? isPositionValid,
       void Function(Task, int)? onDrop,
     }) {
       return ProviderScope(
@@ -44,6 +45,7 @@ void main() {
               urgentSectionEndIndex: urgentSectionEndIndex,
               itemCount: itemCount,
               isPositionUnchanged: isPositionUnchanged,
+              isPositionValid: isPositionValid,
               child: Column(
                 children: List.generate(
                   itemCount,
@@ -256,5 +258,35 @@ void main() {
         expect(find.byType(TaskCardPlaceholder), findsOneWidget);
       },
     );
+
+    testWidgets('suppresses placeholder when isPositionValid returns false', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestList(
+          itemCount: 3,
+          isPositionValid: (task, targetIndex) => targetIndex != 1,
+        ),
+      );
+
+      final BuildContext context = tester.element(
+        find.byKey(const ValueKey('item-0')),
+      );
+      final scope = TaskDropZoneScope.of(context);
+
+      scope!.activeDropNotifier.value = TaskDropState(
+        index: 1,
+        task: normalTask,
+      );
+      await tester.pump();
+      expect(find.byType(TaskCardPlaceholder), findsNothing);
+
+      scope.activeDropNotifier.value = TaskDropState(
+        index: 0,
+        task: normalTask,
+      );
+      await tester.pump();
+      expect(find.byType(TaskCardPlaceholder), findsOneWidget);
+    });
   });
 }

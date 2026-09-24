@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/utils/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
@@ -204,6 +205,18 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                             TaskReorderUtils.isPositionUnchangedInNodes(
                               draggedTask: task,
                               targetIndex: targetIndex,
+                              nodes: hierarchical,
+                            ),
+                        isPositionValid: (task, targetIndex) =>
+                            TaskHierarchyReorderUtils.isPositionValidInNodes(
+                              draggedTask: task,
+                              targetIndex: targetIndex,
+                              nodes: hierarchical,
+                            ),
+                        isLastChildInGroup: (task, index) =>
+                            TaskHierarchyReorderUtils.isLastChildInGroup(
+                              task: task,
+                              index: index,
                               nodes: hierarchical,
                             ),
                         child: ListView.builder(
