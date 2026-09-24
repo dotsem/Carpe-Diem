@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/utils/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
@@ -128,6 +129,18 @@ class BacklogList extends ConsumerWidget {
           TaskReorderUtils.isPositionUnchangedInNodes(
             draggedTask: task,
             targetIndex: targetIndex,
+            nodes: activeHierarchical,
+          ),
+      isPositionValid: (task, targetIndex) =>
+          TaskHierarchyReorderUtils.isPositionValidInNodes(
+            draggedTask: task,
+            targetIndex: targetIndex,
+            nodes: activeHierarchical,
+          ),
+      isLastChildInGroup: (task, index) =>
+          TaskHierarchyReorderUtils.isLastChildInGroup(
+            task: task,
+            index: index,
             nodes: activeHierarchical,
           ),
       child: LayoutBuilder(
