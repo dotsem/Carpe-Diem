@@ -101,6 +101,30 @@ abstract class DeleteKeys {
   static const keyboardKey = LogicalKeyboardKey.keyD;
 }
 
+abstract class BlockersKeys {
+  static const char = "b";
+  static const upper = "B";
+  static const keyboardKey = LogicalKeyboardKey.keyB;
+}
+
+abstract class LabelsKeys {
+  static const char = "l";
+  static const upper = "L";
+  static const keyboardKey = LogicalKeyboardKey.keyL;
+}
+
+abstract class TagsKeys {
+  static const char = "t";
+  static const upper = "T";
+  static const keyboardKey = LogicalKeyboardKey.keyT;
+}
+
+abstract class SubtaskKeys {
+  static const char = "n";
+  static const upper = "N";
+  static const keyboardKey = LogicalKeyboardKey.keyN;
+}
+
 // Common Non-Character Keys & Registry
 class AppKeyBindings {
   static const escape = LogicalKeyboardKey.escape;

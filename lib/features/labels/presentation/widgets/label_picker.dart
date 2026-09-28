@@ -15,6 +15,7 @@ class LabelPicker extends ConsumerWidget {
   final bool isManageMode;
   final bool enableContextMenu;
   final bool isDropdown;
+  final MenuController? menuController;
   final Widget Function(
     BuildContext context,
     Label label,
@@ -33,6 +34,7 @@ class LabelPicker extends ConsumerWidget {
     this.isManageMode = false,
     this.enableContextMenu = true,
     this.isDropdown = false,
+    this.menuController,
     this.chipBuilder,
   });
 
@@ -69,6 +71,7 @@ class LabelPicker extends ConsumerWidget {
           (label) => _buildSingleChip(context, ref, label),
         ),
         MultiSelectSearchableDropdown<Label>(
+          menuController: menuController,
           items: allLabels,
           selectedIds: selectedLabelIds,
           disabledIds: inheritedLabelIds,

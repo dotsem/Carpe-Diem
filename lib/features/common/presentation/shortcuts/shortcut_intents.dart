@@ -269,6 +269,26 @@ final taskDialogShortcutEntries = [
     category: 'Task Editor',
   ),
   const ShortcutEntry(
+    key: 'Ctrl + B',
+    description: 'Open blockers menu',
+    category: 'Task Editor',
+  ),
+  const ShortcutEntry(
+    key: 'Ctrl + L',
+    description: 'Open labels menu',
+    category: 'Task Editor',
+  ),
+  const ShortcutEntry(
+    key: 'Ctrl + T',
+    description: 'Open tags menu',
+    category: 'Task Editor',
+  ),
+  const ShortcutEntry(
+    key: 'Ctrl + N',
+    description: 'Add subtask',
+    category: 'Task Editor',
+  ),
+  const ShortcutEntry(
     key: 'Ctrl + Enter',
     description: 'Save changes',
     category: 'Task Editor',

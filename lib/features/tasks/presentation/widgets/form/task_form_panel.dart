@@ -22,6 +22,7 @@ import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/parent_task_link.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/subtasks_list_section.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
 
 class TaskFormPanel extends ConsumerStatefulWidget {
@@ -56,7 +57,9 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       _selectedTagIds = [],
       _previousParsedIds = [];
   final MenuController _projectMenuController = MenuController(),
-      _blockerMenuController = MenuController();
+      _blockerMenuController = MenuController(),
+      _labelMenuController = MenuController(),
+      _tagMenuController = MenuController();
 
   bool get isEditing => widget.initialTask != null;
 
@@ -201,6 +204,10 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       child: TaskFormShortcuts(
         onPlacementChanged: (p) => setState(() => _placement = p),
         projectMenuController: _projectMenuController,
+        blockerMenuController: _blockerMenuController,
+        labelMenuController: _labelMenuController,
+        tagMenuController: _tagMenuController,
+        onAddSubtask: widget.initialTask != null ? _onAddSubtask : null,
         onSubmit: _submit,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,6 +273,8 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
                   setState(() => _selectedLabelIds = ids),
               selectedTagIds: _selectedTagIds,
               onTagsSelected: (ids) => setState(() => _selectedTagIds = ids),
+              labelMenuController: _labelMenuController,
+              tagMenuController: _tagMenuController,
             ),
             if (isEditing && _parentId == null) ...[
               const SizedBox(height: 16),
@@ -279,6 +288,18 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
           ],
         ),
       ),
+    );
+  }
+
+  void _onAddSubtask() {
+    if (widget.initialTask == null) return;
+    context.openRightSidebar(
+      AddTaskPanel(
+        initialDate: _scheduledDate ?? widget.initialTask!.scheduledDate,
+        initialProjectId: _selectedProjectId ?? widget.initialTask!.projectId,
+        initialParentId: widget.initialTask!.id,
+      ),
+      ref,
     );
   }
 

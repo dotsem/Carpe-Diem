@@ -9,6 +9,8 @@ class CategorizationSection extends StatelessWidget {
   final ValueChanged<List<String>> onLabelsSelected;
   final List<String> selectedTagIds;
   final ValueChanged<List<String>> onTagsSelected;
+  final MenuController? labelMenuController;
+  final MenuController? tagMenuController;
 
   const CategorizationSection({
     super.key,
@@ -17,6 +19,8 @@ class CategorizationSection extends StatelessWidget {
     required this.onLabelsSelected,
     required this.selectedTagIds,
     required this.onTagsSelected,
+    this.labelMenuController,
+    this.tagMenuController,
   });
 
   @override
@@ -32,6 +36,7 @@ class CategorizationSection extends StatelessWidget {
             inheritedLabelIds: inheritedLabelIds,
             onSelected: onLabelsSelected,
             isDropdown: true,
+            menuController: labelMenuController,
           ),
         ),
         SectionItem(
@@ -41,6 +46,7 @@ class CategorizationSection extends StatelessWidget {
             selectedTagIds: selectedTagIds,
             onSelected: onTagsSelected,
             isDropdown: true,
+            menuController: tagMenuController,
           ),
         ),
       ],
