@@ -18,6 +18,7 @@ class MultiSelectSearchableDropdown<T> extends StatefulWidget {
   final bool allowAdd;
   final String addNewLabel;
   final VoidCallback? onAddNew;
+  final MenuController? menuController;
 
   const MultiSelectSearchableDropdown({
     super.key,
@@ -33,6 +34,7 @@ class MultiSelectSearchableDropdown<T> extends StatefulWidget {
     this.allowAdd = true,
     this.addNewLabel = 'New item',
     this.onAddNew,
+    this.menuController,
   });
 
   @override
@@ -43,7 +45,9 @@ class MultiSelectSearchableDropdown<T> extends StatefulWidget {
 class _MultiSelectSearchableDropdownState<T>
     extends State<MultiSelectSearchableDropdown<T>> {
   static const int _maxItemsWithoutSearch = 1; // TODO: maybe add this as param?
-  final MenuController _menuController = MenuController();
+  final MenuController _localMenuController = MenuController();
+  MenuController get _menuController =>
+      widget.menuController ?? _localMenuController;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();

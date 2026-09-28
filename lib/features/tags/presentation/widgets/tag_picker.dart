@@ -15,6 +15,7 @@ class TagPicker extends ConsumerWidget {
   final bool isManageMode;
   final bool enableContextMenu;
   final bool isDropdown;
+  final MenuController? menuController;
   final Widget Function(
     BuildContext context,
     Tag tag,
@@ -31,6 +32,7 @@ class TagPicker extends ConsumerWidget {
     this.isManageMode = false,
     this.enableContextMenu = true,
     this.isDropdown = false,
+    this.menuController,
     this.chipBuilder,
   });
 
@@ -67,6 +69,7 @@ class TagPicker extends ConsumerWidget {
           (tag) => _buildSingleChip(context, ref, tag, tagIcons),
         ),
         MultiSelectSearchableDropdown<Tag>(
+          menuController: menuController,
           items: allTags,
           selectedIds: selectedTagIds,
           idGetter: (t) => t.id,

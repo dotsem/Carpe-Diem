@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/section_card.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
@@ -37,6 +38,7 @@ class ProjectsAndBlockersSection extends StatelessWidget {
         SectionItem(
           icon: Icons.folder,
           title: "Projects",
+          shortcut: "Ctrl + ${ProjectsKeys.upper}",
           child: ProjectPicker(
             borderless: true,
             onChanged: onChangedProject,
@@ -48,6 +50,7 @@ class ProjectsAndBlockersSection extends StatelessWidget {
         SectionItem(
           icon: Icons.block,
           title: "Blockers",
+          shortcut: "Ctrl + ${BlockersKeys.upper}",
           child: BlockerPicker(
             borderless: true,
             availableTasks: availableTasks,

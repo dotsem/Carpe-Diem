@@ -1,5 +1,5 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/hardware_shortcuts.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +8,10 @@ class TaskFormShortcuts extends StatelessWidget {
   final Widget child;
   final ValueChanged<TaskPlacement> onPlacementChanged;
   final MenuController projectMenuController;
+  final MenuController? blockerMenuController;
+  final MenuController? labelMenuController;
+  final MenuController? tagMenuController;
+  final VoidCallback? onAddSubtask;
   final VoidCallback onSubmit;
 
   const TaskFormShortcuts({
@@ -15,14 +19,19 @@ class TaskFormShortcuts extends StatelessWidget {
     required this.child,
     required this.onPlacementChanged,
     required this.projectMenuController,
+    this.blockerMenuController,
+    this.labelMenuController,
+    this.tagMenuController,
+    this.onAddSubtask,
     required this.onSubmit,
   });
 
-  void _toggleProjectMenu() {
-    if (projectMenuController.isOpen) {
-      projectMenuController.close();
+  void _toggleMenu(MenuController? controller) {
+    if (controller == null) return;
+    if (controller.isOpen) {
+      controller.close();
     } else {
-      projectMenuController.open();
+      controller.open();
     }
   }
 
@@ -46,8 +55,23 @@ class TaskFormShortcuts extends StatelessWidget {
         onPlacementChanged(TaskPlacement.urgent);
         return true;
       case ProjectsKeys.keyboardKey:
-        _toggleProjectMenu();
+        _toggleMenu(projectMenuController);
         return true;
+      case BlockersKeys.keyboardKey:
+        _toggleMenu(blockerMenuController);
+        return true;
+      case LabelsKeys.keyboardKey:
+        _toggleMenu(labelMenuController);
+        return true;
+      case TagsKeys.keyboardKey:
+        _toggleMenu(tagMenuController);
+        return true;
+      case SubtaskKeys.keyboardKey:
+        if (onAddSubtask != null) {
+          onAddSubtask!();
+          return true;
+        }
+        return false;
       default:
         return false;
     }
@@ -55,6 +79,9 @@ class TaskFormShortcuts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HardwareShortcuts(onKeyEvent: _handleKeyEvent, child: child);
+    return AppShortcutRegistrar(
+      shortcuts: taskDialogShortcutEntries,
+      child: HardwareShortcuts(onKeyEvent: _handleKeyEvent, child: child),
+    );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/shortcut_hint_badge.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
@@ -94,23 +96,32 @@ class SubtasksListSection extends ConsumerWidget {
                 ),
               ),
             ),
-            TextButton.icon(
-              onPressed: () {
-                context.openRightSidebar(
-                  AddTaskPanel(
-                    initialDate: scheduledDate ?? parentTask.scheduledDate,
-                    initialProjectId: projectId ?? parentTask.projectId,
-                    initialParentId: parentTask.id,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    context.openRightSidebar(
+                      AddTaskPanel(
+                        initialDate: scheduledDate ?? parentTask.scheduledDate,
+                        initialProjectId: projectId ?? parentTask.projectId,
+                        initialParentId: parentTask.id,
+                      ),
+                      ref,
+                    );
+                  },
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text('Add Subtask'),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    visualDensity: VisualDensity.compact,
                   ),
-                  ref,
-                );
-              },
-              icon: const Icon(Icons.add, size: 16),
-              label: const Text('Add Subtask'),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                visualDensity: VisualDensity.compact,
-              ),
+                ),
+                ShortcutHintBadge(label: "Ctrl + ${SubtaskKeys.upper}"),
+              ],
             ),
           ],
         ),

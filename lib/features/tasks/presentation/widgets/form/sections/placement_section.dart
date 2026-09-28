@@ -21,6 +21,7 @@ class PlacementSection extends StatelessWidget {
         SectionItem(
           icon: Icons.sort,
           title: 'Placement & Urgency',
+          shortcut: "Ctrl + 1..4", // TODO, maybe register this in shortcuts?
           child: TaskPlacementSelector(
             mini: true,
             selected: placement,
