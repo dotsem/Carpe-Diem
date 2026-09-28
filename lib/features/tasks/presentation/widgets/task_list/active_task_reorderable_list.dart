@@ -4,6 +4,8 @@ import 'package:carpe_diem/features/common/presentation/widgets/platform_draggab
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_dotted_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +65,8 @@ class ActiveTaskReorderableList extends ConsumerWidget {
           ),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          final dragSession = ref.watch(taskDragProvider);
+
           return ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -75,14 +79,26 @@ class ActiveTaskReorderableList extends ConsumerWidget {
               if (node?.task != null) {
                 final task = node!.task!;
                 final isSelected = selectedTaskIds.contains(task.id);
+                final isThisTaskDragged = dragSession.draggedTaskId == task.id;
+                final showDotted =
+                    isThisTaskDragged && dragSession.hasValidTarget;
+
                 draggableChild = PlatformDraggable<Task>(
                   data: task,
+                  onDragStarted: () {
+                    ref.read(taskDragProvider.notifier).startDrag(task.id);
+                  },
+                  onDragEnd: (_) {
+                    ref.read(taskDragProvider.notifier).endDrag();
+                  },
                   feedback: TaskDragProxy(
                     task: task,
                     selectedCount: isSelected ? selectedTaskIds.length : 1,
                     width: constraints.maxWidth,
                   ),
-                  childWhenDragging: Opacity(opacity: 0.3, child: child),
+                  childWhenDragging: showDotted
+                      ? TaskCardDottedPlaceholder(child: child)
+                      : Opacity(opacity: 0.3, child: child),
                   child: child,
                 );
               }

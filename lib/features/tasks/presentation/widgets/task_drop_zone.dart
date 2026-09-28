@@ -1,132 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_placeholder.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_scope.dart';
 
-class TaskDropState {
-  final int index;
-  final Task task;
+export 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_scope.dart';
 
-  const TaskDropState({required this.index, required this.task});
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TaskDropState &&
-          runtimeType == other.runtimeType &&
-          index == other.index &&
-          task.id == other.task.id;
-
-  @override
-  int get hashCode => index.hashCode ^ task.id.hashCode;
-}
-
-class TaskDropZoneScope extends StatefulWidget {
-  final int urgentSectionEndIndex;
-  final int itemCount;
-  final bool Function(Task task, int targetIndex)? isPositionUnchanged;
-  final bool Function(Task task, int targetIndex)? isPositionValid;
-  final bool Function(Task task, int index)? isLastChildInGroup;
-  final Widget child;
-
-  const TaskDropZoneScope({
-    super.key,
-    required this.urgentSectionEndIndex,
-    required this.itemCount,
-    this.isPositionUnchanged,
-    this.isPositionValid,
-    this.isLastChildInGroup,
-    required this.child,
-  });
-
-  static TaskDropZoneScopeInherited? of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<TaskDropZoneScopeInherited>();
-  }
-
-  @override
-  State<TaskDropZoneScope> createState() => _TaskDropZoneScopeState();
-}
-
-class _TaskDropZoneScopeState extends State<TaskDropZoneScope> {
-  final ValueNotifier<TaskDropState?> _activeDrop =
-      ValueNotifier<TaskDropState?>(null);
-
-  @override
-  void dispose() {
-    _activeDrop.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TaskDropZoneScopeInherited(
-      activeDropNotifier: _activeDrop,
-      urgentSectionEndIndex: widget.urgentSectionEndIndex,
-      itemCount: widget.itemCount,
-      isPositionUnchangedCallback: widget.isPositionUnchanged,
-      isPositionValidCallback: widget.isPositionValid,
-      isLastChildInGroupCallback: widget.isLastChildInGroup,
-      child: widget.child,
-    );
-  }
-}
-
-class TaskDropZoneScopeInherited extends InheritedWidget {
-  final ValueNotifier<TaskDropState?> activeDropNotifier;
-  final int urgentSectionEndIndex;
-  final int itemCount;
-  final bool Function(Task task, int targetIndex)? isPositionUnchangedCallback;
-  final bool Function(Task task, int targetIndex)? isPositionValidCallback;
-  final bool Function(Task task, int index)? isLastChildInGroupCallback;
-
-  const TaskDropZoneScopeInherited({
-    super.key,
-    required this.activeDropNotifier,
-    required this.urgentSectionEndIndex,
-    required this.itemCount,
-    this.isPositionUnchangedCallback,
-    this.isPositionValidCallback,
-    this.isLastChildInGroupCallback,
-    required super.child,
-  });
-
-  bool isPositionUnchanged(Task task, int targetIndex) {
-    return isPositionUnchangedCallback?.call(task, targetIndex) ?? false;
-  }
-
-  bool isPositionValid(Task task, int targetIndex) {
-    return isPositionValidCallback?.call(task, targetIndex) ?? true;
-  }
-
-  bool isLastChildInGroup(Task task, int index) {
-    return isLastChildInGroupCallback?.call(task, index) ?? false;
-  }
-
-  int resolveEffectiveIndex(Task task, int rawIndex) {
-    if (!task.isUrgent) {
-      if (rawIndex < urgentSectionEndIndex) {
-        return urgentSectionEndIndex;
-      }
-    } else {
-      if (rawIndex > urgentSectionEndIndex) {
-        return urgentSectionEndIndex;
-      }
-    }
-    return rawIndex;
-  }
-
-  @override
-  bool updateShouldNotify(TaskDropZoneScopeInherited oldWidget) {
-    return activeDropNotifier != oldWidget.activeDropNotifier ||
-        urgentSectionEndIndex != oldWidget.urgentSectionEndIndex ||
-        itemCount != oldWidget.itemCount ||
-        isPositionUnchangedCallback != oldWidget.isPositionUnchangedCallback ||
-        isPositionValidCallback != oldWidget.isPositionValidCallback ||
-        isLastChildInGroupCallback != oldWidget.isLastChildInGroupCallback;
-  }
-}
-
-class TaskDropZoneWrapper extends StatelessWidget {
+class TaskDropZoneWrapper extends ConsumerWidget {
   final int index;
   final Widget child;
   final void Function(Task task, int newIndex) onDrop;
@@ -143,12 +24,9 @@ class TaskDropZoneWrapper extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scope = TaskDropZoneScope.of(context);
-
-    if (scope == null) {
-      return _buildStandaloneTarget(context);
-    }
+    if (scope == null) return _buildStandaloneTarget(context, ref);
 
     return ValueListenableBuilder<TaskDropState?>(
       valueListenable: scope.activeDropNotifier,
@@ -172,6 +50,7 @@ class TaskDropZoneWrapper extends StatelessWidget {
           children: [
             if (showTop)
               _buildDragSlot(
+                ref: ref,
                 scope: scope,
                 targetIndex: index,
                 placeholder: TaskCardPlaceholder(task: activeDrop.task),
@@ -184,10 +63,15 @@ class TaskDropZoneWrapper extends StatelessWidget {
                   child: Column(
                     children: [
                       Expanded(
-                        child: _buildDragSlot(scope: scope, targetIndex: index),
+                        child: _buildDragSlot(
+                          ref: ref,
+                          scope: scope,
+                          targetIndex: index,
+                        ),
                       ),
                       Expanded(
                         child: _buildDragSlot(
+                          ref: ref,
                           scope: scope,
                           targetIndex: index + 1,
                         ),
@@ -199,6 +83,7 @@ class TaskDropZoneWrapper extends StatelessWidget {
             ),
             if (showBottom)
               _buildDragSlot(
+                ref: ref,
                 scope: scope,
                 targetIndex: index + 1,
                 placeholder: TaskCardPlaceholder(task: activeDrop.task),
@@ -210,6 +95,7 @@ class TaskDropZoneWrapper extends StatelessWidget {
   }
 
   Widget _buildDragSlot({
+    required WidgetRef ref,
     required TaskDropZoneScopeInherited scope,
     required int targetIndex,
     Widget? placeholder,
@@ -221,9 +107,11 @@ class TaskDropZoneWrapper extends StatelessWidget {
           targetIndex,
         );
         if (!scope.isPositionValid(details.data, effectiveIndex)) {
+          ref.read(taskDragProvider.notifier).setValidTarget(false);
           return false;
         }
         if (canAccept != null && !canAccept!(details.data)) {
+          ref.read(taskDragProvider.notifier).setValidTarget(false);
           return false;
         }
         onHover?.call(true);
@@ -231,6 +119,11 @@ class TaskDropZoneWrapper extends StatelessWidget {
           index: effectiveIndex,
           task: details.data,
         );
+        final isUnchanged = scope.isPositionUnchanged(
+          details.data,
+          effectiveIndex,
+        );
+        ref.read(taskDragProvider.notifier).setValidTarget(!isUnchanged);
         return true;
       },
       onLeave: (details) {
@@ -238,6 +131,7 @@ class TaskDropZoneWrapper extends StatelessWidget {
         if (scope.activeDropNotifier.value?.index == targetIndex) {
           scope.activeDropNotifier.value = null;
         }
+        ref.read(taskDragProvider.notifier).setValidTarget(false);
       },
       onAcceptWithDetails: (details) {
         onHover?.call(false);
@@ -246,6 +140,7 @@ class TaskDropZoneWrapper extends StatelessWidget {
           targetIndex,
         );
         scope.activeDropNotifier.value = null;
+        ref.read(taskDragProvider.notifier).endDrag();
         if (scope.isPositionValid(details.data, targetIndexResolved)) {
           onDrop(details.data, targetIndexResolved);
         }
@@ -255,20 +150,24 @@ class TaskDropZoneWrapper extends StatelessWidget {
     );
   }
 
-  Widget _buildStandaloneTarget(BuildContext context) {
+  Widget _buildStandaloneTarget(BuildContext context, WidgetRef ref) {
     Task? activeTask;
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
         activeTask = details.data;
         onHover?.call(true);
-        return canAccept?.call(details.data) ?? true;
+        final accept = canAccept?.call(details.data) ?? true;
+        ref.read(taskDragProvider.notifier).setValidTarget(accept);
+        return accept;
       },
       onLeave: (details) {
         onHover?.call(false);
         activeTask = null;
+        ref.read(taskDragProvider.notifier).setValidTarget(false);
       },
       onAcceptWithDetails: (details) {
         onHover?.call(false);
+        ref.read(taskDragProvider.notifier).endDrag();
         onDrop(details.data, index);
       },
       builder: (context, candidateData, rejectedData) {

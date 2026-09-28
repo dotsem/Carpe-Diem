@@ -5,6 +5,8 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_dotted_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
@@ -35,34 +37,49 @@ class KanbanCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final dragSession = ref.watch(taskDragProvider);
+    final isThisTaskDragged = dragSession.draggedTaskId == task.id;
+    final showDotted = isThisTaskDragged && dragSession.hasValidTarget;
+
+    final cardContent = _wrapHierarchy(
+      context,
+      ref,
+      task,
+      projectNotifier,
+      isOverdue: isOverdue,
+    );
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return PlatformDraggable<Task>(
           data: task,
           delay: const Duration(milliseconds: 150),
+          onDragStarted: () {
+            ref.read(taskDragProvider.notifier).startDrag(task.id);
+          },
+          onDragEnd: (_) {
+            ref.read(taskDragProvider.notifier).endDrag();
+          },
           feedback: TaskDragProxy(
             task: task,
-            selectedCount:
-                1, // Kanban board doesn't currently support multi-select drag, so just 1
+            selectedCount: 1,
             width: constraints.maxWidth,
           ),
-          childWhenDragging: Opacity(
-            opacity: 0.3,
-            child: _wrapHierarchy(
-              context,
-              ref,
-              task,
-              projectNotifier,
-              isOverdue: isOverdue,
-            ),
-          ),
-          child: _wrapHierarchy(
-            context,
-            ref,
-            task,
-            projectNotifier,
-            isOverdue: isOverdue,
-          ),
+          childWhenDragging: showDotted
+              ? TaskHierarchyIndicator(
+                  depth: depth,
+                  child: TaskCardDottedPlaceholder(
+                    child: _buildTaskCard(
+                      context,
+                      ref,
+                      task,
+                      projectNotifier,
+                      isOverdue: isOverdue,
+                    ),
+                  ),
+                )
+              : Opacity(opacity: 0.3, child: cardContent),
+          child: cardContent,
         );
       },
     );

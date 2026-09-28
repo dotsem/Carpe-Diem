@@ -2,8 +2,10 @@ import 'package:carpe_diem/core/utils/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_empty_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_hierarchy_item.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_dotted_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -145,6 +147,8 @@ class BacklogList extends ConsumerWidget {
           ),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          final dragSession = ref.watch(taskDragProvider);
+
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 16),
             itemCount: activeHierarchical.length,
@@ -165,14 +169,26 @@ class BacklogList extends ConsumerWidget {
               if (node.task != null) {
                 final task = node.task!;
                 final isSelected = selectedTaskIds.contains(task.id);
+                final isThisTaskDragged = dragSession.draggedTaskId == task.id;
+                final showDotted =
+                    isThisTaskDragged && dragSession.hasValidTarget;
+
                 draggableChild = PlatformDraggable<Task>(
                   data: task,
+                  onDragStarted: () {
+                    ref.read(taskDragProvider.notifier).startDrag(task.id);
+                  },
+                  onDragEnd: (_) {
+                    ref.read(taskDragProvider.notifier).endDrag();
+                  },
                   feedback: TaskDragProxy(
                     task: task,
                     selectedCount: isSelected ? selectedTaskIds.length : 1,
                     width: constraints.maxWidth - 32,
                   ),
-                  childWhenDragging: Opacity(opacity: 0.3, child: child),
+                  childWhenDragging: showDotted
+                      ? TaskCardDottedPlaceholder(child: child)
+                      : Opacity(opacity: 0.3, child: child),
                   child: child,
                 );
               }
