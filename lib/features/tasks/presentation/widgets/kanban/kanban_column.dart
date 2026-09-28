@@ -10,6 +10,7 @@ import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_collapsed_column.dart';
@@ -63,13 +64,18 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
       onWillAcceptWithDetails: (details) {
         if (details.data.status != widget.acceptedStatus) {
           widget.onDragEntering?.call();
+          ref.read(taskDragProvider.notifier).setValidTarget(true);
           return true;
         }
         return false;
       },
-      onLeave: (details) => widget.onDragExiting?.call(),
+      onLeave: (details) {
+        widget.onDragExiting?.call();
+        ref.read(taskDragProvider.notifier).setValidTarget(false);
+      },
       onAcceptWithDetails: (details) {
         widget.onDragExiting?.call();
+        ref.read(taskDragProvider.notifier).endDrag();
         final settings = ref.read(settingsProvider);
         final sameGroupTasks = widget.tasks
             .where(
@@ -248,15 +254,9 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
 
                             return TaskDropZoneWrapper(
                               index: index,
-                              onHover: (hovered) {
-                                setState(() {
-                                  if (hovered) {
-                                    _hoveredChildren++;
-                                  } else {
-                                    _hoveredChildren--;
-                                  }
-                                });
-                              },
+                              onHover: (hovered) => setState(() {
+                                _hoveredChildren += hovered ? 1 : -1;
+                              }),
                               onDrop: (task, newIndex) {
                                 final settings = ref.read(settingsProvider);
                                 final newSortOrder =
