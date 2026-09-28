@@ -1,14 +1,17 @@
+import 'package:carpe_diem/features/common/presentation/widgets/shortcut_hint_badge.dart';
 import 'package:flutter/material.dart';
 
 class SectionItem {
   final IconData icon;
   final String title;
   final Widget child;
+  final String? shortcut;
 
   const SectionItem({
     required this.icon,
     required this.title,
     required this.child,
+    this.shortcut,
   });
 }
 
@@ -78,6 +81,10 @@ class SectionCard extends StatelessWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  if (item.shortcut != null) ...[
+                    SizedBox(width: 8),
+                    ShortcutHintBadge(label: item.shortcut!),
+                  ],
                 ],
               ),
               const SizedBox(height: 8),

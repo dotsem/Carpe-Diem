@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/section_card.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
@@ -31,6 +32,7 @@ class CategorizationSection extends StatelessWidget {
         SectionItem(
           icon: Icons.label_outlined,
           title: 'Labels',
+          shortcut: "Ctrl + ${LabelsKeys.upper}",
           child: LabelPicker(
             selectedLabelIds: selectedLabelIds,
             inheritedLabelIds: inheritedLabelIds,
@@ -42,6 +44,7 @@ class CategorizationSection extends StatelessWidget {
         SectionItem(
           icon: Icons.tag,
           title: 'Tags',
+          shortcut: "Ctrl + ${TagsKeys.upper}",
           child: TagPicker(
             selectedTagIds: selectedTagIds,
             onSelected: onTagsSelected,
