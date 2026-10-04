@@ -13,7 +13,7 @@ A structured local-first day-by-day planner built with Flutter to manage multipl
 Carpe Diem is built upon 3 important design philosophies:
 
 1. 📅 **Plan Day-by-Day**: Focus on today and tomorrow, with a maximum 7-day planning window to prevent task hoarding.
-2. 🗂️ **Multi-Project Agility**: Organize tasks across isolated projects with labels, priorities, and deadlines.
+2. 🗂️ **Multi-Project Agility**: Organize tasks across isolated projects with labels, priorities, and deadlines. Instantly switch contexts with custom filter modes.
 3. 🚀 **Productivity First**: No Electron bloat, native fast performance, highly optimized UI for keyboard navigation and quick input.
 
 ---
@@ -42,6 +42,7 @@ flowchart TD
 - 🚫 **Task Blockers**: Mark dependencies to see which prerequisites must be finished first.
 - 📊 **History & Insights**: Review completed work and track completion trends across custom time ranges.
 - 📥 **Markdown Import**: Import task lists directly from `.md` files into projects.
+- 🎯 **Filter Modes**: Save and switch between reusable focus presets (projects, tags, labels, urgency) to instantly adapt your workspace to your current context (work, school, personal, ...).
 - 🔒 **Local-First**: All data is stored locally on your device in SQLite—fast, offline, and private.
 
 ## Platforms
