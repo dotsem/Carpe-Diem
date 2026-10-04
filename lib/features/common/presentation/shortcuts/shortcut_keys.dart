@@ -82,6 +82,12 @@ abstract class FilterKeys {
   static const keyboardKey = LogicalKeyboardKey.keyF;
 }
 
+abstract class ModeKeys {
+  static const char = "m";
+  static const upper = "M";
+  static const keyboardKey = LogicalKeyboardKey.keyM;
+}
+
 abstract class SearchKeys {
   static const char = "/";
   static const keyboardKey = LogicalKeyboardKey.slash;

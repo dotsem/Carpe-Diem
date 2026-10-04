@@ -1,3 +1,3 @@
 class DbConstants {
-  static const int dbVersion = 5;
+  static const int dbVersion = 6;
 }

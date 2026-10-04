@@ -14,3 +14,5 @@ class MockKeyValueRepository extends Mock implements IKeyValueRepository {}
 class MockTagRepository extends Mock implements ITagRepository {}
 
 class MockTagIconRepository extends Mock implements ITagIconRepository {}
+
+class MockFilterModeRepository extends Mock implements IFilterModeRepository {}

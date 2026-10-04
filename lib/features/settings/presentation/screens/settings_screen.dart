@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key});
+  final Section? initialSection;
+
+  const SettingsScreen({super.key, this.initialSection});
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -13,6 +15,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Section? _selectedTab;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.initialSection;
+  }
 
   @override
   Widget build(BuildContext context) {

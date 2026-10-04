@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 
@@ -181,6 +182,40 @@ class TaskFilter {
       tagIdsExcluded: stringSetFromList(
         map['tagIdsExcluded'] as List<dynamic>?,
       ),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TaskFilter &&
+        other.isUrgent == isUrgent &&
+        setEquals(other.projectIdsIncluded, projectIdsIncluded) &&
+        setEquals(other.labelIdsIncluded, labelIdsIncluded) &&
+        setEquals(other.tagIdsIncluded, tagIdsIncluded) &&
+        setEquals(other.projectIdsExcluded, projectIdsExcluded) &&
+        setEquals(other.labelIdsExcluded, labelIdsExcluded) &&
+        setEquals(other.tagIdsExcluded, tagIdsExcluded);
+  }
+
+  static int _hashSet(Set<String> set) {
+    var h = 0;
+    for (final s in set) {
+      h ^= s.hashCode;
+    }
+    return h;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      isUrgent,
+      _hashSet(projectIdsIncluded),
+      _hashSet(labelIdsIncluded),
+      _hashSet(tagIdsIncluded),
+      _hashSet(projectIdsExcluded),
+      _hashSet(labelIdsExcluded),
+      _hashSet(tagIdsExcluded),
     );
   }
 }

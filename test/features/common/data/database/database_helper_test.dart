@@ -37,6 +37,7 @@ void main() {
           'tags',
           'task_tags',
           'tag_icons',
+          'filter_modes',
         ];
 
         for (final table in tables) {

@@ -110,5 +110,33 @@ void main() {
         FilterInteractionMethod.cycle,
       );
     });
+
+    test(
+      'operator == and hashCode verify value equality across all fields',
+      () {
+        const filter1 = TaskFilter(
+          isUrgent: true,
+          projectIdsIncluded: {'p1'},
+          labelIdsIncluded: {'l1'},
+          tagIdsIncluded: {'t1'},
+        );
+        const filter2 = TaskFilter(
+          isUrgent: true,
+          projectIdsIncluded: {'p1'},
+          labelIdsIncluded: {'l1'},
+          tagIdsIncluded: {'t1'},
+        );
+        const filter3 = TaskFilter(
+          isUrgent: true,
+          projectIdsIncluded: {'p2'},
+          labelIdsIncluded: {'l1'},
+          tagIdsIncluded: {'t1'},
+        );
+
+        expect(filter1, equals(filter2));
+        expect(filter1.hashCode, equals(filter2.hashCode));
+        expect(filter1, isNot(equals(filter3)));
+      },
+    );
   });
 }

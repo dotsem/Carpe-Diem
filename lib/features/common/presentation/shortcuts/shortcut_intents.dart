@@ -57,6 +57,10 @@ class CloseHelpIntent extends Intent {
   const CloseHelpIntent();
 }
 
+class SwitchModeIntent extends Intent {
+  const SwitchModeIntent();
+}
+
 class MoveNextIntent extends Intent {
   const MoveNextIntent();
 }
@@ -148,6 +152,11 @@ final globalShortcutEntries = [
   const ShortcutEntry(
     key: 'Ctrl + K',
     description: 'Open Command Palette',
+    category: 'Global',
+  ),
+  const ShortcutEntry(
+    key: ModeKeys.upper,
+    description: 'Switch filter mode',
     category: 'Global',
   ),
   const ShortcutEntry(
