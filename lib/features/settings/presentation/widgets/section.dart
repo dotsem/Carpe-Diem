@@ -1,7 +1,7 @@
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/appearance_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/data_management_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/defaults_section.dart';
-import 'package:carpe_diem/features/settings/presentation/widgets/sections/filtering_section.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/sections/filtering_and_modes_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/labels_and_tags_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/planning_section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/sections/tasks_section.dart';
@@ -14,7 +14,7 @@ enum Section {
   tasks('Tasks', Icons.task_alt),
   defaults('Defaults', Icons.settings_suggest_outlined),
   data('Data Management', Icons.analytics_outlined),
-  filtering('Filtering', Icons.filter_alt_outlined);
+  filteringAndModes('Filtering & Modes', Icons.filter_alt_outlined);
 
   final String label;
   final IconData icon;
@@ -40,8 +40,8 @@ class SectionContent extends StatelessWidget {
         return const DefaultsSection();
       case Section.data:
         return const DataManagementSection();
-      case Section.filtering:
-        return const FilteringSection();
+      case Section.filteringAndModes:
+        return const FilteringAndModesSection();
     }
   }
 }

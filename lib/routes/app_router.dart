@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/features/tasks/presentation/screens/home_screen.dart';
 import 'package:carpe_diem/features/projects/presentation/screens/projects_screen.dart';
@@ -5,6 +6,7 @@ import 'package:carpe_diem/features/tasks/presentation/screens/backlog_screen.da
 import 'package:carpe_diem/features/history/presentation/screens/history_screen.dart';
 import 'package:carpe_diem/features/projects/presentation/screens/project_detail_screen.dart';
 import 'package:carpe_diem/features/settings/presentation/screens/settings_screen.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/section.dart';
 import 'package:carpe_diem/features/common/presentation/shell/app_shell.dart';
 import 'package:carpe_diem/routes/keys.dart';
 
@@ -47,8 +49,30 @@ final appRouter = GoRouter(
         ),
         GoRoute(
           path: '/settings',
-          pageBuilder: (context, state) =>
-              const NoTransitionPage(child: SettingsScreen()),
+          pageBuilder: (context, state) {
+            final sectionParam = state.uri.queryParameters['section'];
+            Section? section;
+            if (sectionParam != null) {
+              if (sectionParam == 'filtering' || sectionParam == 'modes') {
+                section = Section.filteringAndModes;
+              } else {
+                for (final s in Section.values) {
+                  if (s.name == sectionParam) {
+                    section = s;
+                    break;
+                  }
+                }
+              }
+            } else if (state.extra is Section) {
+              section = state.extra as Section;
+            }
+            return NoTransitionPage(
+              child: SettingsScreen(
+                key: ValueKey(section),
+                initialSection: section,
+              ),
+            );
+          },
         ),
       ],
     ),

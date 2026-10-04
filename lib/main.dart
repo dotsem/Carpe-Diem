@@ -13,6 +13,7 @@ import 'package:carpe_diem/features/labels/presentation/providers/label_provider
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/routes/app_router.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
@@ -37,6 +38,7 @@ void main() async {
   // Eagerly load all providers before running the app to ensure data is ready on first frame
   await container.read(settingsProvider.notifier).loadSettings();
   await container.read(filterProvider.notifier).loadFilter();
+  await container.read(filterModesProvider.notifier).loadModes();
   await container.read(labelProvider.notifier).loadLabels();
   await container.read(backlogLabelTabProvider.notifier).loadLastActiveTab();
   await container.read(taskLayoutProvider.notifier).loadTaskLayout();
