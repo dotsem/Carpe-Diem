@@ -7,6 +7,7 @@ import 'package:carpe_diem/features/filter/presentation/providers/filter_provide
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcuts_help_overlay.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_intents.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/mode_selection_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 export 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_intents.dart';
@@ -163,6 +164,8 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
           const CharacterActivator(HistoryKeys.char):
               const NavigateToHistoryIntent(),
           const CharacterActivator(HelpKeys.char): const ToggleHelpIntent(),
+          const CharacterActivator(ModeKeys.char): const SwitchModeIntent(),
+          const CharacterActivator(ModeKeys.upper): const SwitchModeIntent(),
           const CharacterActivator(FilterKeys.upper):
               const ToggleFilterBypassIntent(),
           const SingleActivator(AppKeyBindings.escape): const CloseHelpIntent(),
@@ -197,6 +200,10 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
                 CommandPalette.show();
               },
             ),
+            SwitchModeIntent: NonTypingAction<SwitchModeIntent>((intent) {
+              debugPrint('Shortcut: SwitchMode');
+              ModeSelectionDialog.show();
+            }),
             MoveNextIntent: NonTypingAction<MoveNextIntent>((intent) {
               debugPrint('Shortcut: MoveNext');
               FocusManager.instance.primaryFocus?.focusInDirection(
