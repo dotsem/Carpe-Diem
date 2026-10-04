@@ -3,6 +3,7 @@ import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 
@@ -119,6 +120,21 @@ abstract class ITagRepository implements ICrudRepository<Tag> {
   Future<void> insert(Tag tag);
   @override
   Future<void> update(Tag tag);
+  @override
+  Future<void> delete(String id);
+}
+
+abstract class IFilterModeRepository implements ICrudRepository<FilterMode> {
+  @override
+  String get repositoryName => 'filter_mode';
+  @override
+  Future<List<FilterMode>> getAll();
+  @override
+  Future<FilterMode?> getById(String id);
+  @override
+  Future<void> insert(FilterMode mode);
+  @override
+  Future<void> update(FilterMode mode);
   @override
   Future<void> delete(String id);
 }

@@ -54,6 +54,7 @@ class TestTaskRepositories {
   final MockLabelRepository mockLabelRepo;
   final MockTagRepository mockTagRepo;
   final MockTagIconRepository mockTagIconRepo;
+  final MockFilterModeRepository mockFilterModeRepo;
 
   TestTaskRepositories({
     MockTaskRepository? taskRepo,
@@ -63,13 +64,15 @@ class TestTaskRepositories {
     MockLabelRepository? labelRepo,
     MockTagRepository? tagRepo,
     MockTagIconRepository? tagIconRepo,
+    MockFilterModeRepository? filterModeRepo,
   }) : mockTaskRepo = taskRepo ?? MockTaskRepository(),
        mockProjectRepo = projectRepo ?? MockProjectRepository(),
        mockHistoryRepo = historyRepo ?? MockHistoryRepository(),
        mockSettingsRepo = settingsRepo ?? MockKeyValueRepository(),
        mockLabelRepo = labelRepo ?? MockLabelRepository(),
        mockTagRepo = tagRepo ?? MockTagRepository(),
-       mockTagIconRepo = tagIconRepo ?? MockTagIconRepository();
+       mockTagIconRepo = tagIconRepo ?? MockTagIconRepository(),
+       mockFilterModeRepo = filterModeRepo ?? MockFilterModeRepository();
 
   void setupDefaultStubs() {
     when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
@@ -95,6 +98,7 @@ class TestTaskRepositories {
     when(() => mockTagRepo.getAll()).thenAnswer((_) async => []);
     when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
     when(() => mockTagIconRepo.getAllIconDatas()).thenAnswer((_) async => {});
+    when(() => mockFilterModeRepo.getAll()).thenAnswer((_) async => []);
   }
 
   List<Override> get providerOverrides => [
@@ -105,6 +109,7 @@ class TestTaskRepositories {
     labelRepositoryProvider.overrideWithValue(mockLabelRepo),
     tagRepositoryProvider.overrideWithValue(mockTagRepo),
     tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
+    filterModeRepositoryProvider.overrideWithValue(mockFilterModeRepo),
   ];
 
   ProviderContainer createContainer() {

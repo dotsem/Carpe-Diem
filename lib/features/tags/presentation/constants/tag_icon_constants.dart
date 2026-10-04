@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+final Map<int, IconData> availableIconMap = {
+  for (final icon in availableIcons) icon.codePoint: icon,
+};
+
 const List<IconData> availableIcons = [
   Icons.tag,
+  Icons.tune,
   Icons.add_circle,
   Icons.pending,
   Icons.playlist_add,

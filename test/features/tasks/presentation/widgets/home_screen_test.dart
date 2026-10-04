@@ -17,6 +17,7 @@ void main() {
     late MockKeyValueRepository mockSettingsRepo;
     late MockTagRepository mockTagRepo;
     late MockTagIconRepository mockTagIconRepo;
+    late MockFilterModeRepository mockFilterModeRepo;
 
     setUp(() {
       mockTaskRepo = MockTaskRepository();
@@ -26,12 +27,14 @@ void main() {
       mockSettingsRepo = MockKeyValueRepository();
       mockTagRepo = MockTagRepository();
       mockTagIconRepo = MockTagIconRepository();
+      mockFilterModeRepo = MockFilterModeRepository();
 
       when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
       when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
       when(() => mockLabelRepo.getAll()).thenAnswer((_) async => []);
       when(() => mockTagRepo.getAll()).thenAnswer((_) async => []);
       when(() => mockTagIconRepo.getAllIconDatas()).thenAnswer((_) async => {});
+      when(() => mockFilterModeRepo.getAll()).thenAnswer((_) async => []);
       when(
         () => mockTaskRepo.getUnscheduled(
           prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
@@ -72,6 +75,9 @@ void main() {
               keyValueRepositoryProvider.overrideWithValue(mockSettingsRepo),
               tagRepositoryProvider.overrideWithValue(mockTagRepo),
               tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
+              filterModeRepositoryProvider.overrideWithValue(
+                mockFilterModeRepo,
+              ),
             ],
             child: const MaterialApp(home: Scaffold(body: HomeScreen())),
           ),

@@ -7,16 +7,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(
+      const FilterMode(id: '', name: '', filter: TaskFilter()),
+    );
+  });
+
   group('save_mode_dialog validation', () {
     late MockKeyValueRepository mockRepo;
+    late MockFilterModeRepository mockFilterModeRepo;
     late Map<String, String> storage;
+    late List<FilterMode> modeStorage;
 
     setUp(() {
       storage = {};
+      modeStorage = [];
       mockRepo = MockKeyValueRepository();
+      mockFilterModeRepo = MockFilterModeRepository();
+
       when(() => mockRepo.getAll()).thenAnswer((_) async => storage);
       when(() => mockRepo.set(any(), any())).thenAnswer((inv) async {
         storage[inv.positionalArguments[0] as String] =
@@ -25,12 +37,29 @@ void main() {
       when(() => mockRepo.get(any())).thenAnswer((inv) async {
         return storage[inv.positionalArguments[0] as String];
       });
+
+      when(
+        () => mockFilterModeRepo.getAll(),
+      ).thenAnswer((_) async => modeStorage);
+      when(() => mockFilterModeRepo.insert(any())).thenAnswer((inv) async {
+        modeStorage.add(inv.positionalArguments[0] as FilterMode);
+      });
+      when(() => mockFilterModeRepo.update(any())).thenAnswer((inv) async {
+        final updated = inv.positionalArguments[0] as FilterMode;
+        final idx = modeStorage.indexWhere((m) => m.id == updated.id);
+        if (idx != -1) modeStorage[idx] = updated;
+      });
+      when(() => mockFilterModeRepo.delete(any())).thenAnswer((inv) async {
+        final id = inv.positionalArguments[0] as String;
+        modeStorage.removeWhere((m) => m.id == id);
+      });
     });
 
     Widget buildTestWidget({
       ProviderContainer? container,
       String? initialName,
-      void Function(String?)? onResult,
+      int? initialIconCodePoint,
+      void Function(SaveModeResult?)? onResult,
     }) {
       return UncontrolledProviderScope(
         container:
@@ -38,6 +67,9 @@ void main() {
             ProviderContainer(
               overrides: [
                 keyValueRepositoryProvider.overrideWithValue(mockRepo),
+                filterModeRepositoryProvider.overrideWithValue(
+                  mockFilterModeRepo,
+                ),
               ],
             ),
         child: MaterialApp(
@@ -46,10 +78,12 @@ void main() {
               builder: (context) {
                 return ElevatedButton(
                   onPressed: () async {
-                    final res = await showDialog<String>(
+                    final res = await showDialog<SaveModeResult>(
                       context: context,
-                      builder: (ctx) =>
-                          SaveModeDialog(initialName: initialName),
+                      builder: (ctx) => SaveModeDialog(
+                        initialName: initialName,
+                        initialIconCodePoint: initialIconCodePoint,
+                      ),
                     );
                     onResult?.call(res);
                   },
@@ -65,9 +99,9 @@ void main() {
     testWidgets('shows error when mode name is empty or only whitespace', (
       tester,
     ) async {
-      String? returnedName;
+      SaveModeResult? returned;
       await tester.pumpWidget(
-        buildTestWidget(onResult: (val) => returnedName = val),
+        buildTestWidget(onResult: (val) => returned = val),
       );
       await tester.tap(find.text('Open Dialog'));
       await tester.pumpAndSettle();
@@ -78,7 +112,7 @@ void main() {
 
       expect(find.text('Mode name cannot be empty'), findsOneWidget);
       expect(find.byType(SaveModeDialog), findsOneWidget);
-      expect(returnedName, isNull);
+      expect(returned, isNull);
     });
 
     testWidgets('shows error when mode name is reserved / illegal', (
@@ -94,9 +128,9 @@ void main() {
       ];
 
       for (final name in illegalNames) {
-        String? returnedName;
+        SaveModeResult? returned;
         await tester.pumpWidget(
-          buildTestWidget(onResult: (val) => returnedName = val),
+          buildTestWidget(onResult: (val) => returned = val),
         );
         await tester.tap(find.text('Open Dialog'));
         await tester.pumpAndSettle();
@@ -110,7 +144,7 @@ void main() {
           findsOneWidget,
         );
         expect(find.byType(SaveModeDialog), findsOneWidget);
-        expect(returnedName, isNull);
+        expect(returned, isNull);
 
         await tester.tap(find.text('Cancel'));
         await tester.pumpAndSettle();
@@ -121,18 +155,21 @@ void main() {
       'shows error when mode name already exists (case-insensitive)',
       (tester) async {
         final container = ProviderContainer(
-          overrides: [keyValueRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            keyValueRepositoryProvider.overrideWithValue(mockRepo),
+            filterModeRepositoryProvider.overrideWithValue(mockFilterModeRepo),
+          ],
         );
 
         await container
             .read(filterModesProvider.notifier)
             .createMode(name: 'Work', filter: const TaskFilter());
 
-        String? returnedName;
+        SaveModeResult? returned;
         await tester.pumpWidget(
           buildTestWidget(
             container: container,
-            onResult: (val) => returnedName = val,
+            onResult: (val) => returned = val,
           ),
         );
         await tester.tap(find.text('Open Dialog'));
@@ -147,16 +184,16 @@ void main() {
           findsOneWidget,
         );
         expect(find.byType(SaveModeDialog), findsOneWidget);
-        expect(returnedName, isNull);
+        expect(returned, isNull);
       },
     );
 
     testWidgets('submits successfully when mode name is valid and unique', (
       tester,
     ) async {
-      String? returnedName;
+      SaveModeResult? returned;
       await tester.pumpWidget(
-        buildTestWidget(onResult: (val) => returnedName = val),
+        buildTestWidget(onResult: (val) => returned = val),
       );
       await tester.tap(find.text('Open Dialog'));
       await tester.pumpAndSettle();
@@ -166,7 +203,28 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SaveModeDialog), findsNothing);
-      expect(returnedName, 'Free Time');
+      expect(returned?.name, 'Free Time');
+      expect(returned?.iconCodePoint, Icons.tune.codePoint);
+    });
+
+    testWidgets('allows selecting an icon from the icon picker', (
+      tester,
+    ) async {
+      SaveModeResult? returned;
+      await tester.pumpWidget(
+        buildTestWidget(onResult: (val) => returned = val),
+      );
+      await tester.tap(find.text('Open Dialog'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'School');
+      await tester.tap(find.byIcon(Icons.school));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SaveModeDialog), findsNothing);
+      expect(returned?.name, 'School');
+      expect(returned?.iconCodePoint, Icons.school.codePoint);
     });
   });
 }

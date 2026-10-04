@@ -8,17 +8,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(
+      const FilterMode(id: '', name: '', filter: TaskFilter()),
+    );
+  });
+
   group('mode_dropdown_button', () {
     late MockKeyValueRepository mockRepo;
-
+    late MockFilterModeRepository mockFilterModeRepo;
     final storage = <String, String>{};
+    final modeStorage = <FilterMode>[];
 
     setUp(() {
       storage.clear();
+      modeStorage.clear();
       mockRepo = MockKeyValueRepository();
+      mockFilterModeRepo = MockFilterModeRepository();
+
       when(() => mockRepo.getAll()).thenAnswer((_) async => storage);
       when(() => mockRepo.set(any(), any())).thenAnswer((inv) async {
         storage[inv.positionalArguments[0] as String] =
@@ -26,6 +37,25 @@ void main() {
       });
       when(() => mockRepo.get(any())).thenAnswer((inv) async {
         return storage[inv.positionalArguments[0] as String];
+      });
+      when(() => mockRepo.delete(any())).thenAnswer((inv) async {
+        storage.remove(inv.positionalArguments[0] as String);
+      });
+
+      when(
+        () => mockFilterModeRepo.getAll(),
+      ).thenAnswer((_) async => modeStorage);
+      when(() => mockFilterModeRepo.insert(any())).thenAnswer((inv) async {
+        modeStorage.add(inv.positionalArguments[0] as FilterMode);
+      });
+      when(() => mockFilterModeRepo.update(any())).thenAnswer((inv) async {
+        final updated = inv.positionalArguments[0] as FilterMode;
+        final idx = modeStorage.indexWhere((m) => m.id == updated.id);
+        if (idx != -1) modeStorage[idx] = updated;
+      });
+      when(() => mockFilterModeRepo.delete(any())).thenAnswer((inv) async {
+        final id = inv.positionalArguments[0] as String;
+        modeStorage.removeWhere((m) => m.id == id);
       });
     });
 
@@ -36,6 +66,9 @@ void main() {
             ProviderContainer(
               overrides: [
                 keyValueRepositoryProvider.overrideWithValue(mockRepo),
+                filterModeRepositoryProvider.overrideWithValue(
+                  mockFilterModeRepo,
+                ),
               ],
             ),
         child: const MaterialApp(
@@ -55,7 +88,10 @@ void main() {
       tester,
     ) async {
       final container = ProviderContainer(
-        overrides: [keyValueRepositoryProvider.overrideWithValue(mockRepo)],
+        overrides: [
+          keyValueRepositoryProvider.overrideWithValue(mockRepo),
+          filterModeRepositoryProvider.overrideWithValue(mockFilterModeRepo),
+        ],
       );
 
       container.read(filterProvider.notifier).setUrgentFilter(true);
@@ -71,7 +107,10 @@ void main() {
     ) async {
       const filter = TaskFilter(isUrgent: true);
       final container = ProviderContainer(
-        overrides: [keyValueRepositoryProvider.overrideWithValue(mockRepo)],
+        overrides: [
+          keyValueRepositoryProvider.overrideWithValue(mockRepo),
+          filterModeRepositoryProvider.overrideWithValue(mockFilterModeRepo),
+        ],
       );
 
       await container
@@ -90,7 +129,10 @@ void main() {
     ) async {
       const filter = TaskFilter(projectIdsIncluded: {'proj-1'});
       final container = ProviderContainer(
-        overrides: [keyValueRepositoryProvider.overrideWithValue(mockRepo)],
+        overrides: [
+          keyValueRepositoryProvider.overrideWithValue(mockRepo),
+          filterModeRepositoryProvider.overrideWithValue(mockFilterModeRepo),
+        ],
       );
 
       await container

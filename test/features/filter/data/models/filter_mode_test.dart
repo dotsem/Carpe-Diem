@@ -61,5 +61,24 @@ void main() {
       expect(mode1.hashCode, equals(mode2.hashCode));
       expect(mode1, isNot(equals(mode3)));
     });
+
+    test('supports iconCodePoint and derives icon correctly', () {
+      const mode = FilterMode(
+        id: '1',
+        name: 'Study',
+        filter: TaskFilter(),
+        iconCodePoint: 0xe559,
+      );
+
+      final map = mode.toMap();
+      expect(map['iconCodePoint'], 0xe559);
+
+      final fromMap = FilterMode.fromMap(map);
+      expect(fromMap.iconCodePoint, 0xe559);
+      expect(fromMap.icon?.codePoint, 0xe559);
+
+      final updated = mode.copyWith(iconCodePoint: 0xe123);
+      expect(updated.iconCodePoint, 0xe123);
+    });
   });
 }

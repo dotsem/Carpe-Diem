@@ -101,11 +101,11 @@ class ModesSection extends ConsumerWidget {
   }
 
   Future<void> _createMode(BuildContext context, WidgetRef ref) async {
-    final name = await showDialog<String>(
+    final result = await showDialog<SaveModeResult>(
       context: context,
       builder: (ctx) => const SaveModeDialog(),
     );
-    if (name == null || name.isEmpty) return;
+    if (result == null) return;
 
     if (!context.mounted) return;
     final configuredFilter = await showDialog<TaskFilter>(
@@ -116,7 +116,11 @@ class ModesSection extends ConsumerWidget {
     if (configuredFilter != null) {
       await ref
           .read(filterModesProvider.notifier)
-          .createMode(name: name, filter: configuredFilter);
+          .createMode(
+            name: result.name,
+            iconCodePoint: result.iconCodePoint,
+            filter: configuredFilter,
+          );
     }
   }
 
@@ -125,14 +129,22 @@ class ModesSection extends ConsumerWidget {
     WidgetRef ref,
     FilterMode mode,
   ) async {
-    final newName = await showDialog<String>(
+    final result = await showDialog<SaveModeResult>(
       context: context,
-      builder: (ctx) => SaveModeDialog(initialName: mode.name),
+      builder: (ctx) => SaveModeDialog(
+        initialName: mode.name,
+        initialIconCodePoint: mode.iconCodePoint,
+      ),
     );
-    if (newName != null && newName.isNotEmpty) {
+    if (result != null) {
       await ref
           .read(filterModesProvider.notifier)
-          .updateMode(mode.copyWith(name: newName));
+          .updateMode(
+            mode.copyWith(
+              name: result.name,
+              iconCodePoint: result.iconCodePoint,
+            ),
+          );
     }
   }
 
@@ -202,7 +214,7 @@ class ModesSection extends ConsumerWidget {
           for (final mode in modes)
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.tune),
+              leading: Icon(mode.icon ?? Icons.tune),
               title: Text(mode.name),
               subtitle: Text(
                 _buildFilterSummary(mode.filter),
@@ -221,7 +233,7 @@ class ModesSection extends ConsumerWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Rename mode',
+                    tooltip: 'Edit mode',
                     onPressed: () => _renameMode(context, ref, mode),
                   ),
                   IconButton(

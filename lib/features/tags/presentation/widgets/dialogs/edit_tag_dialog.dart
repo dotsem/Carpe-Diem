@@ -1,5 +1,5 @@
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
-import 'package:carpe_diem/features/tags/presentation/constants/tag_icon_constants.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/icon_picker.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
@@ -57,43 +57,9 @@ class _EditTagDialogState extends ConsumerState<EditTagDialog> {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: availableIcons.map((icon) {
-              final isSelected = selectedIcon == icon;
-
-              return InkWell(
-                onTap: () {
-                  setState(() {
-                    selectedIcon = icon;
-                  });
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? colorScheme.primaryContainer
-                        : colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isSelected
-                          ? colorScheme.primary
-                          : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: isSelected
-                        ? colorScheme.onPrimaryContainer
-                        : colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              );
-            }).toList(),
+          IconPicker(
+            selected: selectedIcon,
+            onChanged: (icon) => setState(() => selectedIcon = icon),
           ),
         ],
       ),

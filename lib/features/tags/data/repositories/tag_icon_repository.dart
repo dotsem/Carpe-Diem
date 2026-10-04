@@ -3,10 +3,6 @@ import 'package:carpe_diem/features/tags/presentation/constants/tag_icon_constan
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-final Map<int, IconData> _availableIconMap = {
-  for (final icon in availableIcons) icon.codePoint: icon,
-};
-
 class TagIconRepository implements ITagIconRepository {
   final Database db;
 
@@ -19,7 +15,7 @@ class TagIconRepository implements ITagIconRepository {
     for (final map in maps) {
       final name = map['tag_name'] as String;
       final codePoint = map['icon_code_point'] as int;
-      result[name] = _availableIconMap[codePoint] ?? Icons.tag;
+      result[name] = availableIconMap[codePoint] ?? Icons.tag;
     }
     return result;
   }

@@ -7,6 +7,7 @@ import 'package:carpe_diem/features/settings/data/repositories/settings_reposito
 import 'package:carpe_diem/features/labels/data/repositories/label_repository.dart';
 import 'package:carpe_diem/features/projects/data/repositories/project_repository.dart';
 import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart';
+import 'package:carpe_diem/features/filter/data/repositories/filter_mode_repository.dart';
 import 'package:carpe_diem/features/history/data/repositories/history_repository.dart';
 
 final databaseProvider = Provider<Database>((ref) {
@@ -48,4 +49,9 @@ final tagRepositoryProvider = Provider<ITagRepository>((ref) {
 final tagIconRepositoryProvider = Provider<ITagIconRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return TagIconRepository(db);
+});
+
+final filterModeRepositoryProvider = Provider<IFilterModeRepository>((ref) {
+  final db = ref.watch(databaseProvider);
+  return FilterModeRepository(db);
 });

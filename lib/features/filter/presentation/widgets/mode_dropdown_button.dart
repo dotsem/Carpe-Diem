@@ -13,14 +13,19 @@ class ModeDropdownButton extends ConsumerWidget {
     final currentFilter = ref.read(filterProvider).filter;
     if (currentFilter.isEmpty) return;
 
-    final name = await showDialog<String>(
+    final result = await showDialog<SaveModeResult>(
       context: context,
       builder: (ctx) => const SaveModeDialog(),
     );
-    if (name != null && name.isNotEmpty) {
-      await ref
+    if (result != null) {
+      final mode = await ref
           .read(filterModesProvider.notifier)
-          .createMode(name: name, filter: currentFilter);
+          .createMode(
+            name: result.name,
+            iconCodePoint: result.iconCodePoint,
+            filter: currentFilter,
+          );
+      await ref.read(filterModesProvider.notifier).setActiveModeId(mode.id);
     }
   }
 
@@ -49,12 +54,14 @@ class ModeDropdownButton extends ConsumerWidget {
     }
 
     final bool hasActiveHighlight = activeMode != null || isCustom;
+    final IconData modeIcon = activeMode?.icon ?? Icons.tune;
 
     return PopupMenuButton<String>(
       tooltip: 'Switch filter mode',
       onSelected: (value) async {
         if (value == '_no_mode') {
           ref.read(filterProvider.notifier).clearFilter();
+          ref.read(filterModesProvider.notifier).setActiveModeId(null);
         } else if (value == '_save') {
           await _handleSaveMode(context, ref);
         } else if (value == '_manage') {
@@ -69,6 +76,7 @@ class ModeDropdownButton extends ConsumerWidget {
           }
           if (mode != null) {
             ref.read(filterProvider.notifier).setFilter(mode.filter);
+            ref.read(filterModesProvider.notifier).setActiveModeId(mode.id);
           }
         }
       },
@@ -83,7 +91,13 @@ class ModeDropdownButton extends ConsumerWidget {
             CheckedPopupMenuItem<String>(
               value: mode.id,
               checked: activeMode?.id == mode.id,
-              child: Text(mode.name),
+              child: Row(
+                children: [
+                  Icon(mode.icon ?? Icons.tune, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(mode.name)),
+                ],
+              ),
             ),
           const PopupMenuDivider(),
           PopupMenuItem<String>(
@@ -121,7 +135,7 @@ class ModeDropdownButton extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.tune,
+              modeIcon,
               size: 16,
               color: hasActiveHighlight
                   ? theme.colorScheme.onPrimaryContainer
