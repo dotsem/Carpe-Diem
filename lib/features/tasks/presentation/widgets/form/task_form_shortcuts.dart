@@ -31,7 +31,21 @@ class TaskFormShortcuts extends StatelessWidget {
     if (controller.isOpen) {
       controller.close();
     } else {
+      _closeOthers(controller);
       controller.open();
+    }
+  }
+
+  void _closeOthers(MenuController current) {
+    for (final c in [
+      projectMenuController,
+      blockerMenuController,
+      labelMenuController,
+      tagMenuController,
+    ]) {
+      if (c != null && !identical(c, current) && c.isOpen) {
+        c.close();
+      }
     }
   }
 
