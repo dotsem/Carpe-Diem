@@ -129,6 +129,58 @@ void main() {
       expect(find.text('New Tag'), findsNothing);
     });
 
+    testWidgets(
+      'opening one dropdown via shortcut closes previously open dropdown',
+      (tester) async {
+        final project = Project(
+          id: 'p1',
+          name: 'Project 1',
+          color: Colors.blue,
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        );
+        final blockerTask = createTestTask(
+          id: 'task_b',
+          title: 'Blocker Task',
+          projectId: 'p1',
+        );
+
+        when(
+          () => repos.mockProjectRepo.getAll(),
+        ).thenAnswer((_) async => [project]);
+        when(
+          () => repos.mockTaskRepo.getByProject('p1'),
+        ).thenAnswer((_) async => [blockerTask]);
+
+        await tester.pumpWidget(buildTestWidget(initialProjectId: 'p1'));
+        await tester.pumpAndSettle();
+
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(BlockersKeys.keyboardKey);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Search tasks...'), findsOneWidget);
+        expect(find.text('New Label'), findsNothing);
+
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(LabelsKeys.keyboardKey);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Search tasks...'), findsNothing);
+        expect(find.text('New Label'), findsOneWidget);
+
+        await simulateKeyDownEvent(LogicalKeyboardKey.controlLeft);
+        await tester.sendKeyEvent(TagsKeys.keyboardKey);
+        await simulateKeyUpEvent(LogicalKeyboardKey.controlLeft);
+        await tester.pumpAndSettle();
+
+        expect(find.text('New Label'), findsNothing);
+        expect(find.text('New Tag'), findsOneWidget);
+      },
+    );
+
     testWidgets('Ctrl+N opens subtask panel when editing task', (tester) async {
       final parentTask = createTestTask(
         id: 'parent_1',

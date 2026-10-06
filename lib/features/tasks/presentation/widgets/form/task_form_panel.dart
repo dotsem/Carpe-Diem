@@ -56,16 +56,34 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       _inheritedLabelIds = [],
       _selectedTagIds = [],
       _previousParsedIds = [];
-  final MenuController _projectMenuController = MenuController(),
-      _blockerMenuController = MenuController(),
-      _labelMenuController = MenuController(),
-      _tagMenuController = MenuController();
+  late final List<MenuController> _menuControllers;
+  late final MenuController _projectMenuController = _menuController();
+  late final MenuController _blockerMenuController = _menuController();
+  late final MenuController _labelMenuController = _menuController();
+  late final MenuController _tagMenuController = _menuController();
+
+  MenuController _menuController() {
+    late final _CoordinatedMenuController c;
+    return c = _CoordinatedMenuController(
+      onWillOpen: () {
+        for (final other in _menuControllers) {
+          if (!identical(other, c) && other.isOpen) other.close();
+        }
+      },
+    );
+  }
 
   bool get isEditing => widget.initialTask != null;
 
   @override
   void initState() {
     super.initState();
+    _menuControllers = [
+      _projectMenuController,
+      _blockerMenuController,
+      _labelMenuController,
+      _tagMenuController,
+    ];
     final task = widget.initialTask;
 
     if (task != null) {
@@ -333,5 +351,17 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       placement: _placement,
       initialTask: widget.initialTask,
     );
+  }
+}
+
+class _CoordinatedMenuController extends MenuController {
+  final VoidCallback onWillOpen;
+
+  _CoordinatedMenuController({required this.onWillOpen});
+
+  @override
+  void open({Offset? position}) {
+    onWillOpen();
+    super.open(position: position);
   }
 }
