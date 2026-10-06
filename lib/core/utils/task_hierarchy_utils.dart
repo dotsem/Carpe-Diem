@@ -107,6 +107,17 @@ class TaskHierarchyUtils {
       }
 
       if (collapsedParentIds != null && collapsedParentIds.contains(taskId)) {
+        void markDescendants(String parent) {
+          final kids = childrenOf[parent];
+          if (kids == null) return;
+          for (final kid in kids) {
+            if (emitted.add(kid)) {
+              markDescendants(kid);
+            }
+          }
+        }
+
+        markDescendants(taskId);
         return;
       }
       if (children != null) {
