@@ -15,7 +15,13 @@ import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart'
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_header.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/project_detail_shortcuts.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_dialog_handlers.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/delete_project_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_tasks_actions.dart';
+import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
@@ -63,7 +69,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 .where((t) => t.id == _highlightedTaskId)
                 .firstOrNull;
             if (task != null) {
-              ProjectDetailDialogHandlers.showEditTask(context, task);
+              context.openRightSidebar(EditTaskPanel(task.id));
             }
           }
         },
@@ -126,6 +132,20 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     debugLabelPrefix: 'ProjectTask',
   );
 
+  Future<void> _showFilterDialog() async {
+    final filterNotifier = ref.read(filterProvider.notifier);
+    final result = await showDialog<TaskFilter>(
+      context: context,
+      builder: (_) => FilterDialog(
+        initialFilter: ref.read(filterProvider).filter,
+        showProjectFilter: false,
+      ),
+    );
+    if (result != null) {
+      filterNotifier.setFilter(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(taskProvider, (previous, next) {
@@ -182,10 +202,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           }
         }
       },
-      onNewTask: () =>
-          ProjectDetailDialogHandlers.showAddTask(context, widget.projectId),
-      onShowFilter: () =>
-          ProjectDetailDialogHandlers.showFilterDialog(context, ref),
+      onNewTask: () => context.openRightSidebar(
+        AddTaskPanel(initialProjectId: widget.projectId),
+      ),
+      onShowFilter: _showFilterDialog,
       child: Focus(
         focusNode: _mainFocusNode,
         autofocus: true,
@@ -199,25 +219,26 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 children: [
                   ProjectDetailHeader(
                     project: project,
-                    onEdit: () => ProjectDetailDialogHandlers.showEditProject(
+                    onEdit: () =>
+                        context.openRightSidebar(EditProjectPanel(project.id)),
+                    onDelete: () => showDeleteProjectDialog(
                       context,
+                      ref,
                       project,
+                      onDeleted: () {
+                        if (context.mounted) {
+                          GoRouter.of(context).go('/projects');
+                        }
+                      },
                     ),
-                    onDelete: () =>
-                        ProjectDetailDialogHandlers.showDeleteProject(
-                          context,
-                          ref,
-                          project,
-                        ),
                     onImportMd: () {
                       showDialog(
                         context: context,
                         builder: (_) => ImportFromMDDialog(project: project),
                       ).then((_) => setState(() {}));
                     },
-                    onAddTask: () => ProjectDetailDialogHandlers.showAddTask(
-                      context,
-                      widget.projectId,
+                    onAddTask: () => context.openRightSidebar(
+                      AddTaskPanel(initialProjectId: widget.projectId),
                     ),
                   ),
                   Divider(
@@ -239,10 +260,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                               .where((t) => t.id == _highlightedTaskId)
                               .firstOrNull;
                           if (task != null) {
-                            ProjectDetailDialogHandlers.showEditTask(
-                              context,
-                              task,
-                            );
+                            context.openRightSidebar(EditTaskPanel(task.id));
                           }
                         } else if (_orderedItemIds.isNotEmpty) {
                           _itemFocusNodes[_orderedItemIds.first]
@@ -255,11 +273,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                     filter: ref.watch(filterProvider).filter,
                     isBypassed: ref.watch(filterProvider).isBypassed,
                     ignoreProjects: true,
-                    onFilterTap: () =>
-                        ProjectDetailDialogHandlers.showFilterDialog(
-                          context,
-                          ref,
-                        ),
+                    onFilterTap: _showFilterDialog,
                     onClearFilter: () =>
                         ref.read(filterProvider.notifier).clearFilter(),
                   ),
@@ -354,11 +368,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                     ..clear()
                                     ..addAll(updated);
                                 }),
-                                onEdit: (task) =>
-                                    ProjectDetailDialogHandlers.showEditTask(
-                                      context,
-                                      task,
-                                    ),
+                                onEdit: (task) => context.openRightSidebar(
+                                  EditTaskPanel(task.id),
+                                ),
                                 isReadOnly: !project.isActive,
                                 initialDoneExpanded: !project.isActive,
                               );
@@ -398,10 +410,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                           .where((t) => t.id == _selectedTaskIds.first)
                           .firstOrNull;
                       if (task != null) {
-                        ProjectDetailDialogHandlers.showEditTask(context, task);
+                        context.openRightSidebar(EditTaskPanel(task.id));
                       }
                     } else {
-                      ProjectDetailDialogHandlers.showBulkEdit(
+                      showBulkEditTasksDialog(
                         context: context,
                         ref: ref,
                         selectedTaskIds: _selectedTaskIds,
@@ -428,7 +440,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         ),
                       );
                     } else {
-                      ProjectDetailDialogHandlers.showBulkDeleteConfirm(
+                      showBulkDeleteTasksConfirmDialog(
                         context: context,
                         ref: ref,
                         selectedTaskIds: _selectedTaskIds,

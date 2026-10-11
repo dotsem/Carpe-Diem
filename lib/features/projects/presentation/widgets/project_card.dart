@@ -3,9 +3,8 @@ import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/context_menu/project_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,33 +28,6 @@ class ProjectCard extends ConsumerStatefulWidget {
 
 class _ProjectCardState extends ConsumerState<ProjectCard> {
   bool _isFocused = false;
-
-  void _showContextMenu(BuildContext context, Offset globalPosition) {
-    final projectNotifier = ref.read(projectProvider.notifier);
-    final isActive = widget.project.isActive;
-    final RenderBox navigatorBox =
-        Navigator.of(context).context.findRenderObject() as RenderBox;
-    final Offset navigatorOffset = navigatorBox.localToGlobal(Offset.zero);
-
-    showMenu(
-      context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromLTWH(globalPosition.dx, globalPosition.dy, 0, 0),
-        navigatorOffset & navigatorBox.size,
-      ),
-      items: [
-        PopupMenuItem(
-          child: ContextMenuItemTile(
-            leading: Icon(
-              isActive ? Icons.archive_outlined : Icons.unarchive_outlined,
-            ),
-            title: isActive ? 'Archive Project' : 'Restore Project',
-          ),
-          onTap: () => projectNotifier.toggleProjectActive(widget.project),
-        ),
-      ],
-    );
-  }
 
   @override
   void didUpdateWidget(covariant ProjectCard oldWidget) {
@@ -109,14 +81,18 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                     setState(() => _isFocused = focused);
                   }
                 },
-                onSecondaryTapDown: (details) =>
-                    _showContextMenu(context, details.globalPosition),
+                onSecondaryTapDown: (details) => showProjectCardContextMenu(
+                  context,
+                  details.globalPosition,
+                  ref,
+                  widget.project,
+                ),
                 onLongPress: () {
                   final RenderBox box = context.findRenderObject() as RenderBox;
                   final Offset pos = box.localToGlobal(
                     box.size.center(Offset.zero),
                   );
-                  _showContextMenu(context, pos);
+                  showProjectCardContextMenu(context, pos, ref, widget.project);
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
