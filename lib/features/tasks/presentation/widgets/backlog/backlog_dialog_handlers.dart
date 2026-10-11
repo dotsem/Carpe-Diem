@@ -7,12 +7,11 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_edit_tasks_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_tasks_actions.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/toast_utils.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
@@ -53,34 +52,13 @@ class BacklogDialogHandlers {
     WidgetRef ref,
     List<String> selectedTaskIds,
     VoidCallback onCompleted,
-  ) async {
-    final result = await showDialog<BulkEditResult>(
+  ) {
+    showBulkEditTasksDialog(
       context: context,
-      builder: (_) => BulkEditTasksDialog(taskIds: selectedTaskIds),
+      ref: ref,
+      selectedTaskIds: selectedTaskIds,
+      onCompleted: onCompleted,
     );
-
-    if (result != null && context.mounted) {
-      await ref
-          .read(taskProvider.notifier)
-          .bulkUpdateTasks(
-            taskIds: selectedTaskIds,
-            isUrgent: result.isUrgent,
-            updateUrgent: result.updateUrgent,
-            scheduledDate: result.scheduledDate,
-            updateScheduledDate: result.updateScheduledDate,
-            clearScheduledDate: result.clearScheduledDate,
-            projectId: result.projectId,
-            updateProjectId: result.updateProjectId,
-            clearProjectId: result.clearProjectId,
-            deadline: result.deadline,
-            updateDeadline: result.updateDeadline,
-            clearDeadline: result.clearDeadline,
-            blockedById: result.blockedById,
-            updateBlockedById: result.updateBlockedById,
-            clearBlockedById: result.clearBlockedById,
-          );
-      onCompleted();
-    }
   }
 
   static void showBulkDeleteConfirm({
@@ -89,39 +67,11 @@ class BacklogDialogHandlers {
     required List<String> selectedTaskIds,
     required VoidCallback onCompleted,
   }) {
-    showDialog(
+    showBulkDeleteTasksConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Tasks'),
-        content: Text(
-          'Are you sure you want to delete ${selectedTaskIds.length} tasks?',
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-        titleTextStyle: Theme.of(context).textTheme.titleLarge,
-        contentTextStyle: Theme.of(context).textTheme.bodyMedium,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
-            ),
-            onPressed: () async {
-              await ref
-                  .read(taskProvider.notifier)
-                  .bulkDeleteTasks(taskIds: selectedTaskIds);
-              onCompleted();
-              if (ctx.mounted) {
-                Navigator.of(ctx).pop();
-              }
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      ref: ref,
+      selectedTaskIds: selectedTaskIds,
+      onCompleted: onCompleted,
     );
   }
 

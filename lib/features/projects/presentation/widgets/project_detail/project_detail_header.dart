@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
@@ -86,27 +87,44 @@ class ProjectDetailHeader extends ConsumerWidget {
                         onPressed: onEdit,
                         tooltip: 'Edit Project',
                       ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline,
-                          color: AppColors.error,
-                        ),
-                        onPressed: onDelete,
-                        tooltip: 'Delete Project',
-                      ),
+
                       const SizedBox(width: 8),
                       BulkActionMenu(
                         options: [
-                          BulkActionOption(
+                          const BulkActionOption(
                             value: 'import',
                             icon: Icons.download,
                             label: 'Import from Markdown',
                             enabled: true,
                           ),
+                          BulkActionOption(
+                            value: 'archive',
+                            icon: project.isActive
+                                ? Icons.archive_outlined
+                                : Icons.unarchive_outlined,
+                            label: project.isActive
+                                ? 'Archive Project'
+                                : 'Restore Project',
+                            enabled: true,
+                          ),
+                          const BulkActionOption(
+                            value: 'delete',
+                            icon: Icons.delete_outline,
+                            label: 'Delete Project',
+                            enabled: true,
+                            isDestructive: true,
+                          ),
                         ],
                         onOptionSelected: (value) {
-                          if (value == 'import') {
-                            onImportMd();
+                          switch (value) {
+                            case 'import':
+                              onImportMd();
+                            case 'archive':
+                              ref
+                                  .read(projectProvider.notifier)
+                                  .toggleProjectActive(project);
+                            case 'delete':
+                              onDelete();
                           }
                         },
                       ),
