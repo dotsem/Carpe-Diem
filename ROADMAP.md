@@ -4,12 +4,12 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 ---
 
-## Current Scope: v0.6.0 (Advanced Features & Markdown Tools)
+## Current Scope: v0.6.0
 
+- [x] **Filter Modes**: Save and switch between reusable focus presets to adapt your workspace to your current context.
 - [ ] **Markdown Import Preview:** Live preview before importing markdown files.
-- [ ] **File Watcher:** Watch markdown files (like Roadmap.md) for live sync.
 - [ ] **Advanced Filtering:** Filter tasks by priority and date range.
-- [ ] **Project Versions:** Assign tasks to specific project versions and track version progress.
+- [ ] **Continuous Saving:** Remove the need for manual save button.
 
 ---
 
@@ -24,3 +24,11 @@ A document outlining the current & future development milestones for Carpe Diem.
 - [ ] **CRDT:** Conflict-free Replicated Data Types for state reconciliation.
 - [ ] **Cloud Sync:** Cross-device synchronization via cloud providers.
 - [ ] **Self-Hosted Sync:** Option to synchronize with self-hosted servers.
+
+
+## Future plans (no fixed release)
+
+- [ ] **Project Versions:** Assign tasks to specific project versions and track version progress.
+- [ ] **File Watcher:** Watch markdown files (like Roadmap.md) for live sync.
+- [ ] **TODO tracker:** Scan codebases for //TODO comments and add them as tasks.
+- [ ] **Project Notes:** A centralized way to store notes about a project.
