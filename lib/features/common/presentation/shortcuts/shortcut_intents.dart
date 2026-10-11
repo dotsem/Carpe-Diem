@@ -311,8 +311,13 @@ final taskDialogShortcutEntries = [
 
 final projectDialogShortcutEntries = [
   const ShortcutEntry(
-    key: 'Ctrl + 1..4',
-    description: 'Set Placement / Urgency',
+    key: 'Ctrl + 1..2',
+    description: 'Urgency',
+    category: 'Project Editor',
+  ),
+  const ShortcutEntry(
+    key: 'Ctrl + L',
+    description: 'Open labels menu',
     category: 'Project Editor',
   ),
   const ShortcutEntry(

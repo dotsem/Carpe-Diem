@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/form/project_form_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +27,7 @@ class ProjectFormPanel extends ConsumerStatefulWidget {
 class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
+  final _labelMenuController = MenuController();
   late Color _selectedColor;
   late bool _isUrgent;
   List<String> _selectedLabelIds = [];
@@ -98,6 +100,7 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
       child: ProjectFormShortcuts(
         onUrgencyChanged: (urgent) => setState(() => _isUrgent = urgent),
         onSubmit: _submit,
+        labelMenuController: _labelMenuController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -133,6 +136,7 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
               items: [
                 SectionItem(
                   icon: Icons.warning_amber_rounded,
+                  shortcut: "Ctrl + 1..2",
                   title: 'Urgency',
                   child: UrgencySelector(
                     selected: _isUrgent,
@@ -154,8 +158,10 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
             const SizedBox(height: 12),
             SectionCard.single(
               icon: Icons.label_outlined,
+              shortcut: "Ctrl + ${LabelsKeys.upper}",
               title: 'Labels',
               child: LabelPicker(
+                menuController: _labelMenuController,
                 selectedLabelIds: _selectedLabelIds,
                 onSelected: (ids) => setState(() => _selectedLabelIds = ids),
                 isDropdown: true,
