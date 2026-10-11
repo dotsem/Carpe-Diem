@@ -32,11 +32,15 @@ class SectionCard extends StatelessWidget {
     required IconData icon,
     required String title,
     required Widget child,
+    final String? shortcut,
+
     EdgeInsetsGeometry padding = const EdgeInsets.all(12),
   }) {
     return SectionCard(
       key: key,
-      items: [SectionItem(icon: icon, title: title, child: child)],
+      items: [
+        SectionItem(icon: icon, title: title, child: child, shortcut: shortcut),
+      ],
       padding: padding,
     );
   }
