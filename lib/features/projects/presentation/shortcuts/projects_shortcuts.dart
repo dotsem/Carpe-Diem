@@ -19,6 +19,7 @@ class ProjectsShortcuts extends ConsumerWidget {
   final VoidCallback onFocusSearch;
   final VoidCallback onUnfocusSearch;
   final VoidCallback onShowFilter;
+  final VoidCallback onNewTask;
 
   const ProjectsShortcuts({
     super.key,
@@ -30,6 +31,7 @@ class ProjectsShortcuts extends ConsumerWidget {
     required this.onFocusSearch,
     required this.onUnfocusSearch,
     required this.onShowFilter,
+    required this.onNewTask,
   });
 
   @override
@@ -53,6 +55,8 @@ class ProjectsShortcuts extends ConsumerWidget {
           const SingleActivator(AppKeyBindings.arrowRight):
               const MoveRightIntent(),
           const CharacterActivator(FilterKeys.char): const FilterIntent(),
+          const CharacterActivator(AddKeys.char): const NewTaskIntent(),
+          const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
         },
         child: Actions(
           actions: {
@@ -78,6 +82,7 @@ class ProjectsShortcuts extends ConsumerWidget {
                 return null;
               },
             ),
+            NewTaskIntent: NonTypingAction<NewTaskIntent>((_) => onNewTask()),
           },
           child: child,
         ),

@@ -60,6 +60,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           _gridKey.currentState?.requestFirstItemFocus();
         }
       },
+      onNewTask: () => context.openRightSidebar(const AddProjectPanel(), ref),
       child: Focus(
         focusNode: _mainFocusNode,
         autofocus: true,
