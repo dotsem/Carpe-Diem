@@ -44,10 +44,12 @@ class TaskCompletionService {
     required Task task,
     required TaskStatus status,
     String? newSortOrder,
+    String? newPlanSortOrder,
   }) {
     final updated = task.copyWith(
       status: status,
       sortOrder: newSortOrder ?? task.sortOrder,
+      planSortOrder: newPlanSortOrder ?? task.planSortOrder,
     );
     return UpdateCommand(
       repo: repo,

@@ -18,6 +18,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
   final void Function(Task task, String newSortOrder) onReorder;
   final void Function(Map<String, String> newSortOrders)? onMultiReorder;
   final bool isReorderEnabled;
+  final bool isPlanView;
 
   const ActiveTaskReorderableList({
     super.key,
@@ -27,6 +28,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
     required this.onReorder,
     this.onMultiReorder,
     this.isReorderEnabled = true,
+    this.isPlanView = false,
   });
 
   @override
@@ -56,6 +58,8 @@ class ActiveTaskReorderableList extends ConsumerWidget {
             draggedTask: task,
             targetIndex: targetIndex,
             nodes: nodes,
+            settings: ref.read(settingsProvider),
+            isPlanView: isPlanView,
           ),
       isLastChildInGroup: (task, index) =>
           TaskHierarchyReorderUtils.isLastChildInGroup(
@@ -114,6 +118,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                       newIndex: newIndex,
                       selectedTaskIds: selectedTaskIds.toSet(),
                       settings: settings,
+                      isPlanView: isPlanView,
                     );
                     if (newSortOrders != null && newSortOrders.isNotEmpty) {
                       onMultiReorder?.call(newSortOrders);
@@ -125,6 +130,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                     draggedTask: task,
                     newIndex: newIndex,
                     settings: settings,
+                    isPlanView: isPlanView,
                   );
                   if (newSortOrder != null) {
                     onReorder(task, newSortOrder);

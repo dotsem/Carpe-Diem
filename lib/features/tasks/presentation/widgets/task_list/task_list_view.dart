@@ -36,6 +36,7 @@ class TaskListView extends ConsumerStatefulWidget {
   final bool enablePlanShortcut;
   final VoidCallback? onClearSelection;
   final bool asParentContainers;
+  final bool isPlanView;
 
   const TaskListView({
     super.key,
@@ -60,6 +61,7 @@ class TaskListView extends ConsumerStatefulWidget {
     this.enablePlanShortcut = false,
     this.onClearSelection,
     this.asParentContainers = false,
+    this.isPlanView = false,
   }) : padding = padding ?? const EdgeInsets.symmetric(vertical: 16);
 
   @override
@@ -116,7 +118,11 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
         itemToString: (t) => '${t.title} ${t.description ?? ''}',
       );
     } else {
-      TaskSortUtils.sortTasks(allTasks, ref.read(settingsProvider));
+      TaskSortUtils.sortTasks(
+        allTasks,
+        ref.read(settingsProvider),
+        isPlanView: widget.isPlanView,
+      );
     }
 
     final activeTasks = allTasks.where((t) => !t.status.isDone).toList();
@@ -240,12 +246,20 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
               selectedTaskIds: widget.selectedTaskIds,
               isReorderEnabled:
                   widget.searchQuery == null || widget.searchQuery!.isEmpty,
+              isPlanView: widget.isPlanView,
               onReorder: (task, newSortOrder) => ref
                   .read(taskProvider.notifier)
-                  .reorderTask(task, newSortOrder),
+                  .reorderTask(
+                    task,
+                    newSortOrder,
+                    isPlanOrder: widget.isPlanView,
+                  ),
               onMultiReorder: (newSortOrders) => ref
                   .read(taskProvider.notifier)
-                  .bulkReorderTasks(newSortOrders),
+                  .bulkReorderTasks(
+                    newSortOrders,
+                    isPlanOrder: widget.isPlanView,
+                  ),
             ),
           if (doneCategory.isNotEmpty) ...[
             TaskListDoneSection(

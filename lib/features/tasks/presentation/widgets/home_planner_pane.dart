@@ -63,6 +63,7 @@ class HomePlannerPane extends ConsumerWidget {
     if (taskLayout == TaskLayout.kanban) {
       return KanbanBoard(
         tasks: [...(isToday ? overdue : []), ...allTasks],
+        isPlanView: true,
         onStatusChange: (task, status) async {
           if (status == TaskStatus.done) {
             final conflict = await ref
@@ -78,7 +79,12 @@ class HomePlannerPane extends ConsumerWidget {
           }
           ref
               .read(taskProvider.notifier)
-              .updateTaskStatus(task, status, newSortOrder: task.sortOrder);
+              .updateTaskStatus(
+                task,
+                status,
+                newSortOrder: task.sortOrder,
+                newPlanSortOrder: task.planSortOrder,
+              );
         },
         onContextMenu: (task, pos, box) =>
             showTaskCardContextMenu(context, ref, task, allTasks, pos, box),
@@ -91,6 +97,7 @@ class HomePlannerPane extends ConsumerWidget {
     return TaskListView(
       tasks: allTasks,
       overdueTasks: isToday ? overdue : [],
+      isPlanView: true,
       onContextMenu: (ctx, task, pos, box) =>
           showTaskCardContextMenu(ctx, ref, task, allTasks, pos, box),
       onOrderedIdsChanged: onOrderedIdsChanged,

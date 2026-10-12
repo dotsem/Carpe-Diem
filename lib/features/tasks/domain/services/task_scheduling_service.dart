@@ -40,7 +40,11 @@ class TaskSchedulingService {
     required List<Task> subtasks,
   }) {
     final normalizedDate = date.normalize;
-    final updatedParent = task.copyWith(scheduledDate: normalizedDate);
+    final isDateChanging = task.scheduledDate != normalizedDate;
+    final updatedParent = task.copyWith(
+      scheduledDate: normalizedDate,
+      clearPlanSortOrder: isDateChanging,
+    );
     final dateLabel = _formatDateLabel(date);
 
     if (cascadeChildren) {
@@ -56,8 +60,10 @@ class TaskSchedulingService {
           ),
         ];
         for (final subtask in incompleteSubtasks) {
+          final isSubDateChanging = subtask.scheduledDate != normalizedDate;
           final updatedSubtask = subtask.copyWith(
             scheduledDate: normalizedDate,
+            clearPlanSortOrder: isSubDateChanging,
           );
           commands.add(
             UpdateCommand(
@@ -98,6 +104,7 @@ class TaskSchedulingService {
   }) {
     final updatedParent = task.copyWith(
       clearScheduledDate: true,
+      clearPlanSortOrder: true,
       status: resetStatus ? TaskStatus.todo : task.status,
     );
 
@@ -118,6 +125,7 @@ class TaskSchedulingService {
         for (final subtask in scheduledSubtasks) {
           final updatedSubtask = subtask.copyWith(
             clearScheduledDate: true,
+            clearPlanSortOrder: true,
             status: resetStatus ? TaskStatus.todo : subtask.status,
           );
           commands.add(
@@ -159,7 +167,11 @@ class TaskSchedulingService {
     for (final id in taskIds) {
       final task = await getTaskById(id);
       if (task != null) {
-        final updated = task.copyWith(scheduledDate: normalizedDate);
+        final isDateChanging = task.scheduledDate != normalizedDate;
+        final updated = task.copyWith(
+          scheduledDate: normalizedDate,
+          clearPlanSortOrder: isDateChanging,
+        );
         commands.add(
           UpdateCommand(
             repo: repo,
@@ -179,7 +191,10 @@ class TaskSchedulingService {
               UpdateCommand(
                 repo: repo,
                 previous: subtask,
-                next: subtask.copyWith(scheduledDate: normalizedDate),
+                next: subtask.copyWith(
+                  scheduledDate: normalizedDate,
+                  clearPlanSortOrder: true,
+                ),
                 displayName: subtask.title,
                 customDescription:
                     'Scheduled subtask "${subtask.title}" for $dateLabel',

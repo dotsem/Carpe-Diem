@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
+import 'package:carpe_diem/core/utils/task_sort_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
@@ -28,6 +29,7 @@ class KanbanBoard extends ConsumerStatefulWidget {
   final void Function(Task task) onEdit;
   final Map<String, FocusNode>? itemFocusNodes;
   final ValueChanged<List<String>>? onOrderedIdsChanged;
+  final bool isPlanView;
 
   const KanbanBoard({
     super.key,
@@ -37,6 +39,7 @@ class KanbanBoard extends ConsumerStatefulWidget {
     required this.onEdit,
     this.itemFocusNodes,
     this.onOrderedIdsChanged,
+    this.isPlanView = true,
   });
 
   @override
@@ -59,36 +62,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   Widget build(BuildContext context) {
     final tasks = List<Task>.from(widget.tasks);
     final settings = ref.watch(settingsProvider);
-    tasks.sort((a, b) {
-      if (a.isUrgent && !b.isUrgent) return -1;
-      if (!a.isUrgent && b.isUrgent) return 1;
-
-      if (settings.prioritizeOverdue) {
-        if (a.isOverdue && !b.isOverdue) return -1;
-        if (!a.isOverdue && b.isOverdue) return 1;
-      }
-
-      final deadlineComp = () {
-        if (a.deadline == b.deadline) return 0;
-        if (a.deadline == null) return 1;
-        if (b.deadline == null) return -1;
-        return a.deadline!.compareTo(b.deadline!);
-      }();
-
-      if (settings.prioritizeDeadlines && deadlineComp != 0) {
-        return deadlineComp;
-      }
-
-      final aSort = a.sortOrder.isEmpty ? '~' : a.sortOrder;
-      final bSort = b.sortOrder.isEmpty ? '~' : b.sortOrder;
-      final sortComp = aSort.compareTo(bSort);
-      if (sortComp != 0) return sortComp;
-
-      final createdComp = b.createdAt.compareTo(a.createdAt);
-      if (createdComp != 0) return createdComp;
-
-      return deadlineComp;
-    });
+    TaskSortUtils.sortTasks(tasks, settings, isPlanView: widget.isPlanView);
 
     final todo = tasks.where((t) => t.status.isTodo).toList();
     final inProgress = tasks
@@ -161,6 +135,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
                       onStatusChange: widget.onStatusChange,
                       onContextMenu: widget.onContextMenu,
                       onEdit: widget.onEdit,
+                      isPlanView: widget.isPlanView,
                     ),
                   ),
                   const SizedBox(width: columnSpacing),
@@ -174,6 +149,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
                       onStatusChange: widget.onStatusChange,
                       onContextMenu: widget.onContextMenu,
                       onEdit: widget.onEdit,
+                      isPlanView: widget.isPlanView,
                     ),
                   ),
                   const SizedBox(width: columnSpacing),
@@ -188,6 +164,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
                         onStatusChange: widget.onStatusChange,
                         onContextMenu: widget.onContextMenu,
                         onEdit: widget.onEdit,
+                        isPlanView: widget.isPlanView,
                       ),
                     ),
                     const SizedBox(width: columnSpacing),
@@ -220,6 +197,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
                     },
                     onDragExiting: () =>
                         setState(() => _isDraggingOver = false),
+                    isPlanView: widget.isPlanView,
                   ),
                 ],
               ),

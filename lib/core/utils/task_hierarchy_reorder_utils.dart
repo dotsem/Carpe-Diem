@@ -1,3 +1,5 @@
+import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 
@@ -6,10 +8,27 @@ class TaskHierarchyReorderUtils {
     required Task draggedTask,
     required int targetIndex,
     required List<TaskHierarchyNode> nodes,
+    SettingsState? settings,
+    bool isPlanView = false,
   }) {
     if (targetIndex < 0 || targetIndex > nodes.length) return false;
 
-    if (draggedTask.parentId == null) {
+    if (settings != null &&
+        !isPositionInGroup(
+          draggedTask: draggedTask,
+          targetIndex: targetIndex,
+          nodes: nodes,
+          settings: settings,
+          isPlanView: isPlanView,
+        )) {
+      return false;
+    }
+
+    final parentId = draggedTask.parentId;
+    final isParentInNodes =
+        parentId != null && nodes.any((n) => n.task?.id == parentId);
+
+    if (parentId == null || !isParentInNodes) {
       if (targetIndex == nodes.length) return true;
       final node = nodes[targetIndex];
       if (node is TaskNode && node.isBundledUnderParent) return false;
@@ -17,7 +36,6 @@ class TaskHierarchyReorderUtils {
       return true;
     }
 
-    final parentId = draggedTask.parentId!;
     final childIndices = <int>[];
     for (int i = 0; i < nodes.length; i++) {
       if (nodes[i].task?.parentId == parentId) {
@@ -48,6 +66,8 @@ class TaskHierarchyReorderUtils {
     required List<TaskHierarchyNode> nodes,
   }) {
     if (task.parentId == null) return false;
+    final isParentInNodes = nodes.any((n) => n.task?.id == task.parentId);
+    if (!isParentInNodes) return false;
     if (index < 0 || index >= nodes.length) return false;
     if (nodes[index].task?.parentId != task.parentId) return false;
 
@@ -59,5 +79,32 @@ class TaskHierarchyReorderUtils {
     }
 
     return index == lastChildIndex;
+  }
+
+  static bool isPositionInGroup({
+    required Task draggedTask,
+    required int targetIndex,
+    required List<TaskHierarchyNode> nodes,
+    required SettingsState settings,
+    bool isPlanView = false,
+  }) {
+    int first = -1;
+    int last = -1;
+    for (int i = 0; i < nodes.length; i++) {
+      final t = nodes[i].task;
+      if (t != null &&
+          TaskReorderUtils.inSameGroup(
+            t,
+            draggedTask,
+            settings,
+            isPlanView: isPlanView,
+            nodes: nodes,
+          )) {
+        if (first == -1) first = i;
+        last = i;
+      }
+    }
+    if (first == -1) return true;
+    return targetIndex >= first && targetIndex <= last + 1;
   }
 }

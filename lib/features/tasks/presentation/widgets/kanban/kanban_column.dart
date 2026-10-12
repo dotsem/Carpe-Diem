@@ -29,6 +29,7 @@ class KanbanColumn extends ConsumerStatefulWidget {
   final void Function(Task task) onEdit;
   final bool isCollapsed;
   final bool isNarrow;
+  final bool isPlanView;
   final VoidCallback? onToggle;
   final VoidCallback? onDragEntering;
   final VoidCallback? onDragExiting;
@@ -44,6 +45,7 @@ class KanbanColumn extends ConsumerStatefulWidget {
     required this.onContextMenu,
     required this.onEdit,
     this.isNarrow = false,
+    this.isPlanView = true,
     this.isCollapsed = false,
     this.onToggle,
     this.onDragEntering,
@@ -58,66 +60,92 @@ class KanbanColumn extends ConsumerStatefulWidget {
 class _KanbanColumnState extends ConsumerState<KanbanColumn> {
   int _hoveredChildren = 0;
 
+  bool _inSameGroup(Task a, Task b) {
+    final s = ref.read(settingsProvider);
+    return TaskReorderUtils.inSameGroup(a, b, s, isPlanView: widget.isPlanView);
+  }
+
+  void _updateOrder(Task task, String? order) {
+    if (task.status != widget.acceptedStatus) {
+      final updated = task.copyWith(
+        sortOrder: order ?? task.sortOrder,
+        planSortOrder: widget.isPlanView ? (order ?? task.planSortOrder) : null,
+      );
+      widget.onStatusChange(updated, widget.acceptedStatus);
+    } else if (order != null) {
+      ref
+          .read(taskProvider.notifier)
+          .reorderTask(task, order, isPlanOrder: widget.isPlanView);
+    }
+  }
+
+  void _acceptDrop(Task task) {
+    widget.onDragExiting?.call();
+    ref.read(taskDragProvider.notifier).endDrag();
+    final same = widget.tasks.where((t) => _inSameGroup(t, task)).toList();
+    _updateOrder(
+      task,
+      TaskReorderService.computeSortOrder(
+        placement: TaskPlacement.bottom,
+        activeList: same,
+      ),
+    );
+  }
+
+  void _handleTaskDrop(Task task, int newIndex, List<TaskHierarchyNode> nodes) {
+    _updateOrder(
+      task,
+      TaskReorderUtils.handleReorder(
+        nodes: nodes,
+        draggedTask: task,
+        newIndex: newIndex,
+        settings: ref.read(settingsProvider),
+        isPlanView: widget.isPlanView,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
-        if (details.data.status != widget.acceptedStatus) {
-          widget.onDragEntering?.call();
-          ref.read(taskDragProvider.notifier).setValidTarget(true);
-          return true;
-        }
-        return false;
+        final canAccept = details.data.status != widget.acceptedStatus;
+        if (canAccept) widget.onDragEntering?.call();
+        ref.read(taskDragProvider.notifier).setValidTarget(canAccept);
+        return canAccept;
       },
-      onLeave: (details) {
+      onLeave: (_) {
         widget.onDragExiting?.call();
         ref.read(taskDragProvider.notifier).setValidTarget(false);
       },
-      onAcceptWithDetails: (details) {
-        widget.onDragExiting?.call();
-        ref.read(taskDragProvider.notifier).endDrag();
-        final settings = ref.read(settingsProvider);
-        final sameGroupTasks = widget.tasks
-            .where(
-              (t) => TaskReorderUtils.inSameGroup(t, details.data, settings),
+      onAcceptWithDetails: (details) => _acceptDrop(details.data),
+      builder: (context, candidateData, rejectedData) => widget.isCollapsed
+          ? KanbanCollapsedColumn(
+              title: widget.title,
+              titleColor: widget.titleColor,
+              onToggle: widget.onToggle,
             )
-            .toList();
-        final newSortOrder = TaskReorderService.computeSortOrder(
-          placement: TaskPlacement.bottom,
-          activeList: sameGroupTasks,
-        );
-        final updatedTask = details.data.copyWith(sortOrder: newSortOrder);
-        widget.onStatusChange(updatedTask, widget.acceptedStatus);
-      },
-      builder: (context, candidateData, rejectedData) {
-        if (widget.isCollapsed) {
-          return KanbanCollapsedColumn(
-            title: widget.title,
-            titleColor: widget.titleColor,
-            onToggle: widget.onToggle,
-          );
-        }
-        return _buildFull(
-          context,
-          candidateData.isNotEmpty || _hoveredChildren > 0,
-        );
-      },
+          : _buildFull(
+              context,
+              candidateData.isNotEmpty || _hoveredChildren > 0,
+            ),
     );
   }
 
   Widget _buildFull(BuildContext context, bool isHighlighted) {
+    final theme = Theme.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
         color: isHighlighted
             ? widget.titleColor.withValues(alpha: 0.1)
-            : Theme.of(context).scaffoldBackgroundColor,
+            : theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isHighlighted
               ? widget.titleColor.withValues(alpha: 0.4)
-              : Theme.of(context).colorScheme.surfaceContainerHigh,
+              : theme.colorScheme.surfaceContainerHigh,
           width: isHighlighted ? 2 : 1,
         ),
       ),
@@ -152,17 +180,15 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                     ),
                   ),
                 ),
-                if (widget.onToggle != null && widget.isNarrow) ...[
-                  const SizedBox(width: 4),
+                if (widget.onToggle != null && widget.isNarrow)
                   IconButton(
                     icon: const Icon(Icons.chevron_right, size: 16),
                     onPressed: widget.onToggle,
-                    padding: EdgeInsets.zero,
+                    padding: const EdgeInsets.only(left: 4),
                     constraints: const BoxConstraints(),
                     visualDensity: VisualDensity.compact,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                ],
               ],
             ),
           ),
@@ -173,39 +199,36 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                     child: Text(
                       'No tasks',
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   )
                 : Consumer(
                     builder: (context, ref, child) {
                       final taskState = ref.watch(taskProvider);
-                      final allAvailableTasks =
-                          {for (var t in taskState.tasks) t.id: t}
-                            ..addAll({
-                              for (var t in taskState.overdueTasks) t.id: t,
-                            })
-                            ..addAll({
-                              for (var t in taskState.unscheduledTasks) t.id: t,
-                            });
-
+                      final allAvailableTasks = {
+                        for (final t in [
+                          ...taskState.tasks,
+                          ...taskState.overdueTasks,
+                          ...taskState.unscheduledTasks,
+                        ])
+                          t.id: t,
+                      };
                       final projectNotifier = ref.read(
                         projectProvider.notifier,
-                      );
-                      final collapsedParentIds = ref.watch(
-                        collapsedSubtasksProvider,
                       );
                       final hierarchical = TaskHierarchyUtils.buildHierarchy(
                         widget.tasks,
                         allTasks: allAvailableTasks,
-                        collapsedParentIds: collapsedParentIds,
+                        collapsedParentIds: ref.watch(
+                          collapsedSubtasksProvider,
+                        ),
                       );
-                      final urgentSectionEnd =
-                          TaskReorderUtils.getUrgentSectionEndIndex(
-                            hierarchical,
-                          );
                       return TaskDropZoneScope(
-                        urgentSectionEndIndex: urgentSectionEnd,
+                        urgentSectionEndIndex:
+                            TaskReorderUtils.getUrgentSectionEndIndex(
+                              hierarchical,
+                            ),
                         itemCount: hierarchical.length,
                         isPositionUnchanged: (task, targetIndex) =>
                             TaskReorderUtils.isPositionUnchangedInNodes(
@@ -218,6 +241,8 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                               draggedTask: task,
                               targetIndex: targetIndex,
                               nodes: hierarchical,
+                              settings: ref.read(settingsProvider),
+                              isPlanView: widget.isPlanView,
                             ),
                         isLastChildInGroup: (task, index) =>
                             TaskHierarchyReorderUtils.isLastChildInGroup(
@@ -257,29 +282,8 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                               onHover: (hovered) => setState(() {
                                 _hoveredChildren += hovered ? 1 : -1;
                               }),
-                              onDrop: (task, newIndex) {
-                                final settings = ref.read(settingsProvider);
-                                final newSortOrder =
-                                    TaskReorderUtils.handleReorder(
-                                      nodes: hierarchical,
-                                      draggedTask: task,
-                                      newIndex: newIndex,
-                                      settings: settings,
-                                    );
-                                if (task.status != widget.acceptedStatus) {
-                                  final updatedTask = task.copyWith(
-                                    sortOrder: newSortOrder ?? task.sortOrder,
-                                  );
-                                  widget.onStatusChange(
-                                    updatedTask,
-                                    widget.acceptedStatus,
-                                  );
-                                } else if (newSortOrder != null) {
-                                  ref
-                                      .read(taskProvider.notifier)
-                                      .reorderTask(task, newSortOrder);
-                                }
-                              },
+                              onDrop: (task, newIndex) =>
+                                  _handleTaskDrop(task, newIndex, hierarchical),
                               child: childWidget,
                             );
                           },

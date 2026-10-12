@@ -50,6 +50,14 @@ void main() {
       },
     );
 
+    test('should have planSortOrder column in tasks table', () async {
+      final columns = await db.rawQuery('PRAGMA table_info(tasks)');
+      final hasPlanSortOrder = columns.any(
+        (col) => col['name'] == 'planSortOrder',
+      );
+      expect(hasPlanSortOrder, isTrue);
+    });
+
     test('should seed initial tag icons in tag_icons table', () async {
       final results = await db.query('tag_icons');
       expect(results, isNotEmpty);

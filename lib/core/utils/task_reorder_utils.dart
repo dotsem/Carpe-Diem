@@ -14,26 +14,20 @@ class TaskReorderUtils {
     required List<Task> tasks,
     SettingsState? settings,
   }) {
-    final indexInList = tasks.indexWhere((t) => t.id == task.id);
-    if (indexInList == -1) return const TaskPositionInfo.notFound();
-
-    final sameGroup = tasks
-        .where(
-          (t) => settings != null
-              ? inSameGroup(t, task, settings)
-              : (t.parentId == task.parentId && t.isUrgent == task.isUrgent),
-        )
-        .toList();
-
-    final indexInGroup = sameGroup.indexWhere((t) => t.id == task.id);
-
+    final idx = tasks.indexWhere((t) => t.id == task.id);
+    if (idx == -1) return const TaskPositionInfo.notFound();
+    bool inGroup(Task t) => settings != null
+        ? inSameGroup(t, task, settings)
+        : (t.parentId == task.parentId && t.isUrgent == task.isUrgent);
+    final group = tasks.where(inGroup).toList();
+    final gIdx = group.indexWhere((t) => t.id == task.id);
     return TaskPositionInfo(
-      indexInList: indexInList,
-      indexInGroup: indexInGroup,
-      isFirstInGroup: indexInGroup == 0,
-      isLastInGroup: indexInGroup == sameGroup.length - 1,
-      isFirstInList: indexInList == 0,
-      isLastInList: indexInList == tasks.length - 1,
+      indexInList: idx,
+      indexInGroup: gIdx,
+      isFirstInGroup: gIdx == 0,
+      isLastInGroup: gIdx == group.length - 1,
+      isFirstInList: idx == 0,
+      isLastInList: idx == tasks.length - 1,
     );
   }
 
@@ -41,71 +35,140 @@ class TaskReorderUtils {
   static bool isPositionUnchanged({
     required int currentIndex,
     required int targetIndex,
-  }) {
-    if (currentIndex < 0) return false;
-    return targetIndex == currentIndex || targetIndex == currentIndex + 1;
-  }
+  }) =>
+      currentIndex >= 0 &&
+      (targetIndex == currentIndex || targetIndex == currentIndex + 1);
 
   /// Checks whether moving [draggedTask] to [targetIndex] in [nodes] results in no change to its position.
   static bool isPositionUnchangedInNodes({
     required Task draggedTask,
     required int targetIndex,
     required List<TaskHierarchyNode> nodes,
+  }) => isPositionUnchanged(
+    currentIndex: nodes.indexWhere((n) => n.task?.id == draggedTask.id),
+    targetIndex: targetIndex,
+  );
+
+  static bool inSameGroup(
+    Task a,
+    Task b,
+    SettingsState settings, {
+    bool isPlanView = false,
+    List<TaskHierarchyNode>? nodes,
   }) {
-    final currentIndex = nodes.indexWhere((n) => n.task?.id == draggedTask.id);
-    return isPositionUnchanged(
-      currentIndex: currentIndex,
-      targetIndex: targetIndex,
-    );
-  }
-
-  static bool inSameGroup(Task a, Task b, SettingsState settings) {
-    if (a.parentId != b.parentId) return false;
-
-    if (a.isUrgent || b.isUrgent) {
-      return a.isUrgent && b.isUrgent;
+    if (isPlanView && nodes != null) {
+      final aTop =
+          a.parentId == null || !nodes.any((n) => n.task?.id == a.parentId);
+      final bTop =
+          b.parentId == null || !nodes.any((n) => n.task?.id == b.parentId);
+      if ((!aTop || !bTop) && a.parentId != b.parentId) return false;
+      // In plan view only urgency partitions; deadline/overdue don't restrict reordering.
+      return !(a.isUrgent || b.isUrgent) || (a.isUrgent && b.isUrgent);
+    } else if (a.parentId != b.parentId) {
+      return false;
     }
-
+    if (a.isUrgent || b.isUrgent) return a.isUrgent && b.isUrgent;
     if (settings.prioritizeOverdue && a.isOverdue != b.isOverdue) return false;
-
-    if (settings.prioritizeDeadlines && a.deadline != b.deadline) return false;
-
-    return true;
+    return !settings.prioritizeDeadlines || a.deadline == b.deadline;
   }
 
-  /// Find the effective rank of a task at a given index in a list.
-  /// Considers existing sort orders and generates intermediate ranks if needed.
-  /// Returns the new sort order for the task, or null if no change is needed.
-  static String? getEffectiveRank(List<Task> remaining, int index) {
+  /// Returns the effective sort rank of the task at [index] in [remaining].
+  /// Returns null if [index] is out of bounds.
+  static String? getEffectiveRank(
+    List<Task> remaining,
+    int index, {
+    bool isPlanView = false,
+  }) {
     if (index < 0 || index >= remaining.length) return null;
     final task = remaining[index];
-    // Empty sortOrder is stored as '~' in SQL — match that here so ranks are consistent.
-    if (task.sortOrder.isNotEmpty) return task.sortOrder;
-    return '~';
+    final plan = task.planSortOrder;
+    final rank = isPlanView && plan != null && plan.isNotEmpty
+        ? plan
+        : task.sortOrder;
+    return rank.isNotEmpty ? rank : '~';
   }
 
   /// Find the boundary index in [nodes] where the urgent section ends.
   /// All nodes before this index are effectively urgent.
   static int getUrgentSectionEndIndex(List<TaskHierarchyNode> nodes) {
-    int urgentEnd = 0;
     for (int i = 0; i < nodes.length; i++) {
       final node = nodes[i];
-      final isRoot = switch (node) {
-        ParentContainerNode p => p.depth == 0,
-        TaskNode t => t.depth == 0 && !t.isBundledUnderParent,
-        _ => true,
-      };
+      final isRoot = node is ParentContainerNode
+          ? node.depth == 0
+          : (node is TaskNode && node.depth == 0 && !node.isBundledUnderParent);
       if (isRoot) {
-        final isUrgent = switch (node) {
-          ParentContainerNode p => p.task.isUrgent || p.hasUrgentChild,
-          TaskNode t => t.task.isUrgent,
-          _ => node.task?.isUrgent ?? false,
-        };
+        final isUrgent = node is ParentContainerNode
+            ? (node.task.isUrgent || node.hasUrgentChild)
+            : (node.task?.isUrgent ?? false);
         if (!isUrgent) return i;
       }
-      urgentEnd = i + 1;
     }
-    return urgentEnd;
+    return nodes.length;
+  }
+
+  static int _effectiveIndex(int newIndex, bool isUrgent, int urgentEnd) {
+    if (!isUrgent && newIndex < urgentEnd) return urgentEnd;
+    if (isUrgent && newIndex > urgentEnd) return urgentEnd;
+    return newIndex;
+  }
+
+  static ({List<Task> sameGroupTasks, List<Task> remaining, int targetCount})
+  _getReorderContext({
+    required List<TaskHierarchyNode> nodes,
+    required Task draggedTask,
+    required int effectiveIndex,
+    required int urgentSectionEnd,
+    required SettingsState settings,
+    required bool isPlanView,
+    required Set<String> excludeIds,
+  }) {
+    final section = draggedTask.isUrgent
+        ? nodes.sublist(0, urgentSectionEnd)
+        : nodes.sublist(urgentSectionEnd);
+    bool matches(Task t) => inSameGroup(
+      t,
+      draggedTask,
+      settings,
+      isPlanView: isPlanView,
+      nodes: nodes,
+    );
+    final sameGroupTasks = section
+        .map((n) => n.task)
+        .whereType<Task>()
+        .where(matches)
+        .toList();
+    final start = draggedTask.isUrgent ? 0 : urgentSectionEnd;
+    final targetCount = nodes
+        .sublist(start, effectiveIndex.clamp(start, nodes.length))
+        .map((n) => n.task)
+        .whereType<Task>()
+        .where((t) => !excludeIds.contains(t.id) && matches(t))
+        .length;
+    final remaining = sameGroupTasks
+        .where((t) => !excludeIds.contains(t.id))
+        .toList();
+    return (
+      sameGroupTasks: sameGroupTasks,
+      remaining: remaining,
+      targetCount: targetCount,
+    );
+  }
+
+  static ({int effectiveIndex, int urgentSectionEnd})? _validatedTarget(
+    List<TaskHierarchyNode> nodes,
+    Task task,
+    int newIndex,
+  ) {
+    final end = getUrgentSectionEndIndex(nodes);
+    final idx = _effectiveIndex(newIndex, task.isUrgent, end);
+    if (isPositionUnchangedInNodes(
+      draggedTask: task,
+      targetIndex: idx,
+      nodes: nodes,
+    )) {
+      return null;
+    }
+    return (effectiveIndex: idx, urgentSectionEnd: end);
   }
 
   /// Calculate the new sort order for a single task when moved to a new position in a group.
@@ -115,59 +178,33 @@ class TaskReorderUtils {
     required Task draggedTask,
     required int newIndex,
     required SettingsState settings,
+    bool isPlanView = false,
   }) {
-    final urgentSectionEnd = getUrgentSectionEndIndex(nodes);
-    final isDraggedUrgent = draggedTask.isUrgent;
-    final effectiveIndex = !isDraggedUrgent && newIndex < urgentSectionEnd
-        ? urgentSectionEnd
-        : (isDraggedUrgent && newIndex > urgentSectionEnd
-              ? urgentSectionEnd
-              : newIndex);
+    final target = _validatedTarget(nodes, draggedTask, newIndex);
+    if (target == null) return null;
 
-    if (isPositionUnchangedInNodes(
-      draggedTask: draggedTask,
-      targetIndex: effectiveIndex,
+    final (:sameGroupTasks, :remaining, :targetCount) = _getReorderContext(
       nodes: nodes,
-    )) {
-      return null;
-    }
-
-    final sectionNodes = !isDraggedUrgent
-        ? nodes.sublist(urgentSectionEnd)
-        : nodes.sublist(0, urgentSectionEnd);
-
-    final sameGroupTasks = sectionNodes
-        .map((n) => n.task)
-        .whereType<Task>()
-        .where((t) => inSameGroup(t, draggedTask, settings))
-        .toList();
-
-    if (sameGroupTasks.isEmpty) return null;
-
-    final taskOldIndex = sameGroupTasks.indexWhere(
-      (t) => t.id == draggedTask.id,
+      draggedTask: draggedTask,
+      effectiveIndex: target.effectiveIndex,
+      urgentSectionEnd: target.urgentSectionEnd,
+      settings: settings,
+      isPlanView: isPlanView,
+      excludeIds: {draggedTask.id},
     );
 
-    int targetCount = 0;
-    final startIndex = !isDraggedUrgent ? urgentSectionEnd : 0;
-    for (int i = startIndex; i < effectiveIndex && i < nodes.length; i++) {
-      final n = nodes[i];
-      if (n.task != null && inSameGroup(n.task!, draggedTask, settings)) {
-        targetCount++;
-      }
-    }
+    if (sameGroupTasks.isEmpty || remaining.isEmpty) return null;
 
-    final remaining = List<Task>.from(sameGroupTasks);
-    if (taskOldIndex >= 0 && taskOldIndex < remaining.length) {
-      remaining.removeAt(taskOldIndex);
-    }
-
-    int adjustedIndex = (taskOldIndex >= 0 && taskOldIndex < targetCount)
-        ? targetCount - 1
-        : targetCount;
-
-    final prevRank = getEffectiveRank(remaining, adjustedIndex - 1);
-    final nextRank = getEffectiveRank(remaining, adjustedIndex);
+    final prevRank = getEffectiveRank(
+      remaining,
+      targetCount - 1,
+      isPlanView: isPlanView,
+    );
+    final nextRank = getEffectiveRank(
+      remaining,
+      targetCount,
+      isPlanView: isPlanView,
+    );
 
     return LexoRankUtils.generateBetween(prevRank, nextRank);
   }
@@ -180,67 +217,46 @@ class TaskReorderUtils {
     required int newIndex,
     required Set<String> selectedTaskIds,
     required SettingsState settings,
+    bool isPlanView = false,
   }) {
     if (!selectedTaskIds.contains(draggedTask.id)) return null;
 
-    final urgentSectionEnd = getUrgentSectionEndIndex(nodes);
-    final isDraggedUrgent = draggedTask.isUrgent;
-    final effectiveIndex = !isDraggedUrgent && newIndex < urgentSectionEnd
-        ? urgentSectionEnd
-        : (isDraggedUrgent && newIndex > urgentSectionEnd
-              ? urgentSectionEnd
-              : newIndex);
+    final target = _validatedTarget(nodes, draggedTask, newIndex);
+    if (target == null) return null;
 
-    if (isPositionUnchangedInNodes(
-      draggedTask: draggedTask,
-      targetIndex: effectiveIndex,
+    final (:sameGroupTasks, :remaining, :targetCount) = _getReorderContext(
       nodes: nodes,
-    )) {
-      return null;
-    }
+      draggedTask: draggedTask,
+      effectiveIndex: target.effectiveIndex,
+      urgentSectionEnd: target.urgentSectionEnd,
+      settings: settings,
+      isPlanView: isPlanView,
+      excludeIds: selectedTaskIds,
+    );
 
-    final sectionNodes = !isDraggedUrgent
-        ? nodes.sublist(urgentSectionEnd)
-        : nodes.sublist(0, urgentSectionEnd);
-
-    final sameGroupTasks = sectionNodes
-        .map((n) => n.task)
-        .whereType<Task>()
-        .where((t) => inSameGroup(t, draggedTask, settings))
-        .toList();
-
-    final selectedSameGroupTasks = sameGroupTasks
+    final selected = sameGroupTasks
         .where((t) => selectedTaskIds.contains(t.id))
         .toList();
+    if (selected.isEmpty) return null;
 
-    if (selectedSameGroupTasks.isEmpty) return null;
+    final prev = getEffectiveRank(
+      remaining,
+      targetCount - 1,
+      isPlanView: isPlanView,
+    );
+    final next = getEffectiveRank(
+      remaining,
+      targetCount,
+      isPlanView: isPlanView,
+    );
 
-    final remaining = List<Task>.from(sameGroupTasks)
-      ..removeWhere((t) => selectedTaskIds.contains(t.id));
-
-    int targetCount = 0;
-    final startIndex = !isDraggedUrgent ? urgentSectionEnd : 0;
-    for (int i = startIndex; i < effectiveIndex && i < nodes.length; i++) {
-      final n = nodes[i];
-      if (n.task != null &&
-          inSameGroup(n.task!, draggedTask, settings) &&
-          !selectedTaskIds.contains(n.task!.id)) {
-        targetCount++;
-      }
-    }
-
-    final String? prev = getEffectiveRank(remaining, targetCount - 1);
-    final String? next = getEffectiveRank(remaining, targetCount);
-
-    final Map<String, String> newSortOrders = {};
+    final newSortOrders = <String, String>{};
     String? currentPrev = prev;
-
-    for (final task in selectedSameGroupTasks) {
-      final newSortOrder = LexoRankUtils.generateBetween(currentPrev, next);
-      newSortOrders[task.id] = newSortOrder;
-      currentPrev = newSortOrder;
+    for (final task in selected) {
+      final rank = LexoRankUtils.generateBetween(currentPrev, next);
+      newSortOrders[task.id] = rank;
+      currentPrev = rank;
     }
-
     return newSortOrders;
   }
 
@@ -248,40 +264,36 @@ class TaskReorderUtils {
     TaskNotifier provider,
     Task task,
     List<Task> tasks,
-    SettingsState settings,
-  ) {
-    final sameGroupTasks = tasks
-        .where((t) => inSameGroup(t, task, settings))
-        .toList();
-
-    final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == task.id);
-
-    if (taskOldIndex == 0) return;
-
-    final topRank = getEffectiveRank(sameGroupTasks, 0);
-    final newSortOrder = LexoRankUtils.generateBetween(null, topRank);
-    provider.reorderTask(task, newSortOrder);
-  }
+    SettingsState settings, {
+    bool isPlanView = false,
+  }) => _moveToEdge(provider, task, tasks, settings, isPlanView, true);
 
   static void moveToBottom(
     TaskNotifier provider,
     Task task,
     List<Task> tasks,
+    SettingsState settings, {
+    bool isPlanView = false,
+  }) => _moveToEdge(provider, task, tasks, settings, isPlanView, false);
+
+  static void _moveToEdge(
+    TaskNotifier provider,
+    Task task,
+    List<Task> tasks,
     SettingsState settings,
+    bool isPlanView,
+    bool toTop,
   ) {
-    final sameGroupTasks = tasks
-        .where((t) => inSameGroup(t, task, settings))
-        .toList();
-
-    final taskOldIndex = sameGroupTasks.indexWhere((t) => t.id == task.id);
-
-    if (taskOldIndex == sameGroupTasks.length - 1) return;
-
-    final bottomRank = getEffectiveRank(
-      sameGroupTasks,
-      sameGroupTasks.length - 1,
+    final same = tasks.where((t) => inSameGroup(t, task, settings)).toList();
+    if (same.isEmpty || (toTop ? same.first.id : same.last.id) == task.id) {
+      return;
+    }
+    final edgeIdx = toTop ? 0 : same.length - 1;
+    final edgeRank = getEffectiveRank(same, edgeIdx, isPlanView: isPlanView);
+    final rank = LexoRankUtils.generateBetween(
+      toTop ? null : edgeRank,
+      toTop ? edgeRank : null,
     );
-    final newSortOrder = LexoRankUtils.generateBetween(bottomRank, null);
-    provider.reorderTask(task, newSortOrder);
+    provider.reorderTask(task, rank, isPlanOrder: isPlanView);
   }
 }

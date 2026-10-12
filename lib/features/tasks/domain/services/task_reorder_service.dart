@@ -52,6 +52,7 @@ class TaskReorderService {
     required TaskState state,
     required Task task,
     required SettingsState settings,
+    bool isPlanOrder = false,
   }) {
     return state.copyWith(
       tasks: optimisticallyReorder(
@@ -59,18 +60,21 @@ class TaskReorderService {
         updatedTask: task,
         prioritizeOverdue: settings.prioritizeOverdue,
         prioritizeDeadlines: settings.prioritizeDeadlines,
+        isPlanView: isPlanOrder,
       ),
       overdueTasks: optimisticallyReorder(
         currentList: state.overdueTasks,
         updatedTask: task,
         prioritizeOverdue: settings.prioritizeOverdue,
         prioritizeDeadlines: settings.prioritizeDeadlines,
+        isPlanView: isPlanOrder,
       ),
       unscheduledTasks: optimisticallyReorder(
         currentList: state.unscheduledTasks,
         updatedTask: task,
         prioritizeOverdue: settings.prioritizeOverdue,
         prioritizeDeadlines: settings.prioritizeDeadlines,
+        isPlanView: false,
       ),
     );
   }
@@ -79,6 +83,7 @@ class TaskReorderService {
     required TaskState state,
     required Map<String, String> updates,
     required SettingsState settings,
+    bool isPlanOrder = false,
   }) {
     return state.copyWith(
       tasks: applyBulkOptimisticReorderList(
@@ -86,18 +91,21 @@ class TaskReorderService {
         updates: updates,
         prioritizeOverdue: settings.prioritizeOverdue,
         prioritizeDeadlines: settings.prioritizeDeadlines,
+        isPlanOrder: isPlanOrder,
       ),
       overdueTasks: applyBulkOptimisticReorderList(
         list: state.overdueTasks,
         updates: updates,
         prioritizeOverdue: settings.prioritizeOverdue,
         prioritizeDeadlines: settings.prioritizeDeadlines,
+        isPlanOrder: isPlanOrder,
       ),
       unscheduledTasks: applyBulkOptimisticReorderList(
         list: state.unscheduledTasks,
         updates: updates,
         prioritizeOverdue: settings.prioritizeOverdue,
         prioritizeDeadlines: settings.prioritizeDeadlines,
+        isPlanOrder: false,
       ),
     );
   }
@@ -107,6 +115,7 @@ class TaskReorderService {
     required Task updatedTask,
     required bool prioritizeOverdue,
     required bool prioritizeDeadlines,
+    bool isPlanView = false,
   }) {
     if (!currentList.any((t) => t.id == updatedTask.id)) return currentList;
 
@@ -119,7 +128,7 @@ class TaskReorderService {
         .map((t) => t.id == updatedTask.id ? updatedTask : t)
         .toList();
 
-    TaskSortUtils.sortTasks(updatedList, settings);
+    TaskSortUtils.sortTasks(updatedList, settings, isPlanView: isPlanView);
     return updatedList;
   }
 
@@ -171,12 +180,15 @@ class TaskReorderService {
   static Future<Command?> buildBulkReorderCommand({
     required ITaskRepository repo,
     required Map<String, String> updates,
+    bool isPlanOrder = false,
   }) async {
     final commands = <Command>[];
     for (final entry in updates.entries) {
       final oldTask = await repo.getById(entry.key);
       if (oldTask != null) {
-        final updated = oldTask.copyWith(sortOrder: entry.value);
+        final updated = isPlanOrder
+            ? oldTask.copyWith(planSortOrder: entry.value)
+            : oldTask.copyWith(sortOrder: entry.value);
         commands.add(
           UpdateCommand(
             repo: repo,
@@ -199,17 +211,21 @@ class TaskReorderService {
     required Map<String, String> updates,
     required bool prioritizeOverdue,
     required bool prioritizeDeadlines,
+    bool isPlanOrder = false,
   }) {
     var current = List<Task>.from(list);
     for (final entry in updates.entries) {
       final idx = current.indexWhere((t) => t.id == entry.key);
       if (idx != -1) {
-        final updated = current[idx].copyWith(sortOrder: entry.value);
+        final updated = isPlanOrder
+            ? current[idx].copyWith(planSortOrder: entry.value)
+            : current[idx].copyWith(sortOrder: entry.value);
         current = optimisticallyReorder(
           currentList: current,
           updatedTask: updated,
           prioritizeOverdue: prioritizeOverdue,
           prioritizeDeadlines: prioritizeDeadlines,
+          isPlanView: isPlanOrder,
         );
       }
     }
