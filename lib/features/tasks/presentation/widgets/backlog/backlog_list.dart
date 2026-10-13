@@ -138,6 +138,8 @@ class BacklogList extends ConsumerWidget {
             draggedTask: task,
             targetIndex: targetIndex,
             nodes: activeHierarchical,
+            settings: ref.read(settingsProvider),
+            isPlanView: false,
           ),
       isLastChildInGroup: (task, index) =>
           TaskHierarchyReorderUtils.isLastChildInGroup(

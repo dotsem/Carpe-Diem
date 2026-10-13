@@ -23,6 +23,7 @@ class ItemSizeTransitionBuilder extends ConsumerStatefulWidget {
   final VoidCallback onToggle;
   final VoidCallback onDragEntering;
   final VoidCallback onDragExiting;
+  final bool isPlanView;
 
   const ItemSizeTransitionBuilder({
     super.key,
@@ -42,6 +43,7 @@ class ItemSizeTransitionBuilder extends ConsumerStatefulWidget {
     required this.onToggle,
     required this.onDragEntering,
     required this.onDragExiting,
+    this.isPlanView = true,
   });
 
   @override
@@ -107,6 +109,7 @@ class _ItemSizeTransitionBuilderState
             onToggle: widget.onToggle,
             onDragEntering: widget.onDragEntering,
             onDragExiting: widget.onDragExiting,
+            isPlanView: widget.isPlanView,
           ),
         );
       },

@@ -48,5 +48,80 @@ void main() {
       expect(tasks.first.id, '2');
       expect(tasks.last.id, '1');
     });
+
+    test('sorts by planSortOrder when isPlanView is true', () {
+      final taskA = Task(
+        id: '1',
+        title: 'Task A',
+        sortOrder: 'a',
+        planSortOrder: 'z',
+        createdAt: now,
+      );
+      final taskB = Task(
+        id: '2',
+        title: 'Task B',
+        sortOrder: 'b',
+        planSortOrder: 'a',
+        createdAt: now,
+      );
+
+      final tasks = [taskA, taskB];
+      TaskSortUtils.sortTasks(tasks, const SettingsState({}), isPlanView: true);
+
+      expect(tasks.first.id, '2');
+      expect(tasks.last.id, '1');
+    });
+
+    test('sibling subtasks sort by planSortOrder when isPlanView is true', () {
+      final subA = Task(
+        id: 'sub1',
+        parentId: 'parent1',
+        title: 'Sub A',
+        sortOrder: 'b',
+        planSortOrder: 'a',
+        createdAt: now,
+      );
+      final subB = Task(
+        id: 'sub2',
+        parentId: 'parent1',
+        title: 'Sub B',
+        sortOrder: 'a',
+        planSortOrder: 'z',
+        createdAt: now,
+      );
+
+      final tasks = [subA, subB];
+      TaskSortUtils.sortTasks(tasks, const SettingsState({}), isPlanView: true);
+
+      expect(tasks.first.id, 'sub1');
+      expect(tasks.last.id, 'sub2');
+    });
+
+    test('ignores planSortOrder when isPlanView is false', () {
+      final taskA = Task(
+        id: '1',
+        title: 'Task A',
+        sortOrder: 'a',
+        planSortOrder: 'z',
+        createdAt: now,
+      );
+      final taskB = Task(
+        id: '2',
+        title: 'Task B',
+        sortOrder: 'b',
+        planSortOrder: 'a',
+        createdAt: now,
+      );
+
+      final tasks = [taskA, taskB];
+      TaskSortUtils.sortTasks(
+        tasks,
+        const SettingsState({}),
+        isPlanView: false,
+      );
+
+      expect(tasks.first.id, '1');
+      expect(tasks.last.id, '2');
+    });
   });
 }

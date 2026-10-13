@@ -114,7 +114,7 @@ class TaskRepository extends ITaskRepository {
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE ((date(t.scheduledDate) = date(?)) OR (t.completedAt >= ? AND t.completedAt < ?))
       AND (p.isActive IS NULL OR p.isActive = 1)
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue, today: startOfDay)}
+      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue, today: startOfDay, isPlanOrder: true)}
     ''',
       [
         scheduledDateStr,
@@ -386,11 +386,14 @@ class TaskRepository extends ITaskRepository {
     bool prioritizeDeadlines = true,
     bool prioritizeOverdue = false,
     DateTime? today,
+    bool isPlanOrder = false,
   }) {
     final prefix = tableAlias != null ? '$tableAlias.' : '';
     final urgentPart = '(${prefix}isUrgent = 1) DESC';
-    final sortOrderPart =
-        "CASE WHEN ${prefix}sortOrder = '' THEN '~' ELSE ${prefix}sortOrder END ASC, ${prefix}createdAt DESC";
+    final sortCol = isPlanOrder
+        ? "COALESCE(NULLIF(${prefix}planSortOrder, ''), NULLIF(${prefix}sortOrder, ''), '~')"
+        : "CASE WHEN ${prefix}sortOrder = '' THEN '~' ELSE ${prefix}sortOrder END";
+    final sortOrderPart = "$sortCol ASC, ${prefix}createdAt DESC";
     final deadlinePart = '(${prefix}deadline IS NULL), ${prefix}deadline ASC';
 
     final t = today ?? DateTime.now();
@@ -399,14 +402,14 @@ class TaskRepository extends ITaskRepository {
         "(CASE WHEN ${prefix}status != ${TaskStatus.done.index} AND ((${prefix}scheduledDate IS NOT NULL AND ${prefix}scheduledDate < '$todayStr' AND (${prefix}deadline IS NULL OR ${prefix}deadline < '$todayStr')) OR (${prefix}deadline IS NOT NULL AND ${prefix}deadline < '$todayStr')) THEN 1 ELSE 0 END) DESC";
 
     final parts = <String>[urgentPart];
-    if (prioritizeOverdue) {
+    if (prioritizeOverdue && !isPlanOrder) {
       parts.add(overduePart);
     }
-    if (prioritizeDeadlines) {
+    if (prioritizeDeadlines && !isPlanOrder) {
       parts.add(deadlinePart);
     }
     parts.add(sortOrderPart);
-    if (!prioritizeDeadlines) {
+    if (!prioritizeDeadlines || isPlanOrder) {
       parts.add(deadlinePart);
     }
     return parts.join(', ');

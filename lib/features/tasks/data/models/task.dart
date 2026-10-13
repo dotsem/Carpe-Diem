@@ -16,6 +16,7 @@ class Task {
   final String? blockedById;
   final String? parentId;
   final String sortOrder;
+  final String? planSortOrder;
   final List<String> labelIds;
   final List<String> tagIds;
   final String? blockerTitle;
@@ -66,6 +67,7 @@ class Task {
     this.blockedById,
     this.parentId,
     this.sortOrder = '',
+    this.planSortOrder,
     this.labelIds = const [],
     this.tagIds = const [],
     this.blockerTitle,
@@ -88,6 +90,7 @@ class Task {
     'blockedById': blockedById,
     'parentId': parentId,
     'sortOrder': sortOrder,
+    'planSortOrder': planSortOrder,
   };
 
   factory Task.fromMap(
@@ -117,6 +120,7 @@ class Task {
     blockedById: map['blockedById'] as String?,
     parentId: map['parentId'] as String?,
     sortOrder: (map['sortOrder'] as String?) ?? '',
+    planSortOrder: map['planSortOrder'] as String?,
     labelIds: labelIds,
     tagIds: tagIds,
     blockerTitle: map['blockerTitle'] as String?,
@@ -143,6 +147,8 @@ class Task {
     String? parentId,
     bool clearParent = false,
     String? sortOrder,
+    String? planSortOrder,
+    bool clearPlanSortOrder = false,
     List<String>? labelIds,
     List<String>? tagIds,
     String? blockerTitle,
@@ -168,6 +174,9 @@ class Task {
     blockedById: clearBlockedBy ? null : (blockedById ?? this.blockedById),
     parentId: clearParent ? null : (parentId ?? this.parentId),
     sortOrder: sortOrder ?? this.sortOrder,
+    planSortOrder: clearPlanSortOrder
+        ? null
+        : (planSortOrder ?? this.planSortOrder),
     labelIds: labelIds ?? this.labelIds,
     tagIds: tagIds ?? this.tagIds,
     blockerTitle: clearBlockerTitle

@@ -31,11 +31,14 @@ class TaskNotifier extends Notifier<TaskState> {
   TaskState build() {
     repo = ref.watch(taskRepositoryProvider);
     ref.listen<UndoRedoState>(undoRedoProvider, (prev, next) {
-      if (prev != null && prev.isProcessing && !next.isProcessing) {
-        if (next.lastOperationType == UndoRedoOperationType.undo ||
-            next.lastOperationType == UndoRedoOperationType.redo) {
-          refreshAll();
-        }
+      final isUndoRedo =
+          next.lastOperationType == UndoRedoOperationType.undo ||
+          next.lastOperationType == UndoRedoOperationType.redo;
+      if (prev != null &&
+          prev.isProcessing &&
+          !next.isProcessing &&
+          isUndoRedo) {
+        refreshAll();
       }
     });
     unawaited(
@@ -145,12 +148,19 @@ class TaskNotifier extends Notifier<TaskState> {
     await executeCommand(cmd);
   }
 
-  Future<void> reorderTask(Task task, String newSortOrder) async {
-    final updated = task.copyWith(sortOrder: newSortOrder);
+  Future<void> reorderTask(
+    Task task,
+    String newSortOrder, {
+    bool isPlanOrder = false,
+  }) async {
+    final updated = isPlanOrder
+        ? task.copyWith(planSortOrder: newSortOrder)
+        : task.copyWith(sortOrder: newSortOrder);
     state = TaskReorderService.applyOptimisticTask(
       state: state,
       task: updated,
       settings: ref.read(settingsProvider),
+      isPlanOrder: isPlanOrder,
     );
     final cmd = TaskReorderService.buildReorderCommand(
       repo: repo,
@@ -160,16 +170,21 @@ class TaskNotifier extends Notifier<TaskState> {
     await executeCommand(cmd);
   }
 
-  Future<void> bulkReorderTasks(Map<String, String> updates) async {
+  Future<void> bulkReorderTasks(
+    Map<String, String> updates, {
+    bool isPlanOrder = false,
+  }) async {
     if (updates.isEmpty) return;
     state = TaskReorderService.applyBulkOptimisticReorder(
       state: state,
       updates: updates,
       settings: ref.read(settingsProvider),
+      isPlanOrder: isPlanOrder,
     );
     final cmd = await TaskReorderService.buildBulkReorderCommand(
       repo: repo,
       updates: updates,
+      isPlanOrder: isPlanOrder,
     );
     if (cmd != null) await executeCommand(cmd);
   }
@@ -178,6 +193,7 @@ class TaskNotifier extends Notifier<TaskState> {
     Task task,
     TaskStatus status, {
     String? newSortOrder,
+    String? newPlanSortOrder,
   }) async {
     final oldTask = await repo.getById(task.id) ?? task;
     final cmd = TaskCompletionService.buildStatusUpdateCommand(
@@ -185,6 +201,7 @@ class TaskNotifier extends Notifier<TaskState> {
       task: oldTask,
       status: status,
       newSortOrder: newSortOrder,
+      newPlanSortOrder: newPlanSortOrder,
     );
     await executeCommand(cmd);
   }
@@ -237,12 +254,10 @@ class TaskNotifier extends Notifier<TaskState> {
       case TaskStatus.todo:
         await startTask(task);
         return null;
+      case TaskStatus.inProgress when settings.reviewState:
+        await updateTaskStatus(task, TaskStatus.review);
+        return null;
       case TaskStatus.inProgress:
-        if (settings.reviewState) {
-          await updateTaskStatus(task, TaskStatus.review);
-          return null;
-        }
-        return completeTaskWithPossibleTimer(task);
       case TaskStatus.review:
         return completeTaskWithPossibleTimer(task);
       case TaskStatus.done:
@@ -251,25 +266,19 @@ class TaskNotifier extends Notifier<TaskState> {
     }
   }
 
-  Future<void> completeParentWithCascade(
-    SubtaskCompletionConflict conflict,
-  ) async {
-    final cmd = TaskCompletionService.buildCompleteParentCascadeCommand(
-      repo: repo,
-      conflict: conflict,
-    );
-    await executeCommand(cmd);
-  }
+  Future<void> completeParentWithCascade(SubtaskCompletionConflict conflict) =>
+      executeCommand(
+        TaskCompletionService.buildCompleteParentCascadeCommand(
+          repo: repo,
+          conflict: conflict,
+        ),
+      );
 
   Future<void> completeParentOnly(Task parentTask) => completeTask(parentTask);
 
   List<Task> getAllSubtasks(String parentId) => SubtaskService.getAllSubtasks(
     parentId: parentId,
-    allTasks: [
-      ...state.tasks,
-      ...state.overdueTasks,
-      ...state.unscheduledTasks,
-    ],
+    allTasks: state.tasks + state.overdueTasks + state.unscheduledTasks,
   );
 
   Future<List<Task>> getTasksForProject(String projectId) => repo.getByProject(
@@ -285,6 +294,6 @@ class TaskNotifier extends Notifier<TaskState> {
   }
 }
 
-final taskProvider = NotifierProvider<TaskNotifier, TaskState>(() {
-  return TaskNotifier();
-});
+final taskProvider = NotifierProvider<TaskNotifier, TaskState>(
+  TaskNotifier.new,
+);

@@ -2,6 +2,7 @@ import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,47 +12,25 @@ void main() {
     final now = DateTime.now();
     const settings = SettingsState({});
 
-    final parent1 = Task(
-      id: 'p1',
-      title: 'Parent 1',
+    Task t(
+      String id,
+      String title, {
+      String? parentId,
+      String sortOrder = '',
+    }) => Task(
+      id: id,
+      title: title,
+      parentId: parentId,
       createdAt: now,
-      sortOrder: 'a0',
-    );
-    final sub1 = Task(
-      id: 's1',
-      title: 'Subtask 1',
-      parentId: 'p1',
-      createdAt: now,
-      sortOrder: 'a1',
-    );
-    final sub2 = Task(
-      id: 's2',
-      title: 'Subtask 2',
-      parentId: 'p1',
-      createdAt: now,
-      sortOrder: 'a2',
-    );
-    final sub3 = Task(
-      id: 's3',
-      title: 'Subtask 3',
-      parentId: 'p1',
-      createdAt: now,
-      sortOrder: 'a3',
+      sortOrder: sortOrder,
     );
 
-    final parent2 = Task(
-      id: 'p2',
-      title: 'Parent 2',
-      createdAt: now,
-      sortOrder: 'a4',
-    );
-    final sub21 = Task(
-      id: 's21',
-      title: 'Sub2 Task 1',
-      parentId: 'p2',
-      createdAt: now,
-      sortOrder: 'a5',
-    );
+    final parent1 = t('p1', 'Parent 1', sortOrder: 'a0');
+    final sub1 = t('s1', 'Subtask 1', parentId: 'p1', sortOrder: 'a1');
+    final sub2 = t('s2', 'Subtask 2', parentId: 'p1', sortOrder: 'a2');
+    final sub3 = t('s3', 'Subtask 3', parentId: 'p1', sortOrder: 'a3');
+    final parent2 = t('p2', 'Parent 2', sortOrder: 'a4');
+    final sub21 = t('s21', 'Sub2 Task 1', parentId: 'p2', sortOrder: 'a5');
 
     final allTasks = [parent1, sub1, sub2, sub3, parent2, sub21];
 
@@ -89,6 +68,41 @@ void main() {
       expect(TaskReorderUtils.inSameGroup(sub1, parent1, settings), isFalse);
       expect(TaskReorderUtils.inSameGroup(sub1, sub21, settings), isFalse);
     });
+
+    test(
+      'inSameGroup with isPlanView treats orphan subtasks as root group',
+      () {
+        final orphan = Task(
+          id: 'orphan',
+          parentId: 'missing_parent',
+          title: 'Orphan',
+          createdAt: now,
+        );
+        final root = Task(id: 'root', title: 'Root', createdAt: now);
+        final nodes = [TaskNode(orphan, 0), TaskNode(root, 0)];
+
+        expect(
+          TaskReorderUtils.inSameGroup(
+            orphan,
+            root,
+            settings,
+            nodes: nodes,
+            isPlanView: true,
+          ),
+          isTrue,
+        );
+        expect(
+          TaskReorderUtils.inSameGroup(
+            orphan,
+            root,
+            settings,
+            nodes: nodes,
+            isPlanView: false,
+          ),
+          isFalse,
+        );
+      },
+    );
 
     test('inSameGroup respects prioritizeDeadlines setting', () {
       final taskWithDeadline = Task(

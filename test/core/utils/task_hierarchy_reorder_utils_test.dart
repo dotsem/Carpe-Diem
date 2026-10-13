@@ -171,5 +171,52 @@ void main() {
         );
       });
     });
+
+    group('Orphan subtask (parentId != null, parent not in nodes)', () {
+      final orphanSub = Task(
+        id: 'orphan1',
+        parentId: 'missing_parent',
+        title: 'Orphan Subtask',
+        createdAt: now,
+      );
+
+      test('valid at root slots (0, 1, 4, 5)', () {
+        expect(
+          TaskHierarchyReorderUtils.isPositionValidInNodes(
+            draggedTask: orphanSub,
+            targetIndex: 0,
+            nodes: nodes,
+          ),
+          isTrue,
+        );
+        expect(
+          TaskHierarchyReorderUtils.isPositionValidInNodes(
+            draggedTask: orphanSub,
+            targetIndex: 1,
+            nodes: nodes,
+          ),
+          isTrue,
+        );
+        expect(
+          TaskHierarchyReorderUtils.isPositionValidInNodes(
+            draggedTask: orphanSub,
+            targetIndex: 4,
+            nodes: nodes,
+          ),
+          isTrue,
+        );
+      });
+
+      test('invalid inside other parent subtask slots', () {
+        expect(
+          TaskHierarchyReorderUtils.isPositionValidInNodes(
+            draggedTask: orphanSub,
+            targetIndex: 2,
+            nodes: nodes,
+          ),
+          isFalse,
+        );
+      });
+    });
   });
 }
