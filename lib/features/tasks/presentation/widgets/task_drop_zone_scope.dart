@@ -25,6 +25,9 @@ class TaskDropZoneScope extends StatefulWidget {
   final bool Function(Task task, int targetIndex)? isPositionUnchanged;
   final bool Function(Task task, int targetIndex)? isPositionValid;
   final bool Function(Task task, int index)? isLastChildInGroup;
+  final int Function(Task task)? resolveClampedTopIndex;
+  final int Function(Task task)? resolveClampedBottomIndex;
+  final void Function(Task task, int targetIndex)? onDrop;
   final Widget child;
 
   const TaskDropZoneScope({
@@ -34,6 +37,9 @@ class TaskDropZoneScope extends StatefulWidget {
     this.isPositionUnchanged,
     this.isPositionValid,
     this.isLastChildInGroup,
+    this.resolveClampedTopIndex,
+    this.resolveClampedBottomIndex,
+    this.onDrop,
     required this.child,
   });
 
@@ -65,6 +71,9 @@ class _TaskDropZoneScopeState extends State<TaskDropZoneScope> {
       isPositionUnchangedCallback: widget.isPositionUnchanged,
       isPositionValidCallback: widget.isPositionValid,
       isLastChildInGroupCallback: widget.isLastChildInGroup,
+      resolveClampedTopIndexCallback: widget.resolveClampedTopIndex,
+      resolveClampedBottomIndexCallback: widget.resolveClampedBottomIndex,
+      onDropCallback: widget.onDrop,
       child: widget.child,
     );
   }
@@ -77,6 +86,9 @@ class TaskDropZoneScopeInherited extends InheritedWidget {
   final bool Function(Task task, int targetIndex)? isPositionUnchangedCallback;
   final bool Function(Task task, int targetIndex)? isPositionValidCallback;
   final bool Function(Task task, int index)? isLastChildInGroupCallback;
+  final int Function(Task task)? resolveClampedTopIndexCallback;
+  final int Function(Task task)? resolveClampedBottomIndexCallback;
+  final void Function(Task task, int targetIndex)? onDropCallback;
 
   const TaskDropZoneScopeInherited({
     super.key,
@@ -86,6 +98,9 @@ class TaskDropZoneScopeInherited extends InheritedWidget {
     this.isPositionUnchangedCallback,
     this.isPositionValidCallback,
     this.isLastChildInGroupCallback,
+    this.resolveClampedTopIndexCallback,
+    this.resolveClampedBottomIndexCallback,
+    this.onDropCallback,
     required super.child,
   });
 
@@ -114,6 +129,18 @@ class TaskDropZoneScopeInherited extends InheritedWidget {
     return rawIndex;
   }
 
+  int resolveClampedTopIndex(Task task) {
+    return resolveClampedTopIndexCallback?.call(task) ?? 0;
+  }
+
+  int resolveClampedBottomIndex(Task task) {
+    return resolveClampedBottomIndexCallback?.call(task) ?? itemCount;
+  }
+
+  void drop(Task task, int targetIndex) {
+    onDropCallback?.call(task, targetIndex);
+  }
+
   @override
   bool updateShouldNotify(TaskDropZoneScopeInherited oldWidget) {
     return activeDropNotifier != oldWidget.activeDropNotifier ||
@@ -121,6 +148,11 @@ class TaskDropZoneScopeInherited extends InheritedWidget {
         itemCount != oldWidget.itemCount ||
         isPositionUnchangedCallback != oldWidget.isPositionUnchangedCallback ||
         isPositionValidCallback != oldWidget.isPositionValidCallback ||
-        isLastChildInGroupCallback != oldWidget.isLastChildInGroupCallback;
+        isLastChildInGroupCallback != oldWidget.isLastChildInGroupCallback ||
+        resolveClampedTopIndexCallback !=
+            oldWidget.resolveClampedTopIndexCallback ||
+        resolveClampedBottomIndexCallback !=
+            oldWidget.resolveClampedBottomIndexCallback ||
+        onDropCallback != oldWidget.onDropCallback;
   }
 }
