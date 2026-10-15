@@ -107,4 +107,50 @@ class TaskHierarchyReorderUtils {
     if (first == -1) return true;
     return targetIndex >= first && targetIndex <= last + 1;
   }
+
+  static int getClampedTopIndex({
+    required Task task,
+    required List<TaskHierarchyNode> nodes,
+    required int urgentSectionEndIndex,
+  }) {
+    if (task.parentId != null) {
+      for (int i = 0; i < nodes.length; i++) {
+        if (nodes[i].task?.parentId == task.parentId) {
+          return i;
+        }
+      }
+    }
+    if (!task.isUrgent && urgentSectionEndIndex > 0) {
+      return urgentSectionEndIndex;
+    }
+    return 0;
+  }
+
+  static int getClampedBottomIndex({
+    required Task task,
+    required List<TaskHierarchyNode> nodes,
+    required int urgentSectionEndIndex,
+  }) {
+    if (task.parentId != null) {
+      int lastChild = -1;
+      for (int i = 0; i < nodes.length; i++) {
+        if (nodes[i].task?.parentId == task.parentId) {
+          lastChild = i;
+        }
+      }
+      if (lastChild != -1) {
+        int endIndex = lastChild + 1;
+        final lastChildDepth = nodes[lastChild].depth;
+        while (endIndex < nodes.length &&
+            nodes[endIndex].depth > lastChildDepth) {
+          endIndex++;
+        }
+        return endIndex;
+      }
+    }
+    if (task.isUrgent && urgentSectionEndIndex < nodes.length) {
+      return urgentSectionEndIndex;
+    }
+    return nodes.length;
+  }
 }

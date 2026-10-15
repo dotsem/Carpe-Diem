@@ -8,10 +8,9 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/active_task_reorderable_list.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_hierarchy_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_components.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_done_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_scroll_view.dart';
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 
 class TaskListView extends ConsumerStatefulWidget {
@@ -236,43 +235,20 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
           }
         }
       },
-      child: ListView(
+      child: TaskListScrollView(
+        activeNodes: activeNodes,
+        activeWidgets: activeNodes.map((n) => buildNode(n, isOverdue)).toList(),
+        doneWidgets: getHierarchyNodes(
+          doneCategory,
+        ).map((n) => buildNode(n, (_) => false)).toList(),
+        doneCount: doneCategory.length,
+        isDoneExpanded: _isDoneExpanded,
+        onToggleDone: () => setState(() => _isDoneExpanded = !_isDoneExpanded),
+        selectedTaskIds: widget.selectedTaskIds,
+        isReorderEnabled:
+            widget.searchQuery == null || widget.searchQuery!.isEmpty,
+        isPlanView: widget.isPlanView,
         padding: widget.padding,
-        children: [
-          if (activeTasks.isNotEmpty)
-            ActiveTaskReorderableList(
-              nodes: activeNodes,
-              widgets: activeNodes.map((n) => buildNode(n, isOverdue)).toList(),
-              selectedTaskIds: widget.selectedTaskIds,
-              isReorderEnabled:
-                  widget.searchQuery == null || widget.searchQuery!.isEmpty,
-              isPlanView: widget.isPlanView,
-              onReorder: (task, newSortOrder) => ref
-                  .read(taskProvider.notifier)
-                  .reorderTask(
-                    task,
-                    newSortOrder,
-                    isPlanOrder: widget.isPlanView,
-                  ),
-              onMultiReorder: (newSortOrders) => ref
-                  .read(taskProvider.notifier)
-                  .bulkReorderTasks(
-                    newSortOrders,
-                    isPlanOrder: widget.isPlanView,
-                  ),
-            ),
-          if (doneCategory.isNotEmpty) ...[
-            TaskListDoneSection(
-              count: doneCategory.length,
-              isExpanded: _isDoneExpanded,
-              onToggle: () =>
-                  setState(() => _isDoneExpanded = !_isDoneExpanded),
-              children: getHierarchyNodes(
-                doneCategory,
-              ).map((n) => buildNode(n, (_) => false)).toList(),
-            ),
-          ],
-        ],
       ),
     );
   }
