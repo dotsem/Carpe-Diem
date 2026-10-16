@@ -1,6 +1,6 @@
-import 'package:carpe_diem/core/utils/task_hierarchy_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';

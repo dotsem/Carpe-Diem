@@ -1,7 +1,7 @@
-import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 
 class TaskHierarchyReorderUtils {
   static bool isPositionValidInNodes({
@@ -64,22 +64,11 @@ class TaskHierarchyReorderUtils {
     required Task task,
     required int index,
     required List<TaskHierarchyNode> nodes,
-  }) {
-    if (task.parentId == null) return false;
-    final isParentInNodes = nodes.any((n) => n.task?.id == task.parentId);
-    if (!isParentInNodes) return false;
-    if (index < 0 || index >= nodes.length) return false;
-    if (nodes[index].task?.parentId != task.parentId) return false;
-
-    int lastChildIndex = -1;
-    for (int i = 0; i < nodes.length; i++) {
-      if (nodes[i].task?.parentId == task.parentId) {
-        lastChildIndex = i;
-      }
-    }
-
-    return index == lastChildIndex;
-  }
+  }) => TaskReorderEngine.isLastChildInGroup(
+    task: task,
+    index: index,
+    nodes: nodes,
+  );
 
   static bool isPositionInGroup({
     required Task draggedTask,
@@ -87,26 +76,13 @@ class TaskHierarchyReorderUtils {
     required List<TaskHierarchyNode> nodes,
     required SettingsState settings,
     bool isPlanView = false,
-  }) {
-    int first = -1;
-    int last = -1;
-    for (int i = 0; i < nodes.length; i++) {
-      final t = nodes[i].task;
-      if (t != null &&
-          TaskReorderUtils.inSameGroup(
-            t,
-            draggedTask,
-            settings,
-            isPlanView: isPlanView,
-            nodes: nodes,
-          )) {
-        if (first == -1) first = i;
-        last = i;
-      }
-    }
-    if (first == -1) return true;
-    return targetIndex >= first && targetIndex <= last + 1;
-  }
+  }) => TaskReorderEngine.isPositionInGroup(
+    draggedTask: draggedTask,
+    targetIndex: targetIndex,
+    nodes: nodes,
+    settings: settings,
+    isPlanView: isPlanView,
+  );
 
   static int getClampedTopIndex({
     required Task task,

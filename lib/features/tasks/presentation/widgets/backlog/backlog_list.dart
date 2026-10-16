@@ -1,4 +1,4 @@
-import 'package:carpe_diem/core/utils/task_hierarchy_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
@@ -8,7 +8,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_sc
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_reorder_corridor.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';

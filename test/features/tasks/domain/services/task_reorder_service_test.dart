@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/core/utils/lexorank_utils.dart';
+import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
@@ -26,7 +26,7 @@ void main() {
           placement: TaskPlacement.bottom,
           activeList: [],
         );
-        expect(rank, equals(LexoRankUtils.defaultRank));
+        expect(rank, equals(LexoRank.defaultRank));
       });
 
       test('computes top rank on non-empty list', () {

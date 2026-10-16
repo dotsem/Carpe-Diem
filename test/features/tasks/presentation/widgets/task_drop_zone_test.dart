@@ -1,4 +1,4 @@
-import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
