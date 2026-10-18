@@ -75,16 +75,17 @@ class TaskReorderEngine {
         }
       }
       if (firstChild == -1) {
-        return const TaskReorderSlot.invalid();
-      }
+        final parentIdx = nodes.indexWhere((n) => n.task?.id == parentId);
+        targetIndex = parentIdx + 1;
+      } else {
+        int endChild = lastChild + 1;
+        final lastDepth = nodes[lastChild].depth;
+        while (endChild < nodes.length && nodes[endChild].depth > lastDepth) {
+          endChild++;
+        }
 
-      int endChild = lastChild + 1;
-      final lastDepth = nodes[lastChild].depth;
-      while (endChild < nodes.length && nodes[endChild].depth > lastDepth) {
-        endChild++;
+        targetIndex = rawIndex.clamp(firstChild, endChild);
       }
-
-      targetIndex = rawIndex.clamp(firstChild, endChild);
     } else {
       // Root task (or orphan subtask)
       final urgentEnd = getUrgentSectionEndIndex(nodes);

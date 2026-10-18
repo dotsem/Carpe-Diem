@@ -43,7 +43,10 @@ class TaskHierarchyReorderUtils {
       }
     }
 
-    if (childIndices.isEmpty) return false;
+    if (childIndices.isEmpty) {
+      final parentIdx = nodes.indexWhere((n) => n.task?.id == parentId);
+      return targetIndex == parentIdx + 1;
+    }
 
     if (targetIndex < nodes.length &&
         nodes[targetIndex].task?.parentId == parentId) {
