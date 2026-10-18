@@ -60,16 +60,6 @@ class TaskHierarchyReorderUtils {
     return targetIndex == endIndex;
   }
 
-  static bool isLastChildInGroup({
-    required Task task,
-    required int index,
-    required List<TaskHierarchyNode> nodes,
-  }) => TaskReorderEngine.isLastChildInGroup(
-    task: task,
-    index: index,
-    nodes: nodes,
-  );
-
   static bool isPositionInGroup({
     required Task draggedTask,
     required int targetIndex,

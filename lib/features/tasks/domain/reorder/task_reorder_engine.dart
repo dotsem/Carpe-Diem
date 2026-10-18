@@ -161,21 +161,18 @@ class TaskReorderEngine {
       }
     }
     if (first == -1) return true;
-    return targetIndex >= first && targetIndex <= last + 1;
-  }
-
-  static bool isLastChildInGroup({
-    required Task task,
-    required int index,
-    required List<TaskHierarchyNode> nodes,
-  }) {
-    if (task.parentId == null) return false;
-    if (index < 0 || index >= nodes.length) return false;
-    if (nodes[index].task?.parentId != task.parentId) return false;
-    final lastChildIndex = nodes.lastIndexWhere(
-      (n) => n.task?.parentId == task.parentId,
-    );
-    return index == lastChildIndex;
+    int effectiveLast = last;
+    final parentId = draggedTask.parentId;
+    final isParentInNodes =
+        parentId != null && nodes.any((n) => n.task?.id == parentId);
+    if (!isParentInNodes && last >= 0) {
+      final parentDepth = nodes[last].depth;
+      while (effectiveLast + 1 < nodes.length &&
+          nodes[effectiveLast + 1].depth > parentDepth) {
+        effectiveLast++;
+      }
+    }
+    return targetIndex >= first && targetIndex <= effectiveLast + 1;
   }
 
   static String? getEffectiveRank(
@@ -247,26 +244,6 @@ class TaskReorderEngine {
       if (!isMulti) return {draggedTask.id: LexoRank.defaultRank};
     }
 
-    if (!isMulti) {
-      final prevRank = getEffectiveRank(
-        remaining,
-        targetCount - 1,
-        isPlanView: isPlanView,
-      );
-      final nextRank = getEffectiveRank(
-        remaining,
-        targetCount,
-        isPlanView: isPlanView,
-      );
-      final newRank = LexoRank.generateBetween(prevRank, nextRank);
-      return {draggedTask.id: newRank};
-    }
-
-    final selected = sameGroupTasks
-        .where((t) => selectedTaskIds.contains(t.id))
-        .toList();
-    if (selected.isEmpty) return null;
-
     final prev = getEffectiveRank(
       remaining,
       targetCount - 1,
@@ -277,6 +254,16 @@ class TaskReorderEngine {
       targetCount,
       isPlanView: isPlanView,
     );
+
+    if (!isMulti) {
+      final newRank = LexoRank.generateBetween(prev, next);
+      return {draggedTask.id: newRank};
+    }
+
+    final selected = sameGroupTasks
+        .where((t) => selectedTaskIds.contains(t.id))
+        .toList();
+    if (selected.isEmpty) return null;
 
     final newSortOrders = <String, String>{};
     String? currentPrev = prev;

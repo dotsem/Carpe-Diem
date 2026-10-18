@@ -119,6 +119,22 @@ class TaskReorderUtils {
   }) {
     if (!selectedTaskIds.contains(draggedTask.id)) return null;
 
+    final selectedTasks = nodes
+        .map((n) => n.task)
+        .whereType<Task>()
+        .where((t) => selectedTaskIds.contains(t.id));
+    for (final task in selectedTasks) {
+      if (!inSameGroup(
+        task,
+        draggedTask,
+        settings,
+        isPlanView: isPlanView,
+        nodes: nodes,
+      )) {
+        return null;
+      }
+    }
+
     final slot = TaskReorderEngine.resolveSlot(
       nodes: nodes,
       draggedTask: draggedTask,
@@ -134,6 +150,58 @@ class TaskReorderUtils {
       settings: settings,
       isPlanView: isPlanView,
     );
+  }
+
+  static bool dispatchReorder({
+    required List<TaskHierarchyNode> nodes,
+    required Task draggedTask,
+    required int newIndex,
+    required SettingsState settings,
+    Set<String> selectedTaskIds = const {},
+    bool isPlanView = false,
+    TaskNotifier? notifier,
+    void Function(Task task, String newSortOrder)? onReorder,
+    void Function(Map<String, String> newSortOrders)? onMultiReorder,
+  }) {
+    if (selectedTaskIds.isNotEmpty &&
+        selectedTaskIds.contains(draggedTask.id)) {
+      final newSortOrders = handleMultiReorder(
+        nodes: nodes,
+        draggedTask: draggedTask,
+        newIndex: newIndex,
+        selectedTaskIds: selectedTaskIds,
+        settings: settings,
+        isPlanView: isPlanView,
+      );
+      if (newSortOrders != null && newSortOrders.isNotEmpty) {
+        if (onMultiReorder != null) {
+          onMultiReorder(newSortOrders);
+        } else {
+          notifier?.bulkReorderTasks(newSortOrders, isPlanOrder: isPlanView);
+        }
+        return true;
+      }
+    }
+    final newSortOrder = handleReorder(
+      nodes: nodes,
+      draggedTask: draggedTask,
+      newIndex: newIndex,
+      settings: settings,
+      isPlanView: isPlanView,
+    );
+    if (newSortOrder != null) {
+      if (onReorder != null) {
+        onReorder(draggedTask, newSortOrder);
+      } else {
+        notifier?.reorderTask(
+          draggedTask,
+          newSortOrder,
+          isPlanOrder: isPlanView,
+        );
+      }
+      return true;
+    }
+    return false;
   }
 
   static void moveToTop(

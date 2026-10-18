@@ -67,35 +67,15 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
   }
 
   void _handleDrop(Task task, int newIndex) {
-    final settings = ref.read(settingsProvider);
-    if (widget.selectedTaskIds.isNotEmpty) {
-      final newSortOrders = TaskReorderUtils.handleMultiReorder(
-        nodes: widget.activeNodes,
-        draggedTask: task,
-        newIndex: newIndex,
-        selectedTaskIds: widget.selectedTaskIds.toSet(),
-        settings: settings,
-        isPlanView: widget.isPlanView,
-      );
-      if (newSortOrders != null && newSortOrders.isNotEmpty) {
-        ref
-            .read(taskProvider.notifier)
-            .bulkReorderTasks(newSortOrders, isPlanOrder: widget.isPlanView);
-        return;
-      }
-    }
-    final newSortOrder = TaskReorderUtils.handleReorder(
+    TaskReorderUtils.dispatchReorder(
+      notifier: ref.read(taskProvider.notifier),
       nodes: widget.activeNodes,
       draggedTask: task,
       newIndex: newIndex,
-      settings: settings,
+      selectedTaskIds: widget.selectedTaskIds.toSet(),
+      settings: ref.read(settingsProvider),
       isPlanView: widget.isPlanView,
     );
-    if (newSortOrder != null) {
-      ref
-          .read(taskProvider.notifier)
-          .reorderTask(task, newSortOrder, isPlanOrder: widget.isPlanView);
-    }
   }
 
   @override
@@ -117,10 +97,7 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   if (widget.activeNodes.isNotEmpty) ...[
-                    _TaskTopDropZone(
-                      height: widget.padding.top,
-                      onDrop: _handleDrop,
-                    ),
+                    _TaskTopDropZone(height: widget.padding.top),
                     ActiveTaskReorderableList(
                       nodes: widget.activeNodes,
                       widgets: widget.activeWidgets,
@@ -158,7 +135,7 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
             if (widget.activeNodes.isNotEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,
-                child: TaskEmptySpaceDropZone(onDrop: _handleDrop),
+                child: const TaskEmptySpaceDropZone(),
               ),
           ],
         ),
@@ -169,9 +146,8 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
 
 class _TaskTopDropZone extends StatelessWidget {
   final double height;
-  final void Function(Task task, int newIndex)? onDrop;
 
-  const _TaskTopDropZone({this.height = 16.0, this.onDrop});
+  const _TaskTopDropZone({this.height = 16.0});
 
   @override
   Widget build(BuildContext context) {
@@ -184,10 +160,7 @@ class _TaskTopDropZone extends StatelessWidget {
         return true;
       },
       onLeave: (_) => scope.onLeaveSlot(),
-      onAcceptWithDetails: (details) {
-        scope.drop(details.data, 0);
-        onDrop?.call(details.data, 0);
-      },
+      onAcceptWithDetails: (details) => scope.drop(details.data, 0),
       builder: (context, _, _) =>
           SizedBox(height: height, width: double.infinity),
     );

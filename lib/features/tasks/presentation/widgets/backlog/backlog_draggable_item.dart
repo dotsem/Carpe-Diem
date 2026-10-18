@@ -63,16 +63,11 @@ class BacklogDraggableItem extends ConsumerWidget {
         data: task,
         onDragStarted: () =>
             ref.read(taskDragProvider.notifier).startDrag(task.id),
+        onDragUpdate: (details) => ref
+            .read(taskDragProvider.notifier)
+            .updatePointerOffset(details.globalPosition),
         onDragEnd: (details) {
-          if (!details.wasAccepted) {
-            final dropScope = TaskReorderScope.of(context);
-            final activeDrop = dropScope?.activeDropNotifier.value;
-            if (activeDrop != null &&
-                activeDrop.slot.isValid &&
-                !activeDrop.slot.isUnchanged) {
-              dropScope?.drop(activeDrop.task, activeDrop.slot.index);
-            }
-          }
+          TaskReorderScope.of(context)?.handleDragEnd(details);
           ref.read(taskDragProvider.notifier).endDrag();
         },
         feedback: TaskDragProxy(

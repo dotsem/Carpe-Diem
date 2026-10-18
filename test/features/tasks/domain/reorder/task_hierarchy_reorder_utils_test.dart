@@ -66,35 +66,6 @@ void main() {
       });
     });
 
-    group('isLastChildInGroup', () {
-      test('identifies last child in group correctly', () {
-        expect(
-          TaskHierarchyReorderUtils.isLastChildInGroup(
-            task: subB1,
-            index: 2,
-            nodes: nodes,
-          ),
-          isFalse,
-        );
-        expect(
-          TaskHierarchyReorderUtils.isLastChildInGroup(
-            task: subB1,
-            index: 3,
-            nodes: nodes,
-          ),
-          isTrue,
-        );
-        expect(
-          TaskHierarchyReorderUtils.isLastChildInGroup(
-            task: rootA,
-            index: 0,
-            nodes: nodes,
-          ),
-          isFalse,
-        );
-      });
-    });
-
     group('Orphan subtask (parentId != null, parent not in nodes)', () {
       final orphanSub = Task(
         id: 'orphan1',

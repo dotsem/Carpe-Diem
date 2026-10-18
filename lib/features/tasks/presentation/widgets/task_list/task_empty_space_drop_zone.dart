@@ -3,11 +3,9 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 
 class TaskEmptySpaceDropZone extends StatelessWidget {
-  final void Function(Task task, int newIndex)? onDrop;
-
   final Widget? child;
 
-  const TaskEmptySpaceDropZone({super.key, this.onDrop, this.child});
+  const TaskEmptySpaceDropZone({super.key, this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +16,9 @@ class TaskEmptySpaceDropZone extends StatelessWidget {
       onWillAcceptWithDetails: (details) {
         scope.onHoverSlot(details.data, scope.nodes.length);
         return true;
+      },
+      onMove: (details) {
+        scope.onHoverSlot(details.data, scope.nodes.length);
       },
       onLeave: (details) {
         scope.onLeaveSlot();

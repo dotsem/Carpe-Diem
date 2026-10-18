@@ -58,17 +58,13 @@ class KanbanCard extends ConsumerWidget {
           onDragStarted: () {
             ref.read(taskDragProvider.notifier).startDrag(task.id);
           },
+          onDragUpdate: (details) {
+            ref
+                .read(taskDragProvider.notifier)
+                .updatePointerOffset(details.globalPosition);
+          },
           onDragEnd: (details) {
-            final scope = TaskReorderScope.of(context);
-            final activeDrop = scope?.activeDropNotifier.value;
-            if (scope != null &&
-                !details.wasAccepted &&
-                activeDrop != null &&
-                activeDrop.slot.isValid &&
-                !activeDrop.slot.isUnchanged) {
-              scope.drop(activeDrop.task, activeDrop.slot.index);
-            }
-            scope?.onLeaveSlot();
+            TaskReorderScope.of(context)?.handleDragEnd(details);
             ref.read(taskDragProvider.notifier).endDrag();
           },
           feedback: TaskDragProxy(

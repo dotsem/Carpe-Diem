@@ -51,26 +51,49 @@ void main() {
               child: TaskReorderScope(
                 nodes: nodes,
                 onDrop: onDrop ?? (_, _) {},
-                child: Column(
-                  children: [
-                    ...List.generate(
-                      nodes.length,
-                      (i) => TaskReorderItem(
-                        index: i,
-                        child: Container(
-                          key: ValueKey('item-$i'),
-                          height: 50,
-                          color: Colors.grey[200],
-                          child: Text(nodes[i].task?.title ?? 'Item $i'),
-                        ),
-                      ),
-                    ),
-                    if (includeEmptySpace)
-                      SizedBox(
-                        height: 100,
-                        child: TaskEmptySpaceDropZone(onDrop: onDrop),
-                      ),
-                  ],
+                child: Builder(
+                  builder: (context) {
+                    final scope = TaskReorderScope.of(context);
+                    return ValueListenableBuilder<TaskReorderActiveDrop?>(
+                      valueListenable: scope!.activeDropNotifier,
+                      builder: (context, activeDrop, _) {
+                        final slotInfo = TaskReorderListSlot.from(
+                          itemCount: nodes.length,
+                          activeDrop: activeDrop,
+                        );
+                        return Column(
+                          children: [
+                            ...List.generate(slotInfo.totalCount, (i) {
+                              if (slotInfo.isPlaceholder(i)) {
+                                return TaskReorderPlaceholderItem(
+                                  slotIndex: slotInfo.placeholderIndex!,
+                                  task: slotInfo.task!,
+                                );
+                              }
+                              final itemIndex = slotInfo.toOriginalIndex(i);
+                              return TaskReorderItem(
+                                index: itemIndex,
+                                child: Container(
+                                  key: ValueKey('item-$itemIndex'),
+                                  height: 50,
+                                  color: Colors.grey[200],
+                                  child: Text(
+                                    nodes[itemIndex].task?.title ??
+                                        'Item $itemIndex',
+                                  ),
+                                ),
+                              );
+                            }),
+                            if (includeEmptySpace)
+                              SizedBox(
+                                height: 100,
+                                child: const TaskEmptySpaceDropZone(),
+                              ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ),

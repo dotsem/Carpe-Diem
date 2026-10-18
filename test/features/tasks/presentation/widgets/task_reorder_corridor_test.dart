@@ -39,7 +39,7 @@ void main() {
                     child: Column(
                       children: [
                         Container(height: 100, color: Colors.blue),
-                        Expanded(child: TaskEmptySpaceDropZone(onDrop: onDrop)),
+                        const Expanded(child: TaskEmptySpaceDropZone()),
                       ],
                     ),
                   ),

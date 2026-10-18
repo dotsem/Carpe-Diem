@@ -131,6 +131,8 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
     if (scope == null) return;
 
     if (event is PointerMoveEvent) {
+      ref.read(taskDragProvider.notifier).updatePointerOffset(event.position);
+
       final renderBox = context.findRenderObject() as RenderBox?;
       if (renderBox == null || !renderBox.hasSize) return;
 
