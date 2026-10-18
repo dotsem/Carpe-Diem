@@ -1,10 +1,8 @@
-import 'package:carpe_diem/features/tasks/domain/reorder/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_draggable_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_empty_placeholder.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_scope.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_reorder_corridor.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
@@ -15,6 +13,7 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -158,46 +157,9 @@ class _BacklogListState extends ConsumerState<BacklogList> {
       widget.onOrderedIdsChanged(orderedIds);
     });
 
-    final urgentSectionEnd = TaskReorderUtils.getUrgentSectionEndIndex(
-      activeHierarchical,
-    );
-
-    return TaskDropZoneScope(
-      urgentSectionEndIndex: urgentSectionEnd,
-      itemCount: activeHierarchical.length,
-      resolveClampedTopIndex: (task) =>
-          TaskHierarchyReorderUtils.getClampedTopIndex(
-            task: task,
-            nodes: activeHierarchical,
-            urgentSectionEndIndex: urgentSectionEnd,
-          ),
-      resolveClampedBottomIndex: (task) =>
-          TaskHierarchyReorderUtils.getClampedBottomIndex(
-            task: task,
-            nodes: activeHierarchical,
-            urgentSectionEndIndex: urgentSectionEnd,
-          ),
+    return TaskReorderScope(
+      nodes: activeHierarchical,
       onDrop: (task, index) => _handleDrop(task, index, activeHierarchical),
-      isPositionUnchanged: (task, targetIndex) =>
-          TaskReorderUtils.isPositionUnchangedInNodes(
-            draggedTask: task,
-            targetIndex: targetIndex,
-            nodes: activeHierarchical,
-          ),
-      isPositionValid: (task, targetIndex) =>
-          TaskHierarchyReorderUtils.isPositionValidInNodes(
-            draggedTask: task,
-            targetIndex: targetIndex,
-            nodes: activeHierarchical,
-            settings: ref.read(settingsProvider),
-            isPlanView: false,
-          ),
-      isLastChildInGroup: (task, index) =>
-          TaskHierarchyReorderUtils.isLastChildInGroup(
-            task: task,
-            index: index,
-            nodes: activeHierarchical,
-          ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return TaskReorderCorridor(

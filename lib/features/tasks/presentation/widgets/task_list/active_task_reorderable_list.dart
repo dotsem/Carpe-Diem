@@ -1,4 +1,3 @@
-import 'package:carpe_diem/features/tasks/domain/reorder/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -7,7 +6,8 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_dotted_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -42,8 +42,6 @@ class ActiveTaskReorderableList extends ConsumerWidget {
       );
     }
 
-    final urgentSectionEnd = TaskReorderUtils.getUrgentSectionEndIndex(nodes);
-
     final content = LayoutBuilder(
       builder: (context, constraints) {
         final dragSession = ref.watch(taskDragProvider);
@@ -70,22 +68,16 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                   ref.read(taskDragProvider.notifier).startDrag(task.id);
                 },
                 onDragEnd: (details) {
-                  final scope = TaskDropZoneScope.of(context);
+                  final scope = TaskReorderScope.of(context);
                   final activeDrop = scope?.activeDropNotifier.value;
                   if (scope != null &&
                       !details.wasAccepted &&
                       activeDrop != null &&
-                      scope.isPositionValid(
-                        activeDrop.task,
-                        activeDrop.index,
-                      ) &&
-                      !scope.isPositionUnchanged(
-                        activeDrop.task,
-                        activeDrop.index,
-                      )) {
-                    _handleDrop(ref, activeDrop.task, activeDrop.index);
+                      activeDrop.slot.isValid &&
+                      !activeDrop.slot.isUnchanged) {
+                    _handleDrop(ref, activeDrop.task, activeDrop.slot.index);
                   }
-                  scope?.activeDropNotifier.value = null;
+                  scope?.onLeaveSlot();
                   ref.read(taskDragProvider.notifier).endDrag();
                 },
                 feedback: TaskDragProxy(
@@ -100,56 +92,20 @@ class ActiveTaskReorderableList extends ConsumerWidget {
               );
             }
 
-            return TaskDropZoneWrapper(
-              index: index,
-              onDrop: (task, newIndex) => _handleDrop(ref, task, newIndex),
-              child: draggableChild,
-            );
+            return TaskReorderItem(index: index, child: draggableChild);
           },
         );
       },
     );
 
-    if (TaskDropZoneScope.of(context) != null) {
+    if (TaskReorderScope.of(context) != null) {
       return content;
     }
 
-    return TaskDropZoneScope(
-      urgentSectionEndIndex: urgentSectionEnd,
-      itemCount: widgets.length,
-      resolveClampedTopIndex: (task) =>
-          TaskHierarchyReorderUtils.getClampedTopIndex(
-            task: task,
-            nodes: nodes,
-            urgentSectionEndIndex: urgentSectionEnd,
-          ),
-      resolveClampedBottomIndex: (task) =>
-          TaskHierarchyReorderUtils.getClampedBottomIndex(
-            task: task,
-            nodes: nodes,
-            urgentSectionEndIndex: urgentSectionEnd,
-          ),
+    return TaskReorderScope(
+      nodes: nodes,
+      isPlanView: isPlanView,
       onDrop: (task, newIndex) => _handleDrop(ref, task, newIndex),
-      isPositionUnchanged: (task, targetIndex) =>
-          TaskReorderUtils.isPositionUnchangedInNodes(
-            draggedTask: task,
-            targetIndex: targetIndex,
-            nodes: nodes,
-          ),
-      isPositionValid: (task, targetIndex) =>
-          TaskHierarchyReorderUtils.isPositionValidInNodes(
-            draggedTask: task,
-            targetIndex: targetIndex,
-            nodes: nodes,
-            settings: ref.read(settingsProvider),
-            isPlanView: isPlanView,
-          ),
-      isLastChildInGroup: (task, index) =>
-          TaskHierarchyReorderUtils.isLastChildInGroup(
-            task: task,
-            index: index,
-            nodes: nodes,
-          ),
       child: content,
     );
   }

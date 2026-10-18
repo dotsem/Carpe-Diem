@@ -1,9 +1,9 @@
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_scope.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_reorder_corridor.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,11 +28,8 @@ void main() {
               child: SizedBox(
                 width: 300,
                 height: 400,
-                child: TaskDropZoneScope(
-                  urgentSectionEndIndex: 0,
-                  itemCount: nodes.length,
-                  resolveClampedTopIndex: (task) => 0,
-                  resolveClampedBottomIndex: (task) => nodes.length,
+                child: TaskReorderScope(
+                  nodes: nodes,
                   onDrop: onDrop,
                   child: TaskReorderCorridor(
                     scrollController: scrollController,

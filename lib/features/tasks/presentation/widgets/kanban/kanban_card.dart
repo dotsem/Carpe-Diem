@@ -11,6 +11,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_ca
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 
 class KanbanCard extends ConsumerWidget {
   final TaskNode node;
@@ -57,7 +58,17 @@ class KanbanCard extends ConsumerWidget {
           onDragStarted: () {
             ref.read(taskDragProvider.notifier).startDrag(task.id);
           },
-          onDragEnd: (_) {
+          onDragEnd: (details) {
+            final scope = TaskReorderScope.of(context);
+            final activeDrop = scope?.activeDropNotifier.value;
+            if (scope != null &&
+                !details.wasAccepted &&
+                activeDrop != null &&
+                activeDrop.slot.isValid &&
+                !activeDrop.slot.isUnchanged) {
+              scope.drop(activeDrop.task, activeDrop.slot.index);
+            }
+            scope?.onLeaveSlot();
             ref.read(taskDragProvider.notifier).endDrag();
           },
           feedback: TaskDragProxy(

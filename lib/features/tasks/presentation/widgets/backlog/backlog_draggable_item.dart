@@ -5,7 +5,8 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provi
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_hierarchy_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_dotted_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,7 +21,7 @@ class BacklogDraggableItem extends ConsumerWidget {
   final ValueChanged<Task> onEdit;
   final Widget Function(BuildContext, Task)? trailingBuilder;
   final double maxWidth;
-  final void Function(Task, int) onDrop;
+  final void Function(Task, int)? onDrop;
 
   const BacklogDraggableItem({
     super.key,
@@ -34,7 +35,7 @@ class BacklogDraggableItem extends ConsumerWidget {
     required this.onEdit,
     this.trailingBuilder,
     required this.maxWidth,
-    required this.onDrop,
+    this.onDrop,
   });
 
   @override
@@ -64,10 +65,12 @@ class BacklogDraggableItem extends ConsumerWidget {
             ref.read(taskDragProvider.notifier).startDrag(task.id),
         onDragEnd: (details) {
           if (!details.wasAccepted) {
-            final dropScope = TaskDropZoneScope.of(context);
+            final dropScope = TaskReorderScope.of(context);
             final activeDrop = dropScope?.activeDropNotifier.value;
-            if (activeDrop != null) {
-              dropScope?.drop(activeDrop.task, activeDrop.index);
+            if (activeDrop != null &&
+                activeDrop.slot.isValid &&
+                !activeDrop.slot.isUnchanged) {
+              dropScope?.drop(activeDrop.task, activeDrop.slot.index);
             }
           }
           ref.read(taskDragProvider.notifier).endDrag();
@@ -84,10 +87,6 @@ class BacklogDraggableItem extends ConsumerWidget {
       );
     }
 
-    return TaskDropZoneWrapper(
-      index: index,
-      onDrop: onDrop,
-      child: draggableChild,
-    );
+    return TaskReorderItem(index: index, child: draggableChild);
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -10,7 +9,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/active_
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_done_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_reorder_corridor.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_scope.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 
 class TaskListScrollView extends ConsumerStatefulWidget {
   final List<TaskHierarchyNode> activeNodes;
@@ -101,46 +100,10 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
 
   @override
   Widget build(BuildContext context) {
-    final urgentSectionEnd = TaskReorderUtils.getUrgentSectionEndIndex(
-      widget.activeNodes,
-    );
-
-    return TaskDropZoneScope(
-      urgentSectionEndIndex: urgentSectionEnd,
-      itemCount: widget.activeNodes.length,
-      resolveClampedTopIndex: (task) =>
-          TaskHierarchyReorderUtils.getClampedTopIndex(
-            task: task,
-            nodes: widget.activeNodes,
-            urgentSectionEndIndex: urgentSectionEnd,
-          ),
-      resolveClampedBottomIndex: (task) =>
-          TaskHierarchyReorderUtils.getClampedBottomIndex(
-            task: task,
-            nodes: widget.activeNodes,
-            urgentSectionEndIndex: urgentSectionEnd,
-          ),
+    return TaskReorderScope(
+      nodes: widget.activeNodes,
+      isPlanView: widget.isPlanView,
       onDrop: _handleDrop,
-      isPositionUnchanged: (task, targetIndex) =>
-          TaskReorderUtils.isPositionUnchangedInNodes(
-            draggedTask: task,
-            targetIndex: targetIndex,
-            nodes: widget.activeNodes,
-          ),
-      isPositionValid: (task, targetIndex) =>
-          TaskHierarchyReorderUtils.isPositionValidInNodes(
-            draggedTask: task,
-            targetIndex: targetIndex,
-            nodes: widget.activeNodes,
-            settings: ref.read(settingsProvider),
-            isPlanView: widget.isPlanView,
-          ),
-      isLastChildInGroup: (task, index) =>
-          TaskHierarchyReorderUtils.isLastChildInGroup(
-            task: task,
-            index: index,
-            nodes: widget.activeNodes,
-          ),
       child: TaskReorderCorridor(
         scrollController: _scrollController,
         nodes: widget.activeNodes,
@@ -150,10 +113,14 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
           controller: _scrollController,
           slivers: [
             SliverPadding(
-              padding: widget.padding,
+              padding: widget.padding.copyWith(top: 0),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  if (widget.activeNodes.isNotEmpty)
+                  if (widget.activeNodes.isNotEmpty) ...[
+                    _TaskTopDropZone(
+                      height: widget.padding.top,
+                      onDrop: _handleDrop,
+                    ),
                     ActiveTaskReorderableList(
                       nodes: widget.activeNodes,
                       widgets: widget.activeWidgets,
@@ -174,6 +141,9 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
                             isPlanOrder: widget.isPlanView,
                           ),
                     ),
+                  ] else ...[
+                    SizedBox(height: widget.padding.top),
+                  ],
                   if (widget.doneCount > 0) ...[
                     TaskListDoneSection(
                       count: widget.doneCount,
@@ -193,6 +163,33 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TaskTopDropZone extends StatelessWidget {
+  final double height;
+  final void Function(Task task, int newIndex)? onDrop;
+
+  const _TaskTopDropZone({this.height = 16.0, this.onDrop});
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = TaskReorderScope.of(context);
+    if (scope == null) return SizedBox(height: height);
+
+    return DragTarget<Task>(
+      onWillAcceptWithDetails: (details) {
+        scope.onHoverSlot(details.data, 0);
+        return true;
+      },
+      onLeave: (_) => scope.onLeaveSlot(),
+      onAcceptWithDetails: (details) {
+        scope.drop(details.data, 0);
+        onDrop?.call(details.data, 0);
+      },
+      builder: (context, _, _) =>
+          SizedBox(height: height, width: double.infinity),
     );
   }
 }
