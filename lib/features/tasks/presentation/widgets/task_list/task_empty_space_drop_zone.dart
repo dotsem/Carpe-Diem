@@ -1,50 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_scope.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 
-class TaskEmptySpaceDropZone extends ConsumerWidget {
-  final void Function(Task task, int newIndex) onDrop;
+class TaskEmptySpaceDropZone extends StatelessWidget {
+  final Widget? child;
 
-  const TaskEmptySpaceDropZone({super.key, required this.onDrop});
+  const TaskEmptySpaceDropZone({super.key, this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scope = TaskDropZoneScope.of(context);
-    if (scope == null) return const SizedBox.shrink();
+  Widget build(BuildContext context) {
+    final scope = TaskReorderScope.of(context);
+    if (scope == null) return child ?? const SizedBox.shrink();
 
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
-        final task = details.data;
-        final effectiveIndex = scope.resolveClampedBottomIndex(task);
-        if (!scope.isPositionValid(task, effectiveIndex)) {
-          ref.read(taskDragProvider.notifier).setValidTarget(false);
-          return false;
-        }
-        scope.activeDropNotifier.value = TaskDropState(
-          index: effectiveIndex,
-          task: task,
-        );
-        final isUnchanged = scope.isPositionUnchanged(task, effectiveIndex);
-        ref.read(taskDragProvider.notifier).setValidTarget(!isUnchanged);
+        scope.onHoverSlot(details.data, scope.nodes.length);
         return true;
       },
+      onMove: (details) {
+        scope.onHoverSlot(details.data, scope.nodes.length);
+      },
       onLeave: (details) {
-        scope.activeDropNotifier.value = null;
-        ref.read(taskDragProvider.notifier).setValidTarget(false);
+        scope.onLeaveSlot();
       },
       onAcceptWithDetails: (details) {
-        final task = details.data;
-        final effectiveIndex = scope.resolveClampedBottomIndex(task);
-        scope.activeDropNotifier.value = null;
-        ref.read(taskDragProvider.notifier).endDrag();
-        if (scope.isPositionValid(task, effectiveIndex)) {
-          onDrop(task, effectiveIndex);
-        }
+        scope.drop(details.data, scope.nodes.length);
       },
       builder: (context, candidateData, rejectedData) =>
-          const SizedBox.expand(),
+          child ?? const SizedBox.expand(),
     );
   }
 }

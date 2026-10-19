@@ -19,9 +19,6 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_state.dart
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-export 'actions/task_bulk_actions.dart';
-export 'actions/task_schedule_actions.dart';
-
 class TaskNotifier extends Notifier<TaskState> {
   late final ITaskRepository repo;
 

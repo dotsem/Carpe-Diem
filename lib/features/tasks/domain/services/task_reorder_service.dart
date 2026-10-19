@@ -1,6 +1,6 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/core/utils/lexorank_utils.dart';
-import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/core/reorder/lexorank.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/core/utils/task_sort_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
@@ -15,18 +15,18 @@ class TaskReorderService {
     required List<Task> activeList,
   }) {
     if (activeList.isEmpty) {
-      return LexoRankUtils.defaultRank;
+      return LexoRank.defaultRank;
     }
 
     switch (placement) {
       case TaskPlacement.top || TaskPlacement.urgent:
         final topRank = TaskReorderUtils.getEffectiveRank(activeList, 0);
-        return LexoRankUtils.generateTop(topRank);
+        return LexoRank.generateTop(topRank);
 
       case TaskPlacement.middle:
         if (activeList.length == 1) {
           final singleRank = TaskReorderUtils.getEffectiveRank(activeList, 0);
-          return LexoRankUtils.generateBetween(null, singleRank);
+          return LexoRank.generateBetween(null, singleRank);
         }
         final midIndex = activeList.length ~/ 2;
         final prevRank = TaskReorderUtils.getEffectiveRank(
@@ -37,14 +37,14 @@ class TaskReorderService {
           activeList,
           midIndex,
         );
-        return LexoRankUtils.generateBetween(prevRank, nextRank);
+        return LexoRank.generateBetween(prevRank, nextRank);
 
       default:
         final bottomRank = TaskReorderUtils.getEffectiveRank(
           activeList,
           activeList.length - 1,
         );
-        return LexoRankUtils.generateBottom(bottomRank);
+        return LexoRank.generateBottom(bottomRank);
     }
   }
 

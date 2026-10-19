@@ -2,6 +2,7 @@ import 'package:carpe_diem/features/tasks/data/models/subtask_completion_conflic
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_bulk_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

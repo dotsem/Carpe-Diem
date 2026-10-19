@@ -1,20 +1,21 @@
-import 'package:carpe_diem/core/utils/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_draggable_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_empty_placeholder.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_scope.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_reorder_corridor.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/core/utils/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,29 +61,14 @@ class _BacklogListState extends ConsumerState<BacklogList> {
       labelTab.scope != BacklogLabelTabScope.all;
 
   void _handleDrop(Task task, int newIndex, List<TaskHierarchyNode> nodes) {
-    final settings = ref.read(settingsProvider);
-    if (widget.selectedTaskIds.isNotEmpty) {
-      final newSortOrders = TaskReorderUtils.handleMultiReorder(
-        nodes: nodes,
-        draggedTask: task,
-        newIndex: newIndex,
-        selectedTaskIds: widget.selectedTaskIds.toSet(),
-        settings: settings,
-      );
-      if (newSortOrders != null && newSortOrders.isNotEmpty) {
-        ref.read(taskProvider.notifier).bulkReorderTasks(newSortOrders);
-        return;
-      }
-    }
-    final newSortOrder = TaskReorderUtils.handleReorder(
+    TaskReorderUtils.dispatchReorder(
+      notifier: ref.read(taskProvider.notifier),
       nodes: nodes,
       draggedTask: task,
       newIndex: newIndex,
-      settings: settings,
+      selectedTaskIds: widget.selectedTaskIds.toSet(),
+      settings: ref.read(settingsProvider),
     );
-    if (newSortOrder != null) {
-      ref.read(taskProvider.notifier).reorderTask(task, newSortOrder);
-    }
   }
 
   @override
@@ -158,46 +144,9 @@ class _BacklogListState extends ConsumerState<BacklogList> {
       widget.onOrderedIdsChanged(orderedIds);
     });
 
-    final urgentSectionEnd = TaskReorderUtils.getUrgentSectionEndIndex(
-      activeHierarchical,
-    );
-
-    return TaskDropZoneScope(
-      urgentSectionEndIndex: urgentSectionEnd,
-      itemCount: activeHierarchical.length,
-      resolveClampedTopIndex: (task) =>
-          TaskHierarchyReorderUtils.getClampedTopIndex(
-            task: task,
-            nodes: activeHierarchical,
-            urgentSectionEndIndex: urgentSectionEnd,
-          ),
-      resolveClampedBottomIndex: (task) =>
-          TaskHierarchyReorderUtils.getClampedBottomIndex(
-            task: task,
-            nodes: activeHierarchical,
-            urgentSectionEndIndex: urgentSectionEnd,
-          ),
+    return TaskReorderScope(
+      nodes: activeHierarchical,
       onDrop: (task, index) => _handleDrop(task, index, activeHierarchical),
-      isPositionUnchanged: (task, targetIndex) =>
-          TaskReorderUtils.isPositionUnchangedInNodes(
-            draggedTask: task,
-            targetIndex: targetIndex,
-            nodes: activeHierarchical,
-          ),
-      isPositionValid: (task, targetIndex) =>
-          TaskHierarchyReorderUtils.isPositionValidInNodes(
-            draggedTask: task,
-            targetIndex: targetIndex,
-            nodes: activeHierarchical,
-            settings: ref.read(settingsProvider),
-            isPlanView: false,
-          ),
-      isLastChildInGroup: (task, index) =>
-          TaskHierarchyReorderUtils.isLastChildInGroup(
-            task: task,
-            index: index,
-            nodes: activeHierarchical,
-          ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return TaskReorderCorridor(
@@ -211,32 +160,60 @@ class _BacklogListState extends ConsumerState<BacklogList> {
               slivers: [
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => BacklogDraggableItem(
-                        node: activeHierarchical[index],
-                        index: index,
-                        allTasks: allTasks,
-                        selectedTaskIds: widget.selectedTaskIds,
-                        highlightedTaskId: widget.highlightedTaskId,
-                        itemFocusNodes: widget.itemFocusNodes,
-                        onSelectedChanged: widget.onSelectedChanged,
-                        onEdit: widget.onEdit,
-                        trailingBuilder: widget.trailingBuilder,
-                        maxWidth: constraints.maxWidth,
-                        onDrop: (task, newIndex) =>
-                            _handleDrop(task, newIndex, activeHierarchical),
-                      ),
-                      childCount: activeHierarchical.length,
-                    ),
+                  sliver: Builder(
+                    builder: (context) {
+                      final scope = TaskReorderScope.of(context);
+                      return ValueListenableBuilder<TaskReorderActiveDrop?>(
+                        valueListenable: scope!.activeDropNotifier,
+                        builder: (context, activeDrop, _) {
+                          final slotInfo = TaskReorderListSlot.from(
+                            itemCount: activeHierarchical.length,
+                            activeDrop: activeDrop,
+                            isDragging:
+                                ref.watch(taskDragProvider).draggedTaskId !=
+                                null,
+                          );
+                          return SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              if (slotInfo.isPlaceholder(index)) {
+                                return TaskReorderPlaceholderItem(
+                                  slotIndex: slotInfo.placeholderIndex!,
+                                  task: slotInfo.task!,
+                                );
+                              }
+                              final actualIndex = slotInfo.toOriginalIndex(
+                                index,
+                              );
+                              return BacklogDraggableItem(
+                                node: activeHierarchical[actualIndex],
+                                index: actualIndex,
+                                allTasks: allTasks,
+                                selectedTaskIds: widget.selectedTaskIds,
+                                highlightedTaskId: widget.highlightedTaskId,
+                                itemFocusNodes: widget.itemFocusNodes,
+                                onSelectedChanged: widget.onSelectedChanged,
+                                onEdit: widget.onEdit,
+                                trailingBuilder: widget.trailingBuilder,
+                                maxWidth: constraints.maxWidth,
+                                onDrop: (task, newIndex) => _handleDrop(
+                                  task,
+                                  newIndex,
+                                  activeHierarchical,
+                                ),
+                              );
+                            }, childCount: slotInfo.totalCount),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
                 SliverFillRemaining(
                   hasScrollBody: false,
-                  child: TaskEmptySpaceDropZone(
-                    onDrop: (task, index) =>
-                        _handleDrop(task, index, activeHierarchical),
-                  ),
+                  child: const TaskEmptySpaceDropZone(),
                 ),
               ],
             ),

@@ -402,7 +402,7 @@ class TaskRepository extends ITaskRepository {
         "(CASE WHEN ${prefix}status != ${TaskStatus.done.index} AND ((${prefix}scheduledDate IS NOT NULL AND ${prefix}scheduledDate < '$todayStr' AND (${prefix}deadline IS NULL OR ${prefix}deadline < '$todayStr')) OR (${prefix}deadline IS NOT NULL AND ${prefix}deadline < '$todayStr')) THEN 1 ELSE 0 END) DESC";
 
     final parts = <String>[urgentPart];
-    if (prioritizeOverdue && !isPlanOrder) {
+    if (prioritizeOverdue) {
       parts.add(overduePart);
     }
     if (prioritizeDeadlines && !isPlanOrder) {

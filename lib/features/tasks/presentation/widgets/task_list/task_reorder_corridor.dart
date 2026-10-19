@@ -6,14 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drop_zone_scope.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 
 class TaskReorderCorridor extends ConsumerStatefulWidget {
   final Widget child;
   final ScrollController scrollController;
   final List<TaskHierarchyNode> nodes;
   final EdgeInsets padding;
-  final void Function(Task task, int targetIndex) onDrop;
+  final void Function(Task task, int targetIndex)? onDrop;
 
   const TaskReorderCorridor({
     super.key,
@@ -21,7 +21,7 @@ class TaskReorderCorridor extends ConsumerStatefulWidget {
     required this.scrollController,
     required this.nodes,
     this.padding = const EdgeInsets.symmetric(horizontal: 16),
-    required this.onDrop,
+    this.onDrop,
   });
 
   @override
@@ -38,6 +38,7 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
   bool _isCorridorTargetActive = false;
   int? _corridorTargetIndex;
   Task? _lastActiveTask;
+  int? _activePointer;
 
   @override
   void initState() {
@@ -71,6 +72,7 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
     _stopAutoScroll();
     _isCorridorTargetActive = false;
     _corridorTargetIndex = null;
+    _activePointer = null;
   }
 
   void _startOrUpdateAutoScroll(int direction, double deltaY) {
@@ -127,10 +129,18 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
       return;
     }
 
-    final scope = TaskDropZoneScope.of(context);
+    if (_activePointer == null) {
+      _activePointer = event.pointer;
+    } else if (_activePointer != event.pointer) {
+      return;
+    }
+
+    final scope = TaskReorderScope.of(context);
     if (scope == null) return;
 
     if (event is PointerMoveEvent) {
+      ref.read(taskDragProvider.notifier).updatePointerOffset(event.position);
+
       final renderBox = context.findRenderObject() as RenderBox?;
       if (renderBox == null || !renderBox.hasSize) return;
 
@@ -149,8 +159,7 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
         if (_isCorridorTargetActive) {
           _isCorridorTargetActive = false;
           _corridorTargetIndex = null;
-          scope.activeDropNotifier.value = null;
-          ref.read(taskDragProvider.notifier).setValidTarget(false);
+          scope.onLeaveSlot();
         }
         return;
       }
@@ -162,35 +171,15 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
       if (py < rect.top) {
         final deltaY = rect.top - py;
         _startOrUpdateAutoScroll(-1, deltaY);
-        final topIndex = scope.resolveClampedTopIndex(task);
-        final isUnchanged = scope.isPositionUnchanged(task, topIndex);
-        final isValid = scope.isPositionValid(task, topIndex);
-
         _isCorridorTargetActive = true;
-        _corridorTargetIndex = topIndex;
-        scope.activeDropNotifier.value = TaskDropState(
-          index: topIndex,
-          task: task,
-        );
-        ref
-            .read(taskDragProvider.notifier)
-            .setValidTarget(isValid && !isUnchanged);
+        _corridorTargetIndex = 0;
+        scope.onHoverSlot(task, 0);
       } else if (py > rect.bottom) {
         final deltaY = py - rect.bottom;
         _startOrUpdateAutoScroll(1, deltaY);
-        final bottomIndex = scope.resolveClampedBottomIndex(task);
-        final isUnchanged = scope.isPositionUnchanged(task, bottomIndex);
-        final isValid = scope.isPositionValid(task, bottomIndex);
-
         _isCorridorTargetActive = true;
-        _corridorTargetIndex = bottomIndex;
-        scope.activeDropNotifier.value = TaskDropState(
-          index: bottomIndex,
-          task: task,
-        );
-        ref
-            .read(taskDragProvider.notifier)
-            .setValidTarget(isValid && !isUnchanged);
+        _corridorTargetIndex = widget.nodes.length;
+        scope.onHoverSlot(task, widget.nodes.length);
       } else {
         _stopAutoScroll();
         if (_isCorridorTargetActive) {
@@ -206,13 +195,8 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
         _isCorridorTargetActive = false;
         _corridorTargetIndex = null;
         _lastActiveTask = null;
-        scope.activeDropNotifier.value = null;
-        ref.read(taskDragProvider.notifier).endDrag();
-        if (task != null &&
-            targetIndex != null &&
-            scope.isPositionValid(task, targetIndex) &&
-            !scope.isPositionUnchanged(task, targetIndex)) {
-          widget.onDrop(task, targetIndex);
+        if (task != null && targetIndex != null) {
+          scope.drop(task, targetIndex);
         }
       }
       _detachGlobalRoute();
@@ -221,6 +205,7 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
       _isCorridorTargetActive = false;
       _corridorTargetIndex = null;
       _lastActiveTask = null;
+      scope.onLeaveSlot();
       _detachGlobalRoute();
     }
   }

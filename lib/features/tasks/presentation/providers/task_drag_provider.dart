@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskDragState {
@@ -20,11 +21,18 @@ class TaskDragState {
 }
 
 class TaskDragNotifier extends Notifier<TaskDragState> {
+  Offset? _pointerOffset;
+  Offset? get pointerOffset => _pointerOffset;
+
   @override
   TaskDragState build() => const TaskDragState();
 
   void startDrag(String taskId) {
     state = TaskDragState(draggedTaskId: taskId, hasValidTarget: false);
+  }
+
+  void updatePointerOffset(Offset offset) {
+    _pointerOffset = offset;
   }
 
   void setValidTarget(bool hasValidTarget) {
@@ -34,6 +42,7 @@ class TaskDragNotifier extends Notifier<TaskDragState> {
   }
 
   void endDrag() {
+    _pointerOffset = null;
     state = const TaskDragState();
   }
 }

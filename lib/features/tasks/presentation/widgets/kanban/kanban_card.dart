@@ -11,6 +11,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_ca
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 
 class KanbanCard extends ConsumerWidget {
   final TaskNode node;
@@ -57,7 +58,13 @@ class KanbanCard extends ConsumerWidget {
           onDragStarted: () {
             ref.read(taskDragProvider.notifier).startDrag(task.id);
           },
-          onDragEnd: (_) {
+          onDragUpdate: (details) {
+            ref
+                .read(taskDragProvider.notifier)
+                .updatePointerOffset(details.globalPosition);
+          },
+          onDragEnd: (details) {
+            TaskReorderScope.of(context)?.handleDragEnd(details);
             ref.read(taskDragProvider.notifier).endDrag();
           },
           feedback: TaskDragProxy(

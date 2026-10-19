@@ -19,6 +19,11 @@ class TaskSortUtils {
     if (a.isUrgent && !b.isUrgent) return -1;
     if (!a.isUrgent && b.isUrgent) return 1;
 
+    if (settings.prioritizeOverdue) {
+      if (a.isOverdue && !b.isOverdue) return -1;
+      if (!a.isOverdue && b.isOverdue) return 1;
+    }
+
     final deadlineComp = () {
       if (a.deadline == b.deadline) return 0;
       if (a.deadline == null) return 1;
@@ -27,10 +32,6 @@ class TaskSortUtils {
     }();
 
     if (!isPlanView) {
-      if (settings.prioritizeOverdue) {
-        if (a.isOverdue && !b.isOverdue) return -1;
-        if (!a.isOverdue && b.isOverdue) return 1;
-      }
       if (settings.prioritizeDeadlines && deadlineComp != 0) {
         return deadlineComp;
       }

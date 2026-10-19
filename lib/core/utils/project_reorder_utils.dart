@@ -1,4 +1,4 @@
-import 'package:carpe_diem/core/utils/lexorank_utils.dart';
+import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 
 class ProjectReorderUtils {
@@ -10,7 +10,7 @@ class ProjectReorderUtils {
     required int slotIndex,
   }) {
     if (remainingProjects.isEmpty) {
-      return LexoRankUtils.defaultRank;
+      return LexoRank.defaultRank;
     }
 
     final isUrgent = draggedProject.isUrgent;
@@ -28,20 +28,18 @@ class ProjectReorderUtils {
 
     // If there are no other projects in this group, just return default rank
     if (groupStart == -1) {
-      return LexoRankUtils.defaultRank;
+      return LexoRank.defaultRank;
     }
 
     if (slotIndex <= groupStart) {
-      return LexoRankUtils.generateTop(remainingProjects[groupStart].sortOrder);
+      return LexoRank.generateTop(remainingProjects[groupStart].sortOrder);
     }
 
     if (slotIndex > groupEnd) {
-      return LexoRankUtils.generateBottom(
-        remainingProjects[groupEnd].sortOrder,
-      );
+      return LexoRank.generateBottom(remainingProjects[groupEnd].sortOrder);
     }
 
-    return LexoRankUtils.generateBetween(
+    return LexoRank.generateBetween(
       remainingProjects[slotIndex - 1].sortOrder,
       remainingProjects[slotIndex].sortOrder,
     );

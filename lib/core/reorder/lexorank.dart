@@ -1,4 +1,4 @@
-class LexoRankUtils {
+class LexoRank {
   static const String defaultRank = 'a0';
   static const String _base62 =
       '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
