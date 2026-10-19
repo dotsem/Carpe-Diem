@@ -25,9 +25,8 @@ class KanbanColumn extends ConsumerStatefulWidget {
   final List<Task> tasks;
   final TaskStatus acceptedStatus;
   final void Function(Task task, TaskStatus status) onStatusChange;
-  final void Function(Task task, Offset localPosition, RenderBox renderBox)
-  onContextMenu;
-  final void Function(Task task) onEdit;
+  final void Function(Task, Offset, RenderBox) onContextMenu;
+  final void Function(Task) onEdit;
   final bool isCollapsed;
   final bool isNarrow;
   final bool isPlanView;
@@ -68,11 +67,14 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
 
   void _updateOrder(Task task, String? order) {
     if (task.status != widget.acceptedStatus) {
-      final updated = task.copyWith(
-        sortOrder: order ?? task.sortOrder,
-        planSortOrder: widget.isPlanView ? (order ?? task.planSortOrder) : null,
+      final updatedOrder = order ?? task.sortOrder;
+      widget.onStatusChange(
+        task.copyWith(
+          sortOrder: updatedOrder,
+          planSortOrder: widget.isPlanView ? updatedOrder : null,
+        ),
+        widget.acceptedStatus,
       );
-      widget.onStatusChange(updated, widget.acceptedStatus);
     } else if (order != null) {
       ref
           .read(taskProvider.notifier)
@@ -84,11 +86,13 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
     widget.onDragExiting?.call();
     ref.read(taskDragProvider.notifier).endDrag();
     final same = widget.tasks.where((t) => _inSameGroup(t, task)).toList();
-    final order = TaskReorderService.computeSortOrder(
-      placement: TaskPlacement.bottom,
-      activeList: same,
+    _updateOrder(
+      task,
+      TaskReorderService.computeSortOrder(
+        placement: TaskPlacement.bottom,
+        activeList: same,
+      ),
     );
-    _updateOrder(task, order);
   }
 
   void _handleTaskDrop(Task task, int newIndex, List<TaskHierarchyNode> nodes) {
@@ -102,16 +106,18 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
     _updateOrder(task, order);
   }
 
+  FocusNode? _focusNode(String id) => widget.itemFocusNodes?.putIfAbsent(
+    id,
+    () => FocusNode(debugLabel: 'Task_$id'),
+  );
+
   @override
   Widget build(BuildContext context) {
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
-        final canAccept = widget.isCollapsed
-            ? details.data.status != widget.acceptedStatus
-            : true;
-        if (canAccept && details.data.status != widget.acceptedStatus) {
-          widget.onDragEntering?.call();
-        }
+        final foreign = details.data.status != widget.acceptedStatus;
+        final canAccept = !widget.isCollapsed || foreign;
+        if (canAccept && foreign) widget.onDragEntering?.call();
         ref.read(taskDragProvider.notifier).setValidTarget(canAccept);
         return canAccept;
       },
@@ -120,7 +126,8 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
         ref.read(taskDragProvider.notifier).setValidTarget(false);
       },
       onAcceptWithDetails: (details) {
-        if (details.data.status != widget.acceptedStatus) {
+        if (!widget.isCollapsed ||
+            details.data.status != widget.acceptedStatus) {
           _acceptDrop(details.data);
         }
       },
@@ -144,14 +151,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
     return Consumer(
       builder: (context, ref, child) {
         final taskState = ref.watch(taskProvider);
-        final allAvailableTasks = {
-          for (final t in [
-            ...taskState.tasks,
-            ...taskState.overdueTasks,
-            ...taskState.unscheduledTasks,
-          ])
-            t.id: t,
-        };
+        final allAvailableTasks = {for (final t in taskState.allTasks) t.id: t};
         final projectNotifier = ref.read(projectProvider.notifier);
         final hierarchical = TaskHierarchyUtils.buildHierarchy(
           widget.tasks,
@@ -246,15 +246,9 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                                               const SizedBox.shrink();
                                           if (node is TaskNode) {
                                             final task = node.task;
-                                            final focusNode = widget
-                                                .itemFocusNodes
-                                                ?.putIfAbsent(
-                                                  task.id,
-                                                  () => FocusNode(
-                                                    debugLabel:
-                                                        'KanbanTask_${task.id}',
-                                                  ),
-                                                );
+                                            final focusNode = _focusNode(
+                                              task.id,
+                                            );
                                             childWidget = KanbanCard(
                                               key: ValueKey(task.id),
                                               node: node,
@@ -271,6 +265,12 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                                             child: childWidget,
                                           );
                                         }, childCount: slotInfo.totalCount),
+                                      ),
+                                    ),
+                                    const SliverToBoxAdapter(
+                                      child: SizedBox(
+                                        height: 48,
+                                        child: TaskEmptySpaceDropZone(),
                                       ),
                                     ),
                                     const SliverFillRemaining(

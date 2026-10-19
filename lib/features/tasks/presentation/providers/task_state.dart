@@ -15,6 +15,8 @@ class TaskState {
     required this.currentDate,
   });
 
+  List<Task> get allTasks => [...tasks, ...overdueTasks, ...unscheduledTasks];
+
   Task? getById(String id) {
     for (final t in tasks) {
       if (t.id == id) return t;
