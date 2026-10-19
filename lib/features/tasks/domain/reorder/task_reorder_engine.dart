@@ -5,24 +5,52 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_slot.dart';
 
 class TaskReorderEngine {
+  static bool _isRootNode(TaskHierarchyNode node) => node is ParentContainerNode
+      ? node.depth == 0
+      : (node is TaskNode && node.depth == 0 && !node.isBundledUnderParent);
+
+  static bool _isNodeUrgent(TaskHierarchyNode node) =>
+      node is ParentContainerNode
+      ? (node.task.isUrgent || node.hasUrgentChild)
+      : (node.task?.isUrgent ?? false);
+
+  static bool _isNodeOverdue(TaskHierarchyNode node) =>
+      node.task?.isOverdue ?? false;
+
   /// Resolves the urgent section end index in [nodes].
   static int getUrgentSectionEndIndex(List<TaskHierarchyNode> nodes) {
     for (int i = 0; i < nodes.length; i++) {
-      final node = nodes[i];
-      final isRoot = node is ParentContainerNode
-          ? node.depth == 0
-          : (node is TaskNode && node.depth == 0 && !node.isBundledUnderParent);
-      if (isRoot) {
-        final isUrgent = node is ParentContainerNode
-            ? (node.task.isUrgent || node.hasUrgentChild)
-            : (node.task?.isUrgent ?? false);
-        if (!isUrgent) return i;
-      }
+      if (_isRootNode(nodes[i]) && !_isNodeUrgent(nodes[i])) return i;
     }
     return nodes.length;
   }
 
-  /// Checks if two tasks belong to the same reorder group according to [settings] and view mode.
+  /// Resolves the overdue section end index in [nodes] after [urgentEnd].
+  static int getOverdueSectionEndIndex(
+    List<TaskHierarchyNode> nodes,
+    int urgentEnd,
+  ) {
+    for (int i = urgentEnd; i < nodes.length; i++) {
+      if (_isRootNode(nodes[i]) && !_isNodeOverdue(nodes[i])) return i;
+    }
+    return nodes.length;
+  }
+
+  static (int start, int end) _getSectionBounds(
+    List<TaskHierarchyNode> nodes,
+    Task task,
+    SettingsState? settings,
+  ) {
+    final urgentEnd = getUrgentSectionEndIndex(nodes);
+    if (task.isUrgent) return (0, urgentEnd);
+    final hasOverdue = settings?.prioritizeOverdue ?? false;
+    final overdueEnd = hasOverdue
+        ? getOverdueSectionEndIndex(nodes, urgentEnd)
+        : urgentEnd;
+    if (hasOverdue && task.isOverdue) return (urgentEnd, overdueEnd);
+    return (overdueEnd, nodes.length);
+  }
+
   static bool inSameGroup(
     Task a,
     Task b,
@@ -30,18 +58,16 @@ class TaskReorderEngine {
     bool isPlanView = false,
     List<TaskHierarchyNode>? nodes,
   }) {
+    if (a.isUrgent || b.isUrgent) return a.isUrgent && b.isUrgent;
+    if (settings.prioritizeOverdue && a.isOverdue != b.isOverdue) return false;
     if (isPlanView && nodes != null) {
       final aTop =
           a.parentId == null || !nodes.any((n) => n.task?.id == a.parentId);
       final bTop =
           b.parentId == null || !nodes.any((n) => n.task?.id == b.parentId);
-      if ((!aTop || !bTop) && a.parentId != b.parentId) return false;
-      return !(a.isUrgent || b.isUrgent) || (a.isUrgent && b.isUrgent);
-    } else if (a.parentId != b.parentId) {
-      return false;
+      return (aTop && bTop) || a.parentId == b.parentId;
     }
-    if (a.isUrgent || b.isUrgent) return a.isUrgent && b.isUrgent;
-    if (settings.prioritizeOverdue && a.isOverdue != b.isOverdue) return false;
+    if (a.parentId != b.parentId) return false;
     return !settings.prioritizeDeadlines || a.deadline == b.deadline;
   }
 
@@ -75,23 +101,22 @@ class TaskReorderEngine {
         }
       }
       if (firstChild == -1) {
-        final parentIdx = nodes.indexWhere((n) => n.task?.id == parentId);
-        targetIndex = parentIdx + 1;
+        targetIndex = nodes.indexWhere((n) => n.task?.id == parentId) + 1;
       } else {
         int endChild = lastChild + 1;
         final lastDepth = nodes[lastChild].depth;
         while (endChild < nodes.length && nodes[endChild].depth > lastDepth) {
           endChild++;
         }
-
         targetIndex = rawIndex.clamp(firstChild, endChild);
       }
     } else {
       // Root task (or orphan subtask)
-      final urgentEnd = getUrgentSectionEndIndex(nodes);
-      final minSlot = draggedTask.isUrgent ? 0 : urgentEnd;
-      final maxSlot = draggedTask.isUrgent ? urgentEnd : nodes.length;
-
+      final (minSlot, maxSlot) = _getSectionBounds(
+        nodes,
+        draggedTask,
+        settings,
+      );
       var clamped = rawIndex.clamp(minSlot, maxSlot);
 
       // Auto-snap outside parent container if dropped into a subtask slot
@@ -201,16 +226,14 @@ class TaskReorderEngine {
   }) {
     if (!slot.isValid || slot.isUnchanged) return null;
 
-    final urgentEnd = getUrgentSectionEndIndex(nodes);
+    final (start, end) = _getSectionBounds(nodes, draggedTask, settings);
     final isMulti =
         selectedTaskIds != null &&
         selectedTaskIds.length > 1 &&
         selectedTaskIds.contains(draggedTask.id);
     final excludeIds = isMulti ? selectedTaskIds : {draggedTask.id};
 
-    final section = draggedTask.isUrgent
-        ? nodes.sublist(0, urgentEnd)
-        : nodes.sublist(urgentEnd);
+    final section = nodes.sublist(start, end);
 
     bool matches(Task t) => settings != null
         ? inSameGroup(
@@ -228,8 +251,6 @@ class TaskReorderEngine {
         .whereType<Task>()
         .where(matches)
         .toList();
-
-    final start = draggedTask.isUrgent ? 0 : urgentEnd;
     final targetCount = nodes
         .sublist(start, slot.index.clamp(start, nodes.length))
         .map((n) => n.task)
@@ -240,9 +261,8 @@ class TaskReorderEngine {
     final remaining = sameGroupTasks
         .where((t) => !excludeIds.contains(t.id))
         .toList();
-
-    if (sameGroupTasks.isEmpty || remaining.isEmpty) {
-      if (!isMulti) return {draggedTask.id: LexoRank.defaultRank};
+    if ((sameGroupTasks.isEmpty || remaining.isEmpty) && !isMulti) {
+      return {draggedTask.id: LexoRank.defaultRank};
     }
 
     final prev = getEffectiveRank(
@@ -255,10 +275,8 @@ class TaskReorderEngine {
       targetCount,
       isPlanView: isPlanView,
     );
-
     if (!isMulti) {
-      final newRank = LexoRank.generateBetween(prev, next);
-      return {draggedTask.id: newRank};
+      return {draggedTask.id: LexoRank.generateBetween(prev, next)};
     }
 
     final selected = sameGroupTasks
