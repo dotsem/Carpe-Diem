@@ -130,6 +130,12 @@ class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<TaskDragState>(taskDragProvider, (prev, next) {
+      if (prev?.draggedTaskId != null && next.draggedTaskId == null) {
+        _activeDrop.value = null;
+      }
+    });
+
     return TaskReorderScopeInherited(
       activeDropNotifier: _activeDrop,
       nodes: widget.nodes,

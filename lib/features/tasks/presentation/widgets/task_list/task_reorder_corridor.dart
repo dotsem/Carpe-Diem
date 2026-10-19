@@ -38,6 +38,7 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
   bool _isCorridorTargetActive = false;
   int? _corridorTargetIndex;
   Task? _lastActiveTask;
+  int? _activePointer;
 
   @override
   void initState() {
@@ -71,6 +72,7 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
     _stopAutoScroll();
     _isCorridorTargetActive = false;
     _corridorTargetIndex = null;
+    _activePointer = null;
   }
 
   void _startOrUpdateAutoScroll(int direction, double deltaY) {
@@ -124,6 +126,12 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
     final draggedTaskId = dragSession.draggedTaskId;
     if (draggedTaskId == null && event is! PointerUpEvent) {
       _detachGlobalRoute();
+      return;
+    }
+
+    if (_activePointer == null) {
+      _activePointer = event.pointer;
+    } else if (_activePointer != event.pointer) {
       return;
     }
 

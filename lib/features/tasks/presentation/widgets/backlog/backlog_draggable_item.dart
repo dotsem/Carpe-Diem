@@ -67,7 +67,9 @@ class BacklogDraggableItem extends ConsumerWidget {
             .read(taskDragProvider.notifier)
             .updatePointerOffset(details.globalPosition),
         onDragEnd: (details) {
-          TaskReorderScope.of(context)?.handleDragEnd(details);
+          TaskReorderScope.of(
+            context,
+          )?.handleDragEnd(details, onFallbackDrop: onDrop);
           ref.read(taskDragProvider.notifier).endDrag();
         },
         feedback: TaskDragProxy(

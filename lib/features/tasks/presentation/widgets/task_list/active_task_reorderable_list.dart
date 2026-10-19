@@ -53,6 +53,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
               final slotInfo = TaskReorderListSlot.from(
                 itemCount: widgets.length,
                 activeDrop: activeDrop,
+                isDragging: dragSession.draggedTaskId != null,
               );
 
               return ListView.builder(

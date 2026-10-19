@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/tasks/domain/reorder/task_hierarchy_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/core/utils/task_sort_utils.dart';
@@ -97,14 +97,14 @@ void main() {
 
       // In plan view, deadline difference must NOT block the drop.
       final nodes = TaskHierarchyUtils.buildHierarchy([child1, root1]);
-      final isValid = TaskHierarchyReorderUtils.isPositionValidInNodes(
-        draggedTask: root1,
-        targetIndex: 0,
+      final slot = TaskReorderEngine.resolveSlot(
         nodes: nodes,
+        draggedTask: root1,
+        rawIndex: 0,
         settings: deadlineSettings,
         isPlanView: true,
       );
-      expect(isValid, isTrue);
+      expect(slot.isValid, isTrue);
 
       final newRank = TaskReorderUtils.handleReorder(
         nodes: nodes,

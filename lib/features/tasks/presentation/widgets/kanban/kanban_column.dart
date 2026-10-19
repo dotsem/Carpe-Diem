@@ -174,9 +174,11 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                       activeDrop != null &&
                       activeDrop.task.status != widget.acceptedStatus;
                   final highlighted = isHighlighted || isScopeHighlighted;
+                  final dragSession = ref.watch(taskDragProvider);
                   final slotInfo = TaskReorderListSlot.from(
                     itemCount: hierarchical.length,
                     activeDrop: activeDrop,
+                    isDragging: dragSession.draggedTaskId != null,
                   );
 
                   return AnimatedContainer(
@@ -206,7 +208,9 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                         ),
                         const Divider(height: 1),
                         Expanded(
-                          child: widget.tasks.isEmpty
+                          child:
+                              (widget.tasks.isEmpty &&
+                                  slotInfo.placeholderIndex == null)
                               ? TaskEmptySpaceDropZone(
                                   child: Center(
                                     child: Text(

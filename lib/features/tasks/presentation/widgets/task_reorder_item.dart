@@ -120,8 +120,10 @@ class TaskReorderListSlot {
   factory TaskReorderListSlot.from({
     required int itemCount,
     required TaskReorderActiveDrop? activeDrop,
+    bool isDragging = true,
   }) {
     final showPlaceholder =
+        isDragging &&
         activeDrop != null &&
         activeDrop.slot.isValid &&
         !activeDrop.slot.isUnchanged;

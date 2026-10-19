@@ -12,6 +12,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
@@ -168,6 +169,9 @@ class _BacklogListState extends ConsumerState<BacklogList> {
                           final slotInfo = TaskReorderListSlot.from(
                             itemCount: activeHierarchical.length,
                             activeDrop: activeDrop,
+                            isDragging:
+                                ref.watch(taskDragProvider).draggedTaskId !=
+                                null,
                           );
                           return SliverList(
                             delegate: SliverChildBuilderDelegate((

@@ -2,7 +2,6 @@ import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_hierarchy_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,47 +49,6 @@ void main() {
       expect(slotAt2.isValid, isTrue);
       expect(slotAt2.index, 1);
       expect(slotAt2.isUnchanged, isFalse);
-    });
-
-    test('isPositionValidInNodes validates parentIdx + 1 only', () {
-      final parent = makeTask('p1', 'a0');
-      final other = makeTask('r1', 'a1');
-      final child = makeTask('c1', 'a0', parentId: 'p1');
-
-      final nodes = <TaskHierarchyNode>[
-        TaskNode(parent, 0),
-        TaskNode(other, 0),
-      ];
-
-      expect(
-        TaskHierarchyReorderUtils.isPositionValidInNodes(
-          draggedTask: child,
-          targetIndex: 0,
-          nodes: nodes,
-          settings: settings,
-        ),
-        isFalse,
-      );
-
-      expect(
-        TaskHierarchyReorderUtils.isPositionValidInNodes(
-          draggedTask: child,
-          targetIndex: 1,
-          nodes: nodes,
-          settings: settings,
-        ),
-        isTrue,
-      );
-
-      expect(
-        TaskHierarchyReorderUtils.isPositionValidInNodes(
-          draggedTask: child,
-          targetIndex: 2,
-          nodes: nodes,
-          settings: settings,
-        ),
-        isFalse,
-      );
     });
 
     test('computeRanks generates defaultRank for lone subtask in group', () {
