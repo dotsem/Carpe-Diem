@@ -6,12 +6,7 @@ import 'package:toastification/toastification.dart';
 
 class ToastUtils {
   static const alignment = Alignment.bottomRight;
-  static final borderRadius = BorderRadius.circular(12);
-  static const showProgressBar = false;
-  static const applyBlurEffect = false;
-  static const dragToClose = true;
   static const autoCloseDuration = Duration(seconds: 3);
-  static const style = ToastificationStyle.minimal;
 
   static BuildContext? _getEffectiveContext(BuildContext? context) {
     if (context != null) return context;
@@ -20,6 +15,30 @@ class ToastUtils {
     } catch (_) {
       return null;
     }
+  }
+
+  static void _showToast({
+    required BuildContext context,
+    required String message,
+    required IconData icon,
+    required Color color,
+    String? subtitle,
+    VoidCallback? onUndo,
+  }) {
+    toastification.showCustom(
+      context: context,
+      alignment: alignment,
+      autoCloseDuration: autoCloseDuration,
+      dismissDirection: DismissDirection.horizontal,
+      builder: (context, holder) => CheesyToast(
+        message: message,
+        icon: icon,
+        color: color,
+        subtitle: subtitle,
+        onUndo: onUndo,
+        item: holder,
+      ),
+    );
   }
 
   static void showSuccess(
@@ -31,27 +50,12 @@ class ToastUtils {
   }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
-    toastification.show(
+    _showToast(
       context: effectiveContext,
-      title: CheesyToast(message: message, subtitle: subtitle),
-      icon: Icon(
-        icon ?? Icons.check_circle_outline,
-        size: 20,
-        color: iconColor ?? AppColors.success,
-      ),
-      autoCloseDuration: autoCloseDuration,
-      type: ToastificationType.success,
-      style: style,
-      alignment: alignment,
-      primaryColor: AppColors.success,
-      backgroundColor: Theme.of(
-        effectiveContext,
-      ).colorScheme.surfaceContainerHigh,
-      foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
-      borderRadius: borderRadius,
-      showProgressBar: showProgressBar,
-      applyBlurEffect: applyBlurEffect,
-      dragToClose: dragToClose,
+      message: message,
+      icon: icon ?? Icons.check_circle_outline,
+      color: iconColor ?? AppColors.success,
+      subtitle: subtitle,
     );
   }
 
@@ -64,27 +68,12 @@ class ToastUtils {
   }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
-    toastification.show(
+    _showToast(
       context: effectiveContext,
-      title: CheesyToast(message: message, subtitle: subtitle),
-      icon: Icon(
-        icon ?? Icons.info_outline,
-        size: 20,
-        color: iconColor ?? AppColors.info,
-      ),
-      autoCloseDuration: autoCloseDuration,
-      type: ToastificationType.info,
-      style: style,
-      alignment: alignment,
-      primaryColor: AppColors.info,
-      backgroundColor: Theme.of(
-        effectiveContext,
-      ).colorScheme.surfaceContainerHigh,
-      foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
-      borderRadius: borderRadius,
-      showProgressBar: showProgressBar,
-      applyBlurEffect: applyBlurEffect,
-      dragToClose: dragToClose,
+      message: message,
+      icon: icon ?? Icons.info_outline,
+      color: iconColor ?? AppColors.info,
+      subtitle: subtitle,
     );
   }
 
@@ -97,27 +86,12 @@ class ToastUtils {
   }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
-    toastification.show(
+    _showToast(
       context: effectiveContext,
-      title: CheesyToast(message: message, subtitle: subtitle),
-      icon: Icon(
-        icon ?? Icons.warning_amber_rounded,
-        size: 20,
-        color: iconColor ?? AppColors.warning,
-      ),
-      autoCloseDuration: autoCloseDuration,
-      type: ToastificationType.warning,
-      style: style,
-      alignment: alignment,
-      primaryColor: AppColors.warning,
-      backgroundColor: Theme.of(
-        effectiveContext,
-      ).colorScheme.surfaceContainerHigh,
-      foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
-      borderRadius: borderRadius,
-      showProgressBar: showProgressBar,
-      applyBlurEffect: applyBlurEffect,
-      dragToClose: dragToClose,
+      message: message,
+      icon: icon ?? Icons.warning_amber_rounded,
+      color: iconColor ?? AppColors.warning,
+      subtitle: subtitle,
     );
   }
 
@@ -132,35 +106,14 @@ class ToastUtils {
   }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
-
-    final resolvedColor = primaryColor ?? AppColors.info;
-    late final ToastificationItem item;
-    item = toastification.show(
+    final color = primaryColor ?? iconColor ?? AppColors.info;
+    _showToast(
       context: effectiveContext,
-      title: CheesyToast(
-        message: message,
-        subtitle: subtitle,
-        onUndo: onUndo,
-        getItem: () => item,
-      ),
-      icon: Icon(
-        icon ?? Icons.check_circle_outline,
-        size: 20,
-        color: iconColor ?? resolvedColor,
-      ),
-      autoCloseDuration: autoCloseDuration,
-      type: ToastificationType.success,
-      style: style,
-      alignment: alignment,
-      primaryColor: resolvedColor,
-      backgroundColor: Theme.of(
-        effectiveContext,
-      ).colorScheme.surfaceContainerHigh,
-      foregroundColor: Theme.of(effectiveContext).colorScheme.onSurface,
-      borderRadius: borderRadius,
-      showProgressBar: showProgressBar,
-      applyBlurEffect: applyBlurEffect,
-      dragToClose: dragToClose,
+      message: message,
+      icon: icon ?? Icons.check_circle_outline,
+      color: color,
+      subtitle: subtitle,
+      onUndo: onUndo,
     );
   }
 }
