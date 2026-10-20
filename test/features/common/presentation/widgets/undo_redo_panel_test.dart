@@ -1,11 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
+import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_panel_body.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockTaskRepo extends Mock implements ITaskRepository {}
 
 class TestCommand extends Command {
   final String desc;
@@ -167,5 +173,44 @@ void main() {
       expect(find.text('Applied'), findsOneWidget); // Action 1 is applied
       expect(find.text('Undone'), findsOneWidget); // Action 2 is undone
     });
+
+    testWidgets(
+      'ActionHistoryPanelWidget displays action specific icons and colors',
+      (tester) async {
+        final mockRepo = MockTaskRepo();
+        final task = Task(
+          id: '1',
+          title: 'New Task',
+          createdAt: DateTime(2026, 1, 1),
+        );
+        when(() => mockRepo.repositoryName).thenReturn('Task');
+        when(() => mockRepo.insert(task)).thenAnswer((_) async {});
+        when(() => mockRepo.delete(task.id)).thenAnswer((_) async {});
+        final createCmd = CreateCommand<Task>(
+          repo: mockRepo,
+          item: task,
+          id: task.id,
+          displayName: task.title,
+        );
+
+        await container.read(undoRedoProvider.notifier).execute(createCmd);
+        await tester.pumpWidget(buildTestWidget(container));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byTooltip('Action History'));
+        await tester.pumpAndSettle();
+
+        final iconFinder = find.byIcon(Icons.add_task);
+        expect(iconFinder, findsOneWidget);
+
+        final iconWidget = tester.widget<Icon>(iconFinder);
+        expect(iconWidget.color, equals(AppColors.success));
+
+        final appliedFinder = find.text('Applied');
+        expect(appliedFinder, findsOneWidget);
+        final appliedText = tester.widget<Text>(appliedFinder);
+        expect(appliedText.style?.color, equals(AppColors.success));
+      },
+    );
   });
 }

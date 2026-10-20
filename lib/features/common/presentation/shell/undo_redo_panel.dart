@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/action_toast_handler.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:flutter/material.dart';
@@ -106,6 +107,8 @@ class ActionHistoryPanelWidget extends ConsumerWidget {
       itemBuilder: (context, index) {
         final cmd = timeline[index];
         final isApplied = index < undoStack.length;
+        final actionData = ActionToastHandler.resolveExecuteToastData(cmd: cmd);
+        final actionColor = actionData.primaryColor ?? AppColors.info;
 
         final tooltipMessage = isApplied
             ? (index == undoStack.length - 1
@@ -125,11 +128,9 @@ class ActionHistoryPanelWidget extends ConsumerWidget {
                   : () => ref.read(undoRedoProvider.notifier).jumpTo(cmd),
               hoverColor: theme.colorScheme.primary.withValues(alpha: 0.08),
               leading: Icon(
-                isApplied
-                    ? Icons.check_circle_outline_rounded
-                    : Icons.history_rounded,
+                actionData.icon,
                 color: isApplied
-                    ? AppColors.accent
+                    ? actionColor
                     : theme.colorScheme.onSurfaceVariant,
               ),
               title: Text(
@@ -139,12 +140,37 @@ class ActionHistoryPanelWidget extends ConsumerWidget {
                   fontWeight: isApplied ? FontWeight.w500 : FontWeight.normal,
                 ),
               ),
+              subtitle: actionData.subtitle != null
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.visibility_off_outlined,
+                          size: 11,
+                          color: AppColors.warning,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            actionData.subtitle!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.warning,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : null,
               trailing: Text(
                 isApplied ? 'Applied' : 'Undone',
                 style: TextStyle(
                   fontSize: 11,
                   color: isApplied
-                      ? AppColors.accent
+                      ? actionColor
                       : theme.colorScheme.onSurfaceVariant,
                 ),
               ),
