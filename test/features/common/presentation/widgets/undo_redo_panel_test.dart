@@ -1,11 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
+import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_panel_body.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockTaskRepo extends Mock implements ITaskRepository {}
 
 class TestCommand extends Command {
   final String desc;
@@ -167,5 +173,81 @@ void main() {
       expect(find.text('Applied'), findsOneWidget); // Action 1 is applied
       expect(find.text('Undone'), findsOneWidget); // Action 2 is undone
     });
+
+    testWidgets(
+      'ActionHistoryPanelWidget displays action specific icons and colors',
+      (tester) async {
+        final mockRepo = MockTaskRepo();
+        final task = Task(
+          id: '1',
+          title: 'New Task',
+          createdAt: DateTime(2026, 1, 1),
+        );
+        when(() => mockRepo.repositoryName).thenReturn('Task');
+        when(() => mockRepo.insert(task)).thenAnswer((_) async {});
+        when(() => mockRepo.delete(task.id)).thenAnswer((_) async {});
+        final createCmd = CreateCommand<Task>(
+          repo: mockRepo,
+          item: task,
+          id: task.id,
+          displayName: task.title,
+        );
+
+        await container.read(undoRedoProvider.notifier).execute(createCmd);
+        await tester.pumpWidget(buildTestWidget(container));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byTooltip('Action History'));
+        await tester.pumpAndSettle();
+
+        final iconFinder = find.byIcon(Icons.add_task);
+        expect(iconFinder, findsOneWidget);
+
+        final iconWidget = tester.widget<Icon>(iconFinder);
+        expect(iconWidget.color, equals(AppColors.success));
+
+        final appliedFinder = find.text('Applied');
+        expect(appliedFinder, findsOneWidget);
+        final appliedText = tester.widget<Text>(appliedFinder);
+        expect(appliedText.style?.color, equals(AppColors.success));
+      },
+    );
+
+    testWidgets(
+      'ActionHistoryPanelWidget orders newest first and shows current state divider when undone',
+      (tester) async {
+        final cmd1 = TestCommand('Older Action');
+        final cmd2 = TestCommand('Newer Action');
+
+        await container.read(undoRedoProvider.notifier).execute(cmd1);
+        await container.read(undoRedoProvider.notifier).execute(cmd2);
+        await tester.pumpWidget(buildTestWidget(container));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byTooltip('Action History'));
+        await tester.pumpAndSettle();
+
+        // Verify newest is above older
+        final olderPos = tester.getTopLeft(find.text('Older Action'));
+        final newerPos = tester.getTopLeft(find.text('Newer Action'));
+        expect(newerPos.dy, lessThan(olderPos.dy));
+
+        // When nothing is undone, divider is not shown
+        expect(find.text('Current state'), findsNothing);
+
+        // Undo newer action
+        await container.read(undoRedoProvider.notifier).undo();
+        await tester.pumpAndSettle();
+
+        // Now divider is visible between Newer Action (undone) and Older Action (current)
+        expect(find.text('Current state'), findsOneWidget);
+        final dividerPos = tester.getTopLeft(find.text('Current state'));
+        final newerPosAfterUndo = tester.getTopLeft(find.text('Newer Action'));
+        final olderPosAfterUndo = tester.getTopLeft(find.text('Older Action'));
+
+        expect(newerPosAfterUndo.dy, lessThan(dividerPos.dy));
+        expect(dividerPos.dy, lessThan(olderPosAfterUndo.dy));
+      },
+    );
   });
 }

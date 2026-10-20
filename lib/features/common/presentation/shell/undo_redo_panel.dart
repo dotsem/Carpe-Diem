@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/action_toast_handler.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:flutter/material.dart';
@@ -94,64 +95,135 @@ class ActionHistoryPanelWidget extends ConsumerWidget {
     final undoStack = undoRedoState.undoStack;
     final redoStack = undoRedoState.redoStack;
 
-    final timeline = [...undoStack, ...redoStack.reversed];
+    final timeline = [...redoStack, ...undoStack.reversed];
 
     if (timeline.isEmpty) {
       return const Center(child: Text('No action history available'));
     }
 
+    final hasRedo = redoStack.isNotEmpty;
+    final itemCount = timeline.length + (hasRedo ? 1 : 0);
+    final dividerIndex = redoStack.length;
+
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: timeline.length,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      itemCount: itemCount,
       itemBuilder: (context, index) {
-        final cmd = timeline[index];
-        final isApplied = index < undoStack.length;
+        if (hasRedo && index == dividerIndex) {
+          return const _CurrentStateDivider();
+        }
+
+        final cmdIndex = hasRedo && index > dividerIndex ? index - 1 : index;
+        final cmd = timeline[cmdIndex];
+        final isApplied = cmdIndex >= redoStack.length;
+        final isCurrent = isApplied && (cmd == undoStack.lastOrNull);
+
+        final actionData = ActionToastHandler.resolveExecuteToastData(cmd: cmd);
+        final actionColor = actionData.primaryColor ?? AppColors.info;
 
         final tooltipMessage = isApplied
-            ? (index == undoStack.length - 1
-                  ? 'Current state'
-                  : 'Revert to this action')
+            ? (isCurrent ? 'Current state' : 'Revert to this action')
             : 'Apply up to this action';
 
         return Tooltip(
           message: tooltipMessage,
           child: Opacity(
             opacity: isApplied ? 1.0 : 0.5,
-            child: ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              onTap: undoRedoState.isProcessing
-                  ? null
-                  : () => ref.read(undoRedoProvider.notifier).jumpTo(cmd),
-              hoverColor: theme.colorScheme.primary.withValues(alpha: 0.08),
-              leading: Icon(
-                isApplied
-                    ? Icons.check_circle_outline_rounded
-                    : Icons.history_rounded,
-                color: isApplied
-                    ? AppColors.accent
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
-              title: Text(
-                cmd.description,
-                style: TextStyle(
-                  decoration: isApplied ? null : TextDecoration.lineThrough,
-                  fontWeight: isApplied ? FontWeight.w500 : FontWeight.normal,
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ),
-              trailing: Text(
-                isApplied ? 'Applied' : 'Undone',
-                style: TextStyle(
-                  fontSize: 11,
+                dense: true,
+                contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                onTap: undoRedoState.isProcessing || isCurrent
+                    ? null
+                    : () => ref.read(undoRedoProvider.notifier).jumpTo(cmd),
+                hoverColor: isCurrent
+                    ? Colors.transparent
+                    : theme.colorScheme.primary.withValues(alpha: 0.08),
+                leading: Icon(
+                  actionData.icon,
                   color: isApplied
-                      ? AppColors.accent
+                      ? actionColor
                       : theme.colorScheme.onSurfaceVariant,
+                ),
+                title: Text(
+                  cmd.description,
+                  style: TextStyle(
+                    decoration: isApplied ? null : TextDecoration.lineThrough,
+                    fontWeight: isApplied ? FontWeight.w500 : FontWeight.normal,
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isCurrent) ...[
+                      Container(
+                        width: 6,
+                        height: 6,
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(
+                          color: actionColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                    Text(
+                      isApplied ? 'Applied' : 'Undone',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isApplied
+                            ? actionColor
+                            : theme.colorScheme.onSurfaceVariant,
+                        fontWeight: isCurrent
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _CurrentStateDivider extends StatelessWidget {
+  const _CurrentStateDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(color: color.withValues(alpha: 0.25), thickness: 1),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              'Current state',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Divider(color: color.withValues(alpha: 0.25), thickness: 1),
+          ),
+        ],
+      ),
     );
   }
 }

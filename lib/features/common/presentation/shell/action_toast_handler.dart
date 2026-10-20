@@ -70,8 +70,8 @@ class ActionToastHandler {
 
   static ActionToastData resolveExecuteToastData({
     required Command? cmd,
-    required FilterState filterState,
-    required List<Project> projects,
+    FilterState filterState = const FilterState(),
+    List<Project> projects = const [],
   }) {
     if (cmd == null) {
       return const ActionToastData(
