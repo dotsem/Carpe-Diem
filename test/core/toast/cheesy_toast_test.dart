@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/toast/cheesy_toast.dart';
+import 'package:carpe_diem/core/widgets/progress_border_painter.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,12 @@ void main() {
     setUp(() {
       item = MockToastificationItem();
       when(() => item.hasTimer).thenReturn(true);
+      when(() => item.originalDuration).thenReturn(const Duration(seconds: 3));
+      when(() => item.elapsedDuration).thenReturn(Duration.zero);
+      when(() => item.isStarted).thenReturn(true);
+      when(() => item.timeStatus).thenReturn(ToastTimeStatus.started);
+      when(() => item.addListenerOnTimeStatus(any())).thenReturn(null);
+      when(() => item.removeListenerOnTimeStatus(any())).thenReturn(null);
     });
 
     testWidgets('pauses timer on hover enter and resumes on exit', (
@@ -33,6 +40,16 @@ void main() {
           ),
         ),
       );
+
+      final customPaints = tester.widgetList<CustomPaint>(
+        find.byType(CustomPaint),
+      );
+      final hasProgressBorder = customPaints.any(
+        (cp) =>
+            cp.foregroundPainter is ProgressBorderPainter &&
+            !(cp.foregroundPainter as ProgressBorderPainter).left,
+      );
+      expect(hasProgressBorder, isTrue);
 
       final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);

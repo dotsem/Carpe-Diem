@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/widgets/progress_border_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
@@ -22,88 +23,110 @@ class CheesyToast extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
   });
 
+  final inset = 12.0;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: margin,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420, minHeight: 48),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+    final card = Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(inset),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: MouseRegion(
-              onEnter: (_) {
-                if (item?.hasTimer == true) {
-                  item!.pause();
-                }
-              },
-              onExit: (_) {
-                if (item?.hasTimer == true) {
-                  item!.start();
-                }
-              },
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  if (item != null) {
-                    toastification.dismiss(item!);
-                  }
-                },
-                child: Container(
-                  color: theme.colorScheme.surfaceContainerHigh,
-                  child: IntrinsicHeight(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(width: 8, color: color),
-
-                        Flexible(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(icon, size: 20, color: color),
-                                const SizedBox(width: 12),
-                                Flexible(
-                                  child: _CheesyToastTextColumn(
-                                    message: message,
-                                    subtitle: subtitle,
-                                  ),
-                                ),
-                                if (onUndo != null && item != null) ...[
-                                  const SizedBox(width: 8),
-                                  _CheesyToastUndoButton(
-                                    onUndo: onUndo!,
-                                    item: item!,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(inset),
+        child: MouseRegion(
+          onEnter: (_) {
+            if (item?.hasTimer == true) {
+              item!.pause();
+            }
+          },
+          onExit: (_) {
+            if (item?.hasTimer == true) {
+              item!.start();
+            }
+          },
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (item != null) {
+                toastification.dismiss(item!);
+              }
+            },
+            child: Container(
+              color: theme.colorScheme.surfaceContainerHigh,
+              child: IntrinsicHeight(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: inset, color: color),
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
                         ),
-                      ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(icon, size: 20, color: color),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: _CheesyToastTextColumn(
+                                message: message,
+                                subtitle: subtitle,
+                              ),
+                            ),
+                            if (onUndo != null && item != null) ...[
+                              const SizedBox(width: 8),
+                              _CheesyToastUndoButton(
+                                onUndo: onUndo!,
+                                item: item!,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+
+    final cardWithProgress = item != null && item!.hasTimer
+        ? ToastTimerAnimationBuilder(
+            item: item!,
+            builder: (context, value, child) {
+              return CustomPaint(
+                foregroundPainter: ProgressBorderPainter(
+                  progress: (1.0 - value).clamp(0.0, 1.0),
+                  color: color,
+                  width: 2.5,
+                  borderRadius: 12.0,
+                  left: false,
+                ),
+                child: child,
+              );
+            },
+            child: card,
+          )
+        : card;
+
+    return Padding(
+      padding: margin,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420, minHeight: 48),
+        child: cardWithProgress,
       ),
     );
   }
