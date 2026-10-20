@@ -156,31 +156,6 @@ class ActionHistoryPanelWidget extends ConsumerWidget {
                     fontWeight: isApplied ? FontWeight.w500 : FontWeight.normal,
                   ),
                 ),
-                subtitle: actionData.subtitle != null
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.visibility_off_outlined,
-                            size: 11,
-                            color: AppColors.warning,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              actionData.subtitle!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.warning,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : null,
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
