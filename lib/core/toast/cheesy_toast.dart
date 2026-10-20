@@ -12,6 +12,8 @@ class CheesyToast extends StatelessWidget {
   final ToastificationItem? item;
   final EdgeInsetsGeometry margin;
 
+  final double width;
+
   const CheesyToast({
     super.key,
     required this.message,
@@ -21,6 +23,7 @@ class CheesyToast extends StatelessWidget {
     this.onUndo,
     this.item,
     this.margin = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    this.width = 380,
   });
 
   final inset = 12.0;
@@ -64,7 +67,6 @@ class CheesyToast extends StatelessWidget {
               color: theme.colorScheme.surfaceContainerHigh,
               child: IntrinsicHeight(
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       width: inset,
@@ -75,18 +77,17 @@ class CheesyToast extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Flexible(
+                    Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 12,
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(icon, size: 20, color: color),
                             const SizedBox(width: 12),
-                            Flexible(
+                            Expanded(
                               child: _CheesyToastTextColumn(
                                 message: message,
                                 subtitle: subtitle,
@@ -133,9 +134,9 @@ class CheesyToast extends StatelessWidget {
 
     return Padding(
       padding: margin,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420, minHeight: 48),
-        child: cardWithProgress,
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: SizedBox(width: width, child: cardWithProgress),
       ),
     );
   }

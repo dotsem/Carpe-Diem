@@ -58,7 +58,12 @@ void main() {
       await tester.pump();
       verifyNever(() => item.pause());
 
-      final toastCenter = tester.getCenter(find.byType(CheesyToast));
+      final toastCenter = tester.getCenter(
+        find.descendant(
+          of: find.byType(CheesyToast),
+          matching: find.byType(ClipRRect),
+        ),
+      );
       await gesture.moveTo(toastCenter);
       await tester.pump();
 
@@ -69,6 +74,47 @@ void main() {
       await tester.pump();
 
       verify(() => item.start()).called(1);
+    });
+
+    testWidgets('renders with fixed width and right alignment', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 500,
+              height: 200,
+              child: CheesyToast(
+                message: 'Short',
+                icon: Icons.check,
+                color: Colors.green,
+                margin: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final alignFinder = find.descendant(
+        of: find.byType(CheesyToast),
+        matching: find.byType(Align),
+      );
+      final alignWidget = tester.widget<Align>(alignFinder);
+      expect(alignWidget.alignment, equals(Alignment.centerRight));
+
+      final sizedBoxFinder = find.descendant(
+        of: alignFinder,
+        matching: find.byWidgetPredicate(
+          (w) => w is SizedBox && w.width == 380,
+        ),
+      );
+      expect(sizedBoxFinder, findsOneWidget);
+
+      final sizedBoxRect = tester.getRect(sizedBoxFinder);
+      expect(sizedBoxRect.width, equals(380));
+      // In 500px wide parent with 12px margin on both sides:
+      // Available width is 476, right margin is at 488 (500 - 12).
+      // Since SizedBox is right aligned, right edge should be at 488.
+      expect(sizedBoxRect.right, equals(488));
     });
   });
 }
