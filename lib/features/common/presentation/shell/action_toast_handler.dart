@@ -111,23 +111,24 @@ class ActionToastHandler {
         filterState: filterState,
         projects: projects,
       );
-      if (isHidden) {
-        return const ActionToastData(
-          icon: Icons.visibility_off_outlined,
-          primaryColor: AppColors.warning,
-          subtitle: 'Hidden by active filter',
-        );
-      }
-      return const ActionToastData(
+      return ActionToastData(
         icon: Icons.add_task,
         primaryColor: AppColors.success,
+        subtitle: isHidden ? 'Hidden by active filter' : null,
       );
     }
 
     if (primary is UpdateCommand<Task>) {
-      return const ActionToastData(
+      final task = primary.next;
+      final isHidden = isTaskHidden(
+        task: task,
+        filterState: filterState,
+        projects: projects,
+      );
+      return ActionToastData(
         icon: Icons.edit_outlined,
         primaryColor: AppColors.info,
+        subtitle: isHidden ? 'Hidden by active filter' : null,
       );
     }
 

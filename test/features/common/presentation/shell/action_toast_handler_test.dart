@@ -161,8 +161,8 @@ void main() {
             filterState: const FilterState(filter: TaskFilter(isUrgent: true)),
             projects: [],
           );
-          expect(data.icon, Icons.visibility_off_outlined);
-          expect(data.primaryColor, AppColors.warning);
+          expect(data.icon, Icons.add_task);
+          expect(data.primaryColor, AppColors.success);
           expect(data.subtitle, 'Hidden by active filter');
         },
       );
