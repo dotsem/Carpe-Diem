@@ -8,7 +8,7 @@ import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/righ
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/routes/keys.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:carpe_diem/core/utils/toast_utils.dart';
+import 'package:carpe_diem/features/common/presentation/shell/action_toast_handler.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -58,35 +58,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     ref.listen<UndoRedoState>(undoRedoProvider, (previous, next) {
-      if (next.isProcessing) return;
-
-      final opType = next.lastOperationType;
-      if (opType == UndoRedoOperationType.none) return;
-
-      if (opType == UndoRedoOperationType.execute && next.canUndo) {
-        if (next.undoDescription != null) {
-          ToastUtils.showUndoable(
-            next.undoDescription!,
-            () => ref.read(undoRedoProvider.notifier).undo(),
-            context: context,
-          );
-        }
-      } else if (opType == UndoRedoOperationType.redo && next.canUndo) {
-        if (next.undoDescription != null) {
-          ToastUtils.showUndoable(
-            'Redone: ${next.undoDescription}',
-            () => ref.read(undoRedoProvider.notifier).undo(),
-            context: context,
-          );
-        }
-      } else if (opType == UndoRedoOperationType.undo) {
-        if (next.redoDescription != null) {
-          ToastUtils.showSuccess(
-            'Undone: ${next.redoDescription}',
-            context: context,
-          );
-        }
-      }
+      ActionToastHandler.handleUndoRedoStateChange(ref, context, next);
     });
 
     final width = MediaQuery.sizeOf(context).width;

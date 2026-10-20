@@ -1,5 +1,4 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/core/utils/toast_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/domain/services/deadline_propagation_service.dart';
@@ -83,7 +82,6 @@ extension TaskBulkActions on TaskNotifier {
         'Update ${commands.length} tasks',
       );
       await executeCommand(compound);
-      ToastUtils.showSuccess("Updated ${taskIds.length} tasks");
     }
   }
 
@@ -120,7 +118,6 @@ extension TaskBulkActions on TaskNotifier {
         'Delete ${commands.length} tasks',
       );
       await executeCommand(compound);
-      ToastUtils.showSuccess('Deleted ${allIdsToDelete.length} tasks');
     }
   }
 
@@ -160,7 +157,6 @@ extension TaskBulkActions on TaskNotifier {
         'Import ${tasks.length} tasks',
       );
       await executeCommand(compound);
-      ToastUtils.showSuccess('Imported ${tasks.length} tasks from markdown');
     }
   }
 }
