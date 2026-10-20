@@ -1,0 +1,53 @@
+name: Security CI
+
+on:
+    push:
+        branches: [main, master]
+        paths-ignore:
+            - "**.md"
+    pull_request:
+        branches: ["**"]
+        paths-ignore:
+            - "**.md"
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+    security-events: write
+
+jobs:
+    semgrep:
+        name: Semgrep (SAST)
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - name: Run Semgrep OSS
+              run: |
+                  docker run --rm \
+                    --user "$(id -u):$(id -g)" \
+                    -v "$GITHUB_WORKSPACE:/src" \
+                    semgrep/semgrep:1.108.0 \
+                    semgrep scan \
+                      --config "p/default" \
+                      --config "p/secrets" \
+                      --sarif-output=/src/semgrep.sarif
+
+            - name: Upload SARIF to GitHub Code Scanning
+              uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+              if: always()
+              with:
+                  sarif_file: semgrep.sarif
+                  category: semgrep
+
+            - name: Upload Semgrep SARIF report artifact
+              uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+              if: always()
+              with:
+                  name: semgrep-report
+                  path: semgrep.sarif
+                  if-no-files-found: ignore
