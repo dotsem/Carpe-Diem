@@ -38,7 +38,7 @@ jobs:
                       --sarif-output=/src/semgrep.sarif
 
             - name: Upload SARIF to GitHub Code Scanning
-              uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+              uses: github/codeql-action/upload-sarif@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3
               if: always()
               with:
                   sarif_file: semgrep.sarif
