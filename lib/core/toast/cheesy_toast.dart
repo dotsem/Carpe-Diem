@@ -38,43 +38,63 @@ class CheesyToast extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Container(
-            color: theme.colorScheme.surfaceContainerHigh,
-            child: IntrinsicHeight(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(width: 8, color: color),
+          child: MouseRegion(
+            onEnter: (_) {
+              if (item?.hasTimer == true) {
+                item!.pause();
+              }
+            },
+            onExit: (_) {
+              if (item?.hasTimer == true) {
+                item!.start();
+              }
+            },
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (item != null) {
+                  toastification.dismiss(item!);
+                }
+              },
+              child: Container(
+                color: theme.colorScheme.surfaceContainerHigh,
+                child: IntrinsicHeight(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(width: 8, color: color),
 
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(icon, size: 20, color: color),
-                          const SizedBox(width: 12),
-                          Flexible(
-                            child: _CheesyToastTextColumn(
-                              message: message,
-                              subtitle: subtitle,
-                            ),
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
                           ),
-                          if (onUndo != null && item != null) ...[
-                            const SizedBox(width: 8),
-                            _CheesyToastUndoButton(
-                              onUndo: onUndo!,
-                              item: item!,
-                            ),
-                          ],
-                        ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(icon, size: 20, color: color),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: _CheesyToastTextColumn(
+                                  message: message,
+                                  subtitle: subtitle,
+                                ),
+                              ),
+                              if (onUndo != null && item != null) ...[
+                                const SizedBox(width: 8),
+                                _CheesyToastUndoButton(
+                                  onUndo: onUndo!,
+                                  item: item!,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
