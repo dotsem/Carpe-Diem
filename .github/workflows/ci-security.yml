@@ -29,7 +29,6 @@ jobs:
             - name: Run Semgrep OSS
               run: |
                   docker run --rm \
-                    --user "$(id -u):$(id -g)" \
                     -v "$GITHUB_WORKSPACE:/src" \
                     semgrep/semgrep:1.108.0 \
                     semgrep scan \
@@ -38,8 +37,8 @@ jobs:
                       --sarif-output=/src/semgrep.sarif
 
             - name: Upload SARIF to GitHub Code Scanning
-              uses: github/codeql-action/upload-sarif@ce5e7eeac396d720fe2d802714996c8ce561e311 # v3
-              if: always()
+              uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+              if: always() && hashFiles('semgrep.sarif') != ''
               with:
                   sarif_file: semgrep.sarif
                   category: semgrep
