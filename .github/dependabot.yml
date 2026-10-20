@@ -1,0 +1,62 @@
+version: 2
+updates:
+  # GitHub Actions (auto-bump pinned commit SHAs)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    target-branch: "main"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "ci"
+      - "dependencies"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # Flutter / Dart Pub dependencies
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    target-branch: "main"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+    # Ignore major releases to prevent breaking migrations
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      core-architecture:
+        patterns:
+          - "flutter_riverpod"
+          - "go_router"
+      storage-system:
+        patterns:
+          - "sqflite*"
+          - "path*"
+          - "window_manager"
+      ui-utils:
+        patterns:
+          - "google_fonts"
+          - "toastification"
+          - "intl"
+          - "uuid"
+          - "fuzzy"
+      dev-dependencies:
+        patterns:
+          - "flutter_lints"
+          - "flutter_launcher_icons"
+          - "mocktail"
