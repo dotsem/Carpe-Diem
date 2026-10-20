@@ -33,7 +33,7 @@ jobs:
             artifact-name: carpe_diem-windows.zip
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.38.5"
@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload build artifact for CI
         if: ${{ !inputs.upload-release }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact-name }}
           path: ${{ matrix.artifact-name }}
