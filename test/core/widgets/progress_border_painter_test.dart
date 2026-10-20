@@ -43,11 +43,20 @@ void main() {
         left: false,
       );
 
+      const painterDiffStrokeJoin = ProgressBorderPainter(
+        progress: 0.5,
+        color: Colors.blue,
+        width: 2.5,
+        borderRadius: 12.0,
+        strokeJoin: StrokeJoin.miter,
+      );
+
       expect(painter1.shouldRepaint(painterIdentical), isFalse);
       expect(painter1.shouldRepaint(painterDiffProgress), isTrue);
       expect(painter1.shouldRepaint(painterDiffColor), isTrue);
       expect(painter1.shouldRepaint(painterDiffWidth), isTrue);
       expect(painter1.shouldRepaint(painterDiffSide), isTrue);
+      expect(painter1.shouldRepaint(painterDiffStrokeJoin), isTrue);
     });
 
     testWidgets('paints path when progress > 0 for both closed and open path', (

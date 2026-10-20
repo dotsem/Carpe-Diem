@@ -6,6 +6,7 @@ class ProgressBorderPainter extends CustomPainter {
   final double width;
   final double borderRadius;
   final StrokeCap strokeCap;
+  final StrokeJoin strokeJoin;
   final bool top;
   final bool right;
   final bool bottom;
@@ -15,9 +16,10 @@ class ProgressBorderPainter extends CustomPainter {
   const ProgressBorderPainter({
     required this.progress,
     required this.color,
-    this.width = 2.5,
+    this.width = 2.0,
     this.borderRadius = 12.0,
     this.strokeCap = StrokeCap.round,
+    this.strokeJoin = StrokeJoin.round,
     this.top = true,
     this.right = true,
     this.bottom = true,
@@ -113,7 +115,9 @@ class ProgressBorderPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = width
-      ..strokeCap = strokeCap;
+      ..strokeCap = strokeCap
+      ..strokeJoin = strokeJoin
+      ..isAntiAlias = true;
 
     final clampedProgress = progress.clamp(0.0, 1.0);
     final path = _buildPath(size, borderRadius);
@@ -136,6 +140,7 @@ class ProgressBorderPainter extends CustomPainter {
         oldDelegate.width != width ||
         oldDelegate.borderRadius != borderRadius ||
         oldDelegate.strokeCap != strokeCap ||
+        oldDelegate.strokeJoin != strokeJoin ||
         oldDelegate.top != top ||
         oldDelegate.right != right ||
         oldDelegate.bottom != bottom ||

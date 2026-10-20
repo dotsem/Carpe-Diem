@@ -40,6 +40,7 @@ class CheesyToast extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
+        clipBehavior: Clip.antiAliasWithSaveLayer,
         borderRadius: BorderRadius.circular(inset),
         child: MouseRegion(
           onEnter: (_) {
@@ -65,7 +66,15 @@ class CheesyToast extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(width: inset, color: color),
+                    Container(
+                      width: inset,
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(12),
+                        ),
+                      ),
+                    ),
                     Flexible(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
@@ -111,8 +120,8 @@ class CheesyToast extends StatelessWidget {
                 foregroundPainter: ProgressBorderPainter(
                   progress: (1.0 - value).clamp(0.0, 1.0),
                   color: color,
-                  width: 2.5,
-                  borderRadius: 12.0,
+                  width: 2.0,
+                  borderRadius: inset,
                   left: false,
                 ),
                 child: child,
