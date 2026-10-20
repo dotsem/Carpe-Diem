@@ -1,13 +1,14 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/toast/cheesy_toast.dart';
 import 'package:carpe_diem/routes/keys.dart';
 import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
 class ToastUtils {
-  static const alignment = Alignment.topLeft;
+  static const alignment = Alignment.bottomRight;
   static final borderRadius = BorderRadius.circular(12);
   static const showProgressBar = false;
-  static const applyBlurEffect = true;
+  static const applyBlurEffect = false;
   static const dragToClose = true;
   static const autoCloseDuration = Duration(seconds: 3);
   static const style = ToastificationStyle.minimal;
@@ -21,17 +22,28 @@ class ToastUtils {
     }
   }
 
-  static void showSuccess(String message, {BuildContext? context}) {
+  static void showSuccess(
+    String message, {
+    BuildContext? context,
+    IconData? icon,
+    Color? iconColor,
+    String? subtitle,
+  }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
     toastification.show(
       context: effectiveContext,
-      title: Text(message),
+      title: CheesyToast(message: message, subtitle: subtitle),
+      icon: Icon(
+        icon ?? Icons.check_circle_outline,
+        size: 20,
+        color: iconColor ?? AppColors.success,
+      ),
       autoCloseDuration: autoCloseDuration,
       type: ToastificationType.success,
       style: style,
       alignment: alignment,
-      primaryColor: AppColors.accent,
+      primaryColor: AppColors.success,
       backgroundColor: Theme.of(
         effectiveContext,
       ).colorScheme.surfaceContainerHigh,
@@ -43,12 +55,23 @@ class ToastUtils {
     );
   }
 
-  static void showInfo(String message, {BuildContext? context}) {
+  static void showInfo(
+    String message, {
+    BuildContext? context,
+    IconData? icon,
+    Color? iconColor,
+    String? subtitle,
+  }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
     toastification.show(
       context: effectiveContext,
-      title: Text(message),
+      title: CheesyToast(message: message, subtitle: subtitle),
+      icon: Icon(
+        icon ?? Icons.info_outline,
+        size: 20,
+        color: iconColor ?? AppColors.info,
+      ),
       autoCloseDuration: autoCloseDuration,
       type: ToastificationType.info,
       style: style,
@@ -65,12 +88,23 @@ class ToastUtils {
     );
   }
 
-  static void showWarning(String message, {BuildContext? context}) {
+  static void showWarning(
+    String message, {
+    BuildContext? context,
+    IconData? icon,
+    Color? iconColor,
+    String? subtitle,
+  }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
     toastification.show(
       context: effectiveContext,
-      title: Text(message),
+      title: CheesyToast(message: message, subtitle: subtitle),
+      icon: Icon(
+        icon ?? Icons.warning_amber_rounded,
+        size: 20,
+        color: iconColor ?? AppColors.warning,
+      ),
       autoCloseDuration: autoCloseDuration,
       type: ToastificationType.warning,
       style: style,
@@ -91,42 +125,34 @@ class ToastUtils {
     String message,
     VoidCallback onUndo, {
     BuildContext? context,
+    IconData? icon,
+    Color? iconColor,
+    String? subtitle,
+    Color? primaryColor,
   }) {
     final effectiveContext = _getEffectiveContext(context);
     if (effectiveContext == null) return;
 
+    final resolvedColor = primaryColor ?? AppColors.info;
     late final ToastificationItem item;
     item = toastification.show(
       context: effectiveContext,
-      title: Row(
-        children: [
-          Expanded(child: Text(message)),
-          const SizedBox(width: 12),
-          TextButton(
-            onPressed: () {
-              onUndo();
-              toastification.dismiss(item);
-            },
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              'Undo',
-              style: TextStyle(
-                color: Theme.of(effectiveContext).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+      title: CheesyToast(
+        message: message,
+        subtitle: subtitle,
+        onUndo: onUndo,
+        getItem: () => item,
+      ),
+      icon: Icon(
+        icon ?? Icons.check_circle_outline,
+        size: 20,
+        color: iconColor ?? resolvedColor,
       ),
       autoCloseDuration: autoCloseDuration,
       type: ToastificationType.success,
       style: style,
       alignment: alignment,
-      primaryColor: AppColors.accent,
+      primaryColor: resolvedColor,
       backgroundColor: Theme.of(
         effectiveContext,
       ).colorScheme.surfaceContainerHigh,

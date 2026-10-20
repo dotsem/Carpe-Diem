@@ -12,7 +12,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_task
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
-import 'package:carpe_diem/core/utils/toast_utils.dart';
+import 'package:carpe_diem/core/toast/toast_utils.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
