@@ -49,7 +49,9 @@ runs:
 
     - name: Build App (${{ inputs.target }})
       shell: bash
-      run: flutter build ${{ inputs.target }} --release
+      env:
+        BUILD_TARGET: ${{ inputs.target }}
+      run: flutter build "$BUILD_TARGET" --release
 
     - name: Package Linux
       if: inputs.target == 'linux'
@@ -69,8 +71,10 @@ runs:
     - name: Set artifact outputs
       id: package-meta
       shell: bash
+      env:
+        BUILD_TARGET: ${{ inputs.target }}
       run: |
-        case "${{ inputs.target }}" in
+        case "$BUILD_TARGET" in
           linux)
             echo "artifact-name=carpe_diem-linux.tar.gz" >> "$GITHUB_OUTPUT"
             echo "artifact-path=carpe_diem-linux.tar.gz" >> "$GITHUB_OUTPUT"
