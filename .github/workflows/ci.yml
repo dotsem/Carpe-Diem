@@ -17,15 +17,18 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  FLUTTER_VERSION: "3.38.5"
+
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: "3.38.5"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: "stable"
           cache: true
       - run: flutter pub get
@@ -34,12 +37,13 @@ jobs:
 
   test:
     name: Run Tests
+    needs: [analyze]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: "3.38.5"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: "stable"
           cache: true
       - run: flutter pub get
@@ -47,8 +51,30 @@ jobs:
         run: flutter test --concurrency=4
 
   build:
-    name: Build Release Binaries
+    name: Build (${{ matrix.target }})
     needs: [analyze, test]
-    uses: ./.github/workflows/build-app.yml
-    with:
-      upload-release: false
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux
+            os: ubuntu-latest
+          - target: macos
+            os: macos-latest
+          - target: windows
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build App
+        id: build
+        uses: ./.github/actions/build-app
+        with:
+          target: ${{ matrix.target }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - name: Upload build artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.build.outputs.artifact-name }}
+          path: ${{ steps.build.outputs.artifact-path }}
+          retention-days: 7
