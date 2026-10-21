@@ -14,4 +14,3 @@ jobs:
     uses: ./.github/workflows/build-app.yml
     with:
       upload-release: true
-    secrets: inherit
