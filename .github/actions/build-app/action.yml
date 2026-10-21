@@ -1,0 +1,90 @@
+name: "Build Carpe Diem App"
+description: "Sets up Flutter, installs OS dependencies, builds, and packages the app for the specified target OS."
+
+inputs:
+  target:
+    description: "Target platform to build: linux, macos, or windows"
+    required: true
+  flutter-version:
+    description: "Flutter SDK version"
+    required: false
+    default: "3.38.5"
+  channel:
+    description: "Flutter channel"
+    required: false
+    default: "stable"
+  cache:
+    description: "Whether to cache Flutter SDK artifacts"
+    required: false
+    default: "true"
+
+outputs:
+  artifact-name:
+    description: "Name of the packaged archive"
+    value: ${{ steps.package-meta.outputs.artifact-name }}
+  artifact-path:
+    description: "Relative path of the packaged archive file"
+    value: ${{ steps.package-meta.outputs.artifact-path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Flutter
+      uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        channel: ${{ inputs.channel }}
+        cache: ${{ inputs.cache == 'true' }}
+
+    - name: Install Linux dependencies
+      if: inputs.target == 'linux'
+      shell: bash
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq libgtk-3-dev libblkid-dev liblzma-dev libglib2.0-dev
+
+    - name: Install Dart dependencies
+      shell: bash
+      run: flutter pub get
+
+    - name: Build App (${{ inputs.target }})
+      shell: bash
+      env:
+        BUILD_TARGET: ${{ inputs.target }}
+      run: flutter build "$BUILD_TARGET" --release
+
+    - name: Package Linux
+      if: inputs.target == 'linux'
+      shell: bash
+      run: tar -czf carpe_diem-linux.tar.gz -C build/linux/x64/release/bundle .
+
+    - name: Package macOS
+      if: inputs.target == 'macos'
+      shell: bash
+      run: ditto -c -k --sequesterRsrc "build/macos/Build/Products/Release/Carpe Diem.app" carpe_diem-macos.zip
+
+    - name: Package Windows
+      if: inputs.target == 'windows'
+      shell: pwsh
+      run: Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath carpe_diem-windows.zip -Force
+
+    - name: Set artifact outputs
+      id: package-meta
+      shell: bash
+      env:
+        BUILD_TARGET: ${{ inputs.target }}
+      run: |
+        case "$BUILD_TARGET" in
+          linux)
+            echo "artifact-name=carpe_diem-linux.tar.gz" >> "$GITHUB_OUTPUT"
+            echo "artifact-path=carpe_diem-linux.tar.gz" >> "$GITHUB_OUTPUT"
+            ;;
+          macos)
+            echo "artifact-name=carpe_diem-macos.zip" >> "$GITHUB_OUTPUT"
+            echo "artifact-path=carpe_diem-macos.zip" >> "$GITHUB_OUTPUT"
+            ;;
+          windows)
+            echo "artifact-name=carpe_diem-windows.zip" >> "$GITHUB_OUTPUT"
+            echo "artifact-path=carpe_diem-windows.zip" >> "$GITHUB_OUTPUT"
+            ;;
+        esac

@@ -4,14 +4,45 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (optional, defaults to release event or ref)"
+        required: false
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
 
 jobs:
   build:
-    name: Build & Upload Release Binaries
-    uses: ./.github/workflows/build-app.yml
-    with:
-      upload-release: true
-    secrets: inherit
+    name: Build & Upload (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux
+            os: ubuntu-latest
+          - target: macos
+            os: macos-latest
+          - target: windows
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build App
+        id: build
+        uses: ./.github/actions/build-app
+        with:
+          target: ${{ matrix.target }}
+      - name: Upload binary to release
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # v2.11.5
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ steps.build.outputs.artifact-path }}
+          asset_name: ${{ steps.build.outputs.artifact-name }}
+          tag: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
+          overwrite: true
