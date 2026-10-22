@@ -47,8 +47,9 @@ class TaskReorderEngine {
     final overdueEnd = hasOverdue
         ? getOverdueSectionEndIndex(nodes, urgentEnd)
         : urgentEnd;
-    if (hasOverdue && task.isOverdue) return (urgentEnd, overdueEnd);
-    return (overdueEnd, nodes.length);
+    return (hasOverdue && task.isOverdue)
+        ? (urgentEnd, overdueEnd)
+        : (overdueEnd, nodes.length);
   }
 
   static bool inSameGroup(
@@ -61,11 +62,9 @@ class TaskReorderEngine {
     if (a.isUrgent || b.isUrgent) return a.isUrgent && b.isUrgent;
     if (settings.prioritizeOverdue && a.isOverdue != b.isOverdue) return false;
     if (isPlanView && nodes != null) {
-      final aTop =
-          a.parentId == null || !nodes.any((n) => n.task?.id == a.parentId);
-      final bTop =
-          b.parentId == null || !nodes.any((n) => n.task?.id == b.parentId);
-      return (aTop && bTop) || a.parentId == b.parentId;
+      bool isTop(Task t) =>
+          t.parentId == null || !nodes.any((n) => n.task?.id == t.parentId);
+      return (isTop(a) && isTop(b)) || a.parentId == b.parentId;
     }
     if (a.parentId != b.parentId) return false;
     return !settings.prioritizeDeadlines || a.deadline == b.deadline;
@@ -92,8 +91,7 @@ class TaskReorderEngine {
 
     if (parentId != null && isParentInNodes) {
       // Subtask: strictly clamped to sibling subtask range under existing parent
-      int firstChild = -1;
-      int lastChild = -1;
+      int firstChild = -1, lastChild = -1;
       for (int i = 0; i < nodes.length; i++) {
         if (nodes[i].task?.parentId == parentId) {
           if (firstChild == -1) firstChild = i;
@@ -132,9 +130,11 @@ class TaskReorderEngine {
             if (nodes[i].task?.parentId == pId) groupEnd = i + 1;
           }
           if (parentIdx != -1) {
-            final midpoint = parentIdx + (groupEnd - parentIdx) / 2.0;
-            clamped = clamped <= midpoint ? parentIdx : groupEnd;
-            clamped = clamped.clamp(minSlot, maxSlot);
+            final mid = parentIdx + (groupEnd - parentIdx) / 2.0;
+            clamped = (clamped <= mid ? parentIdx : groupEnd).clamp(
+              minSlot,
+              maxSlot,
+            );
           }
         }
       }
@@ -152,14 +152,12 @@ class TaskReorderEngine {
       return const TaskReorderSlot.invalid();
     }
 
-    final isUnchanged =
-        currentIndex >= 0 &&
-        (targetIndex == currentIndex || targetIndex == currentIndex + 1);
-
     return TaskReorderSlot(
       index: targetIndex,
       isValid: true,
-      isUnchanged: isUnchanged,
+      isUnchanged:
+          currentIndex >= 0 &&
+          (targetIndex == currentIndex || targetIndex == currentIndex + 1),
     );
   }
 
@@ -170,8 +168,7 @@ class TaskReorderEngine {
     required SettingsState settings,
     bool isPlanView = false,
   }) {
-    int first = -1;
-    int last = -1;
+    int first = -1, last = -1;
     for (int i = 0; i < nodes.length; i++) {
       final t = nodes[i].task;
       if (t != null &&
@@ -212,7 +209,7 @@ class TaskReorderEngine {
     final rank = isPlanView && plan != null && plan.isNotEmpty
         ? plan
         : task.sortOrder;
-    return rank.isNotEmpty ? rank : '~';
+    return (rank.isNotEmpty && rank != '~') ? rank : null;
   }
 
   /// Phase 2: Computes updated LexoRank strings for the dragged task or selected tasks.
@@ -261,20 +258,27 @@ class TaskReorderEngine {
     final remaining = sameGroupTasks
         .where((t) => !excludeIds.contains(t.id))
         .toList();
-    if ((sameGroupTasks.isEmpty || remaining.isEmpty) && !isMulti) {
+    if (sameGroupTasks.isEmpty && !isMulti) {
       return {draggedTask.id: LexoRank.defaultRank};
     }
+    if (remaining.isEmpty && !isMulti) {
+      final cur = isPlanView
+          ? draggedTask.planSortOrder
+          : draggedTask.sortOrder;
+      return (cur != null && cur.isNotEmpty && cur != '~')
+          ? null
+          : {draggedTask.id: LexoRank.defaultRank};
+    }
 
-    final prev = getEffectiveRank(
-      remaining,
-      targetCount - 1,
-      isPlanView: isPlanView,
-    );
-    final next = getEffectiveRank(
-      remaining,
-      targetCount,
-      isPlanView: isPlanView,
-    );
+    String? prev;
+    for (int i = targetCount - 1; i >= 0 && prev == null; i--) {
+      prev = getEffectiveRank(remaining, i, isPlanView: isPlanView);
+    }
+
+    String? next;
+    for (int i = targetCount; i < remaining.length && next == null; i++) {
+      next = getEffectiveRank(remaining, i, isPlanView: isPlanView);
+    }
     if (!isMulti) {
       return {draggedTask.id: LexoRank.generateBetween(prev, next)};
     }
@@ -288,8 +292,7 @@ class TaskReorderEngine {
     String? currentPrev = prev;
     for (final task in selected) {
       final rank = LexoRank.generateBetween(currentPrev, next);
-      newSortOrders[task.id] = rank;
-      currentPrev = rank;
+      newSortOrders[task.id] = currentPrev = rank;
     }
     return newSortOrders;
   }

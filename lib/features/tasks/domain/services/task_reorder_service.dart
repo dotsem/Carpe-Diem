@@ -40,10 +40,10 @@ class TaskReorderService {
         return LexoRank.generateBetween(prevRank, nextRank);
 
       default:
-        final bottomRank = TaskReorderUtils.getEffectiveRank(
-          activeList,
-          activeList.length - 1,
-        );
+        String? bottomRank;
+        for (int i = activeList.length - 1; i >= 0 && bottomRank == null; i--) {
+          bottomRank = TaskReorderUtils.getEffectiveRank(activeList, i);
+        }
         return LexoRank.generateBottom(bottomRank);
     }
   }
