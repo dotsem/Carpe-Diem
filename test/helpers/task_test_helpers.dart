@@ -92,6 +92,13 @@ class TestTaskRepositories {
     ).thenAnswer((_) async => []);
     when(() => mockTaskRepo.getByParent(any())).thenAnswer((_) async => []);
     when(() => mockTaskRepo.getByProject(any())).thenAnswer((_) async => []);
+    when(
+      () => mockTaskRepo.getByProjectUnscheduled(
+        any(),
+        prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+        prioritizeOverdue: any(named: 'prioritizeOverdue'),
+      ),
+    ).thenAnswer((_) async => []);
     when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
     when(() => mockTaskRepo.cleanupHistory(any())).thenAnswer((_) async => 0);
     when(() => mockLabelRepo.getAll()).thenAnswer((_) async => []);

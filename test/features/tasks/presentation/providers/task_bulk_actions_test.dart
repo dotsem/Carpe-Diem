@@ -144,19 +144,60 @@ void main() {
           projectId: 'proj1',
         );
 
-        verify(
+        final captured = verify(
           () => mockTaskRepo.insert(
-            any(
+            captureAny(
               that: isA<Task>()
                   .having((t) => t.projectId, 'projectId', 'proj1')
                   .having((t) => t.deadline, 'deadline', projectDeadline),
             ),
           ),
-        ).called(2);
+        ).captured.cast<Task>();
+
+        expect(captured.length, equals(2));
+        expect(captured[0].sortOrder, equals('a0'));
+        expect(captured[1].sortOrder, equals('a1'));
 
         final undoRedo = container.read(undoRedoProvider);
         expect(undoRedo.canUndo, isTrue);
         expect(undoRedo.undoDescription, equals('Import 2 tasks'));
+      },
+    );
+
+    test(
+      'importTasksFromMarkdown appends sequentially after existing tasks in group',
+      () async {
+        final existingTask = createTestTask(
+          id: 'existing',
+          title: 'Existing',
+          projectId: 'proj1',
+          sortOrder: 'a5',
+        );
+
+        when(
+          () => mockTaskRepo.getByProjectUnscheduled(
+            'proj1',
+            prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+            prioritizeOverdue: any(named: 'prioritizeOverdue'),
+          ),
+        ).thenAnswer((_) async => [existingTask]);
+        when(() => mockTaskRepo.insert(any())).thenAnswer((_) async => {});
+
+        final notifier = container.read(taskProvider.notifier);
+        const md = '- Task A\n- Task B';
+
+        await notifier.importTasksFromMarkdown(
+          markdown: md,
+          projectId: 'proj1',
+        );
+
+        final captured = verify(
+          () => mockTaskRepo.insert(captureAny()),
+        ).captured.cast<Task>();
+
+        expect(captured.length, equals(2));
+        expect(captured[0].sortOrder, equals('a6'));
+        expect(captured[1].sortOrder, equals('a7'));
       },
     );
   });
