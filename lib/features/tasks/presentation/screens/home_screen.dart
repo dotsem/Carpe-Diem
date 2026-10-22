@@ -4,7 +4,6 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:flutter/material.dart';
@@ -82,15 +81,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   DateTime get _today => DateTime.now();
 
-  List<DateTime> get _days {
-    final settings = ref.read(settingsProvider);
-    final today = DateTime(_today.year, _today.month, _today.day);
-    return List.generate(
-      settings.maxPlanningDays + 1,
-      (i) => today.add(Duration(days: i)),
-    );
-  }
-
   void _moveFocus(int delta) => FocusUtils.moveFocus(
     orderedItemIds: _orderedItemIds,
     itemFocusNodes: _itemFocusNodes,
@@ -161,7 +151,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ],
             ),
-            const HomeDaySelector(),
+            HomeDaySelector(),
             FilterBar(
               filter: filterState.filter,
               isBypassed: filterState.isBypassed,
@@ -189,12 +179,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _changeDay(int delta) {
-    final days = _days;
+    final daysRange = ref.read(daysRangeProvider);
     final selectedDate = ref.read(selectedDateProvider);
-    final currentIndex = days.indexWhere((d) => d == selectedDate.normalize);
+    final currentIndex = daysRange.indexWhere(
+      (d) => d == selectedDate.normalize,
+    );
     final nextIndex = currentIndex + delta;
-    if (nextIndex >= 0 && nextIndex < days.length) {
-      final nextDay = days[nextIndex];
+    if (nextIndex >= 0 && nextIndex < daysRange.length) {
+      final nextDay = daysRange[nextIndex];
       ref.read(selectedDateProvider.notifier).state = nextDay;
       ref.read(taskProvider.notifier).loadTasksForDate(nextDay);
     }

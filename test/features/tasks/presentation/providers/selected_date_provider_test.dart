@@ -1,7 +1,10 @@
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
+
+import '../../../../helpers/mock_repositories.dart';
 
 void main() {
   group('tasks', () {
@@ -72,5 +75,21 @@ void main() {
         expect(yesterday.daysFromToday, equals(-1));
       },
     );
+
+    test('DaysRangeProvider handles daylight savings correctly', () {
+      final testDate = DateTime(2026, 10, 22, 20, 50, 12);
+      final mockRepo = MockKeyValueRepository();
+
+      final container = ProviderContainer(
+        overrides: [
+          clockProvider.overrideWithValue(testDate),
+          keyValueRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+      );
+
+      final daysRange = container.read(daysRangeProvider);
+      expect(daysRange.first, equals(DateTime(2026, 10, 22)));
+      expect(daysRange[6], equals(DateTime(2026, 10, 28)));
+    });
   });
 }
