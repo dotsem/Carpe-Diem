@@ -22,7 +22,7 @@ dependencies:
   google_fonts: ^6.2.1
   fuzzy: ^0.5.1
   toastification: ^3.0.3
-  window_manager: ^0.4.3
+  window_manager: ^0.5.2
 
 dev_dependencies:
   flutter_test:
