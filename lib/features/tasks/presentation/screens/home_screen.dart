@@ -2,6 +2,7 @@ import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/core/utils/midnight_timer.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/clock_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
@@ -38,10 +39,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
 
-    _checkAndResetStaleDate();
     _midnightTimer.start(_handleDayChange);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndResetStaleDate();
       ref
           .read(taskProvider.notifier)
           .loadTasksForDate(ref.read(selectedDateProvider));
@@ -49,6 +50,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _checkAndResetStaleDate() {
+    if (!mounted) return;
+    ref.invalidate(clockProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final selectedDate = ref.read(selectedDateProvider);
@@ -59,6 +62,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _handleDayChange() {
     if (!mounted) return;
+
+    ref.invalidate(clockProvider);
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

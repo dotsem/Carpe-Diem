@@ -1,12 +1,11 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/clock_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) {
-  final now = DateTime.now();
+  final now = ref.read(clockProvider);
   return DateTime(now.year, now.month, now.day);
 });
-
-final clockProvider = Provider<DateTime>((ref) => DateTime.now());
 
 final daysRangeProvider = Provider<List<DateTime>>((ref) {
   final settings = ref.watch(settingsProvider);
