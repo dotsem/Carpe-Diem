@@ -49,6 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _checkAndResetStaleDate() {
+    ref.invalidate(clockProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final selectedDate = ref.read(selectedDateProvider);
@@ -59,6 +60,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _handleDayChange() {
     if (!mounted) return;
+
+    ref.invalidate(clockProvider);
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
