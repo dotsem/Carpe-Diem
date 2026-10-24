@@ -29,7 +29,6 @@ class ToastUtils {
       context: context,
       alignment: alignment,
       autoCloseDuration: autoCloseDuration,
-      dismissDirection: DismissDirection.horizontal,
       builder: (context, holder) => CheesyToast(
         message: message,
         icon: icon,
