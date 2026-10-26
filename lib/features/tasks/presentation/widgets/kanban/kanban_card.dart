@@ -50,6 +50,7 @@ class KanbanCard extends ConsumerWidget {
       builder: (context, constraints) {
         return PlatformDraggable<Task>(
           data: task,
+          key: ValueKey('draggable_${task.id}'),
           delay: const Duration(milliseconds: 150),
           onDragStarted: () {
             ref.read(taskDragProvider.notifier).startDrag(task.id);

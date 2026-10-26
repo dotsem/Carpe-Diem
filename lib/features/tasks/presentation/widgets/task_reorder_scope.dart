@@ -152,6 +152,7 @@ class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
     });
 
     return TaskReorderScopeInherited(
+      isCancelled: ref.watch(taskDragProvider).isCancelled,
       activeDropNotifier: _activeDrop,
       nodes: widget.nodes,
       isPlanView: widget.isPlanView,
@@ -175,6 +176,7 @@ class TaskReorderScopeInherited extends InheritedWidget {
   final void Function(Task task, int rawIndex) onHoverSlot;
   final void Function() onLeaveSlot;
   final void Function(Task task, int rawIndex) drop;
+  final bool isCancelled;
 
   Offset? get pointerOffset => pointerOffsetGetter?.call();
 
@@ -188,6 +190,7 @@ class TaskReorderScopeInherited extends InheritedWidget {
     required this.onHoverSlot,
     required this.onLeaveSlot,
     required this.drop,
+    required this.isCancelled,
     required super.child,
   });
 
@@ -196,6 +199,11 @@ class TaskReorderScopeInherited extends InheritedWidget {
     void Function(Task task, int index)? onFallbackDrop,
   }) {
     if (!details.wasAccepted) {
+      if (isCancelled) {
+        activeDropNotifier.value = null;
+        onLeaveSlot();
+        return;
+      }
       final activeDrop = activeDropNotifier.value;
       if (activeDrop != null &&
           activeDrop.slot.isValid &&
@@ -215,6 +223,7 @@ class TaskReorderScopeInherited extends InheritedWidget {
   bool updateShouldNotify(TaskReorderScopeInherited oldWidget) {
     return activeDropNotifier != oldWidget.activeDropNotifier ||
         nodes != oldWidget.nodes ||
-        isPlanView != oldWidget.isPlanView;
+        isPlanView != oldWidget.isPlanView ||
+        isCancelled != oldWidget.isCancelled;
   }
 }

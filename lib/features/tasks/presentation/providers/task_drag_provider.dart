@@ -1,21 +1,24 @@
-import 'dart:ui';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskDragState {
   final String? draggedTaskId;
   final bool hasValidTarget;
   final Object? activeScopeId;
+  final bool isCancelled;
 
   const TaskDragState({
     this.draggedTaskId,
     this.hasValidTarget = false,
     this.activeScopeId,
+    this.isCancelled = false,
   });
 
   TaskDragState copyWith({
     String? Function()? draggedTaskId,
     bool? hasValidTarget,
     Object? Function()? activeScopeId,
+    bool? isCancelled,
   }) {
     return TaskDragState(
       draggedTaskId: draggedTaskId != null
@@ -25,6 +28,7 @@ class TaskDragState {
       activeScopeId: activeScopeId != null
           ? activeScopeId()
           : this.activeScopeId,
+      isCancelled: isCancelled ?? this.isCancelled,
     );
   }
 
@@ -35,10 +39,12 @@ class TaskDragState {
           runtimeType == other.runtimeType &&
           draggedTaskId == other.draggedTaskId &&
           hasValidTarget == other.hasValidTarget &&
-          activeScopeId == other.activeScopeId;
+          activeScopeId == other.activeScopeId &&
+          isCancelled == other.isCancelled;
 
   @override
-  int get hashCode => Object.hash(draggedTaskId, hasValidTarget, activeScopeId);
+  int get hashCode =>
+      Object.hash(draggedTaskId, hasValidTarget, activeScopeId, isCancelled);
 }
 
 class TaskDragNotifier extends Notifier<TaskDragState> {
@@ -46,10 +52,43 @@ class TaskDragNotifier extends Notifier<TaskDragState> {
   Offset? get pointerOffset => _pointerOffset;
 
   @override
-  TaskDragState build() => const TaskDragState();
+  TaskDragState build() {
+    ref.onDispose(() {
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointer);
+    });
+    return const TaskDragState();
+  }
+
+  void _handlePointer(PointerEvent event) {
+    if ((event.buttons & kSecondaryMouseButton) != 0 &&
+        state.draggedTaskId != null) {
+      cancelDrag(event);
+    }
+  }
 
   void startDrag(String taskId) {
-    state = TaskDragState(draggedTaskId: taskId, hasValidTarget: false);
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_handlePointer);
+    state = TaskDragState(
+      draggedTaskId: taskId,
+      hasValidTarget: false,
+      isCancelled: false,
+    );
+  }
+
+  void cancelDrag([PointerEvent? event]) {
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointer);
+    if (event != null) {
+      GestureBinding.instance.handlePointerEvent(
+        PointerCancelEvent(
+          pointer: event.pointer,
+          kind: event.kind,
+          device: event.device,
+          position: event.position,
+        ),
+      );
+    }
+    _pointerOffset = null;
+    state = state.copyWith(isCancelled: true, draggedTaskId: () => null);
   }
 
   void updatePointerOffset(Offset offset) {
@@ -75,8 +114,9 @@ class TaskDragNotifier extends Notifier<TaskDragState> {
   }
 
   void endDrag() {
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointer);
     _pointerOffset = null;
-    state = const TaskDragState();
+    state = TaskDragState();
   }
 }
 

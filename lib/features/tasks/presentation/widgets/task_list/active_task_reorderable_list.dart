@@ -71,6 +71,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                     final isSelected = selectedTaskIds.contains(task.id);
 
                     draggableChild = PlatformDraggable<Task>(
+                      key: ValueKey('draggable_${task.id}'),
                       data: task,
                       onDragStarted: () {
                         ref.read(taskDragProvider.notifier).startDrag(task.id);
