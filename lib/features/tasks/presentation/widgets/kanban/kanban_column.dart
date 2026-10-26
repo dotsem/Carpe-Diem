@@ -27,12 +27,8 @@ class KanbanColumn extends ConsumerStatefulWidget {
   final void Function(Task task, TaskStatus status) onStatusChange;
   final void Function(Task, Offset, RenderBox) onContextMenu;
   final void Function(Task) onEdit;
-  final bool isCollapsed;
-  final bool isNarrow;
-  final bool isPlanView;
-  final VoidCallback? onToggle;
-  final VoidCallback? onDragEntering;
-  final VoidCallback? onDragExiting;
+  final bool isCollapsed, isNarrow, isPlanView;
+  final VoidCallback? onToggle, onDragEntering, onDragExiting;
   final Map<String, FocusNode>? itemFocusNodes;
 
   const KanbanColumn({
@@ -67,12 +63,10 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
 
   void _updateOrder(Task task, String? order) {
     if (task.status != widget.acceptedStatus) {
-      final updatedOrder = order ?? task.sortOrder;
+      final updated = order ?? task.sortOrder;
+      final plan = widget.isPlanView ? updated : null;
       widget.onStatusChange(
-        task.copyWith(
-          sortOrder: updatedOrder,
-          planSortOrder: widget.isPlanView ? updatedOrder : null,
-        ),
+        task.copyWith(sortOrder: updated, planSortOrder: plan),
         widget.acceptedStatus,
       );
     } else if (order != null) {
@@ -96,14 +90,16 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
   }
 
   void _handleTaskDrop(Task task, int newIndex, List<TaskHierarchyNode> nodes) {
-    final order = TaskReorderUtils.handleReorder(
-      nodes: nodes,
-      draggedTask: task,
-      newIndex: newIndex,
-      settings: ref.read(settingsProvider),
-      isPlanView: widget.isPlanView,
+    _updateOrder(
+      task,
+      TaskReorderUtils.handleReorder(
+        nodes: nodes,
+        draggedTask: task,
+        newIndex: newIndex,
+        settings: ref.read(settingsProvider),
+        isPlanView: widget.isPlanView,
+      ),
     );
-    _updateOrder(task, order);
   }
 
   FocusNode? _focusNode(String id) => widget.itemFocusNodes?.putIfAbsent(
@@ -117,6 +113,10 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
       onWillAcceptWithDetails: (details) {
         final foreign = details.data.status != widget.acceptedStatus;
         final canAccept = !widget.isCollapsed || foreign;
+        // ignore: avoid_print
+        print(
+          'DEBUG KanbanColumn onWillAccept: foreign=$foreign, canAccept=$canAccept',
+        );
         if (canAccept && foreign) widget.onDragEntering?.call();
         ref.read(taskDragProvider.notifier).setValidTarget(canAccept);
         return canAccept;
@@ -126,169 +126,160 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
         ref.read(taskDragProvider.notifier).setValidTarget(false);
       },
       onAcceptWithDetails: (details) {
-        if (!widget.isCollapsed ||
-            details.data.status != widget.acceptedStatus) {
-          _acceptDrop(details.data);
-        }
+        final foreign = details.data.status != widget.acceptedStatus;
+        if (!widget.isCollapsed || foreign) _acceptDrop(details.data);
       },
-      builder: (context, candidateData, rejectedData) {
-        final isHighlighted = candidateData.any(
-          (task) => task != null && task.status != widget.acceptedStatus,
-        );
-        return widget.isCollapsed
-            ? KanbanCollapsedColumn(
-                title: widget.title,
-                titleColor: widget.titleColor,
-                onToggle: widget.onToggle,
-              )
-            : _buildFull(context, isHighlighted);
-      },
+      builder: (context, candidateData, _) => widget.isCollapsed
+          ? KanbanCollapsedColumn(
+              title: widget.title,
+              titleColor: widget.titleColor,
+              onToggle: widget.onToggle,
+            )
+          : _buildFull(
+              context,
+              candidateData.any(
+                (t) => t != null && t.status != widget.acceptedStatus,
+              ),
+            ),
     );
   }
 
+  static const _bottomDropZone = SliverToBoxAdapter(
+    child: SizedBox(height: 48, child: TaskEmptySpaceDropZone()),
+  );
+
+  Widget _buildEmpty(ThemeData theme) => TaskEmptySpaceDropZone(
+    child: Center(
+      child: Text(
+        'No tasks',
+        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+      ),
+    ),
+  );
+
+  BoxDecoration _decoration(ThemeData theme, bool hi) => BoxDecoration(
+    color: hi
+        ? widget.titleColor.withValues(alpha: 0.1)
+        : theme.scaffoldBackgroundColor,
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(
+      color: hi
+          ? widget.titleColor.withValues(alpha: 0.4)
+          : theme.colorScheme.surfaceContainerHigh,
+      width: hi ? 2 : 1,
+    ),
+  );
+
   Widget _buildFull(BuildContext context, bool isHighlighted) {
     final theme = Theme.of(context);
-    return Consumer(
-      builder: (context, ref, child) {
-        final taskState = ref.watch(taskProvider);
-        final allAvailableTasks = {for (final t in taskState.allTasks) t.id: t};
-        final projectNotifier = ref.read(projectProvider.notifier);
-        final hierarchical = TaskHierarchyUtils.buildHierarchy(
-          widget.tasks,
-          allTasks: allAvailableTasks,
-          collapsedParentIds: ref.watch(collapsedSubtasksProvider),
-        );
+    final hierarchical = TaskHierarchyUtils.buildHierarchy(
+      widget.tasks,
+      allTasks: {for (final t in ref.watch(taskProvider).allTasks) t.id: t},
+      collapsedParentIds: ref.watch(collapsedSubtasksProvider),
+    );
+    final projectNotifier = ref.read(projectProvider.notifier);
 
-        return TaskReorderScope(
-          nodes: hierarchical,
-          isPlanView: widget.isPlanView,
-          onDrop: (task, newIndex) =>
-              _handleTaskDrop(task, newIndex, hierarchical),
-          child: Builder(
-            builder: (context) {
-              final scope = TaskReorderScope.of(context);
-              return ValueListenableBuilder<TaskReorderActiveDrop?>(
-                valueListenable: scope!.activeDropNotifier,
-                builder: (context, activeDrop, _) {
-                  final isScopeHighlighted =
-                      activeDrop != null &&
-                      activeDrop.task.status != widget.acceptedStatus;
-                  final highlighted = isHighlighted || isScopeHighlighted;
-                  final dragSession = ref.watch(taskDragProvider);
-                  final slotInfo = TaskReorderListSlot.from(
-                    itemCount: hierarchical.length,
-                    activeDrop: activeDrop,
-                    isDragging: dragSession.draggedTaskId != null,
-                  );
+    return TaskReorderScope(
+      nodes: hierarchical,
+      isPlanView: widget.isPlanView,
+      onDrop: (task, newIndex) => _handleTaskDrop(task, newIndex, hierarchical),
+      child: Builder(
+        builder: (context) {
+          final scope = TaskReorderScope.of(context);
+          return ValueListenableBuilder<TaskReorderActiveDrop?>(
+            valueListenable: scope!.activeDropNotifier,
+            builder: (context, activeDrop, _) {
+              final isTarget =
+                  activeDrop != null &&
+                  activeDrop.task.status != widget.acceptedStatus;
+              final highlighted = isHighlighted || isTarget;
+              final slotInfo = TaskReorderListSlot.forNodes(
+                nodes: hierarchical,
+                activeDrop: activeDrop,
+                draggedTaskId: ref.watch(taskDragProvider).draggedTaskId,
+              );
 
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeInOut,
-                    decoration: BoxDecoration(
-                      color: highlighted
-                          ? widget.titleColor.withValues(alpha: 0.1)
-                          : theme.scaffoldBackgroundColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: highlighted
-                            ? widget.titleColor.withValues(alpha: 0.4)
-                            : theme.colorScheme.surfaceContainerHigh,
-                        width: highlighted ? 2 : 1,
-                      ),
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                decoration: _decoration(theme, highlighted),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    KanbanColumnHeader(
+                      title: widget.title,
+                      titleColor: widget.titleColor,
+                      count: widget.tasks.length,
+                      isNarrow: widget.isNarrow,
+                      onToggle: widget.onToggle,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        KanbanColumnHeader(
-                          title: widget.title,
-                          titleColor: widget.titleColor,
-                          count: widget.tasks.length,
-                          isNarrow: widget.isNarrow,
-                          onToggle: widget.onToggle,
-                        ),
-                        const Divider(height: 1),
-                        Expanded(
-                          child:
-                              (widget.tasks.isEmpty &&
-                                  slotInfo.placeholderIndex == null)
-                              ? TaskEmptySpaceDropZone(
-                                  child: Center(
-                                    child: Text(
-                                      'No tasks',
-                                      style: TextStyle(
-                                        color:
-                                            theme.colorScheme.onSurfaceVariant,
-                                      ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child:
+                          (slotInfo.totalCount == 0 &&
+                              slotInfo.placeholderIndex == null)
+                          ? _buildEmpty(theme)
+                          : CustomScrollView(
+                              slivers: [
+                                SliverPadding(
+                                  padding: const EdgeInsets.all(8),
+                                  sliver: SliverList(
+                                    delegate: SliverChildBuilderDelegate(
+                                      (context, index) {
+                                        final actual =
+                                            slotInfo.isPlaceholder(index)
+                                            ? null
+                                            : slotInfo.toOriginalIndex(index);
+                                        final node = actual != null
+                                            ? hierarchical[actual]
+                                            : null;
+                                        return KanbanCardItem(
+                                          index: index,
+                                          slotInfo: slotInfo,
+                                          activeDrop: activeDrop,
+                                          nodes: hierarchical,
+                                          child: node is TaskNode
+                                              ? KanbanCard(
+                                                  key: ValueKey(node.task.id),
+                                                  node: node,
+                                                  tasks: widget.tasks,
+                                                  projectNotifier:
+                                                      projectNotifier,
+                                                  onContextMenu:
+                                                      widget.onContextMenu,
+                                                  onEdit: widget.onEdit,
+                                                  focusNode: _focusNode(
+                                                    node.task.id,
+                                                  ),
+                                                )
+                                              : const SizedBox.shrink(),
+                                        );
+                                      },
+                                      childCount: slotInfo.totalCount,
+                                      findChildIndexCallback: (k) =>
+                                          slotInfo.findChildIndex(
+                                            k,
+                                            prefix: 'kanban_',
+                                            nodes: hierarchical,
+                                          ),
                                     ),
                                   ),
-                                )
-                              : CustomScrollView(
-                                  slivers: [
-                                    SliverPadding(
-                                      padding: const EdgeInsets.all(8),
-                                      sliver: SliverList(
-                                        delegate: SliverChildBuilderDelegate((
-                                          context,
-                                          index,
-                                        ) {
-                                          if (slotInfo.isPlaceholder(index)) {
-                                            return TaskReorderPlaceholderItem(
-                                              slotIndex:
-                                                  slotInfo.placeholderIndex!,
-                                              task: slotInfo.task!,
-                                            );
-                                          }
-                                          final actualIndex = slotInfo
-                                              .toOriginalIndex(index);
-                                          final node =
-                                              hierarchical[actualIndex];
-                                          Widget childWidget =
-                                              const SizedBox.shrink();
-                                          if (node is TaskNode) {
-                                            final task = node.task;
-                                            final focusNode = _focusNode(
-                                              task.id,
-                                            );
-                                            childWidget = KanbanCard(
-                                              key: ValueKey(task.id),
-                                              node: node,
-                                              tasks: widget.tasks,
-                                              projectNotifier: projectNotifier,
-                                              onContextMenu:
-                                                  widget.onContextMenu,
-                                              onEdit: widget.onEdit,
-                                              focusNode: focusNode,
-                                            );
-                                          }
-                                          return TaskReorderItem(
-                                            index: actualIndex,
-                                            child: childWidget,
-                                          );
-                                        }, childCount: slotInfo.totalCount),
-                                      ),
-                                    ),
-                                    const SliverToBoxAdapter(
-                                      child: SizedBox(
-                                        height: 48,
-                                        child: TaskEmptySpaceDropZone(),
-                                      ),
-                                    ),
-                                    const SliverFillRemaining(
-                                      hasScrollBody: false,
-                                      child: TaskEmptySpaceDropZone(),
-                                    ),
-                                  ],
                                 ),
-                        ),
-                      ],
+                                _bottomDropZone,
+                                const SliverFillRemaining(
+                                  hasScrollBody: false,
+                                  child: TaskEmptySpaceDropZone(),
+                                ),
+                              ],
+                            ),
                     ),
-                  );
-                },
+                  ],
+                ),
               );
             },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

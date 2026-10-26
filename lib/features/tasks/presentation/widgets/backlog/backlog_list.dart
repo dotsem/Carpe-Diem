@@ -166,45 +166,52 @@ class _BacklogListState extends ConsumerState<BacklogList> {
                       return ValueListenableBuilder<TaskReorderActiveDrop?>(
                         valueListenable: scope!.activeDropNotifier,
                         builder: (context, activeDrop, _) {
-                          final slotInfo = TaskReorderListSlot.from(
-                            itemCount: activeHierarchical.length,
+                          final slotInfo = TaskReorderListSlot.forNodes(
+                            nodes: activeHierarchical,
                             activeDrop: activeDrop,
-                            isDragging:
-                                ref.watch(taskDragProvider).draggedTaskId !=
-                                null,
+                            draggedTaskId: ref
+                                .watch(taskDragProvider)
+                                .draggedTaskId,
                           );
                           return SliverList(
-                            delegate: SliverChildBuilderDelegate((
-                              context,
-                              index,
-                            ) {
-                              if (slotInfo.isPlaceholder(index)) {
-                                return TaskReorderPlaceholderItem(
-                                  slotIndex: slotInfo.placeholderIndex!,
-                                  task: slotInfo.task!,
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final placeholder =
+                                    TaskReorderPlaceholderItem.maybeBuild(
+                                      slotInfo: slotInfo,
+                                      index: index,
+                                      activeDrop: activeDrop,
+                                    );
+                                if (placeholder != null) return placeholder;
+                                final actualIndex = slotInfo.toOriginalIndex(
+                                  index,
                                 );
-                              }
-                              final actualIndex = slotInfo.toOriginalIndex(
-                                index,
-                              );
-                              return BacklogDraggableItem(
-                                node: activeHierarchical[actualIndex],
-                                index: actualIndex,
-                                allTasks: allTasks,
-                                selectedTaskIds: widget.selectedTaskIds,
-                                highlightedTaskId: widget.highlightedTaskId,
-                                itemFocusNodes: widget.itemFocusNodes,
-                                onSelectedChanged: widget.onSelectedChanged,
-                                onEdit: widget.onEdit,
-                                trailingBuilder: widget.trailingBuilder,
-                                maxWidth: constraints.maxWidth,
-                                onDrop: (task, newIndex) => _handleDrop(
-                                  task,
-                                  newIndex,
-                                  activeHierarchical,
-                                ),
-                              );
-                            }, childCount: slotInfo.totalCount),
+                                final node = activeHierarchical[actualIndex];
+                                return BacklogDraggableItem(
+                                  key: ValueKey(
+                                    'backlog_${node.task?.id ?? actualIndex}',
+                                  ),
+                                  node: node,
+                                  index: actualIndex,
+                                  visualIndex: index,
+                                  allTasks: allTasks,
+                                  selectedTaskIds: widget.selectedTaskIds,
+                                  highlightedTaskId: widget.highlightedTaskId,
+                                  itemFocusNodes: widget.itemFocusNodes,
+                                  onSelectedChanged: widget.onSelectedChanged,
+                                  onEdit: widget.onEdit,
+                                  trailingBuilder: widget.trailingBuilder,
+                                  maxWidth: constraints.maxWidth,
+                                );
+                              },
+                              childCount: slotInfo.totalCount,
+                              findChildIndexCallback: (k) =>
+                                  slotInfo.findChildIndex(
+                                    k,
+                                    prefix: 'backlog_',
+                                    nodes: activeHierarchical,
+                                  ),
+                            ),
                           );
                         },
                       );

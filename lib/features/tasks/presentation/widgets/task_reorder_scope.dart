@@ -11,11 +11,13 @@ class TaskReorderActiveDrop {
   final int index;
   final Task task;
   final TaskReorderSlot slot;
+  final bool isInitial;
 
   const TaskReorderActiveDrop({
     required this.index,
     required this.task,
     required this.slot,
+    this.isInitial = false,
   });
 
   @override
@@ -25,10 +27,11 @@ class TaskReorderActiveDrop {
           runtimeType == other.runtimeType &&
           index == other.index &&
           task.id == other.task.id &&
-          slot == other.slot;
+          slot == other.slot &&
+          isInitial == other.isInitial;
 
   @override
-  int get hashCode => Object.hash(index, task.id, slot);
+  int get hashCode => Object.hash(index, task.id, slot, isInitial);
 }
 
 class TaskReorderScope extends ConsumerStatefulWidget {
@@ -57,9 +60,11 @@ class TaskReorderScope extends ConsumerStatefulWidget {
 }
 
 class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
+  final _scopeId = Object();
   final ValueNotifier<TaskReorderActiveDrop?> _activeDrop =
       ValueNotifier<TaskReorderActiveDrop?>(null);
   int _hoverEpoch = 0;
+  bool _hasActivePlaceholder = false;
 
   @override
   void dispose() {
@@ -88,14 +93,18 @@ class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
   void _onHoverSlot(Task task, int rawIndex) {
     _hoverEpoch++;
     final slot = _resolveSlot(task, rawIndex);
+    final isValidPlaceholder = slot.isValid && !slot.isUnchanged;
+    final isInitial = isValidPlaceholder && !_hasActivePlaceholder;
+    _hasActivePlaceholder = isValidPlaceholder;
     _activeDrop.value = TaskReorderActiveDrop(
       index: slot.index,
       task: task,
       slot: slot,
+      isInitial: isInitial,
     );
-    ref
-        .read(taskDragProvider.notifier)
-        .setValidTarget(slot.isValid && !slot.isUnchanged);
+    final notifier = ref.read(taskDragProvider.notifier);
+    notifier.setValidTarget(isValidPlaceholder);
+    notifier.setActiveScope(_scopeId);
   }
 
   bool _isPointerInsideScope() {
@@ -112,14 +121,18 @@ class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (_hoverEpoch == currentEpoch && !_isPointerInsideScope()) {
+        _hasActivePlaceholder = false;
         _activeDrop.value = null;
-        ref.read(taskDragProvider.notifier).setValidTarget(false);
+        final notifier = ref.read(taskDragProvider.notifier);
+        notifier.setValidTarget(false);
+        notifier.clearActiveScope(_scopeId);
       }
     });
   }
 
   void _drop(Task task, int rawIndex) {
     _hoverEpoch++;
+    _hasActivePlaceholder = false;
     final slot = _resolveSlot(task, rawIndex);
     _activeDrop.value = null;
     ref.read(taskDragProvider.notifier).endDrag();
@@ -131,7 +144,9 @@ class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
   @override
   Widget build(BuildContext context) {
     ref.listen<TaskDragState>(taskDragProvider, (prev, next) {
-      if (prev?.draggedTaskId != null && next.draggedTaskId == null) {
+      if ((prev?.draggedTaskId != null && next.draggedTaskId == null) ||
+          (next.activeScopeId != null && next.activeScopeId != _scopeId)) {
+        _hasActivePlaceholder = false;
         _activeDrop.value = null;
       }
     });

@@ -1,7 +1,6 @@
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:flutter/material.dart';
@@ -162,7 +161,7 @@ void main() {
           tester.element(find.byKey(const ValueKey('c2'))),
         );
         expect(scope?.activeDropNotifier.value?.slot.index, 3);
-        expect(find.byType(TaskCardPlaceholder), findsOneWidget);
+        expect(find.byType(TaskReorderPlaceholderItem), findsOneWidget);
 
         // Move pointer inside the newly opened placeholder at index 3
         container
@@ -188,7 +187,7 @@ void main() {
 
         // Crucial: Must stay at index 3 and NOT collapse to index 2
         expect(scope?.activeDropNotifier.value?.slot.index, 3);
-        expect(find.byType(TaskCardPlaceholder), findsOneWidget);
+        expect(find.byType(TaskReorderPlaceholderItem), findsOneWidget);
       },
     );
 
