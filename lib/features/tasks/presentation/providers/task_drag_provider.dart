@@ -50,13 +50,26 @@ class TaskDragState {
 class TaskDragNotifier extends Notifier<TaskDragState> {
   Offset? _pointerOffset;
   Offset? get pointerOffset => _pointerOffset;
+  bool _isListeningToPointer = false;
 
   @override
   TaskDragState build() {
-    ref.onDispose(() {
-      GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointer);
-    });
+    ref.onDispose(_removePointerListener);
     return const TaskDragState();
+  }
+
+  void _addPointerListener() {
+    if (!_isListeningToPointer) {
+      GestureBinding.instance.pointerRouter.addGlobalRoute(_handlePointer);
+      _isListeningToPointer = true;
+    }
+  }
+
+  void _removePointerListener() {
+    if (_isListeningToPointer) {
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointer);
+      _isListeningToPointer = false;
+    }
   }
 
   void _handlePointer(PointerEvent event) {
@@ -67,7 +80,7 @@ class TaskDragNotifier extends Notifier<TaskDragState> {
   }
 
   void startDrag(String taskId) {
-    GestureBinding.instance.pointerRouter.addGlobalRoute(_handlePointer);
+    _addPointerListener();
     state = TaskDragState(
       draggedTaskId: taskId,
       hasValidTarget: false,
@@ -76,7 +89,7 @@ class TaskDragNotifier extends Notifier<TaskDragState> {
   }
 
   void cancelDrag([PointerEvent? event]) {
-    GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointer);
+    _removePointerListener();
     if (event != null) {
       GestureBinding.instance.handlePointerEvent(
         PointerCancelEvent(
@@ -114,9 +127,9 @@ class TaskDragNotifier extends Notifier<TaskDragState> {
   }
 
   void endDrag() {
-    GestureBinding.instance.pointerRouter.removeGlobalRoute(_handlePointer);
+    _removePointerListener();
     _pointerOffset = null;
-    state = TaskDragState();
+    state = const TaskDragState();
   }
 }
 
