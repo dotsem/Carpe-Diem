@@ -113,10 +113,6 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
       onWillAcceptWithDetails: (details) {
         final foreign = details.data.status != widget.acceptedStatus;
         final canAccept = !widget.isCollapsed || foreign;
-        // ignore: avoid_print
-        print(
-          'DEBUG KanbanColumn onWillAccept: foreign=$foreign, canAccept=$canAccept',
-        );
         if (canAccept && foreign) widget.onDragEntering?.call();
         ref.read(taskDragProvider.notifier).setValidTarget(canAccept);
         return canAccept;
