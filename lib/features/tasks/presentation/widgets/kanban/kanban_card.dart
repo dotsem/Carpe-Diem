@@ -6,11 +6,11 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_dotted_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 
 class KanbanCard extends ConsumerWidget {
@@ -38,10 +38,6 @@ class KanbanCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dragSession = ref.watch(taskDragProvider);
-    final isThisTaskDragged = dragSession.draggedTaskId == task.id;
-    final showDotted = isThisTaskDragged && dragSession.hasValidTarget;
-
     final cardContent = _wrapHierarchy(
       context,
       ref,
@@ -72,20 +68,7 @@ class KanbanCard extends ConsumerWidget {
             selectedCount: 1,
             width: constraints.maxWidth,
           ),
-          childWhenDragging: showDotted
-              ? TaskHierarchyIndicator(
-                  depth: depth,
-                  child: TaskCardDottedPlaceholder(
-                    child: _buildTaskCard(
-                      context,
-                      ref,
-                      task,
-                      projectNotifier,
-                      isOverdue: isOverdue,
-                    ),
-                  ),
-                )
-              : Opacity(opacity: 0.3, child: cardContent),
+          childWhenDragging: const SizedBox.shrink(),
           child: cardContent,
         );
       },
@@ -140,6 +123,41 @@ class KanbanCard extends ConsumerWidget {
         localPosition,
         renderBox,
       ),
+    );
+  }
+}
+
+class KanbanCardItem extends StatelessWidget {
+  final int index;
+  final TaskReorderListSlot slotInfo;
+  final TaskReorderActiveDrop? activeDrop;
+  final List<TaskHierarchyNode> nodes;
+  final Widget child;
+
+  const KanbanCardItem({
+    super.key,
+    required this.index,
+    required this.slotInfo,
+    this.activeDrop,
+    required this.nodes,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final placeholder = TaskReorderPlaceholderItem.maybeBuild(
+      slotInfo: slotInfo,
+      index: index,
+      activeDrop: activeDrop,
+    );
+    if (placeholder != null) return placeholder;
+    final actual = slotInfo.toOriginalIndex(index);
+    final node = nodes[actual];
+    return TaskReorderItem(
+      key: ValueKey('kanban_${node.task?.id ?? actual}'),
+      index: actual,
+      visualIndex: index,
+      child: child,
     );
   }
 }

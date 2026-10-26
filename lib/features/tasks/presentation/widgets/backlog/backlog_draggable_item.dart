@@ -3,7 +3,6 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_hierarchy_item.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_dotted_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
@@ -21,7 +20,7 @@ class BacklogDraggableItem extends ConsumerWidget {
   final ValueChanged<Task> onEdit;
   final Widget Function(BuildContext, Task)? trailingBuilder;
   final double maxWidth;
-  final void Function(Task, int)? onDrop;
+  final int? visualIndex;
 
   const BacklogDraggableItem({
     super.key,
@@ -35,12 +34,11 @@ class BacklogDraggableItem extends ConsumerWidget {
     required this.onEdit,
     this.trailingBuilder,
     required this.maxWidth,
-    this.onDrop,
+    this.visualIndex,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dragSession = ref.watch(taskDragProvider);
     final child = BacklogHierarchyItem(
       node: node,
       allTasks: allTasks,
@@ -56,8 +54,6 @@ class BacklogDraggableItem extends ConsumerWidget {
     final task = node.task;
     if (task != null) {
       final isSelected = selectedTaskIds.contains(task.id);
-      final isThisTaskDragged = dragSession.draggedTaskId == task.id;
-      final showDotted = isThisTaskDragged && dragSession.hasValidTarget;
 
       draggableChild = PlatformDraggable<Task>(
         data: task,
@@ -67,9 +63,7 @@ class BacklogDraggableItem extends ConsumerWidget {
             .read(taskDragProvider.notifier)
             .updatePointerOffset(details.globalPosition),
         onDragEnd: (details) {
-          TaskReorderScope.of(
-            context,
-          )?.handleDragEnd(details, onFallbackDrop: onDrop);
+          TaskReorderScope.of(context)?.handleDragEnd(details);
           ref.read(taskDragProvider.notifier).endDrag();
         },
         feedback: TaskDragProxy(
@@ -77,13 +71,16 @@ class BacklogDraggableItem extends ConsumerWidget {
           selectedCount: isSelected ? selectedTaskIds.length : 1,
           width: maxWidth - 32,
         ),
-        childWhenDragging: showDotted
-            ? TaskCardDottedPlaceholder(child: child)
-            : Opacity(opacity: 0.3, child: child),
+        childWhenDragging: const SizedBox.shrink(),
         child: child,
       );
     }
 
-    return TaskReorderItem(index: index, child: draggableChild);
+    return TaskReorderItem(
+      key: ValueKey('backlog_${node.task?.id ?? index}'),
+      index: index,
+      visualIndex: visualIndex,
+      child: draggableChild,
+    );
   }
 }

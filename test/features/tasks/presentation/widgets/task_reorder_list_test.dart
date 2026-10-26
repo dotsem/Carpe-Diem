@@ -1,6 +1,6 @@
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_placeholder.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_slot.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
@@ -119,24 +119,24 @@ void main() {
         scope!.onHoverSlot(normalTask2, 0);
         await tester.pump();
 
-        expect(find.byType(TaskCardPlaceholder), findsOneWidget);
+        expect(find.byType(TaskReorderPlaceholderItem), findsOneWidget);
 
         // Hover bottom half (rawIndex: 1) -> same position as current index (1) -> unchanged
         scope.onHoverSlot(normalTask2, 1);
         await tester.pump();
 
-        expect(find.byType(TaskCardPlaceholder), findsNothing);
+        expect(find.byType(TaskReorderPlaceholderItem), findsNothing);
 
         // Hover top half of item 0 (index: 0) with normalTask2 -> valid and changed!
         scope.onHoverSlot(normalTask2, 0);
         await tester.pump();
-        expect(find.byType(TaskCardPlaceholder), findsOneWidget);
+        expect(find.byType(TaskReorderPlaceholderItem), findsOneWidget);
 
         // Leaving slot clears placeholder
         scope.onLeaveSlot();
         await tester.pump();
         await tester.pump();
-        expect(find.byType(TaskCardPlaceholder), findsNothing);
+        expect(find.byType(TaskReorderPlaceholderItem), findsNothing);
       },
     );
 
@@ -237,6 +237,58 @@ void main() {
 
       expect(droppedTask?.id, 'n1');
       expect(droppedIndex, 2);
+    });
+
+    test('empty list with active drop creates placeholder at index 0', () {
+      final drop = TaskReorderActiveDrop(
+        index: 0,
+        task: normalTask1,
+        slot: const TaskReorderSlot(
+          index: 0,
+          isValid: true,
+          isUnchanged: false,
+        ),
+      );
+      final slot = TaskReorderListSlot.from(itemCount: 0, activeDrop: drop);
+      expect(slot.totalCount, 1);
+      expect(slot.placeholderIndex, 0);
+      expect(slot.isPlaceholder(0), isTrue);
+    });
+
+    test(
+      'dragged task leaving source column collapses gap and excludes item',
+      () {
+        final slot = TaskReorderListSlot.from(
+          itemCount: 3,
+          activeDrop: null,
+          draggedIndex: 1,
+        );
+        expect(slot.totalCount, 2);
+        expect(slot.placeholderIndex, isNull);
+        expect(slot.toOriginalIndex(0), 0);
+        expect(slot.toOriginalIndex(1), 2);
+      },
+    );
+
+    test('dragged task hovering in same column maintains placeholder gap', () {
+      final drop = TaskReorderActiveDrop(
+        index: 0,
+        task: normalTask1,
+        slot: const TaskReorderSlot(
+          index: 0,
+          isValid: true,
+          isUnchanged: false,
+        ),
+      );
+      final slot = TaskReorderListSlot.from(
+        itemCount: 3,
+        activeDrop: drop,
+        draggedIndex: 2,
+      );
+      expect(slot.totalCount, 3);
+      expect(slot.placeholderIndex, 0);
+      expect(slot.toOriginalIndex(1), 0);
+      expect(slot.toOriginalIndex(2), 1);
     });
   });
 }

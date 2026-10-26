@@ -4,7 +4,6 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card_dotted_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
@@ -34,12 +33,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!isReorderEnabled) {
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: widgets.length,
-        itemBuilder: (context, index) => widgets[index],
-      );
+      return Column(mainAxisSize: MainAxisSize.min, children: widgets);
     }
 
     final content = Builder(
@@ -50,23 +44,21 @@ class ActiveTaskReorderableList extends ConsumerWidget {
             final dragSession = ref.watch(taskDragProvider);
 
             Widget buildList([TaskReorderActiveDrop? activeDrop]) {
-              final slotInfo = TaskReorderListSlot.from(
-                itemCount: widgets.length,
+              final slotInfo = TaskReorderListSlot.forNodes(
+                nodes: nodes,
                 activeDrop: activeDrop,
-                isDragging: dragSession.draggedTaskId != null,
+                draggedTaskId: dragSession.draggedTaskId,
               );
 
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: slotInfo.totalCount,
-                itemBuilder: (context, index) {
-                  if (slotInfo.isPlaceholder(index)) {
-                    return TaskReorderPlaceholderItem(
-                      slotIndex: slotInfo.placeholderIndex!,
-                      task: slotInfo.task!,
-                    );
-                  }
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(slotInfo.totalCount, (index) {
+                  final placeholder = TaskReorderPlaceholderItem.maybeBuild(
+                    slotInfo: slotInfo,
+                    index: index,
+                    activeDrop: activeDrop,
+                  );
+                  if (placeholder != null) return placeholder;
                   final itemIndex = slotInfo.toOriginalIndex(index);
                   final node = itemIndex < nodes.length
                       ? nodes[itemIndex]
@@ -77,10 +69,6 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                   if (node?.task != null) {
                     final task = node!.task!;
                     final isSelected = selectedTaskIds.contains(task.id);
-                    final isThisTaskDragged =
-                        dragSession.draggedTaskId == task.id;
-                    final showDotted =
-                        isThisTaskDragged && dragSession.hasValidTarget;
 
                     draggableChild = PlatformDraggable<Task>(
                       data: task,
@@ -93,11 +81,7 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                             .updatePointerOffset(details.globalPosition);
                       },
                       onDragEnd: (details) {
-                        TaskReorderScope.of(context)?.handleDragEnd(
-                          details,
-                          onFallbackDrop: (task, index) =>
-                              _handleDrop(ref, task, index),
-                        );
+                        TaskReorderScope.of(context)?.handleDragEnd(details);
                         ref.read(taskDragProvider.notifier).endDrag();
                       },
                       feedback: TaskDragProxy(
@@ -105,18 +89,20 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                         selectedCount: isSelected ? selectedTaskIds.length : 1,
                         width: constraints.maxWidth,
                       ),
-                      childWhenDragging: showDotted
-                          ? TaskCardDottedPlaceholder(child: child)
-                          : Opacity(opacity: 0.3, child: child),
+                      childWhenDragging: const SizedBox.shrink(),
                       child: child,
                     );
                   }
 
                   return TaskReorderItem(
+                    key: node?.task != null
+                        ? ValueKey('task_item_${node!.task!.id}')
+                        : ValueKey('task_item_$itemIndex'),
                     index: itemIndex,
+                    visualIndex: index,
                     child: draggableChild,
                   );
-                },
+                }),
               );
             }
 
