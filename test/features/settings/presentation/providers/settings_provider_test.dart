@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,18 +27,30 @@ void main() {
       final state = container.read(settingsProvider);
       expect(state.compactMode, isFalse);
       expect(state.themeMode, equals(ThemeMode.system));
+      expect(
+        state.rightPanelPresentation,
+        equals(RightPanelPresentation.overlay),
+      );
     });
 
     test('should load settings from repository into state', () async {
-      when(
-        () => mockRepo.getAll(),
-      ).thenAnswer((_) async => {'theme_mode': 'dark', 'compact_mode': 'true'});
+      when(() => mockRepo.getAll()).thenAnswer(
+        (_) async => {
+          'theme_mode': 'dark',
+          'compact_mode': 'true',
+          'right_panel_presentation': 'docked',
+        },
+      );
 
       await container.read(settingsProvider.notifier).loadSettings();
 
       final state = container.read(settingsProvider);
       expect(state.themeMode, equals(ThemeMode.dark));
       expect(state.compactMode, isTrue);
+      expect(
+        state.rightPanelPresentation,
+        equals(RightPanelPresentation.docked),
+      );
       verify(() => mockRepo.getAll()).called(1);
     });
 
@@ -52,6 +65,15 @@ void main() {
         final state = container.read(settingsProvider);
         expect(state.themeMode, equals(ThemeMode.light));
         verify(() => mockRepo.set('theme_mode', 'light')).called(1);
+
+        await notifier.setRightPanelPresentation(RightPanelPresentation.docked);
+        expect(
+          container.read(settingsProvider).rightPanelPresentation,
+          equals(RightPanelPresentation.docked),
+        );
+        verify(
+          () => mockRepo.set('right_panel_presentation', 'docked'),
+        ).called(1);
       },
     );
   });

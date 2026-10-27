@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/core/theme/app_breakpoints.dart';
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/side_nav.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_container.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/routes/keys.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/action_toast_handler.dart';
@@ -22,12 +23,18 @@ class AppShell extends ConsumerStatefulWidget {
 
 class _AppShellState extends ConsumerState<AppShell> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey _sidebarKey = GlobalKey();
 
   @override
   void didUpdateWidget(AppShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.child != oldWidget.child) {
       _dismissPopups();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(rightSidebarProvider.notifier).close();
+        }
+      });
     }
   }
 
@@ -63,20 +70,14 @@ class _AppShellState extends ConsumerState<AppShell> {
     });
 
     final isMobile = context.isMobile;
+    final settings = ref.watch(settingsProvider);
+    final isDocked =
+        !isMobile &&
+        settings.rightPanelPresentation == RightPanelPresentation.docked &&
+        context.isScreenAtLeast(AppBreakpoint.lg);
+
     final currentPath = GoRouterState.of(context).uri.toString();
     final rightSidebarState = ref.watch(rightSidebarProvider);
-
-    ref.listen<RightSidebarState>(rightSidebarProvider, (previous, next) {
-      if (next.isOpen && !(previous?.isOpen ?? false)) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scaffoldKey.currentState?.openEndDrawer();
-        });
-      } else if (!next.isOpen && (previous?.isOpen ?? false)) {
-        if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
-          Navigator.of(context).pop();
-        }
-      }
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateWindowTitle(ref, currentPath);
@@ -84,20 +85,12 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     return Scaffold(
       key: _scaffoldKey,
-      onEndDrawerChanged: (isOpened) {
-        if (!isOpened && ref.read(rightSidebarProvider).isOpen) {
-          ref.read(rightSidebarProvider.notifier).close();
-        }
-      },
       drawer: isMobile
           ? Drawer(
               width: 280,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               child: SideNav(currentPath: currentPath, isMobile: true),
             )
-          : null,
-      endDrawer: rightSidebarState.isOpen
-          ? Drawer(width: isMobile ? 320 : 420, child: RightSidebarContainer())
           : null,
       body: Row(
         children: [
@@ -141,9 +134,39 @@ class _AppShellState extends ConsumerState<AppShell> {
                       ),
                     ),
                   ),
+                if (!isDocked && rightSidebarState.isOpen) ...[
+                  Positioned.fill(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () =>
+                          ref.read(rightSidebarProvider.notifier).close(),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    bottom: 0,
+                    right: 0,
+                    width: isMobile ? 320 : 420,
+                    child: Material(
+                      elevation: 16,
+                      color: Theme.of(context).colorScheme.surface,
+                      child: RightSidebarContainer(key: _sidebarKey),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
+          if (isDocked && rightSidebarState.isOpen) ...[
+            const VerticalDivider(width: 1),
+            SizedBox(
+              width: 420,
+              child: RightSidebarContainer(key: _sidebarKey),
+            ),
+          ],
         ],
       ),
     );

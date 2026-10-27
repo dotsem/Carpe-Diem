@@ -103,6 +103,11 @@ class SettingsState {
     SettingsConstants.keyReviewState,
     SettingsConstants.defaultReviewState,
   );
+  RightPanelPresentation get rightPanelPresentation => _map.getEnum(
+    SettingsConstants.keyRightPanelPresentation,
+    RightPanelPresentation.values,
+    SettingsConstants.defaultRightPanelPresentation,
+  );
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -211,6 +216,8 @@ class SettingsNotifier extends Notifier<SettingsState> {
       _set(SettingsConstants.keyShowHashtagInTitle, value);
   Future<void> setReviewState(bool value) =>
       _set(SettingsConstants.keyReviewState, value);
+  Future<void> setRightPanelPresentation(RightPanelPresentation mode) =>
+      _set(SettingsConstants.keyRightPanelPresentation, mode);
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

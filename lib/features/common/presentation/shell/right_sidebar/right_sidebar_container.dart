@@ -1,5 +1,6 @@
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_panel_body.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
@@ -18,24 +19,33 @@ class RightSidebarContainer extends ConsumerWidget {
 
     final theme = Theme.of(context);
 
-    return Container(
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        border: Border(
-          left: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-            width: 1,
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.escape): () {
+          ref.read(rightSidebarProvider.notifier).close();
+        },
+      },
+      child: FocusScope(
+        child: Container(
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            border: Border(
+              left: BorderSide(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                width: 1,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context, ref, state, panel),
-            const Divider(height: 1),
-            Expanded(child: RightSidebarPanelBody(panel: panel)),
-          ],
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context, ref, state, panel),
+                const Divider(height: 1),
+                Expanded(child: RightSidebarPanelBody(panel: panel)),
+              ],
+            ),
+          ),
         ),
       ),
     );
