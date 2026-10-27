@@ -11,6 +11,8 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/cascade_delete_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/cascade_schedule_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/group_tasks_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_hierarchy_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_date_items.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_helpers.dart';
 
@@ -51,7 +53,20 @@ void showTaskCardContextMenu(
   items.add(PopupMenuDivider(indent: 12, endIndent: 12));
 
   items.addAll([
-    if (task.parentId == null)
+    if (task.parentId != null)
+      PopupMenuItem(
+        onTap: () {
+          ref
+              .read(taskProvider.notifier)
+              .reparentTasks(taskIds: [task.id], newParentId: null);
+          onAction?.call();
+        },
+        child: const ContextMenuItemTile(
+          leading: Icon(Icons.vertical_align_top_rounded),
+          title: 'Convert to standalone task',
+        ),
+      ),
+    if (task.parentId == null) ...[
       PopupMenuItem(
         onTap: () => context.openRightSidebar(
           AddTaskPanel(
@@ -65,6 +80,21 @@ void showTaskCardContextMenu(
           title: 'Add subtask',
         ),
       ),
+      if (!tasks.any((t) => t.parentId == task.id))
+        PopupMenuItem(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (_) => GroupTasksDialog(taskIds: [task.id]),
+            );
+            onAction?.call();
+          },
+          child: const ContextMenuItemTile(
+            leading: Icon(Icons.subdirectory_arrow_right),
+            title: 'Move under parent...',
+          ),
+        ),
+    ],
     PopupMenuItem(
       onTap: () => context.openRightSidebar(EditTaskPanel(task.id)),
       child: const ContextMenuItemTile(

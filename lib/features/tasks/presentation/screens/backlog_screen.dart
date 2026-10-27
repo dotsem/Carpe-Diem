@@ -290,7 +290,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
               right: 0,
               bottom: 16,
               child: BulkPlanningBar(
-                selectedCount: _selectedTaskIds.length,
+                selectedTaskIds: _selectedTaskIds,
                 onClearSelection: () => setState(() {
                   _selectedTaskIds.clear();
                   _lastSelectedTaskId = null;
@@ -315,6 +315,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                       () => setState(() => _selectedTaskIds.clear()),
                     );
                   }
+                },
+                onGroupTasks: () {
+                  BacklogDialogHandlers.showGroupTasks(
+                    context: context,
+                    ref: ref,
+                    selectedTaskIds: _selectedTaskIds,
+                    onCompleted: () => setState(() => _selectedTaskIds.clear()),
+                  );
                 },
                 onBulkDelete: () {
                   if (_selectedTaskIds.length == 1) {

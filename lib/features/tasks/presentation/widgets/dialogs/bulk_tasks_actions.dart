@@ -2,6 +2,7 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_bulk_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_edit_tasks_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/group_tasks_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -78,4 +79,20 @@ void showBulkDeleteTasksConfirmDialog({
       ],
     ),
   );
+}
+
+Future<void> showGroupTasksDialog({
+  required BuildContext context,
+  required WidgetRef ref,
+  required List<String> selectedTaskIds,
+  required VoidCallback onCompleted,
+}) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (_) => GroupTasksDialog(taskIds: selectedTaskIds),
+  );
+
+  if (result == true) {
+    onCompleted();
+  }
 }

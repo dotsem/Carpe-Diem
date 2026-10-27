@@ -34,7 +34,12 @@ class MultiSelectDropdownTile extends StatelessWidget {
           dense: true,
           visualDensity: VisualDensity.compact,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          title: Text(name, style: const TextStyle(fontSize: 13)),
+          title: Text(
+            name,
+            style: const TextStyle(fontSize: 13),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           secondary: leading,
           value: isSelected,
           enabled: !isDisabled,

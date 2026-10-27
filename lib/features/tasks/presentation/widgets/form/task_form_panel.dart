@@ -231,7 +231,10 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_parentId != null) ...[
-              ParentTaskLink(parentId: _parentId!),
+              ParentTaskLink(
+                parentId: _parentId!,
+                onClear: () => setState(() => _parentId = null),
+              ),
               const SizedBox(height: 8),
             ],
             TagAutocompleteTextField(

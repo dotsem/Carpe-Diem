@@ -385,7 +385,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 right: 0,
                 bottom: 16,
                 child: BulkPlanningBar(
-                  selectedCount: _selectedTaskIds.length,
+                  selectedTaskIds: _selectedTaskIds,
                   onClearSelection: () =>
                       setState(() => _selectedTaskIds.clear()),
                   disableScheduling: selectedTasksAlreadyScheduled,
@@ -422,6 +422,15 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                             setState(() => _selectedTaskIds.clear()),
                       );
                     }
+                  },
+                  onGroupTasks: () {
+                    showGroupTasksDialog(
+                      context: context,
+                      ref: ref,
+                      selectedTaskIds: _selectedTaskIds,
+                      onCompleted: () =>
+                          setState(() => _selectedTaskIds.clear()),
+                    );
                   },
                   onBulkDelete: () {
                     if (_selectedTaskIds.length == 1) {

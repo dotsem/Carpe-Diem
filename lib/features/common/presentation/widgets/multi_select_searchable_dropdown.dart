@@ -19,6 +19,9 @@ class MultiSelectSearchableDropdown<T> extends StatefulWidget {
   final String addNewLabel;
   final VoidCallback? onAddNew;
   final MenuController? menuController;
+  final Widget Function(BuildContext context, MenuController controller)?
+  anchorBuilder;
+  final double? menuWidth;
 
   const MultiSelectSearchableDropdown({
     super.key,
@@ -35,6 +38,8 @@ class MultiSelectSearchableDropdown<T> extends StatefulWidget {
     this.addNewLabel = 'New item',
     this.onAddNew,
     this.menuController,
+    this.anchorBuilder,
+    this.menuWidth,
   });
 
   @override
@@ -56,7 +61,6 @@ class _MultiSelectSearchableDropdownState<T>
 
   List<T> get _filteredItems {
     if (_searchQuery.isEmpty) return widget.items;
-
     return FuzzySearchUtils.search<T>(
       query: _searchQuery,
       items: widget.items,
@@ -74,15 +78,14 @@ class _MultiSelectSearchableDropdownState<T>
         if (items.isEmpty) return KeyEventResult.ignored;
 
         if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-          setState(() {
-            _selectedIndex = (_selectedIndex + 1) % items.length;
-          });
+          setState(() => _selectedIndex = (_selectedIndex + 1) % items.length);
           _scrollToIndex(_selectedIndex);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-          setState(() {
-            _selectedIndex = (_selectedIndex - 1 + items.length) % items.length;
-          });
+          setState(
+            () => _selectedIndex =
+                (_selectedIndex - 1 + items.length) % items.length,
+          );
           _scrollToIndex(_selectedIndex);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.enter ||
@@ -104,11 +107,12 @@ class _MultiSelectSearchableDropdownState<T>
 
   void _scrollToIndex(int index) {
     if (!_scrollController.hasClients || index < 0) return;
-    const itemHeight = 44.0;
-    final targetOffset = index * itemHeight;
-    final maxScroll = _scrollController.position.maxScrollExtent;
+    final target = (index * 44.0).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
     _scrollController.animateTo(
-      targetOffset.clamp(0.0, maxScroll),
+      target,
       duration: const Duration(milliseconds: 100),
       curve: Curves.easeOut,
     );
@@ -124,9 +128,9 @@ class _MultiSelectSearchableDropdownState<T>
 
   void _toggle(String id, bool select) {
     final newIds = List<String>.from(widget.selectedIds);
-    if (select) {
-      if (!newIds.contains(id)) newIds.add(id);
-    } else {
+    if (select && !newIds.contains(id)) {
+      newIds.add(id);
+    } else if (!select) {
       newIds.remove(id);
     }
     widget.onChanged(newIds);
@@ -162,7 +166,7 @@ class _MultiSelectSearchableDropdownState<T>
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: SizedBox(
-            width: 240,
+            width: widget.menuWidth ?? 240,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -248,29 +252,24 @@ class _MultiSelectSearchableDropdownState<T>
                 ),
                 if (widget.allowAdd && widget.onAddNew != null) ...[
                   const Divider(height: 12),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () {
+                  TextButton.icon(
+                    onPressed: () {
                       _menuController.close();
                       widget.onAddNew!();
                     },
-                    child: Padding(
+                    icon: const Icon(Icons.add, size: 16),
+                    label: Text(
+                      widget.addNewLabel,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      alignment: Alignment.centerLeft,
                       padding: const EdgeInsets.symmetric(
                         vertical: 6.0,
                         horizontal: 8.0,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.add, size: 16),
-                          const SizedBox(width: 8),
-                          Text(
-                            widget.addNewLabel,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ),
@@ -281,6 +280,9 @@ class _MultiSelectSearchableDropdownState<T>
         ),
       ],
       builder: (context, controller, child) {
+        if (widget.anchorBuilder != null) {
+          return widget.anchorBuilder!(context, controller);
+        }
         return ActionChip(
           label: Text(widget.buttonLabel),
           avatar: const Icon(Icons.add, size: 16),

@@ -97,7 +97,7 @@ class _AppShellState extends ConsumerState<AppShell> {
             )
           : null,
       endDrawer: rightSidebarState.isOpen
-          ? Drawer(width: isMobile ? 320 : 380, child: RightSidebarContainer())
+          ? Drawer(width: isMobile ? 320 : 420, child: RightSidebarContainer())
           : null,
       body: Row(
         children: [
