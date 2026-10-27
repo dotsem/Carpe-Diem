@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+export 'package:carpe_diem/core/theme/animation_context.dart';
+
 class AppColors {
   // Dark Theme Colors
   static const backgroundDark = Color(0xFF292929);

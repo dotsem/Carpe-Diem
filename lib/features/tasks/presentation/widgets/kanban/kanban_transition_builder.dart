@@ -72,7 +72,9 @@ class _ItemSizeTransitionBuilderState
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 300),
+      duration: context.animationsEnabled
+          ? const Duration(milliseconds: 300)
+          : Duration.zero,
       curve: Curves.easeOutCubic,
       tween: Tween<double>(
         end: widget.isExpanded ? widget.width : widget.narrowWidth,

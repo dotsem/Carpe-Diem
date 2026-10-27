@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/theme/animation_context.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_column_header.dart';
@@ -196,7 +197,9 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
               );
 
               return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: context.animationsEnabled
+                    ? const Duration(milliseconds: 200)
+                    : Duration.zero,
                 curve: Curves.easeInOut,
                 decoration: _decoration(theme, highlighted),
                 child: Column(

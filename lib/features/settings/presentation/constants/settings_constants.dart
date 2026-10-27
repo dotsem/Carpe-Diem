@@ -23,6 +23,7 @@ class SettingsConstants {
   static const bool defaultReviewState = false;
   static const RightPanelPresentation defaultRightPanelPresentation =
       RightPanelPresentation.overlay;
+  static const bool defaultAnimationsEnabled = true;
 
   // Setting keys
   static const String keyMaxPlanningDays = 'max_planning_days';
@@ -50,6 +51,7 @@ class SettingsConstants {
   static const String keyShowHashtagInTitle = 'show_hashtag_in_title';
   static const String keyReviewState = 'show_review_state';
   static const String keyRightPanelPresentation = 'right_panel_presentation';
+  static const String keyAnimationsEnabled = 'animations_enabled';
 }
 
 enum RightPanelPresentation {

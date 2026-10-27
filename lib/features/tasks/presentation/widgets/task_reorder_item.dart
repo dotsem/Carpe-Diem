@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/theme/animation_context.dart';
 import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
@@ -51,6 +52,7 @@ class _TaskReorderItemState extends State<TaskReorderItem>
     final oldVisual = oldWidget.visualIndex ?? oldWidget.index;
     final newVisual = _currentVisualIndex;
     if (oldVisual != newVisual) {
+      if (!context.animationsEnabled) return;
       final delta = (oldVisual - newVisual).toDouble();
       if (delta.abs() <= 3) {
         setState(() {
