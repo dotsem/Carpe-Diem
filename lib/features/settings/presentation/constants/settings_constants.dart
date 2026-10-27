@@ -21,6 +21,8 @@ class SettingsConstants {
   static const bool defaultKeepTagsInTitle = true;
   static const bool defaultShowHashtagInTitle = false;
   static const bool defaultReviewState = false;
+  static const RightPanelPresentation defaultRightPanelPresentation =
+      RightPanelPresentation.overlay;
 
   // Setting keys
   static const String keyMaxPlanningDays = 'max_planning_days';
@@ -47,6 +49,19 @@ class SettingsConstants {
   static const String keyKeepTagsInTitle = 'keep_tags_in_title';
   static const String keyShowHashtagInTitle = 'show_hashtag_in_title';
   static const String keyReviewState = 'show_review_state';
+  static const String keyRightPanelPresentation = 'right_panel_presentation';
+}
+
+enum RightPanelPresentation {
+  overlay,
+  docked;
+
+  static RightPanelPresentation fromString(String name) {
+    return RightPanelPresentation.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => RightPanelPresentation.overlay,
+    );
+  }
 }
 
 enum Absorption {

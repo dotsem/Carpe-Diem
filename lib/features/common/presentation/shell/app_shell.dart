@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/core/theme/app_breakpoints.dart';
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/side_nav.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_container.dart';
@@ -20,14 +22,46 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends ConsumerState<AppShell> {
+class _AppShellState extends ConsumerState<AppShell>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey _sidebarKey = GlobalKey();
+  late final AnimationController _panelController;
+  late final Animation<double> _panelCurve;
+
+  @override
+  void initState() {
+    super.initState();
+    _panelController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _panelCurve = CurvedAnimation(
+      parent: _panelController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    if (ref.read(rightSidebarProvider).isOpen) {
+      _panelController.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _panelController.dispose();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(AppShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.child != oldWidget.child) {
       _dismissPopups();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(rightSidebarProvider.notifier).close();
+        }
+      });
     }
   }
 
@@ -63,18 +97,20 @@ class _AppShellState extends ConsumerState<AppShell> {
     });
 
     final isMobile = context.isMobile;
+    final settings = ref.watch(settingsProvider);
+    final isDocked =
+        !isMobile &&
+        settings.rightPanelPresentation == RightPanelPresentation.docked &&
+        context.isScreenAtLeast(AppBreakpoint.lg);
+
     final currentPath = GoRouterState.of(context).uri.toString();
     final rightSidebarState = ref.watch(rightSidebarProvider);
 
     ref.listen<RightSidebarState>(rightSidebarProvider, (previous, next) {
       if (next.isOpen && !(previous?.isOpen ?? false)) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scaffoldKey.currentState?.openEndDrawer();
-        });
+        _panelController.forward();
       } else if (!next.isOpen && (previous?.isOpen ?? false)) {
-        if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
-          Navigator.of(context).pop();
-        }
+        _panelController.reverse();
       }
     });
 
@@ -84,11 +120,6 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     return Scaffold(
       key: _scaffoldKey,
-      onEndDrawerChanged: (isOpened) {
-        if (!isOpened && ref.read(rightSidebarProvider).isOpen) {
-          ref.read(rightSidebarProvider.notifier).close();
-        }
-      },
       drawer: isMobile
           ? Drawer(
               width: 280,
@@ -96,55 +127,104 @@ class _AppShellState extends ConsumerState<AppShell> {
               child: SideNav(currentPath: currentPath, isMobile: true),
             )
           : null,
-      endDrawer: rightSidebarState.isOpen
-          ? Drawer(width: isMobile ? 320 : 420, child: RightSidebarContainer())
-          : null,
-      body: Row(
-        children: [
-          if (!isMobile) ...[
-            SizedBox(
-              width: 220,
-              child: SideNav(currentPath: currentPath, isMobile: false),
-            ),
-            const VerticalDivider(width: 1),
-          ],
-          Expanded(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: currentPath == '/settings'
-                        ? 0
-                        : (isMobile ? 16 : 32),
-                  ),
-                  child: widget.child,
+      body: AnimatedBuilder(
+        animation: _panelCurve,
+        builder: (context, _) {
+          final showPanel =
+              rightSidebarState.isOpen || _panelController.value > 0;
+
+          return Row(
+            children: [
+              if (!isMobile) ...[
+                SizedBox(
+                  width: 220,
+                  child: SideNav(currentPath: currentPath, isMobile: false),
                 ),
-                if (isMobile)
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: Builder(
-                      builder: (context) => IconButton(
-                        icon: const Icon(Icons.menu),
-                        onPressed: () => Scaffold.of(context).openDrawer(),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surface.withValues(alpha: 0.8),
-                          foregroundColor: Theme.of(
-                            context,
-                          ).colorScheme.onSurface,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                const VerticalDivider(width: 1),
+              ],
+              Expanded(
+                child: Stack(
+                  clipBehavior: Clip.hardEdge,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: currentPath == '/settings'
+                            ? 0
+                            : (isMobile ? 16 : 32),
+                      ),
+                      child: widget.child,
+                    ),
+                    if (isMobile)
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: Builder(
+                          builder: (context) => IconButton(
+                            icon: const Icon(Icons.menu),
+                            onPressed: () => Scaffold.of(context).openDrawer(),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.surface.withValues(alpha: 0.8),
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onSurface,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                           ),
                         ),
                       ),
+                    if (!isDocked && showPanel) ...[
+                      Positioned.fill(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () =>
+                              ref.read(rightSidebarProvider.notifier).close(),
+                          child: Container(
+                            color: Colors.black.withValues(
+                              alpha: 0.3 * _panelCurve.value,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        bottom: 0,
+                        right: 0,
+                        width: isMobile ? 320 : 420,
+                        child: FractionalTranslation(
+                          translation: Offset(1.0 - _panelCurve.value, 0.0),
+                          child: Material(
+                            elevation: 16,
+                            color: Theme.of(context).colorScheme.surface,
+                            child: RightSidebarContainer(key: _sidebarKey),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (isDocked && showPanel)
+                ClipRect(
+                  child: SizedBox(
+                    width: 420 * _panelCurve.value,
+                    child: OverflowBox(
+                      minWidth: 420,
+                      maxWidth: 420,
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(
+                        width: 420,
+                        child: RightSidebarContainer(key: _sidebarKey),
+                      ),
                     ),
                   ),
-              ],
-            ),
-          ),
-        ],
+                ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/interactive_task_card.dart';
@@ -33,6 +34,28 @@ class AppearanceSection extends ConsumerWidget {
               ],
               onChanged: (value) {
                 if (value != null) settingsNotifier.setThemeMode(value);
+              },
+            ),
+            SettingsDropdownTile<RightPanelPresentation>(
+              icon: Icons.view_sidebar_outlined,
+              title: 'Right Panel Layout',
+              subtitle:
+                  'Choose between an overlay drawer or docked split view on desktop',
+              value: settings.rightPanelPresentation,
+              items: const [
+                DropdownMenuItem(
+                  value: RightPanelPresentation.overlay,
+                  child: Text('Overlay Drawer'),
+                ),
+                DropdownMenuItem(
+                  value: RightPanelPresentation.docked,
+                  child: Text('Docked Split View'),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  settingsNotifier.setRightPanelPresentation(value);
+                }
               },
             ),
             SettingsSwitchTile(

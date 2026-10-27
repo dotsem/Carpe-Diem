@@ -32,12 +32,15 @@ class LabelChip extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Text(
-              label.name,
-              style: TextStyle(
-                color: displayColor,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                label.name,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: displayColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
