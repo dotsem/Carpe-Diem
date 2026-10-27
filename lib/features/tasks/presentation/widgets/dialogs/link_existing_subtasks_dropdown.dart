@@ -53,12 +53,26 @@ class _LinkExistingSubtasksDropdownState
       allowAdd: false,
       menuWidth: 280,
       anchorBuilder: (context, controller) {
-        return IconButton(
-          onPressed: () =>
-              controller.isOpen ? controller.close() : controller.open(),
-          icon: const Icon(Icons.link, size: 18),
-          tooltip: 'Link existing tasks',
-          visualDensity: VisualDensity.compact,
+        return Tooltip(
+          message: 'Link existing tasks',
+          child: ElevatedButton(
+            onPressed: () =>
+                controller.isOpen ? controller.close() : controller.open(),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              visualDensity: VisualDensity.compact,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.horizontal(
+                  left: Radius.circular(4),
+                  right: Radius.circular(16),
+                ),
+              ),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.3),
+            ),
+            child: const Icon(Icons.link, size: 18),
+          ),
         );
       },
       onChanged: (newIds) {

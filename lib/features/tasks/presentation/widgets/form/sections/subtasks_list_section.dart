@@ -55,160 +55,185 @@ class SubtasksListSection extends ConsumerWidget {
     final collapsedSet = ref.watch(collapsedSubtasksProvider);
     final isCollapsed = collapsedSet.contains(parentTask.id);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final titleWidget = InkWell(
+      onTap: () {
+        ref
+            .read(collapsedSubtasksProvider.notifier)
+            .toggleCollapse(parentTask.id);
+      },
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            InkWell(
-              onTap: () {
-                ref
-                    .read(collapsedSubtasksProvider.notifier)
-                    .toggleCollapse(parentTask.id);
-              },
-              borderRadius: BorderRadius.circular(4),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isCollapsed ? Icons.chevron_right : Icons.expand_more,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Subtasks',
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    if (subtasks.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        '(${subtasks.where((t) => t.isCompleted).length}/${subtasks.length})',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+            Icon(
+              isCollapsed ? Icons.chevron_right : Icons.expand_more,
+              size: 18,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LinkExistingSubtasksDropdown(parentTask: parentTask),
-                TextButton.icon(
-                  onPressed: () {
-                    context.openRightSidebar(
-                      AddTaskPanel(
-                        initialDate: scheduledDate ?? parentTask.scheduledDate,
-                        initialProjectId: projectId ?? parentTask.projectId,
-                        initialParentId: parentTask.id,
-                      ),
-                      ref,
-                    );
-                  },
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Add Subtask'),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-                ShortcutHintBadge(label: "Ctrl + ${SubtaskKeys.upper}"),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (!isCollapsed) ...[
-          if (activeSubtasks.isEmpty && completedEarlier.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                'No subtasks yet',
+            const SizedBox(width: 4),
+            Text('Subtasks', style: Theme.of(context).textTheme.labelLarge),
+            if (subtasks.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Text(
+                '(${subtasks.where((t) => t.isCompleted).length}/${subtasks.length})',
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
                 ),
               ),
-            )
-          else ...[
-            if (activeSubtasks.isNotEmpty)
-              Column(
-                children: [
-                  for (final subtask in activeSubtasks)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6.0),
-                      child: TaskCard(
-                        compactOverride: true,
-                        task: subtask,
-                        project: subtask.projectId != null
-                            ? ref
-                                  .watch(projectProvider)
-                                  .getById(subtask.projectId!)
-                            : null,
-                        useTimer: false,
-                        onToggle: (_) {
-                          ref
-                              .read(taskProvider.notifier)
-                              .toggleComplete(subtask);
-                        },
-                        onTap: () {
-                          context.openRightSidebar(
-                            EditTaskPanel(subtask.id),
-                            ref,
-                          );
-                        },
-                        onContextMenu: (localPosition, renderBox) {
-                          showTaskCardContextMenu(
-                            context,
-                            ref,
-                            subtask,
-                            subtasks,
-                            localPosition,
-                            renderBox,
-                          );
-                        },
-                        hideProjectInfo: true,
-                      ),
-                    ),
-                ],
-              ),
-            if (completedEarlier.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text(
-                        '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
-                ),
-              ),
+            ],
           ],
-        ],
+        ),
+      ),
+    );
+
+    final actionButtons = Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            context.openRightSidebar(
+              AddTaskPanel(
+                initialDate: scheduledDate ?? parentTask.scheduledDate,
+                initialProjectId: projectId ?? parentTask.projectId,
+                initialParentId: parentTask.id,
+              ),
+              ref,
+            );
+          },
+          icon: const Icon(Icons.add, size: 16),
+          label: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8.0,
+            children: [
+              const Text('Add Subtask'),
+              ShortcutHintBadge(label: "Ctrl + ${SubtaskKeys.upper}"),
+            ],
+          ),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            visualDensity: VisualDensity.compact,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.horizontal(
+                left: Radius.circular(16),
+                right: Radius.circular(4),
+              ),
+            ),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.3),
+          ),
+        ),
+        LinkExistingSubtasksDropdown(parentTask: parentTask),
       ],
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // TODO: find a better way to calculate it
+        final isCompact = constraints.maxWidth < 360;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isCompact) ...[
+              Align(alignment: Alignment.centerLeft, child: actionButtons),
+              const SizedBox(height: 6),
+              titleWidget,
+            ] else ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [titleWidget, actionButtons],
+              ),
+            ],
+            const SizedBox(height: 8),
+            if (!isCollapsed) ...[
+              if (activeSubtasks.isEmpty && completedEarlier.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    'No subtasks yet',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              else ...[
+                if (activeSubtasks.isNotEmpty)
+                  Column(
+                    children: [
+                      for (final subtask in activeSubtasks)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6.0),
+                          child: TaskCard(
+                            compactOverride: true,
+                            task: subtask,
+                            project: subtask.projectId != null
+                                ? ref
+                                      .watch(projectProvider)
+                                      .getById(subtask.projectId!)
+                                : null,
+                            useTimer: false,
+                            onToggle: (_) {
+                              ref
+                                  .read(taskProvider.notifier)
+                                  .toggleComplete(subtask);
+                            },
+                            onTap: () {
+                              context.openRightSidebar(
+                                EditTaskPanel(subtask.id),
+                                ref,
+                              );
+                            },
+                            onContextMenu: (localPosition, renderBox) {
+                              showTaskCardContextMenu(
+                                context,
+                                ref,
+                                subtask,
+                                subtasks,
+                                localPosition,
+                                renderBox,
+                              );
+                            },
+                            hideProjectInfo: true,
+                          ),
+                        ),
+                    ],
+                  ),
+                if (completedEarlier.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withValues(alpha: 0.7),
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                  ),
+              ],
+            ],
+          ],
+        );
+      },
     );
   }
 }
