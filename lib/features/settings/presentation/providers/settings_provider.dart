@@ -108,6 +108,10 @@ class SettingsState {
     RightPanelPresentation.values,
     SettingsConstants.defaultRightPanelPresentation,
   );
+  bool get animationsEnabled => _map.getBool(
+    SettingsConstants.keyAnimationsEnabled,
+    SettingsConstants.defaultAnimationsEnabled,
+  );
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -218,6 +222,8 @@ class SettingsNotifier extends Notifier<SettingsState> {
       _set(SettingsConstants.keyReviewState, value);
   Future<void> setRightPanelPresentation(RightPanelPresentation mode) =>
       _set(SettingsConstants.keyRightPanelPresentation, mode);
+  Future<void> setAnimationsEnabled(bool enabled) =>
+      _set(SettingsConstants.keyAnimationsEnabled, enabled);
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {

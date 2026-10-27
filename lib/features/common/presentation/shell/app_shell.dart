@@ -92,6 +92,13 @@ class _AppShellState extends ConsumerState<AppShell>
 
   @override
   Widget build(BuildContext context) {
+    final animationsEnabled =
+        ref.watch(settingsProvider).animationsEnabled &&
+        !MediaQuery.disableAnimationsOf(context);
+    _panelController.duration = animationsEnabled
+        ? const Duration(milliseconds: 250)
+        : Duration.zero;
+
     ref.listen<UndoRedoState>(undoRedoProvider, (previous, next) {
       ActionToastHandler.handleUndoRedoStateChange(ref, context, next);
     });
@@ -118,113 +125,119 @@ class _AppShellState extends ConsumerState<AppShell>
       _updateWindowTitle(ref, currentPath);
     });
 
-    return Scaffold(
-      key: _scaffoldKey,
-      drawer: isMobile
-          ? Drawer(
-              width: 280,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              child: SideNav(currentPath: currentPath, isMobile: true),
-            )
-          : null,
-      body: AnimatedBuilder(
-        animation: _panelCurve,
-        builder: (context, _) {
-          final showPanel =
-              rightSidebarState.isOpen || _panelController.value > 0;
+    return MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(disableAnimations: !animationsEnabled),
+      child: Scaffold(
+        key: _scaffoldKey,
+        drawer: isMobile
+            ? Drawer(
+                width: 280,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                child: SideNav(currentPath: currentPath, isMobile: true),
+              )
+            : null,
+        body: AnimatedBuilder(
+          animation: _panelCurve,
+          builder: (context, _) {
+            final showPanel =
+                rightSidebarState.isOpen || _panelController.value > 0;
 
-          return Row(
-            children: [
-              if (!isMobile) ...[
-                SizedBox(
-                  width: 220,
-                  child: SideNav(currentPath: currentPath, isMobile: false),
-                ),
-                const VerticalDivider(width: 1),
-              ],
-              Expanded(
-                child: Stack(
-                  clipBehavior: Clip.hardEdge,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: currentPath == '/settings'
-                            ? 0
-                            : (isMobile ? 16 : 32),
+            return Row(
+              children: [
+                if (!isMobile) ...[
+                  SizedBox(
+                    width: 220,
+                    child: SideNav(currentPath: currentPath, isMobile: false),
+                  ),
+                  const VerticalDivider(width: 1),
+                ],
+                Expanded(
+                  child: Stack(
+                    clipBehavior: Clip.hardEdge,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: currentPath == '/settings'
+                              ? 0
+                              : (isMobile ? 16 : 32),
+                        ),
+                        child: widget.child,
                       ),
-                      child: widget.child,
-                    ),
-                    if (isMobile)
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: Builder(
-                          builder: (context) => IconButton(
-                            icon: const Icon(Icons.menu),
-                            onPressed: () => Scaffold.of(context).openDrawer(),
-                            style: IconButton.styleFrom(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.surface.withValues(alpha: 0.8),
-                              foregroundColor: Theme.of(
-                                context,
-                              ).colorScheme.onSurface,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                      if (isMobile)
+                        Positioned(
+                          top: 12,
+                          left: 12,
+                          child: Builder(
+                            builder: (context) => IconButton(
+                              icon: const Icon(Icons.menu),
+                              onPressed: () =>
+                                  Scaffold.of(context).openDrawer(),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surface.withValues(alpha: 0.8),
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    if (!isDocked && showPanel) ...[
-                      Positioned.fill(
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () =>
-                              ref.read(rightSidebarProvider.notifier).close(),
-                          child: Container(
-                            color: Colors.black.withValues(
-                              alpha: 0.3 * _panelCurve.value,
+                      if (!isDocked && showPanel) ...[
+                        Positioned.fill(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () =>
+                                ref.read(rightSidebarProvider.notifier).close(),
+                            child: Container(
+                              color: Colors.black.withValues(
+                                alpha: 0.3 * _panelCurve.value,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        top: 0,
-                        bottom: 0,
-                        right: 0,
-                        width: isMobile ? 320 : 420,
-                        child: FractionalTranslation(
-                          translation: Offset(1.0 - _panelCurve.value, 0.0),
-                          child: Material(
-                            elevation: 16,
-                            color: Theme.of(context).colorScheme.surface,
-                            child: RightSidebarContainer(key: _sidebarKey),
+                        Positioned(
+                          top: 0,
+                          bottom: 0,
+                          right: 0,
+                          width: isMobile ? 320 : 420,
+                          child: FractionalTranslation(
+                            translation: Offset(1.0 - _panelCurve.value, 0.0),
+                            child: Material(
+                              elevation: 16,
+                              color: Theme.of(context).colorScheme.surface,
+                              child: RightSidebarContainer(key: _sidebarKey),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              if (isDocked && showPanel)
-                ClipRect(
-                  child: SizedBox(
-                    width: 420 * _panelCurve.value,
-                    child: OverflowBox(
-                      minWidth: 420,
-                      maxWidth: 420,
-                      alignment: Alignment.topLeft,
-                      child: SizedBox(
-                        width: 420,
-                        child: RightSidebarContainer(key: _sidebarKey),
+                if (isDocked && showPanel)
+                  ClipRect(
+                    child: SizedBox(
+                      width: 420 * _panelCurve.value,
+                      child: OverflowBox(
+                        minWidth: 420,
+                        maxWidth: 420,
+                        alignment: Alignment.topLeft,
+                        child: SizedBox(
+                          width: 420,
+                          child: RightSidebarContainer(key: _sidebarKey),
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

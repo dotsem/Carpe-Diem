@@ -73,6 +73,14 @@ class AppearanceSection extends ConsumerWidget {
               onChanged: (value) =>
                   settingsNotifier.setShowDescriptionOnCard(value),
             ),
+            SettingsSwitchTile(
+              icon: Icons.animation,
+              title: 'Animations',
+              subtitle: 'Enable or disable animations',
+              value: settings.animationsEnabled,
+              onChanged: (value) =>
+                  settingsNotifier.setAnimationsEnabled(value),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
