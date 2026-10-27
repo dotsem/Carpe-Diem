@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/theme/app_breakpoints.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/section.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/side_bar.dart';
@@ -24,7 +25,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 720;
+    final isMobile = context.isMobile;
 
     if (isMobile) {
       if (_selectedTab == null) {

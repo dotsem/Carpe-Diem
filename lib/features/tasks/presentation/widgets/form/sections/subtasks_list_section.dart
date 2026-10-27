@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/theme/app_breakpoints.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
@@ -131,109 +132,101 @@ class SubtasksListSection extends ConsumerWidget {
       ],
     );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // TODO: find a better way to calculate it
-        final isCompact = constraints.maxWidth < 360;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isCompact) ...[
-              Align(alignment: Alignment.centerLeft, child: actionButtons),
-              const SizedBox(height: 6),
-              titleWidget,
-            ] else ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [titleWidget, actionButtons],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (context.isMobile) ...[
+          Align(alignment: Alignment.centerLeft, child: actionButtons),
+          const SizedBox(height: 6),
+          titleWidget,
+        ] else ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [titleWidget, actionButtons],
+          ),
+        ],
+        const SizedBox(height: 8),
+        if (!isCollapsed) ...[
+          if (activeSubtasks.isEmpty && completedEarlier.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                'No subtasks yet',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ],
-            const SizedBox(height: 8),
-            if (!isCollapsed) ...[
-              if (activeSubtasks.isEmpty && completedEarlier.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(
-                    'No subtasks yet',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
+            )
+          else ...[
+            if (activeSubtasks.isNotEmpty)
+              Column(
+                children: [
+                  for (final subtask in activeSubtasks)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6.0),
+                      child: TaskCard(
+                        compactOverride: true,
+                        task: subtask,
+                        project: subtask.projectId != null
+                            ? ref
+                                  .watch(projectProvider)
+                                  .getById(subtask.projectId!)
+                            : null,
+                        useTimer: false,
+                        onToggle: (_) {
+                          ref
+                              .read(taskProvider.notifier)
+                              .toggleComplete(subtask);
+                        },
+                        onTap: () {
+                          context.openRightSidebar(
+                            EditTaskPanel(subtask.id),
+                            ref,
+                          );
+                        },
+                        onContextMenu: (localPosition, renderBox) {
+                          showTaskCardContextMenu(
+                            context,
+                            ref,
+                            subtask,
+                            subtasks,
+                            localPosition,
+                            renderBox,
+                          );
+                        },
+                        hideProjectInfo: true,
+                      ),
                     ),
-                  ),
-                )
-              else ...[
-                if (activeSubtasks.isNotEmpty)
-                  Column(
-                    children: [
-                      for (final subtask in activeSubtasks)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 6.0),
-                          child: TaskCard(
-                            compactOverride: true,
-                            task: subtask,
-                            project: subtask.projectId != null
-                                ? ref
-                                      .watch(projectProvider)
-                                      .getById(subtask.projectId!)
-                                : null,
-                            useTimer: false,
-                            onToggle: (_) {
-                              ref
-                                  .read(taskProvider.notifier)
-                                  .toggleComplete(subtask);
-                            },
-                            onTap: () {
-                              context.openRightSidebar(
-                                EditTaskPanel(subtask.id),
-                                ref,
-                              );
-                            },
-                            onContextMenu: (localPosition, renderBox) {
-                              showTaskCardContextMenu(
-                                context,
-                                ref,
-                                subtask,
-                                subtasks,
-                                localPosition,
-                                renderBox,
-                              );
-                            },
-                            hideProjectInfo: true,
-                          ),
+                ],
+              ),
+            if (completedEarlier.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontStyle: FontStyle.italic,
                         ),
-                    ],
-                  ),
-                if (completedEarlier.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant
-                                  .withValues(alpha: 0.7),
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
+                      ),
                     ),
-                  ),
-              ],
-            ],
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+              ),
           ],
-        );
-      },
+        ],
+      ],
     );
   }
 }

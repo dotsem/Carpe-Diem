@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:carpe_diem/core/theme/app_breakpoints.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/side_nav.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_container.dart';
@@ -61,8 +62,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       ActionToastHandler.handleUndoRedoStateChange(ref, context, next);
     });
 
-    final width = MediaQuery.sizeOf(context).width;
-    final isMobile = width < 900;
+    final isMobile = context.isMobile;
     final currentPath = GoRouterState.of(context).uri.toString();
     final rightSidebarState = ref.watch(rightSidebarProvider);
 
