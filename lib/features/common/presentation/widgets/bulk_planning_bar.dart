@@ -1,32 +1,43 @@
 import 'dart:ui';
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/utils/task_selection_utils.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BulkPlanningBar extends StatelessWidget {
-  final int selectedCount;
+class BulkPlanningBar extends ConsumerWidget {
+  final List<String> selectedTaskIds;
   final bool disableScheduling;
   final VoidCallback onClearSelection;
   final VoidCallback onScheduleToday;
   final VoidCallback onScheduleTomorrow;
   final VoidCallback onBulkEdit;
   final VoidCallback onBulkDelete;
+  final VoidCallback? onGroupTasks;
 
   const BulkPlanningBar({
     super.key,
-    required this.selectedCount,
+    required this.selectedTaskIds,
     this.disableScheduling = false,
     required this.onClearSelection,
     required this.onScheduleToday,
     required this.onScheduleTomorrow,
     required this.onBulkEdit,
     required this.onBulkDelete,
+    this.onGroupTasks,
   });
 
   @override
-  Widget build(BuildContext context) {
-    if (selectedCount == 0) return const SizedBox.shrink();
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (selectedTaskIds.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
+    final taskState = ref.watch(taskProvider);
+    final selectedTasks = selectedTaskIds
+        .map(taskState.getById)
+        .whereType<Task>();
+    final hasMixedProjects = TaskSelectionUtils.hasMixedProjects(selectedTasks);
 
     return Center(
       child: AnimatedContainer(
@@ -67,9 +78,9 @@ class BulkPlanningBar extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    selectedCount == 1
+                    selectedTaskIds.length == 1
                         ? '1 task selected'
-                        : '$selectedCount tasks selected',
+                        : '${selectedTaskIds.length} tasks selected',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.onSurface,
@@ -103,15 +114,32 @@ class BulkPlanningBar extends StatelessWidget {
                   _ActionButton(
                     icon: Icons.edit_rounded,
                     label: 'Edit',
-                    tooltip: selectedCount == 1 ? 'Edit Task' : 'Bulk Edit',
+                    tooltip: selectedTaskIds.length == 1
+                        ? 'Edit Task'
+                        : 'Bulk Edit',
                     color: theme.colorScheme.onSurface,
                     onPressed: onBulkEdit,
                   ),
+                  if (onGroupTasks != null) ...[
+                    const SizedBox(width: 8),
+                    _ActionButton(
+                      icon: Icons.account_tree_outlined,
+                      label: 'Group',
+                      color: theme.colorScheme.onSurface,
+                      disabled: hasMixedProjects,
+                      tooltip: hasMixedProjects
+                          ? 'Cannot group tasks across different projects'
+                          : 'Group into parent task',
+                      onPressed: hasMixedProjects ? null : onGroupTasks,
+                    ),
+                  ],
                   const SizedBox(width: 8),
                   _ActionButton(
                     icon: Icons.delete_rounded,
                     label: 'Delete',
-                    tooltip: selectedCount == 1 ? 'Delete Task' : 'Bulk Delete',
+                    tooltip: selectedTaskIds.length == 1
+                        ? 'Delete Task'
+                        : 'Bulk Delete',
                     color: AppColors.error,
                     onPressed: onBulkDelete,
                   ),
@@ -146,7 +174,7 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Tooltip(
-      message: disabled ? "" : tooltip,
+      message: tooltip,
       child: TextButton.icon(
         onPressed: disabled ? null : onPressed,
         icon: Icon(

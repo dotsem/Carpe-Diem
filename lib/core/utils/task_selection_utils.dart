@@ -159,4 +159,10 @@ class TaskSelectionUtils {
       currentSelectedIds: currentSelectedIds,
     );
   }
+
+  static bool hasMixedProjects(Iterable<Task> tasks) {
+    if (tasks.isEmpty) return false;
+    final firstProject = tasks.first.projectId;
+    return tasks.any((t) => t.projectId != firstProject);
+  }
 }

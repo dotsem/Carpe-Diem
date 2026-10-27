@@ -100,6 +100,7 @@ class TestTaskRepositories {
       ),
     ).thenAnswer((_) async => []);
     when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
+    when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
     when(() => mockTaskRepo.cleanupHistory(any())).thenAnswer((_) async => 0);
     when(() => mockLabelRepo.getAll()).thenAnswer((_) async => []);
     when(() => mockTagRepo.getAll()).thenAnswer((_) async => []);

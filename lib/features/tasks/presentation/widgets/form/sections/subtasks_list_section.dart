@@ -7,6 +7,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/link_existing_subtasks_dropdown.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -99,6 +100,7 @@ class SubtasksListSection extends ConsumerWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                LinkExistingSubtasksDropdown(parentTask: parentTask),
                 TextButton.icon(
                   onPressed: () {
                     context.openRightSidebar(

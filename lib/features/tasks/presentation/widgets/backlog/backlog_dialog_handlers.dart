@@ -62,6 +62,20 @@ class BacklogDialogHandlers {
     );
   }
 
+  static void showGroupTasks({
+    required BuildContext context,
+    required WidgetRef ref,
+    required List<String> selectedTaskIds,
+    required VoidCallback onCompleted,
+  }) {
+    showGroupTasksDialog(
+      context: context,
+      ref: ref,
+      selectedTaskIds: selectedTaskIds,
+      onCompleted: onCompleted,
+    );
+  }
+
   static void showBulkDeleteConfirm({
     required BuildContext context,
     required WidgetRef ref,

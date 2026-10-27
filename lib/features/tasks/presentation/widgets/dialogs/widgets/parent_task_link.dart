@@ -7,8 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ParentTaskLink extends ConsumerWidget {
   final String parentId;
+  final VoidCallback? onClear;
 
-  const ParentTaskLink({super.key, required this.parentId});
+  const ParentTaskLink({super.key, required this.parentId, this.onClear});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -65,6 +66,21 @@ class ParentTaskLink extends ConsumerWidget {
                 ),
               ),
             ),
+            if (onClear != null) ...[
+              const SizedBox(width: 4),
+              InkWell(
+                onTap: onClear,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
