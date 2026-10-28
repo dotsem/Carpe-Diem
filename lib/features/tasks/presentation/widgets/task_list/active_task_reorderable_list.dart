@@ -1,10 +1,9 @@
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_platform_draggable.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:flutter/material.dart';
@@ -70,27 +69,10 @@ class ActiveTaskReorderableList extends ConsumerWidget {
                     final task = node!.task!;
                     final isSelected = selectedTaskIds.contains(task.id);
 
-                    draggableChild = PlatformDraggable<Task>(
-                      key: ValueKey('draggable_${task.id}'),
-                      data: task,
-                      onDragStarted: () {
-                        ref.read(taskDragProvider.notifier).startDrag(task.id);
-                      },
-                      onDragUpdate: (details) {
-                        ref
-                            .read(taskDragProvider.notifier)
-                            .updatePointerOffset(details.globalPosition);
-                      },
-                      onDragEnd: (details) {
-                        TaskReorderScope.of(context)?.handleDragEnd(details);
-                        ref.read(taskDragProvider.notifier).endDrag();
-                      },
-                      feedback: TaskDragProxy(
-                        task: task,
-                        selectedCount: isSelected ? selectedTaskIds.length : 1,
-                        width: constraints.maxWidth,
-                      ),
-                      childWhenDragging: const SizedBox.shrink(),
+                    draggableChild = TaskPlatformDraggable(
+                      task: task,
+                      feedbackWidth: constraints.maxWidth,
+                      selectedCount: isSelected ? selectedTaskIds.length : 1,
                       child: child,
                     );
                   }
