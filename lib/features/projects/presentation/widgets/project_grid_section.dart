@@ -30,6 +30,15 @@ class _ProjectGridSectionState extends State<ProjectGridSection> {
   Project? _draggedProject;
   int? _hoverIndex;
 
+  void _resetDragState() {
+    if (mounted) {
+      setState(() {
+        _draggedProject = null;
+        _hoverIndex = null;
+      });
+    }
+  }
+
   void _handleDrop(Project project, int targetIndex) {
     final newSortOrder = ProjectReorderUtils.handleReorder(
       projects: widget.projects,
@@ -37,10 +46,7 @@ class _ProjectGridSectionState extends State<ProjectGridSection> {
       newIndex: targetIndex,
     );
 
-    setState(() {
-      _draggedProject = null;
-      _hoverIndex = null;
-    });
+    _resetDragState();
 
     if (newSortOrder != null && newSortOrder != project.sortOrder) {
       widget.onReorder(project, newSortOrder);
@@ -81,14 +87,8 @@ class _ProjectGridSectionState extends State<ProjectGridSection> {
                 _hoverIndex = idx >= 0 ? idx : 0;
               });
             },
-            onDragEnd: (_) {
-              if (mounted) {
-                setState(() {
-                  _draggedProject = null;
-                  _hoverIndex = null;
-                });
-              }
-            },
+            onDragEnd: (_) => _resetDragState(),
+            onDragCancel: _resetDragState,
             child: cardWidget,
           );
         }).toList(),

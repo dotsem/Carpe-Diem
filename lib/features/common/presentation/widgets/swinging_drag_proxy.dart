@@ -54,6 +54,7 @@ class _SwingingDragProxyState extends ConsumerState<SwingingDragProxy>
       ref.read(settingsProvider).animationsEnabled && context.animationsEnabled;
 
   void _handlePointer(PointerEvent event) {
+    if (!mounted) return;
     if (event is! PointerMoveEvent || !_animationsEnabled) return;
 
     if (!_pivotInitialized) {
