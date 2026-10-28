@@ -25,30 +25,27 @@ void main() {
         ),
       );
 
-      final gesture = await tester.startGesture(
-        tester.getCenter(find.text('draggable_item')),
-        kind: PointerDeviceKind.mouse,
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        pointer.down(tester.getCenter(find.text('draggable_item'))),
       );
-      await gesture.moveBy(const Offset(50, 50));
+      await tester.sendEventToBinding(pointer.move(const Offset(50, 50)));
       await tester.pump();
 
       expect(dragStarted, isTrue);
       expect(find.text('feedback'), findsOneWidget);
 
-      final secondaryGesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-        buttons: kSecondaryMouseButton,
+      await tester.sendEventToBinding(
+        pointer.move(
+          const Offset(100, 100),
+          buttons: kPrimaryMouseButton | kSecondaryMouseButton,
+        ),
       );
-      await secondaryGesture.addPointer(location: const Offset(100, 100));
-      await secondaryGesture.down(const Offset(100, 100));
       await tester.pump();
 
       expect(endDetails, isNotNull);
       expect(endDetails!.wasAccepted, isFalse);
       expect(find.text('feedback'), findsNothing);
-
-      await gesture.removePointer();
-      await secondaryGesture.removePointer();
     });
 
     testWidgets('does not cancel drag on secondary mouse click when disabled', (
@@ -70,33 +67,30 @@ void main() {
         ),
       );
 
-      final gesture = await tester.startGesture(
-        tester.getCenter(find.text('draggable_item')),
-        kind: PointerDeviceKind.mouse,
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        pointer.down(tester.getCenter(find.text('draggable_item'))),
       );
-      await gesture.moveBy(const Offset(50, 50));
+      await tester.sendEventToBinding(pointer.move(const Offset(50, 50)));
       await tester.pump();
 
       expect(find.text('feedback'), findsOneWidget);
 
-      final secondaryGesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-        buttons: kSecondaryMouseButton,
+      await tester.sendEventToBinding(
+        pointer.move(
+          const Offset(100, 100),
+          buttons: kPrimaryMouseButton | kSecondaryMouseButton,
+        ),
       );
-      await secondaryGesture.addPointer(location: const Offset(100, 100));
-      await secondaryGesture.down(const Offset(100, 100));
       await tester.pump();
 
       expect(endDetails, isNull);
       expect(find.text('feedback'), findsOneWidget);
 
-      await gesture.up();
+      await tester.sendEventToBinding(pointer.up());
       await tester.pump();
 
       expect(endDetails, isNotNull);
-
-      await gesture.removePointer();
-      await secondaryGesture.removePointer();
     });
 
     testWidgets(
@@ -128,28 +122,25 @@ void main() {
           ),
         );
 
-        final gesture = await tester.startGesture(
-          tester.getCenter(find.text('draggable_item')),
-          kind: PointerDeviceKind.mouse,
+        final pointer = TestPointer(1, PointerDeviceKind.mouse);
+        await tester.sendEventToBinding(
+          pointer.down(tester.getCenter(find.text('draggable_item'))),
         );
-        await gesture.moveBy(const Offset(50, 50));
+        await tester.sendEventToBinding(pointer.move(const Offset(50, 50)));
         await tester.pump();
 
         expect(find.text('unmounted_state'), findsOneWidget);
         expect(find.text('feedback'), findsOneWidget);
 
-        final secondaryGesture = await tester.createGesture(
-          kind: PointerDeviceKind.mouse,
-          buttons: kSecondaryMouseButton,
+        await tester.sendEventToBinding(
+          pointer.move(
+            const Offset(100, 100),
+            buttons: kPrimaryMouseButton | kSecondaryMouseButton,
+          ),
         );
-        await secondaryGesture.addPointer(location: const Offset(100, 100));
-        await secondaryGesture.down(const Offset(100, 100));
         await tester.pump();
 
         expect(find.text('feedback'), findsNothing);
-
-        await gesture.removePointer();
-        await secondaryGesture.removePointer();
       },
     );
 
@@ -171,29 +162,26 @@ void main() {
         ),
       );
 
-      final gesture = await tester.startGesture(
-        tester.getCenter(find.text('draggable_item')),
-        kind: PointerDeviceKind.mouse,
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        pointer.down(tester.getCenter(find.text('draggable_item'))),
       );
-      await gesture.moveBy(const Offset(50, 50));
+      await tester.sendEventToBinding(pointer.move(const Offset(50, 50)));
       await tester.pump();
 
       expect(find.text('feedback'), findsOneWidget);
       expect(cancelCalled, isFalse);
 
-      final secondaryGesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-        buttons: kSecondaryMouseButton,
+      await tester.sendEventToBinding(
+        pointer.move(
+          const Offset(100, 100),
+          buttons: kPrimaryMouseButton | kSecondaryMouseButton,
+        ),
       );
-      await secondaryGesture.addPointer(location: const Offset(100, 100));
-      await secondaryGesture.down(const Offset(100, 100));
       await tester.pump();
 
       expect(cancelCalled, isTrue);
       expect(find.text('feedback'), findsNothing);
-
-      await gesture.removePointer();
-      await secondaryGesture.removePointer();
     });
 
     testWidgets('ignores unrelated pointer up event during drag session', (
@@ -214,39 +202,35 @@ void main() {
         ),
       );
 
-      final primaryGesture = await tester.startGesture(
-        tester.getCenter(find.text('draggable_item')),
-        kind: PointerDeviceKind.mouse,
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        pointer.down(tester.getCenter(find.text('draggable_item'))),
       );
-      await primaryGesture.moveBy(const Offset(50, 50));
+      await tester.sendEventToBinding(pointer.move(const Offset(50, 50)));
       await tester.pump();
 
       expect(find.text('feedback'), findsOneWidget);
 
-      final secondTouch = await tester.startGesture(
-        const Offset(200, 200),
-        kind: PointerDeviceKind.touch,
+      final secondPointer = TestPointer(2, PointerDeviceKind.touch);
+      await tester.sendEventToBinding(
+        secondPointer.down(const Offset(200, 200)),
       );
       await tester.pump();
-      await secondTouch.up();
+      await tester.sendEventToBinding(secondPointer.up());
       await tester.pump();
 
       expect(find.text('feedback'), findsOneWidget);
 
-      final secondaryGesture = await tester.createGesture(
-        kind: PointerDeviceKind.mouse,
-        buttons: kSecondaryMouseButton,
+      await tester.sendEventToBinding(
+        pointer.move(
+          const Offset(100, 100),
+          buttons: kPrimaryMouseButton | kSecondaryMouseButton,
+        ),
       );
-      await secondaryGesture.addPointer(location: const Offset(100, 100));
-      await secondaryGesture.down(const Offset(100, 100));
       await tester.pump();
 
       expect(cancelCalled, isTrue);
       expect(find.text('feedback'), findsNothing);
-
-      await primaryGesture.removePointer();
-      await secondTouch.removePointer();
-      await secondaryGesture.removePointer();
     });
   });
 }
