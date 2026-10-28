@@ -5,11 +5,9 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hierarchy_indicator.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_platform_draggable.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 
@@ -48,28 +46,10 @@ class KanbanCard extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        return PlatformDraggable<Task>(
-          data: task,
-          key: ValueKey('draggable_${task.id}'),
-          delay: const Duration(milliseconds: 150),
-          onDragStarted: () {
-            ref.read(taskDragProvider.notifier).startDrag(task.id);
-          },
-          onDragUpdate: (details) {
-            ref
-                .read(taskDragProvider.notifier)
-                .updatePointerOffset(details.globalPosition);
-          },
-          onDragEnd: (details) {
-            TaskReorderScope.of(context)?.handleDragEnd(details);
-            ref.read(taskDragProvider.notifier).endDrag();
-          },
-          feedback: TaskDragProxy(
-            task: task,
-            selectedCount: 1,
-            width: constraints.maxWidth,
-          ),
-          childWhenDragging: const SizedBox.shrink(),
+        return TaskPlatformDraggable(
+          task: task,
+          feedbackWidth: constraints.maxWidth,
+          selectedCount: 1,
           child: cardContent,
         );
       },
