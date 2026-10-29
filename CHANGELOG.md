@@ -2,6 +2,15 @@
 
 All notable changes to Carpe Diem will be documented in this file.
 
+## v0.6.0 - Modes & Animations
+
+- **Drag-and-Drop Polish:** Added swing animations, placeholder indicators, extended list drag boundaries, and right-click cancellation for tasks and projects.
+- **Sub-task Linking:** Support linking existing standalone tasks into parent tasks as sub-tasks.
+- **Form Shortcuts:** Added keyboard shortcuts for faster task and project creation and editing.
+- **Task Modes:** Added filter modes for tasks.
+- **Animation Controls:** Added an option in settings to disable animations across the application.
+
+
 ## v0.5.0 - Desktop & UI Overhaul
 
 - **Desktop Overhaul:** Optimize desktop UI layout and interaction models.
