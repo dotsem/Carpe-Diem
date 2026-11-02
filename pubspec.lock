@@ -670,10 +670,10 @@ packages:
     dependency: "direct main"
     description:
       name: toastification
-      sha256: cb37a5714144a992cdf0e21054a4569239b277846c678d77acc2e4d8e0807fcd
+      sha256: e06b82a66dffb866af2923cc04012f52ae96ec50ab9215efa07be8d6ec6486fb
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.1"
+    version: "3.2.2"
   typed_data:
     dependency: transitive
     description:
