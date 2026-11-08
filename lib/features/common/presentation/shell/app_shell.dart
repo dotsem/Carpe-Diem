@@ -12,6 +12,9 @@ import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/righ
 import 'package:carpe_diem/routes/keys.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/action_toast_handler.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/parent_completion_prompt_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_prompt_dialog.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -101,6 +104,15 @@ class _AppShellState extends ConsumerState<AppShell>
 
     ref.listen<UndoRedoState>(undoRedoProvider, (previous, next) {
       ActionToastHandler.handleUndoRedoStateChange(ref, context, next);
+    });
+
+    ref.listen<Task?>(parentCompletionPromptProvider, (_, parent) {
+      if (parent == null) return;
+      ref.read(parentCompletionPromptProvider.notifier).clear();
+      showDialog(
+        context: context,
+        builder: (_) => CompleteParentPromptDialog(parent: parent),
+      );
     });
 
     final isMobile = context.isMobile;

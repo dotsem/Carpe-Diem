@@ -15,6 +15,7 @@ import 'package:carpe_diem/features/tasks/domain/services/task_completion_servic
 import 'package:carpe_diem/features/tasks/domain/services/task_crud_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_scheduling_service.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/parent_completion_prompt_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_state.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -201,23 +202,26 @@ class TaskNotifier extends Notifier<TaskState> {
       newPlanSortOrder: newPlanSortOrder,
     );
     await executeCommand(cmd);
+    if (status.isDone) await _promptParent(task);
   }
 
-  Future<void> startTask(Task task) async {
-    final cmd = TaskCompletionService.buildStartCommand(repo: repo, task: task);
-    await executeCommand(cmd);
-  }
+  Future<void> startTask(Task task) => executeCommand(
+    TaskCompletionService.buildStartCommand(repo: repo, task: task),
+  );
 
   Future<SubtaskCompletionConflict?> checkSubtaskConflict(Task task) =>
       SubtaskService.checkSubtaskConflict(repo: repo, task: task);
 
   Future<void> completeTask(Task task) async {
-    final cmd = await SubtaskService.buildCompleteSubtaskCommand(
-      repo: repo,
-      task: task,
+    await executeCommand(
+      TaskCompletionService.buildCompleteCommand(repo: repo, task: task),
     );
-    await executeCommand(cmd);
+    await _promptParent(task);
   }
+
+  Future<void> _promptParent(Task task) => ref
+      .read(parentCompletionPromptProvider.notifier)
+      .checkAfterCompleting(task);
 
   Future<SubtaskCompletionConflict?> toggleComplete(
     Task task, {

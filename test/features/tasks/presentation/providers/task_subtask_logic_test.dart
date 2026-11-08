@@ -3,6 +3,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_bulk_actions.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/parent_completion_prompt_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -176,47 +177,54 @@ void main() {
       },
     );
 
-    test(
-      'completing subtask auto-completes parent when all siblings done',
-      () async {
-        final parent = createTestTask(
-          id: 'p1',
-          title: 'Parent',
-          status: TaskStatus.inProgress,
-        );
-        final sub1 = createTestTask(
-          id: 's1',
-          title: 'Sub 1',
-          parentId: 'p1',
-          status: TaskStatus.done,
-        );
-        final sub2 = createTestTask(
-          id: 's2',
-          title: 'Sub 2',
-          parentId: 'p1',
-          status: TaskStatus.inProgress,
-        );
+    group('parent completion prompt', () {
+      final parent = createTestTask(
+        id: 'p1',
+        title: 'Parent',
+        status: TaskStatus.inProgress,
+      );
+      final sub1 = createTestTask(
+        id: 's1',
+        parentId: 'p1',
+        status: TaskStatus.done,
+      );
+      final sub2 = createTestTask(
+        id: 's2',
+        parentId: 'p1',
+        status: TaskStatus.inProgress,
+      );
 
+      setUp(() {
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
         when(() => mockTaskRepo.getByParent('p1')).thenAnswer(
           (_) async => [sub1, sub2.copyWith(status: TaskStatus.done)],
         );
         when(() => mockTaskRepo.getById('p1')).thenAnswer((_) async => parent);
+        when(() => mockTaskRepo.getById('s2')).thenAnswer((_) async => sub2);
+      });
 
-        final notifier = container.read(taskProvider.notifier);
-        await notifier.completeTask(sub2);
+      test(
+        'completeTask prompts for parent instead of completing it',
+        () async {
+          await container.read(taskProvider.notifier).completeTask(sub2);
 
-        verify(
-          () => mockTaskRepo.update(
-            any(
-              that: isA<Task>()
-                  .having((t) => t.id, 'id', 'p1')
-                  .having((t) => t.status, 'status', TaskStatus.done),
+          expect(container.read(parentCompletionPromptProvider)?.id, 'p1');
+          verifyNever(
+            () => mockTaskRepo.update(
+              any(that: isA<Task>().having((t) => t.id, 'id', 'p1')),
             ),
-          ),
-        ).called(1);
-      },
-    );
+          );
+        },
+      );
+
+      test('updateTaskStatus to done prompts for parent', () async {
+        await container
+            .read(taskProvider.notifier)
+            .updateTaskStatus(sub2, TaskStatus.done);
+
+        expect(container.read(parentCompletionPromptProvider)?.id, 'p1');
+      });
+    });
 
     test(
       'getAllSubtasksFromRepo recursively collects all descendant subtasks',

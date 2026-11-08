@@ -1,5 +1,3 @@
-import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,132 +87,93 @@ void main() {
       });
     });
 
-    group('buildCompleteSubtaskCommand', () {
-      test('returns single UpdateCommand when task has no parentId', () async {
+    group('findCompletableParent', () {
+      test('returns null when task has no parentId', () async {
         final task = createTestTask(id: 't1', parentId: null);
 
-        final cmd = await SubtaskService.buildCompleteSubtaskCommand(
+        final parent = await SubtaskService.findCompletableParent(
           repo: mockRepo,
           task: task,
         );
 
-        expect(cmd, isA<UpdateCommand<Task>>());
-        final updateCmd = cmd as UpdateCommand<Task>;
-        expect(updateCmd.next.status, equals(TaskStatus.done));
-        expect(updateCmd.next.completedAt, isNotNull);
+        expect(parent, isNull);
         verifyZeroInteractions(mockRepo);
       });
 
-      test(
-        'returns single UpdateCommand when siblings are still incomplete',
-        () async {
-          final subtask = createTestTask(
-            id: 's1',
-            parentId: 'p1',
-            status: TaskStatus.inProgress,
-          );
-          final sibling = createTestTask(
-            id: 's2',
-            parentId: 'p1',
-            status: TaskStatus.todo,
-          );
-          when(
-            () => mockRepo.getByParent('p1'),
-          ).thenAnswer((_) async => [subtask, sibling]);
+      test('returns null when siblings are still incomplete', () async {
+        final subtask = createTestTask(id: 's1', parentId: 'p1');
+        final sibling = createTestTask(
+          id: 's2',
+          parentId: 'p1',
+          status: TaskStatus.todo,
+        );
+        when(
+          () => mockRepo.getByParent('p1'),
+        ).thenAnswer((_) async => [subtask, sibling]);
 
-          final cmd = await SubtaskService.buildCompleteSubtaskCommand(
-            repo: mockRepo,
-            task: subtask,
-          );
+        final parent = await SubtaskService.findCompletableParent(
+          repo: mockRepo,
+          task: subtask,
+        );
 
-          expect(cmd, isA<UpdateCommand<Task>>());
-          final updateCmd = cmd as UpdateCommand<Task>;
-          expect(updateCmd.next.id, equals('s1'));
-          verifyNever(() => mockRepo.getById('p1'));
-        },
-      );
+        expect(parent, isNull);
+        verifyNever(() => mockRepo.getById('p1'));
+      });
 
-      test(
-        'returns CompoundCommand auto-completing parent when all siblings done',
-        () async {
-          final parent = createTestTask(
-            id: 'p1',
-            title: 'Parent Task',
-            status: TaskStatus.inProgress,
-          );
-          final subtask = createTestTask(
-            id: 's1',
-            title: 'Subtask 1',
-            parentId: 'p1',
-            status: TaskStatus.inProgress,
-          );
-          final sibling = createTestTask(
-            id: 's2',
-            parentId: 'p1',
-            status: TaskStatus.done,
-          );
+      test('returns parent when all other siblings are done', () async {
+        final parentTask = createTestTask(id: 'p1');
+        final subtask = createTestTask(
+          id: 's1',
+          parentId: 'p1',
+          status: TaskStatus.inProgress,
+        );
+        final sibling = createTestTask(
+          id: 's2',
+          parentId: 'p1',
+          status: TaskStatus.done,
+        );
+        when(
+          () => mockRepo.getByParent('p1'),
+        ).thenAnswer((_) async => [subtask, sibling]);
+        when(() => mockRepo.getById('p1')).thenAnswer((_) async => parentTask);
 
-          when(
-            () => mockRepo.getByParent('p1'),
-          ).thenAnswer((_) async => [subtask, sibling]);
-          when(() => mockRepo.getById('p1')).thenAnswer((_) async => parent);
+        final parent = await SubtaskService.findCompletableParent(
+          repo: mockRepo,
+          task: subtask,
+        );
 
-          final cmd = await SubtaskService.buildCompleteSubtaskCommand(
-            repo: mockRepo,
-            task: subtask,
-          );
+        expect(parent?.id, equals('p1'));
+      });
 
-          expect(cmd, isA<CompoundCommand>());
-          final compound = cmd as CompoundCommand;
-          expect(compound.commands.length, equals(2));
-          expect(compound.description, contains('auto-complete "Parent Task"'));
+      test('returns null when parent is already completed', () async {
+        final parentTask = createTestTask(id: 'p1', status: TaskStatus.done);
+        final subtask = createTestTask(id: 's1', parentId: 'p1');
+        when(
+          () => mockRepo.getByParent('p1'),
+        ).thenAnswer((_) async => [subtask]);
+        when(() => mockRepo.getById('p1')).thenAnswer((_) async => parentTask);
 
-          final subCmd = compound.commands[0] as UpdateCommand<Task>;
-          final parentCmd = compound.commands[1] as UpdateCommand<Task>;
-          expect(subCmd.next.id, equals('s1'));
-          expect(subCmd.next.status, equals(TaskStatus.done));
-          expect(parentCmd.next.id, equals('p1'));
-          expect(parentCmd.next.status, equals(TaskStatus.done));
-        },
-      );
+        final parent = await SubtaskService.findCompletableParent(
+          repo: mockRepo,
+          task: subtask,
+        );
 
-      test(
-        'returns single UpdateCommand when parent is already completed',
-        () async {
-          final parent = createTestTask(id: 'p1', status: TaskStatus.done);
-          final subtask = createTestTask(
-            id: 's1',
-            parentId: 'p1',
-            status: TaskStatus.inProgress,
-          );
-          when(
-            () => mockRepo.getByParent('p1'),
-          ).thenAnswer((_) async => [subtask]);
-          when(() => mockRepo.getById('p1')).thenAnswer((_) async => parent);
+        expect(parent, isNull);
+      });
 
-          final cmd = await SubtaskService.buildCompleteSubtaskCommand(
-            repo: mockRepo,
-            task: subtask,
-          );
-
-          expect(cmd, isA<UpdateCommand<Task>>());
-          expect((cmd as UpdateCommand<Task>).next.id, equals('s1'));
-        },
-      );
-
-      test('returns single UpdateCommand when parent task is null', () async {
+      test('returns null when parent is missing', () async {
         final subtask = createTestTask(id: 's1', parentId: 'p_missing');
         when(
           () => mockRepo.getByParent('p_missing'),
         ).thenAnswer((_) async => [subtask]);
         when(() => mockRepo.getById('p_missing')).thenAnswer((_) async => null);
 
-        final cmd = await SubtaskService.buildCompleteSubtaskCommand(
+        final parent = await SubtaskService.findCompletableParent(
           repo: mockRepo,
           task: subtask,
         );
 
-        expect(cmd, isA<UpdateCommand<Task>>());
+        expect(parent, isNull);
       });
     });
 
