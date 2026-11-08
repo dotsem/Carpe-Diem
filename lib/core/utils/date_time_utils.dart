@@ -66,11 +66,15 @@ extension DateTimeExtension on DateTime {
 
   bool get isToday => isSameDay(DateTime.now());
 
-  int get daysFromToday {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return normalize.difference(today).inDays;
-  }
+  /// Calendar days from this date to [other], ignoring time of day.
+  // Why: utc avoids 23h/25h dst days truncating `inDays` on local midnights.
+  int daysUntil(DateTime other) => DateTime.utc(
+    other.year,
+    other.month,
+    other.day,
+  ).difference(DateTime.utc(year, month, day)).inDays;
+
+  int get daysFromToday => DateTime.now().daysUntil(this);
 
   DateTime get normalize => DateTime(year, month, day);
 }

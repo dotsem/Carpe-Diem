@@ -98,7 +98,12 @@ class TaskChipsBar extends ConsumerWidget {
         if ((task.status.isInProgress || task.status.isReview) &&
             !KanbanScope.of(context))
           StatusChip(task: task),
-        if (task.deadline != null) DeadlineChip(deadline: task.deadline!),
+        if (task.deadline != null)
+          DeadlineChip(
+            deadline: task.deadline!,
+            today: today,
+            isCompleted: task.isCompleted,
+          ),
         if (showScheduleDate &&
             task.scheduledDate != null &&
             ((task.scheduledDate!.isBefore(today) && !task.isCompleted) ||
