@@ -84,5 +84,24 @@ void main() {
       expect(outsideBefore.isBetween(start, end), isFalse);
       expect(outsideAfter.isBetween(start, end), isFalse);
     });
+
+    group('daysUntil', () {
+      test('counts calendar days across spring-forward dst', () {
+        expect(DateTime(2026, 3, 28).daysUntil(DateTime(2026, 3, 30)), 2);
+      });
+
+      test('counts calendar days across fall-back dst', () {
+        expect(DateTime(2026, 10, 24).daysUntil(DateTime(2026, 10, 26)), 2);
+      });
+
+      test('returns 0 for same day and negative for past', () {
+        expect(DateTime(2026, 5, 1).daysUntil(DateTime(2026, 5, 1)), 0);
+        expect(DateTime(2026, 5, 3).daysUntil(DateTime(2026, 5, 1)), -2);
+      });
+
+      test('ignores time of day', () {
+        expect(DateTime(2026, 1, 1, 23).daysUntil(DateTime(2026, 1, 2, 1)), 1);
+      });
+    });
   });
 }
