@@ -49,6 +49,9 @@ class TaskCompletionService {
     final updated = task.copyWith(
       status: status,
       sortOrder: newSortOrder ?? task.sortOrder,
+      scheduledDate: status == TaskStatus.todo
+          ? task.scheduledDate
+          : (task.scheduledDate ?? DateTime.now().normalize),
       planSortOrder: newPlanSortOrder ?? task.planSortOrder,
     );
     return UpdateCommand(
