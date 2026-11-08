@@ -84,6 +84,7 @@ abstract final class TaskFormSubmitHandler {
               blockedById: blockedById,
               clearBlockedBy: blockedById == null,
               projectId: selectedProjectId,
+              clearProjectId: selectedProjectId == null,
               parentId: parentId,
               clearParent: parentId == null,
               labelIds: selectedLabelIds,
