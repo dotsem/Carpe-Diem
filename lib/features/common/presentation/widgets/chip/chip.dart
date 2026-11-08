@@ -1,6 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
+import 'package:carpe_diem/core/utils/deadline_urgency.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -97,33 +98,62 @@ class ProjectChip extends StatelessWidget {
 
 class DeadlineChip extends StatelessWidget {
   final DateTime deadline;
+  final DateTime today;
+  final bool isCompleted;
 
-  const DeadlineChip({super.key, required this.deadline});
+  const DeadlineChip({
+    super.key,
+    required this.deadline,
+    required this.today,
+    this.isCompleted = false,
+  });
+
+  String _resolveDeadlineText() {
+    final date =
+        '${months[deadline.month - 1]} ${deadline.day}, ${deadline.year}';
+    if (isCompleted) return 'Deadline: $date';
+    final days = today.daysUntil(deadline);
+    return switch (days) {
+      < -1 => 'Overdue by ${-days} days',
+      -1 => 'Overdue by 1 day',
+      0 => 'Due today',
+      1 => 'Due tomorrow',
+      _ => 'Due in $days days',
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final urgency = isCompleted
+        ? DeadlineUrgency.none
+        : DeadlineUrgency.of(deadline, today);
+    final isLight = theme.brightness == Brightness.light;
+    final tint = switch (urgency) {
+      DeadlineUrgency.none => theme.colorScheme.onSurfaceVariant,
+      DeadlineUrgency.approaching => AppColors.warning,
+      DeadlineUrgency.imminent => AppColors.accent,
+      DeadlineUrgency.overdue => AppColors.error,
+    };
+    final foreground = urgency == DeadlineUrgency.approaching && isLight
+        ? Color.lerp(tint, Colors.black, 0.45)!
+        : tint;
+
     return Tooltip(
       message:
           'Deadline: ${months[deadline.month - 1]} ${deadline.day}, ${deadline.year}',
       child: SmallChip(
-        color: Theme.of(
-          context,
-        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+        color: tint.withValues(
+          alpha: urgency == DeadlineUrgency.none ? 0.1 : 0.2,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.timer_outlined,
-              size: 10,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            Icon(Icons.timer_outlined, size: 10, color: foreground),
             const SizedBox(width: 4),
             Text(
-              'Due: ${months[deadline.month - 1]} ${deadline.day}',
-              style: TextStyle(
-                fontSize: 11,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              _resolveDeadlineText(),
+              style: TextStyle(fontSize: 11, color: foreground),
             ),
           ],
         ),

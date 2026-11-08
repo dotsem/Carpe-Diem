@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
@@ -144,7 +145,10 @@ class ProjectDetailHeader extends ConsumerWidget {
                   runSpacing: 4,
                   children: [
                     if (project.deadline != null)
-                      DeadlineChip(deadline: project.deadline!),
+                      DeadlineChip(
+                        deadline: project.deadline!,
+                        today: DateTime.now().normalize,
+                      ),
                     ...labels.map(
                       (label) => LabelChip(label: label, verticalPadding: 1),
                     ),
