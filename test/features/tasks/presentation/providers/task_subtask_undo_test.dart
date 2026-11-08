@@ -14,7 +14,7 @@ void main() {
     registerFallbackValue(Task(id: '', title: '', createdAt: DateTime.now()));
   });
 
-  group('Subtask Auto-Completion Undo Integration', () {
+  group('Subtask Completion Undo Integration', () {
     late MockTaskRepository mockTaskRepo;
     late MockProjectRepository mockProjectRepo;
     late MockLabelRepository mockLabelRepo;
@@ -47,7 +47,7 @@ void main() {
     });
 
     test(
-      'completing final subtask bundles parent auto-completion into CompoundCommand and reverts both on single undo',
+      'completing final subtask leaves parent untouched and undo only reverts the subtask',
       () async {
         final parent = Task(
           id: 'parent_1',
@@ -100,7 +100,6 @@ void main() {
 
         await taskNotifier.completeTask(subtask2);
 
-        // Verify both subtask2 and parent were updated to done
         verify(
           () => mockTaskRepo.update(
             any(
@@ -110,38 +109,15 @@ void main() {
             ),
           ),
         ).called(1);
-        verify(
+        verifyNever(
           () => mockTaskRepo.update(
-            any(
-              that: isA<Task>()
-                  .having((t) => t.id, 'id', 'parent_1')
-                  .having((t) => t.status, 'status', TaskStatus.done),
-            ),
+            any(that: isA<Task>().having((t) => t.id, 'id', 'parent_1')),
           ),
-        ).called(1);
-
-        expect(undoRedo.state.canUndo, isTrue);
-        expect(
-          undoRedo.state.undoDescription,
-          contains('auto-complete "Parent Task"'),
         );
 
-        // Undoing once reverts BOTH parent and subtask
         await undoRedo.undo();
         await Future.delayed(Duration.zero);
 
-        // Verify parent was restored to inProgress
-        verify(
-          () => mockTaskRepo.update(
-            any(
-              that: isA<Task>()
-                  .having((t) => t.id, 'id', 'parent_1')
-                  .having((t) => t.status, 'status', TaskStatus.inProgress),
-            ),
-          ),
-        ).called(1);
-
-        // Verify subtask2 was restored to inProgress
         verify(
           () => mockTaskRepo.update(
             any(
@@ -151,6 +127,11 @@ void main() {
             ),
           ),
         ).called(1);
+        verifyNever(
+          () => mockTaskRepo.update(
+            any(that: isA<Task>().having((t) => t.id, 'id', 'parent_1')),
+          ),
+        );
       },
     );
   });
