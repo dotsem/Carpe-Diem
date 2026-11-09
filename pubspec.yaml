@@ -5,6 +5,7 @@ version: 0.6.0
 
 environment:
   sdk: ^3.10.4 # This is the dart SDK version, not the Flutter version
+  flutter: 3.47.1
 
 dependencies:
   flutter:

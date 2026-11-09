@@ -2,9 +2,7 @@ version: 2
 updates:
   # GitHub Actions (auto-bump pinned commit SHAs)
   - package-ecosystem: "github-actions"
-    directories:
-      - "/"
-      - "/.github/actions/build-app"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"

@@ -2,13 +2,11 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main, master]
-    paths-ignore:
-      - "**.md"
+    branches: [main]
+    paths-ignore: ["**.md"]
   pull_request:
     branches: ["**"]
-    paths-ignore:
-      - "**.md"
+    paths-ignore: ["**.md"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,63 +15,12 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  FLUTTER_VERSION: "3.38.5"
-
 jobs:
-  analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
-          cache: true
-      - run: flutter pub get
-      - name: Analyze
-        run: flutter analyze
+  ci:
+    uses: dotsem/actions/.github/workflows/flutter-ci.yml@73b100bd41fb2bdb3e03366f4e7c5d5534866e5c # v0.5.0
+    with:
+      pr-targets: '["linux"]'
+      push-targets: '["linux", "windows", "macos"]'
 
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: "stable"
-          cache: true
-      - run: flutter pub get
-      - name: Run Tests
-        run: flutter test --concurrency=4
-
-  build:
-    name: Build (${{ matrix.target }})
-    needs: [analyze, test]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: linux
-            os: ubuntu-latest
-          - target: macos
-            os: macos-latest
-          - target: windows
-            os: windows-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Build App
-        id: build
-        uses: ./.github/actions/build-app
-        with:
-          target: ${{ matrix.target }}
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-      - name: Upload build artifact
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: ${{ steps.build.outputs.artifact-name }}
-          path: ${{ steps.build.outputs.artifact-path }}
-          retention-days: 7
+      pr-build-mode: "debug"
+      push-build-mode: "release"
