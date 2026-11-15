@@ -82,6 +82,7 @@ class FilterNotifier extends Notifier<FilterState> {
   }
 
   void toggleBypass() {
+    if (state.filter.isEmpty && !state.isBypassed) return;
     state = state.copyWith(isBypassed: !state.isBypassed);
   }
 
