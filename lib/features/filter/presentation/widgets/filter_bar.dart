@@ -46,7 +46,12 @@ class FilterBar extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        FilterButton(isBypassed: isBypassed, onFilterTap: onFilterTap),
+        FilterButton(
+          isBypassed: isBypassed,
+          onFilterTap: onFilterTap,
+          onToggleBypass: filterNotifier.toggleBypass,
+          onClear: onClearFilter,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: filter.isEmpty

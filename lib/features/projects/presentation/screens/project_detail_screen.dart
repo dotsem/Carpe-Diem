@@ -187,6 +187,19 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           .updateTitle(subtitle: 'Project: ${project.name}');
     });
 
+    final filter = ref
+        .watch(filterProvider)
+        .activeFilter
+        .limitTo(projects: false);
+    final filteredTasks = _tasks
+        .where((t) => filter.applyToTask(t, project.labelIds))
+        .toList();
+
+    final hiddenCount = _tasks
+        .where((t) => !project.isActive || !t.isCompleted)
+        .where((t) => !filteredTasks.contains(t))
+        .length;
+
     return ProjectDetailShortcuts(
       project: project,
       onMoveNext: () => _moveFocus(1),
@@ -274,6 +287,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                     filter: ref.watch(filterProvider).filter,
                     isBypassed: ref.watch(filterProvider).isBypassed,
                     ignoreProjects: true,
+                    hiddenCount: hiddenCount,
+                    hiddenItemType: 'tasks',
                     onFilterTap: _showFilterDialog,
                     onClearFilter: () =>
                         ref.read(filterProvider.notifier).clearFilter(),
@@ -285,97 +300,102 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   Expanded(
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
-                        : Builder(
-                            builder: (context) {
-                              final filter = ref
-                                  .watch(filterProvider)
-                                  .activeFilter
-                                  .limitTo(projects: false);
-                              final filteredTasks = _tasks
-                                  .where(
-                                    (t) =>
-                                        filter.applyToTask(t, project.labelIds),
-                                  )
-                                  .toList();
-                              return TaskListView(
-                                tasks: filteredTasks,
-                                asParentContainers: true,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 24,
+                        : TaskListView(
+                            tasks: filteredTasks,
+                            asParentContainers: true,
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            onContextMenu: (ctx, task, pos, box) =>
+                                showTaskCardContextMenu(
+                                  ctx,
+                                  ref,
+                                  task,
+                                  filteredTasks,
+                                  pos,
+                                  box,
                                 ),
-                                onContextMenu: (ctx, task, pos, box) =>
-                                    showTaskCardContextMenu(
-                                      ctx,
-                                      ref,
-                                      task,
-                                      filteredTasks,
-                                      pos,
-                                      box,
+                            emptyPlaceholder: Center(
+                              child: _tasks.isEmpty
+                                  ? Text(
+                                      "No tasks in this project",
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                    )
+                                  : Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "All tasks hidden by filters",
+                                          style: TextStyle(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        TextButton(
+                                          onPressed: () => ref
+                                              .read(filterProvider.notifier)
+                                              .clearFilter(),
+                                          child: const Text("Clear Filters"),
+                                        ),
+                                      ],
                                     ),
-                                emptyPlaceholder: Center(
-                                  child: Text(
-                                    "No tasks in this project",
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ),
-                                onOrderedIdsChanged: (ids) {
-                                  _orderedItemIds.clear();
-                                  _orderedItemIds.addAll(ids);
-                                  final isSearching = _searchFocusNode.hasFocus;
-                                  if (isSearching && ids.isNotEmpty) {
-                                    if (_highlightedTaskId == null ||
-                                        !ids.contains(_highlightedTaskId)) {
-                                      setState(
-                                        () => _highlightedTaskId = ids.first,
-                                      );
-                                    }
-                                  } else if (!isSearching &&
-                                      _highlightedTaskId != null) {
-                                    setState(() => _highlightedTaskId = null);
-                                  }
-                                },
-                                highlightedTaskId: _highlightedTaskId,
-                                itemFocusNodes: _itemFocusNodes,
-                                searchQuery: _searchQuery,
-                                enablePlanShortcut: true,
-                                showScheduleDate: true,
-                                selectionMode: true,
-                                selectedTaskIds: _selectedTaskIds.toSet(),
-                                onClearSelection: () => setState(() {
-                                  _selectedTaskIds.clear();
-                                  _lastSelectedTaskId = null;
-                                }),
-                                onSelectedChanged: (task) => setState(() {
-                                  final isShift =
-                                      HardwareKeyboard.instance.isShiftPressed;
-                                  final updated =
-                                      TaskSelectionUtils.handleSelection(
-                                        task: task,
-                                        lastSelectedTaskId: _lastSelectedTaskId,
-                                        orderedIds: _orderedItemIds,
-                                        currentSelectedIds: _selectedTaskIds
-                                            .toSet(),
-                                        allTasks: _tasks,
-                                        isShiftPressed: isShift,
-                                      );
-                                  if (!isShift || _lastSelectedTaskId == null) {
-                                    _lastSelectedTaskId = task.id;
-                                  }
-                                  _selectedTaskIds
-                                    ..clear()
-                                    ..addAll(updated);
-                                }),
-                                onEdit: (task) => context.openRightSidebar(
-                                  EditTaskPanel(task.id),
-                                ),
-                                isReadOnly: !project.isActive,
-                                initialDoneExpanded: !project.isActive,
-                              );
+                            ),
+                            onOrderedIdsChanged: (ids) {
+                              _orderedItemIds.clear();
+                              _orderedItemIds.addAll(ids);
+                              final isSearching = _searchFocusNode.hasFocus;
+                              if (isSearching && ids.isNotEmpty) {
+                                if (_highlightedTaskId == null ||
+                                    !ids.contains(_highlightedTaskId)) {
+                                  setState(
+                                    () => _highlightedTaskId = ids.first,
+                                  );
+                                }
+                              } else if (!isSearching &&
+                                  _highlightedTaskId != null) {
+                                setState(() => _highlightedTaskId = null);
+                              }
                             },
+                            highlightedTaskId: _highlightedTaskId,
+                            itemFocusNodes: _itemFocusNodes,
+                            searchQuery: _searchQuery,
+                            enablePlanShortcut: true,
+                            showScheduleDate: true,
+                            selectionMode: true,
+                            selectedTaskIds: _selectedTaskIds.toSet(),
+                            onClearSelection: () => setState(() {
+                              _selectedTaskIds.clear();
+                              _lastSelectedTaskId = null;
+                            }),
+                            onSelectedChanged: (task) => setState(() {
+                              final isShift =
+                                  HardwareKeyboard.instance.isShiftPressed;
+                              final updated =
+                                  TaskSelectionUtils.handleSelection(
+                                    task: task,
+                                    lastSelectedTaskId: _lastSelectedTaskId,
+                                    orderedIds: _orderedItemIds,
+                                    currentSelectedIds: _selectedTaskIds
+                                        .toSet(),
+                                    allTasks: _tasks,
+                                    isShiftPressed: isShift,
+                                  );
+                              if (!isShift || _lastSelectedTaskId == null) {
+                                _lastSelectedTaskId = task.id;
+                              }
+                              _selectedTaskIds
+                                ..clear()
+                                ..addAll(updated);
+                            }),
+                            onEdit: (task) => context.openRightSidebar(
+                              EditTaskPanel(task.id),
+                            ),
+                            isReadOnly: !project.isActive,
+                            initialDoneExpanded: !project.isActive,
                           ),
                   ),
                 ],

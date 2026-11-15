@@ -67,6 +67,12 @@ void main() {
       },
     );
 
+    test('toggleBypass does nothing when the filter is empty', () {
+      container.read(filterProvider.notifier).toggleBypass();
+
+      expect(container.read(filterProvider).isBypassed, false);
+    });
+
     test('clearFilter resets the filter and bypass settings', () {
       const filter = TaskFilter(isUrgent: false);
       final notifier = container.read(filterProvider.notifier);
