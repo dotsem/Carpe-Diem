@@ -25,11 +25,7 @@ class ProjectState {
   }
 
   Project? getById(String id) {
-    try {
-      return projects.firstWhere((p) => p.id == id);
-    } catch (_) {
-      return null;
-    }
+    return projects.where((p) => p.id == id).firstOrNull;
   }
 }
 
@@ -154,21 +150,13 @@ class ProjectNotifier extends Notifier<ProjectState> {
   }
 
   Project? getById(String id) {
-    try {
-      return state.projects.firstWhere((p) => p.id == id);
-    } catch (_) {
-      return null;
-    }
+    return state.projects.where((p) => p.id == id).firstOrNull;
   }
 
   List<Label> getLabels(Project project, LabelState labelState) {
     return project.labelIds
         .map((id) {
-          try {
-            return labelState.labels.firstWhere((l) => l.id == id);
-          } catch (_) {
-            return null;
-          }
+          return labelState.labels.where((l) => l.id == id).firstOrNull;
         })
         .whereType<Label>()
         .toList();

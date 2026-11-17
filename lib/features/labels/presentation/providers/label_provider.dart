@@ -25,11 +25,7 @@ class LabelState {
 
   Label? getById(String? id) {
     if (id == null) return null;
-    try {
-      return labels.firstWhere((l) => l.id == id);
-    } catch (_) {
-      return null;
-    }
+    return labels.where((l) => l.id == id).firstOrNull;
   }
 }
 
@@ -113,11 +109,7 @@ class LabelNotifier extends Notifier<LabelState> {
 
   Label? getById(String? id) {
     if (id == null) return null;
-    try {
-      return state.labels.firstWhere((l) => l.id == id);
-    } catch (_) {
-      return null;
-    }
+    return state.labels.where((l) => l.id == id).firstOrNull;
   }
 }
 
