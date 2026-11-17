@@ -1,17 +1,20 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/extensions/horizontal_tab.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/history/presentation/screens/widgets/date_range_button.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_history_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/pick_date_range_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/history/presentation/screens/history_items_view.dart';
-import 'package:carpe_diem/features/history/presentation/screens/history_overview_view.dart';
+import 'package:carpe_diem/features/history/presentation/screens/tab_history_list.dart';
+import 'package:carpe_diem/features/history/presentation/screens/tab_history_dashboard.dart';
+import 'package:carpe_diem/features/history/presentation/screens/tab_history_insights.dart';
+import 'package:carpe_diem/features/history/presentation/providers/activity_provider.dart';
+import 'package:carpe_diem/features/history/presentation/providers/history_insights_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -32,7 +35,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   bool _isLoadingMore = false;
   List<Task> _completedTasks = [];
   HistoryOverview? _overview;
-  DateTime? _minDate;
   int _offset = 0;
   bool _hasMore = true;
   final int _limit = 25;
@@ -77,6 +79,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   Future<void> _loadData() async {
+    // Why: ref.invalidate listens to the scope, which throws when called from initState
+    ProviderScope.containerOf(context, listen: false)
+      ..invalidate(historyInsightsProvider)
+      ..invalidate(activityProvider)
+      ..invalidate(activityYearsProvider);
     setState(() {
       _isLoading = true;
       _offset = 0;
@@ -84,8 +91,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       _completedTasks = [];
     });
     final historyNotifier = ref.read(taskHistoryProvider.notifier);
-
-    _minDate ??= await historyNotifier.getFirstTaskDate();
 
     final start = DateTime(
       _dateRange.start.year,
@@ -169,26 +174,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     }
   }
 
-  void _selectDateRange() async {
-    final now = DateTime.now();
-    final initialDateRange = _dateRange;
-    final firstDate = _minDate ?? now.subtract(const Duration(days: 365 * 10));
-
-    final picked = await showDialog<DateTimeRange>(
-      context: context,
-      builder: (context) => PickDateRangeDialog(
-        initialDateRange: initialDateRange,
-        firstDate: firstDate,
-        lastDate: now,
-      ),
-    );
-
-    if (picked != null && picked != _dateRange) {
-      setState(() => _dateRange = picked);
-      _loadData();
-    }
-  }
-
   void _showFilterDialog() async {
     final filterProviderVal = ref.read(filterProvider);
     final result = await showDialog<TaskFilter>(
@@ -217,13 +202,24 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final filterState = ref.watch(filterProvider);
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ScreenHeader(title: 'History', actions: [_buildDateRangeButton()]),
+            ScreenHeader(
+              title: 'History',
+              actions: [
+                DateRangeButton(
+                  dateRange: _dateRange,
+                  onDatePicked: (picked) {
+                    setState(() => _dateRange = picked);
+                    _loadData();
+                  },
+                ),
+              ],
+            ),
             FilterBar(
               filter: filterState.filter,
               isBypassed: filterState.isBypassed,
@@ -233,8 +229,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
             TabBar(
               tabs: [
-                Tab(text: 'Items'),
-                Tab(text: 'Overview'),
+                HorizontalTab(
+                  icon: const Icon(Icons.dashboard, size: 16),
+                  label: 'Dashboard',
+                ),
+                HorizontalTab(
+                  icon: const Icon(Icons.history, size: 16),
+                  label: 'History',
+                ),
+                HorizontalTab(
+                  icon: const Icon(Icons.insights, size: 16),
+                  label: 'Insights',
+                ),
               ],
               indicatorColor: AppColors.accent,
               labelColor: Theme.of(context).colorScheme.onSurface,
@@ -248,52 +254,19 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   ? const Center(child: CircularProgressIndicator())
                   : TabBarView(
                       children: [
-                        HistoryItemsView(
+                        TabHistoryDashboard(
+                          overview: _overview,
+                          range: _dateRange,
+                        ),
+                        TabHistoryList(
                           tasks: _completedTasks,
                           hasMore: _hasMore,
                           isLoadingMore: _isLoadingMore,
                           onLoadMore: _loadMoreData,
                         ),
-                        HistoryOverviewView(overview: _overview),
+                        TabHistoryInsights(range: _dateRange),
                       ],
                     ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateRangeButton() {
-    final dateFormat = DateFormat('MMM d, yyyy');
-    return InkWell(
-      onTap: _selectDateRange,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.calendar_today, size: 16, color: AppColors.accent),
-            const SizedBox(width: 8),
-            Text(
-              '${dateFormat.format(_dateRange.start)} - ${dateFormat.format(_dateRange.end)}',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.arrow_drop_down,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ],
         ),

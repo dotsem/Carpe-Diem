@@ -1,3 +1,5 @@
+import 'dart:math';
+
 /*
 Returns true if the date is Friday, Saturday, or Sunday.
 */
@@ -73,6 +75,20 @@ extension DateTimeExtension on DateTime {
     other.month,
     other.day,
   ).difference(DateTime.utc(year, month, day)).inDays;
+
+  /// Wall-clock days from this moment to [other], never negative. Keeps time of day.
+  // Why: utc fields ignore the dst offset, so the same time tomorrow is exactly 1 day.
+  double fractionalDaysUntil(DateTime other) {
+    final from = DateTime.utc(year, month, day, hour, minute);
+    final to = DateTime.utc(
+      other.year,
+      other.month,
+      other.day,
+      other.hour,
+      other.minute,
+    );
+    return max(0, to.difference(from).inMinutes / Duration.minutesPerDay);
+  }
 
   int get daysFromToday => DateTime.now().daysUntil(this);
 

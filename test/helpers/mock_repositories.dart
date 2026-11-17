@@ -9,6 +9,9 @@ class MockLabelRepository extends ILabelRepository with Mock {}
 
 class MockHistoryRepository extends Mock implements IHistoryRepository {}
 
+class MockHistoryInsightsRepository extends Mock
+    implements IHistoryInsightsRepository {}
+
 class MockKeyValueRepository extends Mock implements IKeyValueRepository {}
 
 class MockTagRepository extends Mock implements ITagRepository {}

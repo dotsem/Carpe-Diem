@@ -5,6 +5,7 @@ import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 
 abstract class ICrudRepository<T> {
@@ -77,6 +78,18 @@ abstract class IHistoryRepository {
     DateTime end, {
     TaskFilter? filter,
   });
+}
+
+abstract class IHistoryInsightsRepository {
+  Future<List<Completion>> getCompletionsSince(DateTime since);
+  Future<Map<String, int>> getOpenCountsByProject();
+  Future<DateTime?> getTrackingStart();
+  Future<List<LeadTimeRow>> getLeadTimeRows(DateTime start, DateTime end);
+  Future<List<SlipRow>> getSlipRows(DateTime start, DateTime end);
+  Future<List<ScheduleTimeline>> getScheduleTimelines(
+    DateTime start,
+    DateTime end,
+  );
 }
 
 abstract class IProjectRepository implements ICrudRepository<Project> {

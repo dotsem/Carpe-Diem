@@ -9,6 +9,7 @@ import 'package:carpe_diem/features/projects/data/repositories/project_repositor
 import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart';
 import 'package:carpe_diem/features/filter/data/repositories/filter_mode_repository.dart';
 import 'package:carpe_diem/features/history/data/repositories/history_repository.dart';
+import 'package:carpe_diem/features/history/data/repositories/history_insights_repository.dart';
 
 final databaseProvider = Provider<Database>((ref) {
   throw UnimplementedError(
@@ -39,6 +40,13 @@ final taskRepositoryProvider = Provider<ITaskRepository>((ref) {
 final historyRepositoryProvider = Provider<IHistoryRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return HistoryRepository(db);
+});
+
+final historyInsightsRepositoryProvider = Provider<IHistoryInsightsRepository>((
+  ref,
+) {
+  final db = ref.watch(databaseProvider);
+  return HistoryInsightsRepository(db);
 });
 
 final tagRepositoryProvider = Provider<ITagRepository>((ref) {

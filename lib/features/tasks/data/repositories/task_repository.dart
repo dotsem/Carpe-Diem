@@ -2,6 +2,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/tasks/data/repositories/task_event_logger.dart';
 
 class TaskRepository extends ITaskRepository {
   final Database _db;
@@ -254,6 +255,7 @@ class TaskRepository extends ITaskRepository {
         }
       }
       await txn.insert('tasks', map);
+      await TaskEventLogger.logInsert(txn, task.id, map);
       for (final labelId in task.labelIds) {
         final labelExists = (await txn.rawQuery(
           'SELECT 1 FROM labels WHERE id = ?',
@@ -311,7 +313,15 @@ class TaskRepository extends ITaskRepository {
           map['parentId'] = null;
         }
       }
+      final oldRow = (await txn.query(
+        'tasks',
+        where: 'id = ?',
+        whereArgs: [task.id],
+      )).firstOrNull;
       await txn.update('tasks', map, where: 'id = ?', whereArgs: [task.id]);
+      if (oldRow != null) {
+        await TaskEventLogger.logUpdate(txn, task.id, oldRow, map);
+      }
 
       await txn.delete(
         'task_labels',
