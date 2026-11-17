@@ -5,15 +5,19 @@ import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 
 const velocityBaselineDays = 56;
 const velocityRecentDays = 7;
+const velocityNewProjectDays = 14;
 
-/// Projects that completed fewer tasks than their own usual pace.
+/// Projects that completed fewer or more tasks than their own usual pace.
 ///
 /// Usual pace is completions per day over the 56 days before the last 7. It
 /// is always divided by the full 56 days, so a project with one old task has
 /// a tiny pace and never ranks. The window is the last 7 days, or the time
-/// since the last completion when that is longer. Score is expected minus
-/// actual completions in that window, so lost volume ranks above lost
-/// percentage. Projects with no open tasks or a shortfall under 1 are dropped.
+/// since the last completion when that is longer; a gaining project always
+/// has a 7 day window. Delta is actual minus expected completions in that
+/// window (negative is behind), so volume ranks above percentage. Projects
+/// whose first completion is under 14 days before the window are marked new,
+/// since their usual pace is not established yet. Projects with no open tasks
+/// or a delta under 1 either way are dropped. Sorted by size of the delta.
 List<ProjectVelocity> projectVelocity(
   Iterable<Completion> completions,
   Map<String, int> openCounts, {
@@ -22,6 +26,9 @@ List<ProjectVelocity> projectVelocity(
   final recentStart = now.subtract(const Duration(days: velocityRecentDays));
   final baselineStart = recentStart.subtract(
     const Duration(days: velocityBaselineDays),
+  );
+  final newCutoff = recentStart.subtract(
+    const Duration(days: velocityNewProjectDays),
   );
 
   final byProject = <String, List<DateTime>>{};
@@ -33,6 +40,7 @@ List<ProjectVelocity> projectVelocity(
 
   final result = <ProjectVelocity>[];
   byProject.forEach((id, dates) {
+    final first = dates.reduce((a, b) => a.isBefore(b) ? a : b);
     final last = dates.reduce((a, b) => a.isAfter(b) ? a : b);
     final baseline = dates
         .where((d) => !d.isBefore(baselineStart) && d.isBefore(recentStart))
@@ -44,21 +52,22 @@ List<ProjectVelocity> projectVelocity(
       velocityRecentDays.toDouble(),
       last.fractionalDaysUntil(now),
     );
-    final shortfall = perDay * windowDays - recent;
-    if (shortfall < 1) return;
+    final delta = recent - perDay * windowDays;
+    if (delta.abs() < 1) return;
 
     result.add(
       ProjectVelocity(
         projectId: id,
         usualPerWeek: perDay * 7,
         recentPerWeek: recent / windowDays * 7,
-        shortfall: shortfall,
+        delta: delta,
+        isNew: first.isAfter(newCutoff),
         lastCompletedAt: last,
       ),
     );
   });
 
-  result.sort((a, b) => b.shortfall.compareTo(a.shortfall));
+  result.sort((a, b) => b.delta.abs().compareTo(a.delta.abs()));
   return result;
 }
 

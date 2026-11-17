@@ -40,7 +40,7 @@ void main() {
         now: now,
       );
       expect(result, hasLength(1));
-      expect(result.first.shortfall, closeTo(18, 0.5));
+      expect(result.first.delta, closeTo(-18, 0.5));
       expect(result.first.usualPerWeek, closeTo(21, 0.5));
     });
 
@@ -63,7 +63,7 @@ void main() {
       );
       final result = projectVelocity(baseline, {'p': 1}, now: now);
       expect(result.single.recentPerWeek, 0);
-      expect(result.single.shortfall, greaterThan(5));
+      expect(result.single.delta, lessThan(-5));
     });
 
     test('sorts by shortfall and skips tasks without a project', () {
@@ -88,6 +88,30 @@ void main() {
         now: now,
       );
       expect(result.map((v) => v.projectId), ['big', 'small']);
+    });
+
+    test('a project busier than usual ranks as gaining', () {
+      final baseline = spread(
+        'g',
+        56,
+        now.subtract(const Duration(days: 63)),
+        56,
+      );
+      final recent = spread('g', 21, now.subtract(const Duration(days: 6)), 6);
+      final result = projectVelocity(
+        [...baseline, ...recent],
+        {'g': 1},
+        now: now,
+      );
+      expect(result.single.delta, closeTo(14, 0.5));
+      expect(result.single.isNew, isFalse);
+    });
+
+    test('a recently started project is kept and marked new', () {
+      final c = spread('n', 10, now.subtract(const Duration(days: 9)), 9);
+      final result = projectVelocity(c, {'n': 1}, now: now);
+      expect(result.single.delta, greaterThan(0));
+      expect(result.single.isNew, isTrue);
     });
   });
 

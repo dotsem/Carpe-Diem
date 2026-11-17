@@ -62,14 +62,16 @@ class ProjectVelocity {
   final String projectId;
   final double usualPerWeek;
   final double recentPerWeek;
-  final double shortfall;
+  final double delta;
+  final bool isNew;
   final DateTime lastCompletedAt;
 
   const ProjectVelocity({
     required this.projectId,
     required this.usualPerWeek,
     required this.recentPerWeek,
-    required this.shortfall,
+    required this.delta,
+    required this.isNew,
     required this.lastCompletedAt,
   });
 }

@@ -1,3 +1,5 @@
+import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
@@ -35,12 +37,32 @@ class VelocityList extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        projects.getById(v.projectId)?.name ?? 'Project',
-                        style: TextStyle(
-                          color: scheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              projects.getById(v.projectId)?.name ?? 'Project',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: scheme.onSurface,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          if (v.isNew) ...[
+                            const SizedBox(width: 6),
+                            SmallChip(
+                              color: scheme.surfaceContainerHigh,
+                              child: Text(
+                                'new',
+                                style: TextStyle(
+                                  color: scheme.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       Text(
                         'usually ${_perWeek(v.usualPerWeek)}/wk, '
@@ -54,9 +76,9 @@ class VelocityList extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '~${v.shortfall.round()} behind',
+                  '~${v.delta.abs().round()} ${v.delta > 0 ? 'ahead' : 'behind'}',
                   style: TextStyle(
-                    color: Colors.orange,
+                    color: v.delta > 0 ? AppColors.success : Colors.orange,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
