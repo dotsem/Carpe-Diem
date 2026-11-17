@@ -11,7 +11,7 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 
 class BulkEditResult {
   final bool? isUrgent;

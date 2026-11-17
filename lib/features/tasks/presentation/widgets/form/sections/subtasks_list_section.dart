@@ -2,7 +2,7 @@ import 'package:carpe_diem/core/theme/app_breakpoints.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/shortcut_hint_badge.dart';
+import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';

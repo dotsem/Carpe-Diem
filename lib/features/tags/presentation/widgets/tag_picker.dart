@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/common/presentation/widgets/multi_select_searchable_dropdown.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';

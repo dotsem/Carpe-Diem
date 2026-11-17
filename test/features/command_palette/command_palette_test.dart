@@ -8,7 +8,7 @@ import 'package:carpe_diem/routes/keys.dart';
 import 'package:carpe_diem/features/command_palette/models/palette_command.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
 import '../../helpers/mock_repositories.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
+import 'package:carpe_diem/flutter_ext/platform_draggable.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_drag_proxy.dart';

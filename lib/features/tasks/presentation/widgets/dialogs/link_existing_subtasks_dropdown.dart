@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/common/presentation/widgets/multi_select_searchable_dropdown.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_hierarchy_actions.dart';

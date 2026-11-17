@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/extensions/horizontal_tab.dart';
+import 'package:carpe_diem/flutter_ext/horizontal_tab.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';

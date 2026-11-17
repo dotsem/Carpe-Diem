@@ -1,6 +1,6 @@
 import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/common/filter_accordion_section.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/project_filter_picker.dart';

@@ -1,7 +1,4 @@
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class RangeDatePicker extends StatefulWidget {
   final DateTime initialStart;
@@ -84,7 +81,7 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
   }
 
   Widget _buildHeader() {
-    final title = DateFormat('MMMM yyyy').format(_viewMonth);
+    final title = MaterialLocalizations.of(context).formatMonthYear(_viewMonth);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -93,7 +90,10 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
             Icons.chevron_left,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          onPressed: _viewMonth.isAfter(widget.firstDate.startOfMonth())
+          onPressed:
+              _viewMonth.isAfter(
+                DateTime(widget.firstDate.year, widget.firstDate.month),
+              )
               ? () => setState(
                   () => _viewMonth = DateTime(
                     _viewMonth.year,
@@ -115,7 +115,10 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
             Icons.chevron_right,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          onPressed: _viewMonth.isBefore(widget.lastDate.startOfMonth())
+          onPressed:
+              _viewMonth.isBefore(
+                DateTime(widget.lastDate.year, widget.lastDate.month),
+              )
               ? () => setState(
                   () => _viewMonth = DateTime(
                     _viewMonth.year,
@@ -152,11 +155,13 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
   }
 
   Widget _buildCalendarGrid() {
-    final firstDay = _viewMonth.startOfMonth();
-    final lastDay = _viewMonth.endOfMonth();
+    final firstDay = DateTime(_viewMonth.year, _viewMonth.month);
     // Monday = 1, Sunday = 7. If Monday is first, offset is weekday - 1.
     final offset = firstDay.weekday - 1;
-    final totalDays = lastDay.day;
+    final totalDays = DateUtils.getDaysInMonth(
+      _viewMonth.year,
+      _viewMonth.month,
+    );
     final totalCells = offset + totalDays;
     const rows = 6;
 
@@ -177,16 +182,17 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
         final date = DateTime(_viewMonth.year, _viewMonth.month, day);
         final isEnabled =
             (date.isAfter(widget.firstDate) ||
-                date.isSameDay(widget.firstDate)) &&
-            (date.isBefore(widget.lastDate) || date.isSameDay(widget.lastDate));
+                DateUtils.isSameDay(date, widget.firstDate)) &&
+            (date.isBefore(widget.lastDate) ||
+                DateUtils.isSameDay(date, widget.lastDate));
 
         return _CalendarDay(
           date: date,
           isEnabled: isEnabled,
-          isStart: date.isSameDay(_startDate),
-          isEnd: date.isSameDay(_endDate),
+          isStart: DateUtils.isSameDay(date, _startDate),
+          isEnd: DateUtils.isSameDay(date, _endDate),
           isInRange: _isInRange(date),
-          isHovered: _isSelecting && date.isSameDay(_hoveredDate),
+          isHovered: _isSelecting && DateUtils.isSameDay(date, _hoveredDate),
           onTap: () => _onDateTap(date),
           onHover: (hovering) => _onDateHover(hovering ? date : null),
         );
@@ -196,7 +202,7 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
 
   bool _isInRange(DateTime date) {
     if (_startDate != null && _endDate != null) {
-      return date.isBetween(_startDate!, _endDate!);
+      return _isBetweenDays(date, _startDate!, _endDate!);
     }
     if (_isSelecting && _startDate != null && _hoveredDate != null) {
       DateTime start = _startDate!;
@@ -206,9 +212,15 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
         start = end;
         end = temp;
       }
-      return date.isBetween(start, end);
+      return _isBetweenDays(date, start, end);
     }
     return false;
+  }
+
+  bool _isBetweenDays(DateTime date, DateTime start, DateTime end) {
+    final day = DateUtils.dateOnly(date);
+    return !day.isBefore(DateUtils.dateOnly(start)) &&
+        !day.isAfter(DateUtils.dateOnly(end));
   }
 }
 
@@ -235,7 +247,7 @@ class _CalendarDay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isToday = date.isSameDay(DateTime.now());
+    final isToday = DateUtils.isSameDay(date, DateTime.now());
 
     Color? textColor;
     if (!isEnabled) {
@@ -245,9 +257,9 @@ class _CalendarDay extends StatelessWidget {
     } else if (isStart || isEnd) {
       textColor = Colors.white;
     } else if (isInRange) {
-      textColor = AppColors.accent;
+      textColor = Theme.of(context).colorScheme.primary;
     } else if (isToday) {
-      textColor = AppColors.accent;
+      textColor = Theme.of(context).colorScheme.primary;
     } else {
       textColor = Theme.of(context).colorScheme.onSurface;
     }
@@ -263,7 +275,11 @@ class _CalendarDay extends StatelessWidget {
             color: _getBackgroundColor(context),
             borderRadius: _getBorderRadius(),
             border: isToday && !isStart && !isEnd
-                ? Border.all(color: AppColors.accent.withValues(alpha: 0.5))
+                ? Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.5),
+                  )
                 : null,
           ),
           child: Center(
@@ -283,8 +299,10 @@ class _CalendarDay extends StatelessWidget {
   }
 
   Color? _getBackgroundColor(BuildContext context) {
-    if (isStart || isEnd) return AppColors.accent;
-    if (isInRange) return AppColors.accent.withValues(alpha: 0.2);
+    if (isStart || isEnd) return Theme.of(context).colorScheme.primary;
+    if (isInRange) {
+      return Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+    }
     if (isHovered) return Theme.of(context).colorScheme.surfaceContainerHigh;
     return null;
   }

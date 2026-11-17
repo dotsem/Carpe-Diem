@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/utils/project_reorder_utils.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/platform_draggable.dart';
+import 'package:carpe_diem/flutter_ext/platform_draggable.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card_placeholder.dart';

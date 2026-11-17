@@ -14,7 +14,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_d
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/shortcuts/backlog_shortcuts.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';

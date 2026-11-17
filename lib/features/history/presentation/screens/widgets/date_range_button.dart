@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/pick_date_range_dialog.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/pick_date_range_dialog.dart';
 import 'package:carpe_diem/features/history/presentation/providers/first_completed_task_date_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

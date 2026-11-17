@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/shortcut_hint_badge.dart';
+import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
 
 class CommandPaletteFooter extends StatelessWidget {
   final int count;
