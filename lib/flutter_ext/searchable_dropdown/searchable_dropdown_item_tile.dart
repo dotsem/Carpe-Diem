@@ -1,4 +1,3 @@
-import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class SearchableDropdownItemTile<T> extends StatelessWidget {
@@ -29,7 +28,7 @@ class SearchableDropdownItemTile<T> extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: isHighlighted
-              ? AppColors.accent.withAlpha(25)
+              ? Theme.of(context).colorScheme.primary.withAlpha(25)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -42,7 +41,7 @@ class SearchableDropdownItemTile<T> extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: isHighlighted
-                      ? AppColors.accent
+                      ? Theme.of(context).colorScheme.primary
                       : theme.colorScheme.onSurface,
                   fontWeight: isHighlighted
                       ? FontWeight.bold

@@ -1,7 +1,7 @@
-import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/searchable_dropdown_item_tile.dart';
+import '../fuzzy_search/fuzzy_search_utils.dart';
+import '../keyboard.dart';
+import '../fuzzy_search/fuzzy_search_bar.dart';
+import 'searchable_dropdown_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

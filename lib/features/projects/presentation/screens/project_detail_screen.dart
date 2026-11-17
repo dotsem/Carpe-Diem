@@ -2,7 +2,7 @@ import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_d
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/fuzzy_search_bar.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

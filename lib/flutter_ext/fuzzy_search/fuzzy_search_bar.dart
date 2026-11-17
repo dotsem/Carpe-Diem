@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
 
 class FuzzySearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -34,7 +33,7 @@ class FuzzySearchBar extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.accent),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
         ),
       ),
       onChanged: onChanged,

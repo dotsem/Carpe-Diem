@@ -7,7 +7,7 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/core/widgets/progress_border_painter.dart';
+import 'package:carpe_diem/flutter_ext/progress_border_painter.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_status_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/base_task_card.dart';
 

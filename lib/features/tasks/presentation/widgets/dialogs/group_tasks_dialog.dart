@@ -1,6 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/searchable_dropdown.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';

@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/icon_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/constants/illegal_mode_names.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';

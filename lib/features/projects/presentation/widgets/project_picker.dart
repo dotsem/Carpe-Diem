@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/common/presentation/widgets/searchable_dropdown.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:flutter/material.dart';
 

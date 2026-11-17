@@ -1,6 +1,5 @@
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/sized_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/range_date_picker.dart';
+import 'sized_dialog.dart';
+import '../range_date_picker.dart';
 import 'package:flutter/material.dart';
 
 class PickDateRangeDialog extends StatefulWidget {
@@ -106,12 +105,14 @@ class _DateTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isSelected ? AppColors.accent : Colors.transparent,
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.transparent,
           width: 2,
         ),
         borderRadius: BorderRadius.circular(8),
         color: isSelected
-            ? AppColors.accent.withValues(alpha: 0.1)
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
             : Theme.of(context).colorScheme.surfaceContainerHigh,
       ),
       child: Column(
@@ -123,7 +124,7 @@ class _DateTab extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.bold,
               color: isSelected
-                  ? AppColors.accent
+                  ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),

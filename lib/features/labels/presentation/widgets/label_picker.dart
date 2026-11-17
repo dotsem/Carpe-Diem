@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/common/presentation/widgets/multi_select_searchable_dropdown.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/dialogs/add_label_dialog.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_context_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/manageable_chip.dart';

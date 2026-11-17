@@ -1,4 +1,4 @@
-import 'package:carpe_diem/core/utils/fuzzy_search_utils.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/core/utils/task_sort_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';

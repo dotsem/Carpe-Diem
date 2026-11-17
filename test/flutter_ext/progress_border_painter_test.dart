@@ -1,4 +1,4 @@
-import 'package:carpe_diem/core/widgets/progress_border_painter.dart';
+import 'package:carpe_diem/flutter_ext/progress_border_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

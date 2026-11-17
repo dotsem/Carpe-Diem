@@ -1,5 +1,8 @@
 import 'package:flutter/services.dart';
 
+export 'package:carpe_diem/flutter_ext/keyboard.dart'
+    show isControlOrMetaPressed;
+
 // Navigation Screens
 abstract class TodayKeys {
   static const char = "t";
@@ -148,9 +151,4 @@ class AppKeyBindings {
   static const digit2 = LogicalKeyboardKey.digit2;
   static const digit3 = LogicalKeyboardKey.digit3;
   static const digit4 = LogicalKeyboardKey.digit4;
-}
-
-bool isControlOrMetaPressed() {
-  return HardwareKeyboard.instance.isControlPressed ||
-      HardwareKeyboard.instance.isMetaPressed;
 }
