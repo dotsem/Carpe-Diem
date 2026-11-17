@@ -2,6 +2,12 @@
 
 All notable changes to Carpe Diem will be documented in this file.
 
+## v0.7.0 - History Metrics & Cleanup
+
+- **Filter Passthrough:** Polished filter passthrough behavior.
+- **Extended History Metrics:** Added more metrics to the history view.
+- **Refactor:** Moved generic components to the `flutter_ext` directory and simplified error handling in `getById` methods.
+
 ## v0.6.0 - Modes & Animations
 
 - **Drag-and-Drop Polish:** Added swing animations, placeholder indicators, extended list drag boundaries, and right-click cancellation for tasks and projects.
@@ -9,7 +15,6 @@ All notable changes to Carpe Diem will be documented in this file.
 - **Form Shortcuts:** Added keyboard shortcuts for faster task and project creation and editing.
 - **Task Modes:** Added filter modes for tasks.
 - **Animation Controls:** Added an option in settings to disable animations across the application.
-
 
 ## v0.5.0 - Desktop & UI Overhaul
 

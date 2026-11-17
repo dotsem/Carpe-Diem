@@ -6,7 +6,7 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 
 
-## Current Scope: v0.7.0
+## Current Scope: v0.8.0
 
 - [ ] **Markdown Import Preview:** Live preview before importing markdown files.
 - [ ] **Advanced Filtering:** Filter tasks by priority and date range.
@@ -14,13 +14,13 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 ---
 
-## Planned: v0.8.0 (Cross Platform)
+## Planned: v0.9.0 (Cross Platform)
 
 - [ ] **Mobile Support:** Optimized layouts for Android and iOS form factors.
 
 ---
 
-## Future: v0.9.0 (Cloud & Local Sync)
+## Future: v0.10.0 (Cloud & Local Sync)
 
 - [ ] **CRDT:** Conflict-free Replicated Data Types for state reconciliation.
 - [ ] **Cloud Sync:** Cross-device synchronization via cloud providers.
