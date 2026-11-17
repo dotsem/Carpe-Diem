@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
@@ -66,7 +67,11 @@ class FilterModeRepository implements IFilterModeRepository {
       try {
         final decoded = jsonDecode(filterRaw) as Map<String, dynamic>;
         filter = TaskFilter.fromMap(decoded);
-      } catch (_) {}
+      } on FormatException catch (e) {
+        debugPrint('FilterMode: invalid filter json: $e');
+      } on TypeError catch (e) {
+        debugPrint('FilterMode: invalid filter shape: $e');
+      }
     }
 
     return FilterMode(

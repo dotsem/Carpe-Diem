@@ -26,11 +26,7 @@ class TagState {
 
   Tag? getById(String? id) {
     if (id == null) return null;
-    try {
-      return tags.firstWhere((l) => l.id == id);
-    } catch (_) {
-      return null;
-    }
+    return tags.where((l) => l.id == id).firstOrNull;
   }
 }
 
@@ -164,11 +160,7 @@ class TagNotifier extends Notifier<TagState> {
 
   Tag? getById(String? id) {
     if (id == null) return null;
-    try {
-      return state.tags.firstWhere((t) => t.id == id);
-    } catch (_) {
-      return null;
-    }
+    return state.tags.where((t) => t.id == id).firstOrNull;
   }
 }
 

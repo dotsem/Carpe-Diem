@@ -10,11 +10,7 @@ class ToastUtils {
 
   static BuildContext? _getEffectiveContext(BuildContext? context) {
     if (context != null) return context;
-    try {
-      return rootNavigatorKey.currentContext;
-    } catch (_) {
-      return null;
-    }
+    return rootNavigatorKey.currentContext;
   }
 
   static void _showToast({
