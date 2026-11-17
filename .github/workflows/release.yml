@@ -12,9 +12,9 @@ on:
 
 jobs:
   cd:
-    uses: dotsem/actions/.github/workflows/flutter-cd.yml@73b100bd41fb2bdb3e03366f4e7c5d5534866e5c # v0.5.0
+    uses: dotactions/flutter/.github/workflows/cd.yml@3290bcaf8b46e39b7f3126778f3ca23bec7adb16
     permissions:
       contents: write
     with:
       targets: '["linux", "windows", "macos"]'
-      tag: ${{ inputs.tag }}
+      tag: ${{ inputs.tag || github.event.release.tag_name }}
