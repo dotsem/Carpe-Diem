@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HistoryItemsView extends ConsumerStatefulWidget {
+class TabHistoryList extends ConsumerStatefulWidget {
   final List<Task> tasks;
   final bool hasMore;
   final VoidCallback onLoadMore;
   final bool isLoadingMore;
 
-  const HistoryItemsView({
+  const TabHistoryList({
     super.key,
     required this.tasks,
     required this.hasMore,
@@ -20,10 +20,10 @@ class HistoryItemsView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<HistoryItemsView> createState() => _HistoryItemsViewState();
+  ConsumerState<TabHistoryList> createState() => _TabHistoryListState();
 }
 
-class _HistoryItemsViewState extends ConsumerState<HistoryItemsView> {
+class _TabHistoryListState extends ConsumerState<TabHistoryList> {
   final ScrollController _scrollController = ScrollController();
 
   @override

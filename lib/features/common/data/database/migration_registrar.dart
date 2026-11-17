@@ -5,6 +5,7 @@ import 'migrations/2026_08_22_215332_add_sort_index.dart';
 import 'migrations/2026_09_18_212407_add_updated_at_to_projects_and_tasks.dart';
 import 'migrations/2026_10_04_200222_add_filter_modes.dart';
 import 'migrations/2026_10_12_191531_add_plansortorder_field.dart';
+import 'migrations/2026_11_17_124523_add_task_events.dart';
 
 final List<Migration> allMigrations = [
   Migration_2026_07_31_133028_AddParentidToTasks(),
@@ -13,4 +14,5 @@ final List<Migration> allMigrations = [
   Migration_2026_09_18_212407_AddUpdatedAtToProjectsAndTasks(),
   Migration_2026_10_04_200222_AddFilterModes(),
   Migration_2026_10_12_191531_AddPlansortorderField(),
+  Migration_2026_11_17_124523_AddTaskEvents(),
 ];

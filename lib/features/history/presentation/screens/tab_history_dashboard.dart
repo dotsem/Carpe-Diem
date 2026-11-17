@@ -2,14 +2,21 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/history/presentation/screens/widgets/overview_stat_card.dart';
+import 'package:carpe_diem/features/history/presentation/screens/widgets/activity_section.dart';
 import 'package:carpe_diem/features/history/presentation/screens/widgets/project_breakdown_item.dart';
+import 'package:carpe_diem/features/history/presentation/screens/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HistoryOverviewView extends ConsumerWidget {
+class TabHistoryDashboard extends ConsumerWidget {
   final HistoryOverview? overview;
+  final DateTimeRange range;
 
-  const HistoryOverviewView({super.key, required this.overview});
+  const TabHistoryDashboard({
+    super.key,
+    required this.overview,
+    required this.range,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,17 +65,8 @@ class HistoryOverviewView extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 32),
-        Text(
-          'PROJECT BREAKDOWN',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-            fontSize: 12,
-          ),
-        ),
-        const SizedBox(height: 16),
+        const ActivitySection(),
+        const SectionHeader('PROJECT BREAKDOWN'),
         ..._buildProjectBreakdown(context, ref),
       ],
     );

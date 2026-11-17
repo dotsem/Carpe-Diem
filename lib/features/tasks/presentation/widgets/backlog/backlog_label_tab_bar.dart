@@ -1,4 +1,5 @@
 import 'package:carpe_diem/core/utils/color_utils.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/extensions/horizontal_tab.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
@@ -115,82 +116,31 @@ class _BacklogLabelTabBarState extends ConsumerState<BacklogLabelTabBar>
     Map<String, int> labelCounts,
   ) {
     return [
-      Tab(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 6.0,
-          children: [
-            const Icon(Icons.all_inbox_rounded, size: 16),
-            const Text('All'),
-            _TabCountBadge(count: allCount),
-          ],
-        ),
+      HorizontalTab(
+        icon: const Icon(Icons.all_inbox_rounded, size: 16),
+        label: 'All',
+        count: allCount,
       ),
+
       for (final label in labels)
-        Tab(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 6.0,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: label.color.themeDependentColor(context),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              Text(label.name),
-              _TabCountBadge(
-                count: labelCounts[label.id] ?? 0,
-                accentColor: label.color.themeDependentColor(context),
-              ),
-            ],
+        HorizontalTab(
+          icon: Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: label.color.themeDependentColor(context),
+              shape: BoxShape.circle,
+            ),
           ),
+          label: label.name,
+          count: labelCounts[label.id] ?? 0,
+          accentColor: label.color.themeDependentColor(context),
         ),
-      Tab(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 6.0,
-          children: [
-            const Icon(Icons.inbox_rounded, size: 16),
-            const Text('Inbox'),
-            _TabCountBadge(count: inboxCount),
-          ],
-        ),
+      HorizontalTab(
+        icon: const Icon(Icons.inbox_rounded, size: 16),
+        label: 'Inbox',
+        count: inboxCount,
       ),
     ];
-  }
-}
-
-class _TabCountBadge extends StatelessWidget {
-  final int count;
-  final Color? accentColor;
-
-  const _TabCountBadge({required this.count, this.accentColor});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final bg = accentColor != null
-        ? accentColor!.withAlpha(30)
-        : theme.colorScheme.surfaceContainerHighest;
-    final fg = accentColor ?? theme.colorScheme.onSurfaceVariant;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        '$count',
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: fg,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
   }
 }
