@@ -15,7 +15,6 @@ class ProjectReorderUtils {
 
     final isUrgent = draggedProject.isUrgent;
 
-    // Find the bounds of the matching isUrgent group in remainingProjects
     int groupStart = -1;
     int groupEnd = -1;
 
@@ -26,22 +25,14 @@ class ProjectReorderUtils {
       }
     }
 
-    // If there are no other projects in this group, just return default rank
     if (groupStart == -1) {
       return LexoRank.defaultRank;
     }
 
-    if (slotIndex <= groupStart) {
-      return LexoRank.generateTop(remainingProjects[groupStart].sortOrder);
-    }
-
-    if (slotIndex > groupEnd) {
-      return LexoRank.generateBottom(remainingProjects[groupEnd].sortOrder);
-    }
-
-    return LexoRank.generateBetween(
-      remainingProjects[slotIndex - 1].sortOrder,
-      remainingProjects[slotIndex].sortOrder,
+    final group = remainingProjects.sublist(groupStart, groupEnd + 1);
+    return LexoRank.generateAtSlot(
+      group.map((p) => p.sortOrder).toList(),
+      slotIndex - groupStart,
     );
   }
 

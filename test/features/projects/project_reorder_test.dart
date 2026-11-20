@@ -74,6 +74,36 @@ void main() {
       expect(newSortOrder, isNull);
     });
 
+    test('drop at last slots with unranked projects does not jump to top', () {
+      Project mk(String id, String rank, {bool urgent = false}) => Project(
+        id: id,
+        name: id,
+        color: Colors.blue,
+        createdAt: now,
+        sortOrder: rank,
+        isUrgent: urgent,
+      );
+      final dragged = mk('d', 'a0');
+      final remaining = [mk('x', 'a1'), mk('y', ''), mk('z', '')];
+
+      for (final slot in [2, 3]) {
+        final rank = ProjectReorderUtils.computeSortOrderForSlot(
+          draggedProject: dragged,
+          remainingProjects: remaining,
+          slotIndex: slot,
+        );
+        expect(rank.compareTo('a1'), greaterThan(0));
+      }
+
+      final urgentRemaining = [mk('u', 'a5', urgent: true), ...remaining];
+      final rank = ProjectReorderUtils.computeSortOrderForSlot(
+        draggedProject: dragged,
+        remainingProjects: urgentRemaining,
+        slotIndex: 4,
+      );
+      expect(rank.compareTo('a1'), greaterThan(0));
+    });
+
     test('computeSortOrderForSlot handles first, middle, and last slots', () {
       final remaining = [p2, p3];
 
