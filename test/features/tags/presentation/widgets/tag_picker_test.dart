@@ -65,7 +65,7 @@ void main() {
         expect(find.text('personal'), findsOneWidget);
         expect(find.text('New Tag'), findsOneWidget);
 
-        final workChip = tester.widget(
+        final workChip = tester.widget<FilterChip>(
           find.ancestor(
             of: find.text('work'),
             matching: find.byType(FilterChip),
@@ -73,7 +73,7 @@ void main() {
         );
         expect(workChip.selected, isTrue);
 
-        final personalChip = tester.widget(
+        final personalChip = tester.widget<FilterChip>(
           find.ancestor(
             of: find.text('personal'),
             matching: find.byType(FilterChip),

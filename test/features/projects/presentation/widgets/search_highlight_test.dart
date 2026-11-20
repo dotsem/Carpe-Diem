@@ -103,8 +103,8 @@ void main() {
         focusNodeA.requestFocus();
         await tester.pumpAndSettle();
 
-        var cardA = tester.widget(find.widgetWithText(Card, 'Alpha'));
-        var cardB = tester.widget(find.widgetWithText(Card, 'Beta'));
+        var cardA = tester.widget<Card>(find.widgetWithText(Card, 'Alpha'));
+        var cardB = tester.widget<Card>(find.widgetWithText(Card, 'Beta'));
         var shapeA = cardA.shape! as RoundedRectangleBorder;
         var shapeB = cardB.shape! as RoundedRectangleBorder;
 
@@ -115,8 +115,8 @@ void main() {
         focusNodeB.requestFocus();
         await tester.pumpAndSettle();
 
-        cardA = tester.widget(find.widgetWithText(Card, 'Alpha'));
-        cardB = tester.widget(find.widgetWithText(Card, 'Beta'));
+        cardA = tester.widget<Card>(find.widgetWithText(Card, 'Alpha'));
+        cardB = tester.widget<Card>(find.widgetWithText(Card, 'Beta'));
         shapeA = cardA.shape! as RoundedRectangleBorder;
         shapeB = cardB.shape! as RoundedRectangleBorder;
 
@@ -222,7 +222,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final card = tester.widget(find.widgetWithText(Card, 'Alpha'));
+        final card = tester.widget<Card>(find.widgetWithText(Card, 'Alpha'));
         final shape = card.shape! as RoundedRectangleBorder;
         expect(shape.side.color, AppColors.accent);
         expect(shape.side.width, 2);

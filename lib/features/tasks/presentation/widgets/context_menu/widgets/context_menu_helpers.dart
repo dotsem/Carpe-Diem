@@ -217,7 +217,7 @@ PopupMenuItem<void> buildTopRow(
             onPressed: () async {
               final navigator = Navigator.of(context);
               navigator.pop();
-              final result = await showDialog(
+              final result = await showDialog<DateTime>(
                 context: context,
                 builder: (dialogCtx) {
                   return CustomDatePickerDialog(

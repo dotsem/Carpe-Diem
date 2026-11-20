@@ -117,7 +117,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
     Future<void> Function(List<String>) action,
   ) async {
     final ids = _selectedTaskIds.isNotEmpty
-        ? List.from(_selectedTaskIds)
+        ? List<String>.of(_selectedTaskIds)
         : [_getFocusedTaskId()].whereType<String>().toList();
     if (ids.isNotEmpty) {
       await action(ids);
