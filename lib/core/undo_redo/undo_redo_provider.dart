@@ -54,12 +54,7 @@ class UndoRedoNotifier extends Notifier<UndoRedoState> {
 
   @override
   UndoRedoState build() {
-    return const UndoRedoState(
-      canUndo: false,
-      canRedo: false,
-      undoStack: [],
-      redoStack: [],
-    );
+    return const UndoRedoState(canUndo: false, canRedo: false);
   }
 
   Future<void> execute(Command cmd) async {
@@ -132,7 +127,7 @@ class UndoRedoNotifier extends Notifier<UndoRedoState> {
       );
       final revertedCommands = <Command>[];
       try {
-        for (int i = 0; i < undosCount; i++) {
+        for (var i = 0; i < undosCount; i++) {
           if (_undoStack.isEmpty) break;
           final cmd = _undoStack.removeLast();
           revertedCommands.add(cmd);
@@ -160,7 +155,7 @@ class UndoRedoNotifier extends Notifier<UndoRedoState> {
         );
         final executedCommands = <Command>[];
         try {
-          for (int i = 0; i < redoesCount; i++) {
+          for (var i = 0; i < redoesCount; i++) {
             if (_redoStack.isEmpty) break;
             final cmd = _redoStack.removeLast();
             executedCommands.add(cmd);
@@ -184,7 +179,6 @@ class UndoRedoNotifier extends Notifier<UndoRedoState> {
     state = UndoRedoState(
       canUndo: _undoStack.isNotEmpty,
       canRedo: _redoStack.isNotEmpty,
-      isProcessing: false,
       lastOperationType: type,
       undoDescription: _undoStack.isNotEmpty
           ? _undoStack.last.description

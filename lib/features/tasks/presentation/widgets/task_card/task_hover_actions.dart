@@ -16,10 +16,10 @@ class TaskHoverActions extends ConsumerWidget {
   final VoidCallback? onAction;
 
   const TaskHoverActions({
-    super.key,
     required this.task,
-    this.allTasks,
     required this.isHovered,
+    super.key,
+    this.allTasks,
     this.isReadOnly = false,
     this.onEdit,
     this.onAction,
@@ -30,7 +30,7 @@ class TaskHoverActions extends ConsumerWidget {
     BuildContext buttonContext,
     WidgetRef ref,
   ) {
-    final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
+    final renderBox = buttonContext.findRenderObject()! as RenderBox;
     final tasks = allTasks ?? ref.read(taskProvider).tasks;
     showTaskCardContextMenu(
       context,

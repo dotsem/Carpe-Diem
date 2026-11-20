@@ -10,10 +10,10 @@ class TaskListSectionHeader extends StatelessWidget {
   final Widget? trailing;
 
   const TaskListSectionHeader({
-    super.key,
     required this.title,
-    this.color,
     required this.amount,
+    super.key,
+    this.color,
     this.onTap,
     this.trailing,
   });
@@ -100,13 +100,13 @@ class TaskListKeyboardShortcuts extends StatelessWidget {
   final Widget child;
 
   const TaskListKeyboardShortcuts({
-    super.key,
     required this.enablePlanShortcut,
     required this.onMoveNext,
     required this.onMovePrev,
     required this.onPlanToday,
     required this.onPlanTomorrow,
     required this.child,
+    super.key,
   });
 
   @override

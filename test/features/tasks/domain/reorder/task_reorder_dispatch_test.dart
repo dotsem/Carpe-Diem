@@ -19,21 +19,18 @@ void main() {
     final normal1 = Task(
       id: 'n1',
       title: 'Normal 1',
-      isUrgent: false,
       sortOrder: 'a1',
       createdAt: now,
     );
     final normal2 = Task(
       id: 'n2',
       title: 'Normal 2',
-      isUrgent: false,
       sortOrder: 'a2',
       createdAt: now,
     );
     final normal3 = Task(
       id: 'n3',
       title: 'Normal 3',
-      isUrgent: false,
       sortOrder: 'a3',
       createdAt: now,
     );

@@ -1,8 +1,8 @@
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
 
 void main() {
   group('filter', () {
@@ -49,9 +49,9 @@ void main() {
 
     test('applyToTask urgency matching handles it correctly', () {
       const incFilter = TaskFilter(isUrgent: true);
-      final highTask = createTask(id: '1', isUrgent: false);
+      final highTask = createTask(id: '1');
       final urgentTask = createTask(id: '2', isUrgent: true);
-      final lowTask = createTask(id: '3', isUrgent: false);
+      final lowTask = createTask(id: '3');
 
       expect(incFilter.applyToTask(highTask, []), isFalse);
       expect(incFilter.applyToTask(urgentTask, []), isTrue);
@@ -64,7 +64,7 @@ void main() {
         const incFilter = TaskFilter(projectIdsIncluded: {'p1', 'p2'});
         final taskInP1 = createTask(id: '1', projectId: 'p1');
         final taskInP3 = createTask(id: '2', projectId: 'p3');
-        final taskNoProject = createTask(id: '3', projectId: null);
+        final taskNoProject = createTask(id: '3');
 
         expect(incFilter.applyToTask(taskInP1, []), isTrue);
         expect(incFilter.applyToTask(taskInP3, []), isFalse);
@@ -147,11 +147,7 @@ void main() {
           isUrgent: true,
           labelIds: ['l1'],
         );
-        final wrongPriority = createProject(
-          id: 'p2',
-          isUrgent: false,
-          labelIds: ['l1'],
-        );
+        final wrongPriority = createProject(id: 'p2', labelIds: ['l1']);
         final wrongLabel = createProject(
           id: 'p3',
           isUrgent: true,

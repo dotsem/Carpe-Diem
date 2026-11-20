@@ -8,11 +8,11 @@ class WarningDialog extends StatelessWidget {
   final String warningText;
   final VoidCallback onConfirm;
   const WarningDialog({
-    super.key,
     required this.title,
     required this.message,
     required this.onConfirm,
     required this.warningText,
+    super.key,
   });
 
   @override

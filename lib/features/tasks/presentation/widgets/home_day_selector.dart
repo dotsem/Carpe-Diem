@@ -1,10 +1,10 @@
+import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
 
 class HomeDaySelector extends ConsumerWidget {
   const HomeDaySelector({super.key});

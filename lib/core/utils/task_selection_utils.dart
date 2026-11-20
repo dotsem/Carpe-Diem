@@ -62,7 +62,7 @@ class TaskSelectionUtils {
 
       if (isSelected) {
         newSet.remove(task.id);
-        newSet.remove(task.parentId!);
+        newSet.remove(task.parentId);
       } else {
         newSet.add(task.id);
         final parentSubtasks = allTasks
@@ -121,7 +121,7 @@ class TaskSelectionUtils {
     final rangeIds = orderedIds.sublist(minIdx, maxIdx + 1);
     final newSet = <String>{...rangeIds};
 
-    final taskMap = {for (var t in allTasks) t.id: t};
+    final taskMap = {for (final t in allTasks) t.id: t};
     for (final id in rangeIds) {
       final task = taskMap[id];
       if (task != null) {

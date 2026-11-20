@@ -24,6 +24,7 @@ dependencies:
   fuzzy: ^0.5.1
   toastification: ^3.2.2
   window_manager: ^0.5.2
+  very_good_analysis: ^11.0.0
 
 dev_dependencies:
   flutter_test:

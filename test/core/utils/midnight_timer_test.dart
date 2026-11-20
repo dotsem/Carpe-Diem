@@ -1,6 +1,6 @@
+import 'package:carpe_diem/core/utils/midnight_timer.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:carpe_diem/core/utils/midnight_timer.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +39,7 @@ void main() {
     test(
       'didChangeAppLifecycleState triggers date check on resumed if day changed',
       () {
-        var currentTime = DateTime(2026, 7, 27, 12, 0, 0);
+        var currentTime = DateTime(2026, 7, 27, 12);
         final timer = MidnightTimer(clock: () => currentTime);
         var called = false;
 
@@ -52,7 +52,7 @@ void main() {
         expect(called, isFalse);
 
         // Simulate device waking from sleep on the next day
-        currentTime = DateTime(2026, 7, 28, 8, 0, 0);
+        currentTime = DateTime(2026, 7, 28, 8);
         timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
         expect(called, isTrue);
 
@@ -63,7 +63,7 @@ void main() {
     testWidgets('heartbeat timer fires and detects day rollover after wake', (
       tester,
     ) async {
-      var currentTime = DateTime(2026, 7, 27, 14, 0, 0);
+      var currentTime = DateTime(2026, 7, 27, 14);
       final timer = MidnightTimer(clock: () => currentTime);
       var called = false;
 
@@ -73,7 +73,7 @@ void main() {
 
       expect(called, isFalse);
 
-      currentTime = DateTime(2026, 7, 28, 9, 0, 0);
+      currentTime = DateTime(2026, 7, 28, 9);
       await tester.pump(const Duration(seconds: 30));
 
       expect(called, isTrue);
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('manual checkDayChange triggers callback if day changed', () {
-      var currentTime = DateTime(2026, 7, 27, 12, 0, 0);
+      var currentTime = DateTime(2026, 7, 27, 12);
       final timer = MidnightTimer(clock: () => currentTime);
       var called = false;
 
@@ -92,7 +92,7 @@ void main() {
       timer.checkDayChange();
       expect(called, isFalse);
 
-      currentTime = DateTime(2026, 7, 29, 10, 0, 0);
+      currentTime = DateTime(2026, 7, 29, 10);
       timer.checkDayChange();
       expect(called, isTrue);
 

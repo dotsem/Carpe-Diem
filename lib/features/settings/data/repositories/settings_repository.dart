@@ -1,5 +1,5 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class SettingsRepository implements IKeyValueRepository {
   final Database _db;
@@ -22,13 +22,15 @@ class SettingsRepository implements IKeyValueRepository {
       whereArgs: [key],
     );
     if (maps.isEmpty) return null;
-    return maps.first['value'] as String;
+    return maps.first['value']! as String;
   }
 
   @override
   Future<Map<String, String>> getAll() async {
     final maps = await _db.query('settings');
-    return {for (var map in maps) map['key'] as String: map['value'] as String};
+    return {
+      for (final map in maps) map['key']! as String: map['value']! as String,
+    };
   }
 
   @override

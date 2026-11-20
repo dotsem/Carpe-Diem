@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mocktail/mocktail.dart';
+
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/mock_repositories.dart';
 
@@ -90,7 +91,7 @@ void main() {
     test(
       'initializes with persisted filter when persistentFilter is true',
       () async {
-        final persistedFilter = const TaskFilter(isUrgent: true);
+        const persistedFilter = TaskFilter(isUrgent: true);
         when(
           () => mockRepo.getAll(),
         ).thenAnswer((_) async => {'persistent_filter': 'true'});
@@ -109,7 +110,7 @@ void main() {
     test(
       'does not initialize with persisted filter when persistentFilter is false',
       () async {
-        final persistedFilter = const TaskFilter(isUrgent: true);
+        const persistedFilter = TaskFilter(isUrgent: true);
         when(
           () => mockRepo.getAll(),
         ).thenAnswer((_) async => {'persistent_filter': 'false'});
@@ -137,7 +138,7 @@ void main() {
         container.read(filterProvider.notifier).setFilter(newFilter);
 
         // Wait a microtask to allow async database write to trigger
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
         verify(
           () => mockRepo.set(
@@ -161,7 +162,7 @@ void main() {
         notifier.setFilter(filter);
         notifier.clearFilter();
 
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
         verify(
           () => mockRepo.set(

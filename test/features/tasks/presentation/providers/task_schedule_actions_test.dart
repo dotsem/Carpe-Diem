@@ -32,10 +32,7 @@ void main() {
     });
 
     test('rescheduleOverdue updates scheduled date of overdue task', () async {
-      final task = createTestTask(
-        id: 't1',
-        scheduledDate: DateTime(2026, 1, 1),
-      );
+      final task = createTestTask(scheduledDate: DateTime(2026));
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 
       final notifier = container.read(taskProvider.notifier);
@@ -59,8 +56,7 @@ void main() {
 
     test('unScheduleTask without subtasks clears scheduledDate', () async {
       final task = createTestTask(
-        id: 't1',
-        scheduledDate: DateTime(2026, 8, 1),
+        scheduledDate: DateTime(2026, 8),
         status: TaskStatus.inProgress,
       );
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
@@ -81,7 +77,7 @@ void main() {
     });
 
     test('scheduleTasksForDate schedules bulk tasks', () async {
-      final t1 = createTestTask(id: 't1');
+      final t1 = createTestTask();
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
       when(() => mockTaskRepo.getByParent('t1')).thenAnswer((_) async => []);
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
@@ -106,7 +102,7 @@ void main() {
     });
 
     test('scheduleTasksForTomorrow schedules tasks for tomorrow', () async {
-      final t1 = createTestTask(id: 't1');
+      final t1 = createTestTask();
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
       when(() => mockTaskRepo.getByParent('t1')).thenAnswer((_) async => []);
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
@@ -131,7 +127,7 @@ void main() {
     test(
       'scheduleTasksForNextDay schedules tasks for day after selected date',
       () async {
-        final t1 = createTestTask(id: 't1');
+        final t1 = createTestTask();
         when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
         when(() => mockTaskRepo.getByParent('t1')).thenAnswer((_) async => []);
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
@@ -159,7 +155,7 @@ void main() {
     test(
       'scheduleTasksForNextWorkDay schedules tasks for start of next week',
       () async {
-        final t1 = createTestTask(id: 't1');
+        final t1 = createTestTask();
         when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
         when(() => mockTaskRepo.getByParent('t1')).thenAnswer((_) async => []);
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
@@ -174,7 +170,7 @@ void main() {
     test(
       'pickAndScheduleRandomTask picks unblocked task and schedules for today',
       () async {
-        final t1 = createTestTask(id: 't1', title: 'Pick Me');
+        final t1 = createTestTask(title: 'Pick Me');
         when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
         when(() => mockTaskRepo.getByParent('t1')).thenAnswer((_) async => []);
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});

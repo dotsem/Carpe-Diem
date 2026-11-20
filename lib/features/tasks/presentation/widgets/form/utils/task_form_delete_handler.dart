@@ -21,7 +21,7 @@ abstract final class TaskFormDeleteHandler {
         ? 'Are you sure you want to delete this task?'
         : 'Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?';
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => DeleteDialog(
         title: 'Delete Task',

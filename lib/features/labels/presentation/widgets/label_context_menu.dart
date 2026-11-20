@@ -1,10 +1,10 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/dialogs/edit_label_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void showLabelContextMenu(
@@ -15,13 +15,9 @@ void showLabelContextMenu(
   RenderBox renderBox,
 ) {
   final provider = ref.read(labelProvider.notifier);
-  final RenderBox overlay =
-      Overlay.of(context).context.findRenderObject() as RenderBox;
+  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
 
-  final Offset position = renderBox.localToGlobal(
-    localPosition,
-    ancestor: overlay,
-  );
+  final position = renderBox.localToGlobal(localPosition, ancestor: overlay);
 
   showMenu(
     context: context,
@@ -30,8 +26,8 @@ void showLabelContextMenu(
       Offset.zero & overlay.size,
     ),
     items: [
-      PopupMenuItem(
-        onTap: () => showDialog(
+      PopupMenuItem<void>(
+        onTap: () => showDialog<void>(
           context: context,
           builder: (context) => EditLabelDialog(label: label),
         ),
@@ -40,8 +36,8 @@ void showLabelContextMenu(
           title: 'Edit',
         ),
       ),
-      PopupMenuItem(
-        onTap: () => showDialog(
+      PopupMenuItem<void>(
+        onTap: () => showDialog<void>(
           context: context,
           builder: (context) => DeleteDialog(
             title: 'Delete Label',

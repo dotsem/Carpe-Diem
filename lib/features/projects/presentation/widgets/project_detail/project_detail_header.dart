@@ -1,15 +1,14 @@
-import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
+import 'package:carpe_diem/core/utils/date_time_utils.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
-
-import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProjectDetailHeader extends ConsumerWidget {
   final Project project;
@@ -19,19 +18,19 @@ class ProjectDetailHeader extends ConsumerWidget {
   final VoidCallback onAddTask;
 
   const ProjectDetailHeader({
-    super.key,
     required this.project,
     required this.onEdit,
     required this.onDelete,
     required this.onImportMd,
     required this.onAddTask,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final labelState = ref.watch(labelProvider);
     final labels = project.labelIds
-        .map((id) => labelState.getById(id))
+        .map(labelState.getById)
         .whereType<Label>()
         .toList();
 
@@ -58,7 +57,7 @@ class ProjectDetailHeader extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
                       Container(

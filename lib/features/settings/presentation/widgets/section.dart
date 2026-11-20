@@ -23,7 +23,7 @@ enum Section {
 
 class SectionContent extends StatelessWidget {
   final Section section;
-  const SectionContent({super.key, required this.section});
+  const SectionContent({required this.section, super.key});
 
   @override
   Widget build(BuildContext context) {

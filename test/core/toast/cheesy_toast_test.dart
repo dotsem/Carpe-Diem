@@ -47,7 +47,7 @@ void main() {
       final hasProgressBorder = customPaints.any(
         (cp) =>
             cp.foregroundPainter is ProgressBorderPainter &&
-            !(cp.foregroundPainter as ProgressBorderPainter).left,
+            !(cp.foregroundPainter! as ProgressBorderPainter).left,
       );
       expect(hasProgressBorder, isTrue);
 
@@ -78,7 +78,7 @@ void main() {
 
     testWidgets('renders with fixed width and right alignment', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 500,
@@ -87,7 +87,7 @@ void main() {
                 message: 'Short',
                 icon: Icons.check,
                 color: Colors.green,
-                margin: const EdgeInsets.symmetric(horizontal: 12),
+                margin: EdgeInsets.symmetric(horizontal: 12),
               ),
             ),
           ),

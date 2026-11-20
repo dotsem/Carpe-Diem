@@ -1,17 +1,15 @@
+import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-
-import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
-import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 
 class BulkEditResult {
   final bool? isUrgent;
@@ -50,7 +48,7 @@ class BulkEditResult {
 class BulkEditTasksDialog extends ConsumerStatefulWidget {
   final List<String> taskIds;
 
-  const BulkEditTasksDialog({super.key, required this.taskIds});
+  const BulkEditTasksDialog({required this.taskIds, super.key});
 
   @override
   ConsumerState<BulkEditTasksDialog> createState() =>
@@ -171,7 +169,6 @@ class _BulkEditTasksDialogState extends ConsumerState<BulkEditTasksDialog> {
               UrgencySelector(
                 selected: _isUrgent,
                 onChanged: (v) => setState(() => _isUrgent = v!),
-                allowAll: false,
               ),
             ),
             const SizedBox(height: 16),

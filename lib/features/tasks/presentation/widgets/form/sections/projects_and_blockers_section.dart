@@ -18,7 +18,6 @@ class ProjectsAndBlockersSection extends StatelessWidget {
   final MenuController? blockerMenuController;
 
   const ProjectsAndBlockersSection({
-    super.key,
     required this.projects,
     required this.onChangedProject,
     required this.availableTasks,
@@ -26,6 +25,7 @@ class ProjectsAndBlockersSection extends StatelessWidget {
     required this.currentTaskId,
     required this.selectedBlockerId,
     required this.selectedProjectId,
+    super.key,
     this.projectMenuController,
     this.blockerMenuController,
   });
@@ -37,8 +37,8 @@ class ProjectsAndBlockersSection extends StatelessWidget {
       items: [
         SectionItem(
           icon: Icons.folder,
-          title: "Projects",
-          shortcut: "Ctrl + ${ProjectsKeys.upper}",
+          title: 'Projects',
+          shortcut: 'Ctrl + ${ProjectsKeys.upper}',
           child: ProjectPicker(
             borderless: true,
             onChanged: onChangedProject,
@@ -49,8 +49,8 @@ class ProjectsAndBlockersSection extends StatelessWidget {
         ),
         SectionItem(
           icon: Icons.block,
-          title: "Blockers",
-          shortcut: "Ctrl + ${BlockersKeys.upper}",
+          title: 'Blockers',
+          shortcut: 'Ctrl + ${BlockersKeys.upper}',
           child: BlockerPicker(
             borderless: true,
             availableTasks: availableTasks,

@@ -116,7 +116,7 @@ void main() {
         );
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
         verify(
           () => mockTaskRepo.update(

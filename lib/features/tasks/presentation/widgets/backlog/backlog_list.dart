@@ -1,19 +1,19 @@
+import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_draggable_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_empty_placeholder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_reorder_corridor.dart';
-import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
@@ -31,13 +31,13 @@ class BacklogList extends ConsumerStatefulWidget {
   final String? highlightedTaskId;
 
   const BacklogList({
-    super.key,
     required this.searchQuery,
     required this.selectedTaskIds,
     required this.onSelectedChanged,
     required this.onEdit,
     required this.itemFocusNodes,
     required this.onOrderedIdsChanged,
+    super.key,
     this.trailingBuilder,
     this.highlightedTaskId,
   });
@@ -117,9 +117,9 @@ class _BacklogListState extends ConsumerState<BacklogList> {
       );
     }
 
-    final allAvailableTasks = {for (var t in provider.tasks) t.id: t}
-      ..addAll({for (var t in provider.overdueTasks) t.id: t})
-      ..addAll({for (var t in provider.unscheduledTasks) t.id: t});
+    final allAvailableTasks = {for (final t in provider.tasks) t.id: t}
+      ..addAll({for (final t in provider.overdueTasks) t.id: t})
+      ..addAll({for (final t in provider.unscheduledTasks) t.id: t});
 
     final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
     final activeHierarchical = TaskHierarchyUtils.buildHierarchy(
@@ -218,9 +218,9 @@ class _BacklogListState extends ConsumerState<BacklogList> {
                     },
                   ),
                 ),
-                SliverFillRemaining(
+                const SliverFillRemaining(
                   hasScrollBody: false,
-                  child: const TaskEmptySpaceDropZone(),
+                  child: TaskEmptySpaceDropZone(),
                 ),
               ],
             ),

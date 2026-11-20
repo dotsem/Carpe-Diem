@@ -10,12 +10,12 @@ class PlanningSection extends StatelessWidget {
   final int maxPlanningDays;
 
   const PlanningSection({
-    super.key,
     required this.scheduledDate,
     required this.onScheduledChanged,
     required this.deadline,
     required this.onDeadlineChanged,
     required this.maxPlanningDays,
+    super.key,
   });
 
   @override

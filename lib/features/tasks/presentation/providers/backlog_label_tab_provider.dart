@@ -1,15 +1,15 @@
+import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 
 enum BacklogLabelTabScope { all, label, inbox }
 
 const String keyLastActiveTab =
-    "last_active_tab"; // TODO: relocate this to a centralized place
+    'last_active_tab'; // TODO: relocate this to a centralized place
 
 class BacklogLabelTabState {
   final BacklogLabelTabScope scope;
@@ -107,7 +107,7 @@ class BacklogLabelTabNotifier extends Notifier<BacklogLabelTabState> {
   Future<void> saveLastActiveTab() async {
     try {
       await _repo.set(keyLastActiveTab, state.labelId ?? state.scope.name);
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to save last active tab: $e');
     }
   }

@@ -8,12 +8,7 @@ void main() {
     final now = DateTime.now();
 
     test('sorts urgent tasks before normal tasks', () {
-      final normal = Task(
-        id: '1',
-        title: 'Normal',
-        isUrgent: false,
-        createdAt: now,
-      );
+      final normal = Task(id: '1', title: 'Normal', createdAt: now);
       final urgent = Task(
         id: '2',
         title: 'Urgent',
@@ -114,11 +109,7 @@ void main() {
       );
 
       final tasks = [taskA, taskB];
-      TaskSortUtils.sortTasks(
-        tasks,
-        const SettingsState({}),
-        isPlanView: false,
-      );
+      TaskSortUtils.sortTasks(tasks, const SettingsState({}));
 
       expect(tasks.first.id, '1');
       expect(tasks.last.id, '2');

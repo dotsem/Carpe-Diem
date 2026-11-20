@@ -37,7 +37,6 @@ void main() {
       'reorderTask and bulkReorderTasks register commands and undo/redo cleanly',
       () async {
         final task = createTestTask(
-          id: 't1',
           title: 'T1',
         ).copyWith(sortOrder: '0|i00000:');
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
@@ -51,11 +50,11 @@ void main() {
         expect(undoRedo.state.canUndo, isTrue);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(1);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(1);
       },
     );
@@ -68,11 +67,10 @@ void main() {
           deadline: DateTime(2026, 12, 31),
         );
         final taskPrev = createTestTask(
-          id: 't1',
           blockedById: 'b1',
           deadline: DateTime(2026, 12, 31),
         );
-        final taskNext = taskPrev.copyWith(deadline: DateTime(2026, 10, 1));
+        final taskNext = taskPrev.copyWith(deadline: DateTime(2026, 10));
 
         when(
           () => mockTaskRepo.getById('t1'),
@@ -87,11 +85,11 @@ void main() {
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
       },
     );
@@ -112,16 +110,16 @@ void main() {
         final notifier = container.read(taskProvider.notifier);
         final undoRedo = container.read(undoRedoProvider.notifier);
 
-        await notifier.deleteTask(parent, deleteSubtasks: true);
+        await notifier.deleteTask(parent);
         verify(() => mockTaskRepo.delete('s1')).called(1);
         verify(() => mockTaskRepo.delete('p1')).called(1);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.insert(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.delete('s1')).called(1);
         verify(() => mockTaskRepo.delete('p1')).called(1);
       },
@@ -131,11 +129,7 @@ void main() {
       'completeParentWithCascade undoes all completions and redoes all',
       () async {
         final parent = createTestTask(id: 'p1', status: TaskStatus.inProgress);
-        final sub = createTestTask(
-          id: 's1',
-          parentId: 'p1',
-          status: TaskStatus.todo,
-        );
+        final sub = createTestTask(id: 's1', parentId: 'p1');
         final conflict = SubtaskCompletionConflict(
           parentTask: parent,
           incompleteSubtasks: [sub],
@@ -149,11 +143,11 @@ void main() {
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
       },
     );
@@ -163,12 +157,12 @@ void main() {
       () async {
         final parent = createTestTask(
           id: 'p1',
-          scheduledDate: DateTime(2026, 8, 1),
+          scheduledDate: DateTime(2026, 8),
         );
         final sub = createTestTask(
           id: 's1',
           parentId: 'p1',
-          scheduledDate: DateTime(2026, 8, 1),
+          scheduledDate: DateTime(2026, 8),
         );
 
         when(
@@ -188,17 +182,17 @@ void main() {
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
       },
     );
 
     test('bulkUpdateTasks executes compound undo and redo', () async {
-      final t1 = createTestTask(id: 't1', isUrgent: false);
+      final t1 = createTestTask();
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 
@@ -213,18 +207,18 @@ void main() {
       verify(() => mockTaskRepo.update(any())).called(1);
 
       await undoRedo.undo();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       verify(() => mockTaskRepo.update(any())).called(1);
 
       await undoRedo.redo();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       verify(() => mockTaskRepo.update(any())).called(1);
     });
 
     test(
       'bulkDeleteTasks executes compound delete, re-inserts on undo, re-deletes on redo',
       () async {
-        final t1 = createTestTask(id: 't1');
+        final t1 = createTestTask();
         when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
         when(() => mockTaskRepo.getByParent('t1')).thenAnswer((_) async => []);
         when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
@@ -237,11 +231,11 @@ void main() {
         verify(() => mockTaskRepo.delete('t1')).called(1);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.insert(any())).called(1);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.delete('t1')).called(1);
       },
     );
@@ -262,11 +256,11 @@ void main() {
         verify(() => mockTaskRepo.insert(any())).called(2);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.delete(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.insert(any())).called(2);
       },
     );

@@ -9,10 +9,10 @@ class SubtaskProgressChip extends StatelessWidget {
   final VoidCallback? onToggleCollapse;
 
   const SubtaskProgressChip({
-    super.key,
     required this.completedCount,
     required this.plannedCount,
     required this.totalCount,
+    super.key,
     this.isCollapsed = false,
     this.onToggleCollapse,
   });

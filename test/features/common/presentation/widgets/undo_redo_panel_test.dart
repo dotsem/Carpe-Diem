@@ -1,6 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_panel_body.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
@@ -98,8 +98,8 @@ void main() {
         (w) => w is IconButton && w.tooltip == 'Redo',
       );
 
-      IconButton undoButton = tester.widget<IconButton>(undoFinder);
-      IconButton redoButton = tester.widget<IconButton>(redoFinder);
+      var undoButton = tester.widget<IconButton>(undoFinder);
+      var redoButton = tester.widget<IconButton>(redoFinder);
 
       expect(undoButton.onPressed, isNotNull);
       expect(redoButton.onPressed, isNull);
@@ -181,7 +181,7 @@ void main() {
         final task = Task(
           id: '1',
           title: 'New Task',
-          createdAt: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026),
         );
         when(() => mockRepo.repositoryName).thenReturn('Task');
         when(() => mockRepo.insert(task)).thenAnswer((_) async {});

@@ -6,8 +6,8 @@ class EntityTimestampsInfo extends StatelessWidget {
   final DateTime? updatedAt;
 
   const EntityTimestampsInfo({
-    super.key,
     required this.createdAt,
+    super.key,
     this.updatedAt,
   });
 

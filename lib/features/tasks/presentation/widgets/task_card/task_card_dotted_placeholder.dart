@@ -7,8 +7,8 @@ class TaskCardDottedPlaceholder extends ConsumerWidget {
   final double borderRadius;
 
   const TaskCardDottedPlaceholder({
-    super.key,
     required this.child,
+    super.key,
     this.borderRadius = 12.0,
   });
 
@@ -23,8 +23,8 @@ class TaskCardDottedPlaceholder extends ConsumerWidget {
         color: outlineColor,
         radius: Radius.circular(borderRadius),
         strokeWidth: 1.5,
-        dashLength: 5.0,
-        dashGap: 4.0,
+        dashLength: 5,
+        dashGap: 4,
         padding: EdgeInsets.symmetric(vertical: isCompact ? 2 : 4),
       ),
       child: Visibility(

@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SidebarProjectsHiddenBadge extends ConsumerWidget {
   const SidebarProjectsHiddenBadge({super.key});
@@ -58,10 +58,7 @@ class SidebarProjectsHiddenBadge extends ConsumerWidget {
             decoration: BoxDecoration(
               color: warningColor.withValues(alpha: isDark ? 0.2 : 0.12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: warningColor.withValues(alpha: 0.4),
-                width: 1,
-              ),
+              border: Border.all(color: warningColor.withValues(alpha: 0.4)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

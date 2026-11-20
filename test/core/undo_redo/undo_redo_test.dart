@@ -1,10 +1,11 @@
 import 'dart:async';
+
+import 'package:carpe_diem/core/undo_redo/command.dart';
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
+import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 
 class MockCommand extends Mock implements Command {}
 
@@ -36,12 +37,12 @@ void main() {
 
     test('should execute command and update stack state', () async {
       final cmd = MockCommand();
-      when(() => cmd.execute()).thenAnswer((_) async => {});
+      when(cmd.execute).thenAnswer((_) async => {});
       when(() => cmd.description).thenReturn('Mock Action');
 
       await notifier.execute(cmd);
 
-      verify(() => cmd.execute()).called(1);
+      verify(cmd.execute).called(1);
       final state = notifier.state;
       expect(state.canUndo, isTrue);
       expect(state.canRedo, isFalse);
@@ -53,14 +54,14 @@ void main() {
 
     test('should handle undo and redo operations correctly', () async {
       final cmd = MockCommand();
-      when(() => cmd.execute()).thenAnswer((_) async => {});
-      when(() => cmd.undo()).thenAnswer((_) async => {});
+      when(cmd.execute).thenAnswer((_) async => {});
+      when(cmd.undo).thenAnswer((_) async => {});
       when(() => cmd.description).thenReturn('Mock Action');
 
       await notifier.execute(cmd);
       await notifier.undo();
 
-      verify(() => cmd.undo()).called(1);
+      verify(cmd.undo).called(1);
       expect(notifier.state.canUndo, isFalse);
       expect(notifier.state.canRedo, isTrue);
       expect(notifier.state.undoStack, isEmpty);
@@ -68,7 +69,7 @@ void main() {
 
       await notifier.redo();
 
-      verify(() => cmd.execute()).called(2);
+      verify(cmd.execute).called(2);
       expect(notifier.state.canUndo, isTrue);
       expect(notifier.state.canRedo, isFalse);
       expect(notifier.state.undoStack, equals([cmd]));
@@ -80,9 +81,9 @@ void main() {
       final firstCmd = MockCommand();
       final secondCmd = MockCommand();
 
-      when(() => firstCmd.execute()).thenAnswer((_) => completer.future);
+      when(firstCmd.execute).thenAnswer((_) => completer.future);
       when(() => firstCmd.description).thenReturn('First');
-      when(() => secondCmd.execute()).thenAnswer((_) async => {});
+      when(secondCmd.execute).thenAnswer((_) async => {});
       when(() => secondCmd.description).thenReturn('Second');
 
       // start executing first command (async, doesn't complete yet)
@@ -98,7 +99,7 @@ void main() {
       await future;
 
       // second command should have been ignored
-      verifyNever(() => secondCmd.execute());
+      verifyNever(secondCmd.execute);
       expect(notifier.state.undoStack, equals([firstCmd]));
     });
 
@@ -106,7 +107,7 @@ void main() {
       // populate 50 commands
       final commands = List.generate(50, (i) {
         final cmd = MockCommand();
-        when(() => cmd.execute()).thenAnswer((_) async => {});
+        when(cmd.execute).thenAnswer((_) async => {});
         when(() => cmd.description).thenReturn('Command $i');
         return cmd;
       });
@@ -120,7 +121,7 @@ void main() {
 
       // push 51st command
       final extraCmd = MockCommand();
-      when(() => extraCmd.execute()).thenAnswer((_) async => {});
+      when(extraCmd.execute).thenAnswer((_) async => {});
       when(() => extraCmd.description).thenReturn('Extra Command');
 
       await notifier.execute(extraCmd);
@@ -132,7 +133,7 @@ void main() {
 
     test('should return unmodifiable lists for stacks', () async {
       final cmd = MockCommand();
-      when(() => cmd.execute()).thenAnswer((_) async => {});
+      when(cmd.execute).thenAnswer((_) async => {});
       when(() => cmd.description).thenReturn('Mock Action');
 
       await notifier.execute(cmd);
@@ -147,8 +148,8 @@ void main() {
       final c3 = MockCommand();
 
       for (final c in [c1, c2, c3]) {
-        when(() => c.execute()).thenAnswer((_) async => {});
-        when(() => c.undo()).thenAnswer((_) async => {});
+        when(c.execute).thenAnswer((_) async => {});
+        when(c.undo).thenAnswer((_) async => {});
         when(() => c.description).thenReturn('Cmd');
         await notifier.execute(c);
       }
@@ -156,9 +157,9 @@ void main() {
       // stack: [c1, c2, c3]. jumpTo c1 should undo c3 and c2.
       await notifier.jumpTo(c1);
 
-      verify(() => c3.undo()).called(1);
-      verify(() => c2.undo()).called(1);
-      verifyNever(() => c1.undo());
+      verify(c3.undo).called(1);
+      verify(c2.undo).called(1);
+      verifyNever(c1.undo);
 
       expect(notifier.state.undoStack, equals([c1]));
       expect(notifier.state.redoStack, equals([c3, c2]));
@@ -166,8 +167,8 @@ void main() {
       // jumpTo c3 should redo c2 and c3.
       await notifier.jumpTo(c3);
 
-      verify(() => c2.execute()).called(2); // once initially, once on jumpTo
-      verify(() => c3.execute()).called(2);
+      verify(c2.execute).called(2); // once initially, once on jumpTo
+      verify(c3.execute).called(2);
 
       expect(notifier.state.undoStack, equals([c1, c2, c3]));
       expect(notifier.state.redoStack, isEmpty);
@@ -177,7 +178,7 @@ void main() {
       'should handle exception during execute and leave state clean',
       () async {
         final cmd = MockCommand();
-        when(() => cmd.execute()).thenThrow(Exception('execution failed'));
+        when(cmd.execute).thenThrow(Exception('execution failed'));
         when(() => cmd.description).thenReturn('Mock Action');
 
         expect(() => notifier.execute(cmd), throwsA(isA<Exception>()));
@@ -194,8 +195,8 @@ void main() {
       'should handle exception during undo and restore command to undoStack',
       () async {
         final cmd = MockCommand();
-        when(() => cmd.execute()).thenAnswer((_) async => {});
-        when(() => cmd.undo()).thenThrow(Exception('undo failed'));
+        when(cmd.execute).thenAnswer((_) async => {});
+        when(cmd.undo).thenThrow(Exception('undo failed'));
         when(() => cmd.description).thenReturn('Mock Action');
 
         await notifier.execute(cmd);
@@ -215,14 +216,14 @@ void main() {
       'should handle exception during redo and restore command to redoStack',
       () async {
         final cmd = MockCommand();
-        when(() => cmd.execute()).thenAnswer((_) async => {});
-        when(() => cmd.undo()).thenAnswer((_) async => {});
+        when(cmd.execute).thenAnswer((_) async => {});
+        when(cmd.undo).thenAnswer((_) async => {});
         when(() => cmd.description).thenReturn('Mock Action');
 
         await notifier.execute(cmd);
         await notifier.undo();
 
-        when(() => cmd.execute()).thenThrow(Exception('redo failed'));
+        when(cmd.execute).thenThrow(Exception('redo failed'));
 
         expect(() => notifier.redo(), throwsA(isA<Exception>()));
 

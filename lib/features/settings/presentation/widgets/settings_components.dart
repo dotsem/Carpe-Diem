@@ -6,9 +6,9 @@ class SettingsSection extends StatelessWidget {
   final List<Widget> children;
 
   const SettingsSection({
-    super.key,
     required this.title,
     required this.children,
+    super.key,
   });
 
   @override
@@ -20,7 +20,7 @@ class SettingsSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(0, 24, 16, 8),
           child: Text(
             title.toUpperCase(),
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.accent,
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -71,9 +71,9 @@ class SettingsTile extends StatelessWidget {
   final bool enabled;
 
   const SettingsTile({
-    super.key,
     required this.icon,
     required this.title,
+    super.key,
     this.subtitle,
     this.trailing,
     this.onTap,
@@ -108,8 +108,7 @@ class SettingsTile extends StatelessWidget {
             : null,
         trailing: trailing,
         onTap: onTap,
-        contentPadding:
-            padding ?? const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+        contentPadding: padding ?? const EdgeInsets.symmetric(vertical: 8),
       ),
     );
   }
@@ -124,12 +123,12 @@ class SettingsSwitchTile extends StatelessWidget {
   final bool enabled;
 
   const SettingsSwitchTile({
-    super.key,
     required this.icon,
     required this.title,
-    this.subtitle,
     required this.value,
     required this.onChanged,
+    super.key,
+    this.subtitle,
     this.enabled = true,
   });
 
@@ -155,13 +154,13 @@ class SettingsDropdownTile<T> extends StatelessWidget {
   final bool enabled;
 
   const SettingsDropdownTile({
-    super.key,
     required this.icon,
     required this.title,
-    this.subtitle,
     required this.value,
     required this.items,
     required this.onChanged,
+    super.key,
+    this.subtitle,
     this.enabled = true,
   });
 
@@ -199,16 +198,16 @@ class SettingsSliderTile extends StatelessWidget {
   final bool enabled;
 
   const SettingsSliderTile({
-    super.key,
     required this.icon,
     required this.title,
-    this.subtitle,
     required this.value,
     required this.min,
     required this.max,
+    required this.onChanged,
+    super.key,
+    this.subtitle,
     this.divisions,
     this.labelBuilder,
-    required this.onChanged,
     this.enabled = true,
   });
 
@@ -219,7 +218,6 @@ class SettingsSliderTile extends StatelessWidget {
       child: Column(
         children: [
           SettingsTile(
-            enabled: true,
             icon: icon,
             title: title,
             subtitle: subtitle,
@@ -255,11 +253,11 @@ class SettingsCustomWidgetTile extends StatelessWidget {
   final bool enabled;
 
   const SettingsCustomWidgetTile({
-    super.key,
     required this.icon,
     required this.title,
-    this.subtitle,
     required this.child,
+    super.key,
+    this.subtitle,
     this.enabled = true,
   });
 
@@ -286,11 +284,11 @@ class SettingsCustomListTile extends StatelessWidget {
   final bool enabled;
 
   const SettingsCustomListTile({
-    super.key,
     required this.icon,
     required this.title,
-    this.subtitle,
     required this.children,
+    super.key,
+    this.subtitle,
     this.enabled = true,
   });
 
@@ -307,7 +305,6 @@ class SettingsCustomListTile extends StatelessWidget {
             SettingsTile(
               icon: icon,
               title: title,
-              enabled: true,
               subtitle: subtitle,
               trailing: const SizedBox.shrink(),
               padding: EdgeInsets.zero,

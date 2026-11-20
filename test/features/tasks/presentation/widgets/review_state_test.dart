@@ -41,11 +41,10 @@ void main() {
       repos = TestTaskRepositories();
       repos.setupDefaultStubs();
 
-      final now = DateTime(2026, 6, 1);
+      final now = DateTime(2026, 6);
       todoTask = createTestTask(
         id: 't-todo',
         title: 'Todo Task',
-        status: TaskStatus.todo,
         createdAt: now,
       );
       inProgressTask = createTestTask(
@@ -87,10 +86,7 @@ void main() {
       'StatusChip displays "In Progress" when reviewState is disabled',
       (tester) async {
         await tester.pumpWidget(
-          buildTestWidget(
-            child: StatusChip(task: reviewTask),
-            reviewStateEnabled: false,
-          ),
+          buildTestWidget(child: StatusChip(task: reviewTask)),
         );
         await tester.pumpAndSettle();
 
@@ -152,7 +148,6 @@ void main() {
               onContextMenu: (_, _, _) {},
               onEdit: (_) {},
             ),
-            reviewStateEnabled: false,
           ),
         );
         await tester.pumpAndSettle();
@@ -213,7 +208,6 @@ void main() {
                 return const SizedBox();
               },
             ),
-            reviewStateEnabled: false,
           ),
         );
         await tester.pumpAndSettle();

@@ -2,6 +2,7 @@ import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/tags/presentation/constants/tag_icon_constants.dart';
 import 'package:flutter/material.dart';
 
+@immutable
 class FilterMode {
   final String id;
   final String name;

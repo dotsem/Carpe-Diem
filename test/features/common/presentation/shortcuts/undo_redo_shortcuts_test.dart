@@ -1,11 +1,12 @@
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 class CustomMockUndoRedoNotifier extends UndoRedoNotifier {

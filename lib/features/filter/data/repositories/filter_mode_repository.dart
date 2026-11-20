@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class FilterModeRepository implements IFilterModeRepository {
@@ -61,7 +62,7 @@ class FilterModeRepository implements IFilterModeRepository {
   }
 
   FilterMode _fromDbMap(Map<String, dynamic> map) {
-    TaskFilter filter = const TaskFilter();
+    var filter = const TaskFilter();
     final filterRaw = map['filter'] as String?;
     if (filterRaw != null && filterRaw.isNotEmpty) {
       try {

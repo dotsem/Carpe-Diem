@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 
 class ActivityHeatmap extends StatelessWidget {
   static const _cell = 14.0;
-  static const _column = _cell + 4;
+  static const double _column = _cell + 4;
   static const _headerHeight = 16.0;
   static const _fadeWidth = 20.0;
 
@@ -16,9 +16,9 @@ class ActivityHeatmap extends StatelessWidget {
   final int firstDayOfWeek;
 
   const ActivityHeatmap({
-    super.key,
     required this.data,
     required this.firstDayOfWeek,
+    super.key,
   });
 
   @override

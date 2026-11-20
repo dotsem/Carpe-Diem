@@ -1,8 +1,8 @@
+import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
 
-const _presetColors = [
+const List<Color> _presetColors = [
   AppColors.accent,
   Color(0xFFE53935),
   Color(0xFFD81B60),
@@ -26,9 +26,9 @@ class ProjectColorPicker extends StatelessWidget {
   final ValueChanged<Color> onChanged;
 
   const ProjectColorPicker({
-    super.key,
     required this.selected,
     required this.onChanged,
+    super.key,
   });
 
   @override

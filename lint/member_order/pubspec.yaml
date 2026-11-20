@@ -1,0 +1,11 @@
+name: member_order
+description: Lint rule enforcing fields before constructors.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  analysis_server_plugin: any
+  analyzer: any

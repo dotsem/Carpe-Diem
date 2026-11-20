@@ -1,6 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 
 class CascadeDeleteDialog extends StatelessWidget {
@@ -10,11 +10,11 @@ class CascadeDeleteDialog extends StatelessWidget {
   final VoidCallback onDeleteAll;
 
   const CascadeDeleteDialog({
-    super.key,
     required this.parentTask,
     required this.subtasks,
     required this.onDeleteParentOnly,
     required this.onDeleteAll,
+    super.key,
   });
 
   @override

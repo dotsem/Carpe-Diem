@@ -1,10 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/database/database_helper.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-
 import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../../helpers/task_test_helpers.dart';
 
@@ -105,7 +104,7 @@ void main() {
     test(
       'should retrieve tasks by scheduled date or completion date range',
       () async {
-        final date = DateTime(2026, 6, 1);
+        final date = DateTime(2026, 6);
         final task1 = Task(
           id: 't1',
           title: 'Scheduled Task',
@@ -116,7 +115,7 @@ void main() {
           id: 't2',
           title: 'Completed Today Task',
           status: TaskStatus.done,
-          completedAt: DateTime(2026, 6, 1, 10, 0),
+          completedAt: DateTime(2026, 6, 1, 10),
           createdAt: DateTime.now(),
         );
         final task3 = Task(
@@ -146,7 +145,6 @@ void main() {
         id: 't1',
         title: 'Overdue Todo',
         scheduledDate: DateTime(2026, 6, 10),
-        status: TaskStatus.todo,
         createdAt: DateTime.now(),
       );
       final task2 = Task(
@@ -160,7 +158,6 @@ void main() {
         id: 't3',
         title: 'Future Task',
         scheduledDate: DateTime(2026, 6, 20),
-        status: TaskStatus.todo,
         createdAt: DateTime.now(),
       );
 

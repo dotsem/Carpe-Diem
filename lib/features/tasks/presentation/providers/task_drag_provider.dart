@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+@immutable
 class TaskDragState {
   final String? draggedTaskId;
   final bool hasValidTarget;
@@ -81,11 +83,7 @@ class TaskDragNotifier extends Notifier<TaskDragState> {
 
   void startDrag(String taskId) {
     _addPointerListener();
-    state = TaskDragState(
-      draggedTaskId: taskId,
-      hasValidTarget: false,
-      isCancelled: false,
-    );
+    state = TaskDragState(draggedTaskId: taskId);
   }
 
   void cancelDrag([PointerEvent? event]) {

@@ -8,11 +8,11 @@ class OverviewStatCard extends StatelessWidget {
   final bool isLarge;
 
   const OverviewStatCard({
-    super.key,
     required this.label,
     required this.value,
     required this.icon,
     required this.color,
+    super.key,
     this.isLarge = false,
   });
 

@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_grid_section.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/project_grid_section.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ProjectGrid extends ConsumerStatefulWidget {
   final String searchQuery;
@@ -14,10 +14,10 @@ class ProjectGrid extends ConsumerStatefulWidget {
   final FocusNode mainFocusNode;
 
   const ProjectGrid({
-    super.key,
     required this.searchQuery,
     required this.searchFocusNode,
     required this.mainFocusNode,
+    super.key,
   });
 
   @override
@@ -86,7 +86,7 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
 
     String? currentId;
     FocusNode? currentNode;
-    for (var entry in _itemFocusNodes.entries) {
+    for (final entry in _itemFocusNodes.entries) {
       if (entry.value.hasFocus) {
         currentId = entry.key;
         currentNode = entry.value;
@@ -103,24 +103,24 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
       return;
     }
 
-    final currentBox = currentNode.context!.findRenderObject() as RenderBox;
+    final currentBox = currentNode.context!.findRenderObject()! as RenderBox;
     final currentCenter = currentBox.localToGlobal(
       currentBox.size.center(Offset.zero),
     );
 
     String? bestId;
-    double bestScore = double.infinity;
+    var bestScore = double.infinity;
 
     for (final id in _orderedItemIds) {
       if (id == currentId) continue;
       final node = _itemFocusNodes[id];
       if (node == null || node.context == null) continue;
 
-      final box = node.context!.findRenderObject() as RenderBox;
+      final box = node.context!.findRenderObject()! as RenderBox;
       final center = box.localToGlobal(box.size.center(Offset.zero));
       final diff = center - currentCenter;
 
-      bool inDirection = false;
+      var inDirection = false;
       if (dx > 0) {
         inDirection = diff.dx > 20;
       } else if (dx < 0) {
@@ -132,7 +132,7 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
       }
 
       if (inDirection) {
-        double score = diff.distanceSquared;
+        var score = diff.distanceSquared;
         if (dx != 0) score += diff.dy.abs() * 5000;
         if (dy != 0) score += diff.dx.abs() * 5000;
 
@@ -225,7 +225,6 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
       padding: const EdgeInsets.symmetric(vertical: 32),
       child: ListView(
         controller: _scrollController,
-        scrollDirection: Axis.vertical,
         children: [
           if (activeProjects.isNotEmpty)
             ProjectGridSection(

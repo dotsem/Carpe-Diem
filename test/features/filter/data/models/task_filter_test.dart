@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('filter', () {

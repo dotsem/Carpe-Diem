@@ -79,8 +79,8 @@ void main() {
           name: 'Project 1',
           color: Colors.blue,
           labelIds: ['label_p1'],
-          createdAt: DateTime(2026, 1, 1),
-          updatedAt: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
         );
 
         when(
@@ -231,7 +231,7 @@ void main() {
                 body: Consumer(
                   builder: (context, ref, _) {
                     capturedRef = ref;
-                    return TaskFormPanel(initialParentId: 'parent_123');
+                    return const TaskFormPanel(initialParentId: 'parent_123');
                   },
                 ),
               ),

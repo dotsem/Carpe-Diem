@@ -10,7 +10,8 @@ class MigrationRunner {
 
   MigrationRunner([List<Migration>? migrations])
     : _migrations = List.unmodifiable(
-        (migrations ?? [])..sort((a, b) => a.version.compareTo(b.version)),
+        (migrations ?? <Migration>[])
+          ..sort((a, b) => a.version.compareTo(b.version)),
       );
 
   Future<void> run(Database db, int oldVersion, int newVersion) async {

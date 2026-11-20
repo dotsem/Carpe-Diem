@@ -1,21 +1,22 @@
+import 'dart:async';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_board.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_dialog.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_board.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomePlannerPane extends ConsumerWidget {
   final Map<String, FocusNode> itemFocusNodes;
@@ -23,10 +24,10 @@ class HomePlannerPane extends ConsumerWidget {
   final ValueChanged<Task> onEdit;
 
   const HomePlannerPane({
-    super.key,
     required this.itemFocusNodes,
     required this.onOrderedIdsChanged,
     required this.onEdit,
+    super.key,
   });
 
   @override
@@ -63,28 +64,31 @@ class HomePlannerPane extends ConsumerWidget {
     if (taskLayout == TaskLayout.kanban) {
       return KanbanBoard(
         tasks: [...(isToday ? overdue : []), ...allTasks],
-        isPlanView: true,
         onStatusChange: (task, status) async {
           if (status == TaskStatus.done) {
             final conflict = await ref
                 .read(taskProvider.notifier)
                 .checkSubtaskConflict(task);
             if (conflict != null && context.mounted) {
-              showDialog(
-                context: context,
-                builder: (_) => CompleteParentDialog(conflict: conflict),
+              unawaited(
+                showDialog<void>(
+                  context: context,
+                  builder: (_) => CompleteParentDialog(conflict: conflict),
+                ),
               );
               return;
             }
           }
-          ref
-              .read(taskProvider.notifier)
-              .updateTaskStatus(
-                task,
-                status,
-                newSortOrder: task.sortOrder,
-                newPlanSortOrder: task.planSortOrder,
-              );
+          unawaited(
+            ref
+                .read(taskProvider.notifier)
+                .updateTaskStatus(
+                  task,
+                  status,
+                  newSortOrder: task.sortOrder,
+                  newPlanSortOrder: task.planSortOrder,
+                ),
+          );
         },
         onContextMenu: (task, pos, box) =>
             showTaskCardContextMenu(context, ref, task, allTasks, pos, box),

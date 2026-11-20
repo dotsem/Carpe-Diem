@@ -1,9 +1,9 @@
 import 'package:carpe_diem/core/utils/project_reorder_utils.dart';
-import 'package:carpe_diem/flutter_ext/platform_draggable.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card_placeholder.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_drag_proxy.dart';
+import 'package:carpe_diem/flutter_ext/platform_draggable.dart';
 import 'package:flutter/material.dart';
 
 class ProjectGridSection extends StatefulWidget {
@@ -14,12 +14,12 @@ class ProjectGridSection extends StatefulWidget {
   final void Function(Project project, String newSortOrder) onReorder;
 
   const ProjectGridSection({
-    super.key,
     required this.projects,
     required this.itemFocusNodes,
-    this.highlightedProjectId,
     required this.onProjectTap,
     required this.onReorder,
+    super.key,
+    this.highlightedProjectId,
   });
 
   @override
@@ -104,9 +104,9 @@ class _ProjectGridSectionState extends State<ProjectGridSection> {
     final totalSlots = widget.projects.length;
     final clampedHover = (_hoverIndex ?? oldIndex).clamp(0, totalSlots - 1);
 
-    final List<Widget> gridItems = [];
+    final gridItems = <Widget>[];
 
-    for (int slot = 0; slot < totalSlots; slot++) {
+    for (var slot = 0; slot < totalSlots; slot++) {
       final slotIndex = slot;
 
       if (slot == clampedHover) {

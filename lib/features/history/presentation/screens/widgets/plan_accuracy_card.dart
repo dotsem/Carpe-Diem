@@ -9,7 +9,7 @@ class PlanAccuracyCard extends StatelessWidget {
 
   final HistoryInsights insights;
 
-  const PlanAccuracyCard({super.key, required this.insights});
+  const PlanAccuracyCard({required this.insights, super.key});
 
   @override
   Widget build(BuildContext context) {

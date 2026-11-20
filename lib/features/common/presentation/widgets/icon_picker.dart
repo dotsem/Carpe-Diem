@@ -7,9 +7,9 @@ class IconPicker extends StatelessWidget {
   final List<IconData> icons;
 
   const IconPicker({
-    super.key,
     required this.selected,
     required this.onChanged,
+    super.key,
     this.icons = availableIcons,
   });
 

@@ -54,8 +54,7 @@ class DataManagementSection extends ConsumerWidget {
               subtitle:
                   'They can still be temporarily shown by clicking "Show archived projects" button',
               value: settings.showActiveProjectsOnly,
-              onChanged: (value) =>
-                  settingsNotifier.setShowActiveProjectsOnly(value),
+              onChanged: settingsNotifier.setShowActiveProjectsOnly,
             ),
           ],
         ),

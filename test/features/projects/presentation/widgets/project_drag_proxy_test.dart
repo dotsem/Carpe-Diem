@@ -40,7 +40,7 @@ void main() {
       expect(find.byType(ProjectCard), findsOneWidget);
       final transform = tester.widget<Transform>(
         find.byWidgetPredicate(
-          (w) => w is Transform && w.alignment == const Alignment(0.0, -1.2),
+          (w) => w is Transform && w.alignment == const Alignment(0, -1.2),
         ),
       );
       expect(transform.transform, isNotNull);
@@ -73,7 +73,7 @@ void main() {
           (w) => w is Transform && (w.alignment as Alignment?)?.y == -1.2,
         ),
       );
-      final alignment = dynamicTransform.alignment as Alignment;
+      final alignment = dynamicTransform.alignment! as Alignment;
       expect(alignment.y, equals(-1.2));
       expect(alignment.x, isNotNull);
       await gesture.removePointer();
@@ -87,7 +87,7 @@ void main() {
           overrides: [
             ...repos.providerOverrides,
             settingsProvider.overrideWith(
-              () => _DisabledAnimationSettingsNotifier(),
+              _DisabledAnimationSettingsNotifier.new,
             ),
           ],
           child: MaterialApp(

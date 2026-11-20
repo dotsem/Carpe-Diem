@@ -1,6 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 class WindowTitleState {
@@ -10,8 +10,8 @@ class WindowTitleState {
 
   const WindowTitleState({
     required this.baseTitle,
-    this.baseSubtitle,
     required this.subtitleStack,
+    this.baseSubtitle,
   });
 
   String get title => baseTitle;
@@ -93,7 +93,7 @@ class WindowTitleNotifier extends Notifier<WindowTitleState> {
             defaultTargetPlatform == TargetPlatform.macOS)) {
       try {
         await windowManager.setTitle(state.fullTitle);
-      } catch (e) {
+      } on Object catch (e) {
         debugPrint('Failed to set window title: $e');
       }
     }

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/command_palette/models/palette_command.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette_list_tile.dart';
+import 'package:flutter/material.dart';
 
 class CommandPaletteResultsList extends StatelessWidget {
   final ScrollController scrollController;
@@ -9,11 +9,11 @@ class CommandPaletteResultsList extends StatelessWidget {
   final ValueChanged<PaletteCommand> onSelectCommand;
 
   const CommandPaletteResultsList({
-    super.key,
     required this.scrollController,
     required this.filteredCommands,
     required this.selectedIndex,
     required this.onSelectCommand,
+    super.key,
   });
 
   @override

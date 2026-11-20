@@ -174,7 +174,7 @@ void main() {
         // Test single undo reverts all changes
         final undoRedo = container.read(undoRedoProvider.notifier);
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
         // Parent should be deleted
         verify(() => mockTaskRepo.delete(any())).called(1);

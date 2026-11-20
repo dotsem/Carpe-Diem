@@ -1,11 +1,11 @@
 import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:carpe_diem/flutter_ext/horizontal_tab.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/flutter_ext/horizontal_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -76,7 +76,7 @@ class _BacklogLabelTabBarState extends ConsumerState<BacklogLabelTabBar>
     final tasks = taskState.unscheduledTasks;
 
     final labelCounts = <String, int>{};
-    int inboxCount = 0;
+    var inboxCount = 0;
     for (final t in tasks) {
       final project = t.projectId != null
           ? projectState.getById(t.projectId!)

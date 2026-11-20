@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/command_palette/models/palette_command.dart';
+import 'package:flutter/material.dart';
 
 class CommandPaletteListTile extends StatelessWidget {
   final PaletteCommand command;
@@ -7,10 +7,10 @@ class CommandPaletteListTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const CommandPaletteListTile({
-    super.key,
     required this.command,
     required this.isSelected,
     required this.onTap,
+    super.key,
   });
 
   @override

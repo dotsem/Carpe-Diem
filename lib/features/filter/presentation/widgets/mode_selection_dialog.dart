@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/routes/keys.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModeSelectionDialog extends ConsumerStatefulWidget {
   const ModeSelectionDialog({super.key});
@@ -14,7 +14,6 @@ class ModeSelectionDialog extends ConsumerStatefulWidget {
     if (targetContext == null) return Future.value();
     return showDialog(
       context: targetContext,
-      useRootNavigator: true,
       builder: (_) => const ModeSelectionDialog(),
     );
   }
@@ -81,7 +80,7 @@ class _ModeSelectionDialogState extends ConsumerState<ModeSelectionDialog> {
       LogicalKeyboardKey.numpad9,
     ];
 
-    for (int i = 0; i < 9; i++) {
+    for (var i = 0; i < 9; i++) {
       if (event.logicalKey == digitKeys[i] ||
           event.logicalKey == numpadKeys[i]) {
         if (i < modes.length) {

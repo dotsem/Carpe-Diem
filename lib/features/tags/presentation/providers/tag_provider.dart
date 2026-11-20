@@ -7,9 +7,9 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/data/models/tag_profile.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/delete_tag_command.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/set_tag_icon_command.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/update_tag_command.dart';
-import 'package:carpe_diem/features/tags/presentation/utils/delete_tag_command.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -124,7 +124,7 @@ class TagNotifier extends Notifier<TagState> {
     final tagRepo = _repo;
     final iconRepo = ref.read(tagIconRepositoryProvider);
 
-    final List<Command> commands = [];
+    final commands = <Command>[];
 
     for (final tagInfo in profile.tags) {
       final name = tagInfo.name;
@@ -164,6 +164,4 @@ class TagNotifier extends Notifier<TagState> {
   }
 }
 
-final tagProvider = NotifierProvider<TagNotifier, TagState>(
-  () => TagNotifier(),
-);
+final tagProvider = NotifierProvider<TagNotifier, TagState>(TagNotifier.new);

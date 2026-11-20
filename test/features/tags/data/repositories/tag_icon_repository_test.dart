@@ -1,8 +1,8 @@
+import 'package:carpe_diem/features/common/data/database/database_helper.dart';
+import 'package:carpe_diem/features/tags/data/repositories/tag_icon_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:carpe_diem/features/common/data/database/database_helper.dart';
-import 'package:carpe_diem/features/tags/data/repositories/tag_icon_repository.dart';
 
 void main() {
   setUpAll(() {

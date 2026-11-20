@@ -8,9 +8,9 @@ class PlacementSection extends StatelessWidget {
   final ValueChanged<TaskPlacement?> onChanged;
 
   const PlacementSection({
-    super.key,
     required this.placement,
     required this.onChanged,
+    super.key,
   });
 
   @override
@@ -21,11 +21,11 @@ class PlacementSection extends StatelessWidget {
         SectionItem(
           icon: Icons.sort,
           title: 'Placement & Urgency',
-          shortcut: "Ctrl + 1..4", // TODO, maybe register this in shortcuts?
+          shortcut: 'Ctrl + 1..4', // TODO, maybe register this in shortcuts?
           child: TaskPlacementSelector(
             mini: true,
             selected: placement,
-            onChanged: (p) => onChanged(p),
+            onChanged: onChanged,
           ),
         ),
       ],

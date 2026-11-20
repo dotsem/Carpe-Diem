@@ -1,25 +1,25 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/core/theme/app_breakpoints.dart';
-import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/side_nav.dart';
+import 'package:carpe_diem/features/common/presentation/shell/action_toast_handler.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_container.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
-import 'package:carpe_diem/routes/keys.dart';
-import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/action_toast_handler.dart';
+import 'package:carpe_diem/features/common/presentation/shell/side_nav.dart';
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/parent_completion_prompt_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/complete_parent_prompt_dialog.dart';
+import 'package:carpe_diem/routes/keys.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
 
-  const AppShell({super.key, required this.child});
+  const AppShell({required this.child, super.key});
 
   @override
   ConsumerState<AppShell> createState() => _AppShellState();
@@ -109,7 +109,7 @@ class _AppShellState extends ConsumerState<AppShell>
     ref.listen<Task?>(parentCompletionPromptProvider, (_, parent) {
       if (parent == null) return;
       ref.read(parentCompletionPromptProvider.notifier).clear();
-      showDialog(
+      showDialog<void>(
         context: context,
         builder: (_) => CompleteParentPromptDialog(parent: parent),
       );
@@ -167,7 +167,6 @@ class _AppShellState extends ConsumerState<AppShell>
                 ],
                 Expanded(
                   child: Stack(
-                    clipBehavior: Clip.hardEdge,
                     children: [
                       Padding(
                         padding: EdgeInsets.symmetric(
@@ -219,7 +218,7 @@ class _AppShellState extends ConsumerState<AppShell>
                           right: 0,
                           width: isMobile ? 320 : 420,
                           child: FractionalTranslation(
-                            translation: Offset(1.0 - _panelCurve.value, 0.0),
+                            translation: Offset(1.0 - _panelCurve.value, 0),
                             child: Material(
                               elevation: 16,
                               color: Theme.of(context).colorScheme.surface,

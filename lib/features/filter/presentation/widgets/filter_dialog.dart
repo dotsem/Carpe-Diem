@@ -1,13 +1,13 @@
 import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/common/filter_accordion_section.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/project_filter_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/tag_filter_picker.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 
 class FilterDialog extends ConsumerStatefulWidget {
   final TaskFilter initialFilter;
@@ -17,8 +17,8 @@ class FilterDialog extends ConsumerStatefulWidget {
   final bool showTagFilter;
 
   const FilterDialog({
-    super.key,
     required this.initialFilter,
+    super.key,
     this.showProjectFilter = true,
     this.showUrgencyFilter = true,
     this.showLabelFilter = true,

@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class TabHistoryInsights extends ConsumerWidget {
   final DateTimeRange range;
 
-  const TabHistoryInsights({super.key, required this.range});
+  const TabHistoryInsights({required this.range, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,7 +68,10 @@ class TabHistoryInsights extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         losingColumn,
-                        if (gaining.isNotEmpty) ...[Divider(), gainingColumn],
+                        if (gaining.isNotEmpty) ...[
+                          const Divider(),
+                          gainingColumn,
+                        ],
                       ],
                     );
                   },

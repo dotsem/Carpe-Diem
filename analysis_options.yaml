@@ -1,4 +1,8 @@
+include: package:very_good_analysis/analysis_options.11.0.0.yaml
+
 analyzer:
+  errors:
+    todo: ignore
   exclude:
     - build/**
     - android/**
@@ -7,4 +11,26 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
-include: package:flutter_lints/flutter.yaml
+    - lint/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+linter:
+  rules:
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    sort_pub_dependencies: false
+    flutter_style_todos: false
+    sort_constructors_first: false
+    sort_unnamed_constructors_first: false
+    document_ignores: false
+    discarded_futures: false
+    cascade_invocations: false
+    avoid_positional_boolean_parameters: false
+    avoid_catching_errors: false
+    join_return_with_assignment: false
+    use_setters_to_change_properties: false
+
+plugins:
+  member_order:
+    path: lint/member_order

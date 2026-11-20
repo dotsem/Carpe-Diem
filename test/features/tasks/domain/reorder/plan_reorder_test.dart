@@ -1,9 +1,9 @@
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/core/utils/task_sort_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -40,7 +40,7 @@ void main() {
       );
       expect(newRank, isNotNull);
 
-      final list = [child1, child2.copyWith(planSortOrder: newRank!)];
+      final list = [child1, child2.copyWith(planSortOrder: newRank)];
       TaskSortUtils.sortTasks(list, settings, isPlanView: true);
       expect(list.first.id, equals('c2'));
     });
@@ -73,7 +73,7 @@ void main() {
       );
       expect(newRank, isNotNull);
 
-      final list = [child1, root1.copyWith(planSortOrder: newRank!)];
+      final list = [child1, root1.copyWith(planSortOrder: newRank)];
       TaskSortUtils.sortTasks(list, settings, isPlanView: true);
       expect(list.first.id, equals('r1'));
     });
@@ -115,7 +115,7 @@ void main() {
       );
       expect(newRank, isNotNull);
 
-      final list = [child1, root1.copyWith(planSortOrder: newRank!)];
+      final list = [child1, root1.copyWith(planSortOrder: newRank)];
       TaskSortUtils.sortTasks(list, deadlineSettings, isPlanView: true);
       expect(list.first.id, equals('r1'));
     });
@@ -151,7 +151,7 @@ void main() {
       );
       expect(newRank, isNotNull);
 
-      final list = [taskX, child1, root1.copyWith(planSortOrder: newRank!)];
+      final list = [taskX, child1, root1.copyWith(planSortOrder: newRank)];
       TaskSortUtils.sortTasks(list, settings, isPlanView: true);
       expect(list[0].id, equals('tx'));
       expect(list[1].id, equals('r1'));

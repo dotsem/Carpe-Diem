@@ -34,32 +34,28 @@ class TasksSection extends ConsumerWidget {
               title: 'Inherit Parent Deadline',
               subtitle: 'New subtasks inherit parent deadline',
               value: settings.inheritParentDeadline,
-              onChanged: (value) =>
-                  settingsNotifier.setInheritParentDeadline(value),
+              onChanged: settingsNotifier.setInheritParentDeadline,
             ),
             SettingsSwitchTile(
               icon: Icons.folder_shared_outlined,
               title: 'Inherit Project Deadline',
               subtitle: 'New tasks inherit project deadline',
               value: settings.inheritProjectDeadline,
-              onChanged: (value) =>
-                  settingsNotifier.setInheritProjectDeadline(value),
+              onChanged: settingsNotifier.setInheritProjectDeadline,
             ),
             SettingsSwitchTile(
               icon: Icons.priority_high_outlined,
               title: 'Prioritize Deadlines',
               subtitle: 'Sort tasks by deadline first',
               value: settings.prioritizeDeadlines,
-              onChanged: (value) =>
-                  settingsNotifier.setPrioritizeDeadlines(value),
+              onChanged: settingsNotifier.setPrioritizeDeadlines,
             ),
             SettingsSwitchTile(
               icon: Icons.event_busy_outlined,
               title: 'Prioritize Overdue',
               subtitle: 'Show overdue tasks at the top of lists in kanban view',
               value: settings.prioritizeOverdue,
-              onChanged: (value) =>
-                  settingsNotifier.setPrioritizeOverdue(value),
+              onChanged: settingsNotifier.setPrioritizeOverdue,
             ),
           ],
         ),

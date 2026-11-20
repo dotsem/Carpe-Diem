@@ -47,7 +47,7 @@ Slug _getSlug(List<String> args) {
   final description = rawInput.isEmpty ? 'create migration' : rawInput;
 
   final words = description
-      .replaceAll(RegExp(r'[^a-zA-Z0-9]+'), ' ')
+      .replaceAll(RegExp('[^a-zA-Z0-9]+'), ' ')
       .trim()
       .split(RegExp(r'\s+'))
       .where((w) => w.isNotEmpty)
@@ -56,7 +56,7 @@ Slug _getSlug(List<String> args) {
   final snakeCaseSlug = words.map((w) => w.toLowerCase()).join('_');
   final pascalCaseSlug = words
       .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
-      .join('');
+      .join();
 
   return Slug(snakeCaseSlug: snakeCaseSlug, pascalCaseSlug: pascalCaseSlug);
 }

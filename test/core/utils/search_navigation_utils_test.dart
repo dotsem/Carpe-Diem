@@ -8,7 +8,7 @@ void main() {
     final orderedIds = ['item-1', 'item-2', 'item-3'];
 
     test('ignores non-keydown events', () {
-      final event = const KeyUpEvent(
+      const event = KeyUpEvent(
         physicalKey: PhysicalKeyboardKey.arrowDown,
         logicalKey: LogicalKeyboardKey.arrowDown,
         timeStamp: Duration.zero,
@@ -59,7 +59,7 @@ void main() {
     });
 
     test('arrowDown advances highlight and clamps at end', () {
-      final event = const KeyDownEvent(
+      const event = KeyDownEvent(
         physicalKey: PhysicalKeyboardKey.arrowDown,
         logicalKey: LogicalKeyboardKey.arrowDown,
         timeStamp: Duration.zero,
@@ -90,7 +90,7 @@ void main() {
     });
 
     test('arrowUp decrements highlight and clamps at start', () {
-      final event = const KeyDownEvent(
+      const event = KeyDownEvent(
         physicalKey: PhysicalKeyboardKey.arrowUp,
         logicalKey: LogicalKeyboardKey.arrowUp,
         timeStamp: Duration.zero,
@@ -121,7 +121,7 @@ void main() {
     });
 
     test('arrowDown from null highlight picks first item', () {
-      final event = const KeyDownEvent(
+      const event = KeyDownEvent(
         physicalKey: PhysicalKeyboardKey.arrowDown,
         logicalKey: LogicalKeyboardKey.arrowDown,
         timeStamp: Duration.zero,
@@ -166,7 +166,7 @@ void main() {
     });
 
     test('horizontal arrows respect allowHorizontal flag', () {
-      final rightEvent = const KeyDownEvent(
+      const rightEvent = KeyDownEvent(
         physicalKey: PhysicalKeyboardKey.arrowRight,
         logicalKey: LogicalKeyboardKey.arrowRight,
         timeStamp: Duration.zero,
@@ -177,7 +177,6 @@ void main() {
         event: rightEvent,
         orderedIds: orderedIds,
         currentHighlightId: 'item-1',
-        allowHorizontal: false,
         onHighlightChanged: (id) => changedId = id,
         onSelect: () {},
       );
@@ -197,7 +196,7 @@ void main() {
     });
 
     test('escape calls onEscape even if orderedIds is empty', () {
-      final escapeEvent = const KeyDownEvent(
+      const escapeEvent = KeyDownEvent(
         physicalKey: PhysicalKeyboardKey.escape,
         logicalKey: LogicalKeyboardKey.escape,
         timeStamp: Duration.zero,

@@ -45,7 +45,6 @@ void main() {
       'editing existing non-urgent task with null placement retains sortOrder',
       (tester) async {
         final existingTask = createTestTask(
-          id: 't1',
           title: 'Normal Task',
           sortOrder: '0|h00000:',
         );
@@ -78,7 +77,6 @@ void main() {
           parentId: null,
           selectedLabelIds: [],
           selectedTagIds: [],
-          placement: null,
           initialTask: existingTask,
         );
         await tester.pumpAndSettle();
@@ -184,7 +182,6 @@ void main() {
           parentId: null,
           selectedLabelIds: [],
           selectedTagIds: [],
-          placement: null,
           initialTask: existingTask,
         );
         await tester.pumpAndSettle();
@@ -226,7 +223,6 @@ void main() {
         parentId: null,
         selectedLabelIds: [],
         selectedTagIds: [],
-        placement: null,
         initialTask: null,
       );
       await tester.pumpAndSettle();

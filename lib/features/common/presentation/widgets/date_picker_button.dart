@@ -11,13 +11,13 @@ class DatePickerButton extends StatelessWidget {
   final IconData? icon;
 
   const DatePickerButton({
-    super.key,
     required this.label,
     required this.date,
+    required this.onChanged,
+    super.key,
     this.firstDate,
     this.lastDate,
     this.icon = Icons.calendar_today,
-    required this.onChanged,
   });
 
   @override
@@ -27,7 +27,7 @@ class DatePickerButton extends StatelessWidget {
 
     return InkWell(
       onTap: () async {
-        DateTime initialDate = date ?? DateTime.now();
+        var initialDate = date ?? DateTime.now();
 
         if (initialDate.isBefore(effectiveFirstDate)) {
           initialDate = effectiveFirstDate;

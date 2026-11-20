@@ -1,18 +1,17 @@
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
-import 'package:carpe_diem/features/projects/presentation/shortcuts/projects_shortcuts.dart';
-
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/shortcuts/projects_shortcuts.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProjectsScreen extends ConsumerStatefulWidget {
   const ProjectsScreen({super.key});
@@ -53,7 +52,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
       onMoveLeft: () => _gridKey.currentState?.moveFocus(-1, 0),
       onMoveRight: () => _gridKey.currentState?.moveFocus(1, 0),
       onShowFilter: () => _showFilterDialog(context),
-      onFocusSearch: () => _searchFocusNode.requestFocus(),
+      onFocusSearch: _searchFocusNode.requestFocus,
       onUnfocusSearch: () {
         if (_searchFocusNode.hasFocus) {
           _searchFocusNode.unfocus();
@@ -125,7 +124,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
   }
 
-  void _showFilterDialog(BuildContext context) async {
+  Future<void> _showFilterDialog(BuildContext context) async {
     final filterNotifier = ref.read(filterProvider.notifier);
     final result = await showDialog<TaskFilter>(
       context: context,

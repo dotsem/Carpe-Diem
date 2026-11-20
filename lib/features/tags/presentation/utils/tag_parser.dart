@@ -32,7 +32,7 @@ class TagParser {
 
   /// Checks if a specific hashtag exists in the text.
   static bool containsTag(String text, String tagName) {
-    final RegExp tagRegex = RegExp(
+    final tagRegex = RegExp(
       r'(^|\s)#' + RegExp.escape(tagName) + r'(?![a-zA-Z0-9_\-])',
       caseSensitive: false,
     );
@@ -45,7 +45,7 @@ class TagParser {
     String oldTagName,
     String newTagName,
   ) {
-    final RegExp tagRegex = RegExp(
+    final tagRegex = RegExp(
       r'(^|\s)#' + RegExp.escape(oldTagName) + r'(?![a-zA-Z0-9_\-])',
       caseSensitive: false,
     );
@@ -56,7 +56,7 @@ class TagParser {
   static String stripSpecificTags(String text, List<String> tagNamesToStrip) {
     var cleaned = text;
     for (final name in tagNamesToStrip) {
-      final RegExp tagRegex = RegExp(
+      final tagRegex = RegExp(
         r'(^|\s)#' + RegExp.escape(name) + r'(?![a-zA-Z0-9_\-])',
         caseSensitive: false,
       );

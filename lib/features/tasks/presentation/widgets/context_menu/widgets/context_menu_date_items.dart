@@ -2,9 +2,9 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/cascade_schedule_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,13 +12,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 List<PopupMenuEntry<void>> buildDateScheduleItems(
   BuildContext context,
   WidgetRef ref,
-  final Task task,
-  final List<Task> tasks,
-  final Offset localPosition,
-  final RenderBox renderBox,
-  final VoidCallback? onAction,
+  Task task,
+  List<Task> tasks,
+  Offset localPosition,
+  RenderBox renderBox,
+  VoidCallback? onAction,
 ) {
-  final List<PopupMenuEntry<void>> items = [];
+  final items = <PopupMenuEntry<void>>[];
   final taskNotifier = ref.read(taskProvider.notifier);
   final selectedDate = ref.read(selectedDateProvider);
   final isSelectedDateToday = selectedDate.isToday;
@@ -28,7 +28,7 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
     final incompleteSubtasks = subtasks.where((t) => !t.isCompleted).toList();
 
     if (incompleteSubtasks.isNotEmpty) {
-      showDialog(
+      showDialog<void>(
         context: context,
         builder: (_) => CascadeScheduleDialog.schedule(
           parentTask: task,

@@ -1,7 +1,7 @@
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -31,8 +31,8 @@ void main() {
     });
 
     test('loadTasksForDate loads tasks and overdue tasks', () async {
-      final date = DateTime(2026, 6, 1);
-      final list = [createTestTask(id: 't1', scheduledDate: date)];
+      final date = DateTime(2026, 6);
+      final list = [createTestTask(scheduledDate: date)];
       final overdue = [createTestTask(id: 't2')];
 
       when(
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('updateTask updates repository item', () async {
-      final task = createTestTask(id: 't1', title: 'Task Original');
+      final task = createTestTask(title: 'Task Original');
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => task);
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 
@@ -98,7 +98,7 @@ void main() {
     });
 
     test('deleteTask deletes task from repository', () async {
-      final task = createTestTask(id: 't1');
+      final task = createTestTask();
       when(() => mockTaskRepo.delete('t1')).thenAnswer((_) async => {});
 
       final notifier = container.read(taskProvider.notifier);
@@ -108,7 +108,7 @@ void main() {
     });
 
     test('reorderTask updates sortOrder optimistically and persists', () async {
-      final task = createTestTask(id: 't1').copyWith(sortOrder: '0|i00000:');
+      final task = createTestTask().copyWith(sortOrder: '0|i00000:');
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 
       final notifier = container.read(taskProvider.notifier);
@@ -128,7 +128,7 @@ void main() {
     });
 
     test('bulkReorderTasks updates multiple tasks', () async {
-      final t1 = createTestTask(id: 't1');
+      final t1 = createTestTask();
       final t2 = createTestTask(id: 't2');
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
       when(() => mockTaskRepo.getById('t2')).thenAnswer((_) async => t2);
@@ -141,7 +141,7 @@ void main() {
     });
 
     test('updateTaskStatus and startTask update status in repo', () async {
-      final task = createTestTask(id: 't1', status: TaskStatus.todo);
+      final task = createTestTask();
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => task);
       when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 
@@ -164,7 +164,7 @@ void main() {
     test(
       'toggleComplete transitions from todo to inProgress, and done to todo',
       () async {
-        final todoTask = createTestTask(id: 't1', status: TaskStatus.todo);
+        final todoTask = createTestTask();
         final doneTask = createTestTask(id: 't2', status: TaskStatus.done);
         when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
@@ -202,10 +202,7 @@ void main() {
       'toggleComplete transitions inProgress to review when reviewState is enabled',
       () async {
         await container.read(settingsProvider.notifier).setReviewState(true);
-        final inProgressTask = createTestTask(
-          id: 't1',
-          status: TaskStatus.inProgress,
-        );
+        final inProgressTask = createTestTask(status: TaskStatus.inProgress);
         when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 
@@ -230,10 +227,7 @@ void main() {
       'toggleComplete transitions inProgress to done when reviewState is disabled',
       () async {
         await container.read(settingsProvider.notifier).setReviewState(false);
-        final inProgressTask = createTestTask(
-          id: 't1',
-          status: TaskStatus.inProgress,
-        );
+        final inProgressTask = createTestTask(status: TaskStatus.inProgress);
         when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 
@@ -258,7 +252,7 @@ void main() {
       'toggleComplete transitions review to done when reviewState is disabled',
       () async {
         await container.read(settingsProvider.notifier).setReviewState(false);
-        final reviewTask = createTestTask(id: 't1', status: TaskStatus.review);
+        final reviewTask = createTestTask(status: TaskStatus.review);
         when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 
@@ -283,7 +277,7 @@ void main() {
       'toggleComplete transitions review to done when reviewState is enabled',
       () async {
         await container.read(settingsProvider.notifier).setReviewState(true);
-        final reviewTask = createTestTask(id: 't1', status: TaskStatus.review);
+        final reviewTask = createTestTask(status: TaskStatus.review);
         when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
         when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
 

@@ -7,7 +7,7 @@ class TagChip extends ConsumerWidget {
   final Tag tag;
   final double verticalPadding;
 
-  const TagChip({super.key, required this.tag, this.verticalPadding = 2});
+  const TagChip({required this.tag, super.key, this.verticalPadding = 2});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

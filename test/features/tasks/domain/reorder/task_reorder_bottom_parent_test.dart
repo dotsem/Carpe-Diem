@@ -44,7 +44,6 @@ void main() {
           draggedTask: dragged,
           targetIndex: 4,
           settings: settings,
-          isPlanView: false,
         );
 
         expect(inGroup, isTrue);

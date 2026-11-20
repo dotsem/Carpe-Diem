@@ -109,7 +109,7 @@ void main() {
                                   if (slotInfo.isPlaceholder(i)) {
                                     return TaskReorderPlaceholderItem(
                                       slotIndex: slotInfo.placeholderIndex!,
-                                      task: slotInfo.task!,
+                                      task: slotInfo.task,
                                     );
                                   }
                                   final actualIndex = slotInfo.toOriginalIndex(
@@ -202,12 +202,12 @@ void main() {
                 body: TaskReorderScope(
                   nodes: nodes,
                   onDrop: (_, _) {},
-                  child: Column(
+                  child: const Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TaskReorderItem(
                         index: 2,
-                        child: const SizedBox(
+                        child: SizedBox(
                           key: ValueKey('c2_guard'),
                           height: 50,
                           child: Text('Subtask 2'),

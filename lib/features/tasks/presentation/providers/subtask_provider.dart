@@ -3,20 +3,19 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final subtasksProvider = FutureProvider.family<List<Task>, String>((
-  ref,
-  parentId,
-) async {
-  ref.watch(taskProvider);
-  final repo = ref.watch(taskRepositoryProvider);
-  return repo.getByParent(parentId);
-});
+final FutureProviderFamily<List<Task>, String> subtasksProvider =
+    FutureProvider.family<List<Task>, String>((ref, parentId) async {
+      ref.watch(taskProvider);
+      final repo = ref.watch(taskRepositoryProvider);
+      return await repo.getByParent(parentId);
+    });
 
-final taskByIdProvider = FutureProvider.family<Task?, String>((ref, id) async {
-  ref.watch(taskProvider);
-  final repo = ref.watch(taskRepositoryProvider);
-  return repo.getById(id);
-});
+final FutureProviderFamily<Task?, String> taskByIdProvider =
+    FutureProvider.family<Task?, String>((ref, id) async {
+      ref.watch(taskProvider);
+      final repo = ref.watch(taskRepositoryProvider);
+      return await repo.getById(id);
+    });
 
 class CollapsedSubtasksNotifier extends Notifier<Set<String>> {
   @override

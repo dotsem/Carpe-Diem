@@ -13,13 +13,13 @@ class LabelFilterPicker extends ConsumerWidget {
   final FilterInteractionMethod interactionMethod;
 
   const LabelFilterPicker({
-    super.key,
     required this.selectedLabelIds,
     required this.excludedLabelIds,
-    this.inheritedLabelIds = const [],
     required this.onSelected,
     required this.onExcluded,
     required this.interactionMethod,
+    super.key,
+    this.inheritedLabelIds = const [],
   });
 
   @override

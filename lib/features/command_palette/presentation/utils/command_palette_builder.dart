@@ -1,19 +1,19 @@
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/routes/app_router.dart';
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/command_palette/models/palette_command.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
-import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
+import 'package:carpe_diem/routes/app_router.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CommandPaletteBuilder {
   static List<PaletteCommand> buildCommands({
@@ -212,7 +212,7 @@ class CommandPaletteBuilder {
         category: CommandCategory.actions,
         keywords: const ['import', 'markdown', 'file', 'md'],
         onSelect: () {
-          showDialog(
+          showDialog<void>(
             context: context,
             builder: (_) => const ImportFromMDDialog(),
           );

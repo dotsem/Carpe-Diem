@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
+import 'package:flutter/material.dart';
 
 class InteractiveTaskCard extends StatefulWidget {
   final double initialWidth;
   final ValueChanged<double> onChanged;
 
   const InteractiveTaskCard({
-    super.key,
     required this.initialWidth,
     required this.onChanged,
+    super.key,
   });
 
   @override
@@ -39,7 +39,7 @@ class _InteractiveTaskCardState extends State<InteractiveTaskCard> {
 
     return GestureDetector(
       onPanUpdate: (details) {
-        final box = context.findRenderObject() as RenderBox;
+        final box = context.findRenderObject()! as RenderBox;
         final localX = details.localPosition.dx;
         setState(() {
           _currentWidth = (1.0 - (localX / box.size.width)).clamp(0.0, 1.0);
@@ -62,8 +62,6 @@ class _InteractiveTaskCardState extends State<InteractiveTaskCard> {
                 projectColor.withValues(alpha: 0),
                 projectColor.withValues(alpha: 0.4),
               ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
               stops: [
                 0.0,
                 (1.0 - _currentWidth).clamp(0.0, 1.0),

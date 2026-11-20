@@ -1,8 +1,8 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/tasks/data/repositories/task_event_logger.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class TaskRepository extends ITaskRepository {
   final Database _db;
@@ -21,17 +21,17 @@ class TaskRepository extends ITaskRepository {
     if (maps.isEmpty) return [];
 
     final taskIds = maps.map((m) => m['id'] as String).toList();
-    final placeholders = taskIds.map((_) => "?").join(",");
+    final placeholders = taskIds.map((_) => '?').join(',');
 
     final labelsData = await _db.rawQuery(
       'SELECT taskId, labelId FROM task_labels WHERE taskId IN ($placeholders)',
       taskIds,
     );
 
-    final Map<String, List<String>> labelMap = {};
+    final labelMap = <String, List<String>>{};
     for (final row in labelsData) {
-      final tId = row['taskId'] as String;
-      final lId = row['labelId'] as String;
+      final tId = row['taskId']! as String;
+      final lId = row['labelId']! as String;
       labelMap.putIfAbsent(tId, () => []).add(lId);
     }
 
@@ -40,10 +40,10 @@ class TaskRepository extends ITaskRepository {
       taskIds,
     );
 
-    final Map<String, List<String>> tagMap = {};
+    final tagMap = <String, List<String>>{};
     for (final row in tagsData) {
-      final tId = row['taskId'] as String;
-      final tgId = row['tagId'] as String;
+      final tId = row['taskId']! as String;
+      final tgId = row['tagId']! as String;
       tagMap.putIfAbsent(tId, () => []).add(tgId);
     }
 
@@ -69,7 +69,7 @@ class TaskRepository extends ITaskRepository {
       WHERE p.isActive IS NULL OR p.isActive = 1
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''');
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -87,7 +87,7 @@ class TaskRepository extends ITaskRepository {
     final maps = await _db.rawQuery('$_baseSelect WHERE t.blockedById = ?', [
       taskId,
     ]);
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -96,7 +96,7 @@ class TaskRepository extends ITaskRepository {
       '$_baseSelect WHERE t.parentId = ? ORDER BY ${_getOrderBy(tableAlias: 't')}',
       [parentId],
     );
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -124,7 +124,7 @@ class TaskRepository extends ITaskRepository {
       ],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -145,7 +145,7 @@ class TaskRepository extends ITaskRepository {
       [dateStr, TaskStatus.done.index],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -161,7 +161,7 @@ class TaskRepository extends ITaskRepository {
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''');
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -179,7 +179,7 @@ class TaskRepository extends ITaskRepository {
       [projectId],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -197,7 +197,7 @@ class TaskRepository extends ITaskRepository {
       [projectId],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -219,7 +219,7 @@ class TaskRepository extends ITaskRepository {
       [labelId, labelId],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -378,7 +378,7 @@ class TaskRepository extends ITaskRepository {
       columns: ['labelId'],
       whereArgs: [taskId],
     );
-    return maps.map((m) => m['labelId'] as String).toList();
+    return maps.map((m) => m['labelId']! as String).toList();
   }
 
   Future<List<String>> _getTagIds(String taskId) async {
@@ -388,7 +388,7 @@ class TaskRepository extends ITaskRepository {
       columns: ['tagId'],
       whereArgs: [taskId],
     );
-    return maps.map((m) => m['tagId'] as String).toList();
+    return maps.map((m) => m['tagId']! as String).toList();
   }
 
   String _getOrderBy({
@@ -403,7 +403,7 @@ class TaskRepository extends ITaskRepository {
     final sortCol = isPlanOrder
         ? "COALESCE(NULLIF(${prefix}planSortOrder, ''), NULLIF(${prefix}sortOrder, ''), '~')"
         : "CASE WHEN ${prefix}sortOrder = '' THEN '~' ELSE ${prefix}sortOrder END";
-    final sortOrderPart = "$sortCol ASC, ${prefix}createdAt DESC";
+    final sortOrderPart = '$sortCol ASC, ${prefix}createdAt DESC';
     final deadlinePart = '(${prefix}deadline IS NULL), ${prefix}deadline ASC';
 
     final t = today ?? DateTime.now();

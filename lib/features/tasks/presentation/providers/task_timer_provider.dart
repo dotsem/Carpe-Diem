@@ -25,7 +25,7 @@ class TaskTimerNotifier extends Notifier<TaskTimerState> {
 
   double getPendingProgress(String taskId, int delaySeconds) {
     final startTime = state.pendingCompletions[taskId];
-    if (startTime == null) return 0.0;
+    if (startTime == null) return 0;
     final elapsed = DateTime.now().difference(startTime).inMilliseconds;
     final total = delaySeconds * 1000;
     return (elapsed / total).clamp(0.0, 1.0);

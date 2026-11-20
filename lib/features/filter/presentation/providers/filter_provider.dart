@@ -1,10 +1,11 @@
 import 'dart:convert';
+
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 
 const String keyPersistentFilterValues =
     'persistent_filter_values'; // TODO: relocate this to a centralized place
@@ -45,7 +46,7 @@ class FilterNotifier extends Notifier<FilterState> {
         final map = jsonDecode(raw) as Map<String, dynamic>;
         state = state.copyWith(filter: TaskFilter.fromMap(map));
       }
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to load filter: $e');
     }
   }
@@ -56,7 +57,7 @@ class FilterNotifier extends Notifier<FilterState> {
         keyPersistentFilterValues,
         jsonEncode(state.filter.toMap()),
       );
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to save filter: $e');
     }
   }
@@ -64,7 +65,7 @@ class FilterNotifier extends Notifier<FilterState> {
   Future<void> clearPersistedFilter() async {
     try {
       await _repo.delete(keyPersistentFilterValues);
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to clear persisted filter: $e');
     }
   }
@@ -88,7 +89,7 @@ class FilterNotifier extends Notifier<FilterState> {
 
   void clearFilter() {
     if (state.filter.isEmpty) return;
-    state = const FilterState(filter: TaskFilter(), isBypassed: false);
+    state = const FilterState();
     _persistIfEnabled();
   }
 

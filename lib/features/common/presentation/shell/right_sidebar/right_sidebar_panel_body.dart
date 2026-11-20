@@ -1,16 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/form/project_form_panel.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/task_form_panel.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RightSidebarPanelBody extends ConsumerWidget {
   final RightSidebarPanel panel;
 
-  const RightSidebarPanelBody({super.key, required this.panel});
+  const RightSidebarPanelBody({required this.panel, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

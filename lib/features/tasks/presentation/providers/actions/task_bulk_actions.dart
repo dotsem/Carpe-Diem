@@ -33,7 +33,7 @@ extension TaskBulkActions on TaskNotifier {
     final settings = ref.read(settingsProvider);
 
     DateTime? projectDeadline;
-    bool shouldInheritDeadline = false;
+    var shouldInheritDeadline = false;
     if (updateProjectId &&
         projectId != null &&
         settings.inheritProjectDeadline) {
@@ -156,7 +156,6 @@ extension TaskBulkActions on TaskNotifier {
       title: '',
       projectId: projectId,
       deadline: projectDeadline?.normalize,
-      scheduledDate: null,
       createdAt: DateTime.now(),
     );
 
@@ -165,7 +164,7 @@ extension TaskBulkActions on TaskNotifier {
         .toList();
 
     String? currentRank;
-    for (int i = activeList.length - 1; i >= 0 && currentRank == null; i--) {
+    for (var i = activeList.length - 1; i >= 0 && currentRank == null; i--) {
       currentRank = TaskReorderUtils.getEffectiveRank(activeList, i);
     }
 

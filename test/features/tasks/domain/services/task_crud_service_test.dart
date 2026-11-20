@@ -47,7 +47,7 @@ void main() {
       test(
         'subtask inherits scheduledDate and projectId from parent',
         () async {
-          final parentDate = DateTime(2026, 6, 1);
+          final parentDate = DateTime(2026, 6);
           final parent = createTestTask(
             id: 'p1',
             scheduledDate: parentDate,
@@ -72,13 +72,13 @@ void main() {
       test('explicit dates and projectId override parent properties', () async {
         final parent = createTestTask(
           id: 'p1',
-          scheduledDate: DateTime(2026, 6, 1),
+          scheduledDate: DateTime(2026, 6),
           projectId: 'proj1',
         );
         when(() => mockRepo.getById('p1')).thenAnswer((_) async => parent);
         when(() => mockRepo.getByParent('p1')).thenAnswer((_) async => []);
 
-        final explicitDate = DateTime(2026, 7, 1);
+        final explicitDate = DateTime(2026, 7);
         final task = await TaskCrudService.buildNewTask(
           repo: mockRepo,
           settings: defaultSettings,
@@ -106,20 +106,17 @@ void main() {
 
     group('resolveUpdatedTask', () {
       test('returns unchanged task when placement is null', () async {
-        final task = createTestTask(id: 't1', title: 'Task 1');
+        final task = createTestTask(title: 'Task 1');
         final resolved = await TaskCrudService.resolveUpdatedTask(
           repo: mockRepo,
           settings: defaultSettings,
           task: task,
-          placement: null,
         );
         expect(resolved, equals(task));
       });
 
       test('recalculates sortOrder when placement is provided', () async {
-        final existingTask = createTestTask(
-          id: 't1',
-        ).copyWith(sortOrder: '0|i00000:');
+        final existingTask = createTestTask().copyWith(sortOrder: '0|i00000:');
         when(
           () => mockRepo.getUnscheduled(
             prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
@@ -145,7 +142,7 @@ void main() {
       test(
         'returns single CreateCommand without deadline propagation',
         () async {
-          final task = createTestTask(id: 't1', title: 'Task');
+          final task = createTestTask(title: 'Task');
           final cmd = await TaskCrudService.buildCreateWithPropagationCommand(
             repo: mockRepo,
             task: task,
@@ -160,15 +157,11 @@ void main() {
         'returns CompoundCommand with blocker updates when propagation occurs',
         () async {
           final task = createTestTask(
-            id: 't1',
             title: 'Task',
-            deadline: DateTime(2026, 4, 1),
+            deadline: DateTime(2026, 4),
             blockedById: 'b1',
           );
-          final blocker = createTestTask(
-            id: 'b1',
-            deadline: DateTime(2026, 5, 1),
-          );
+          final blocker = createTestTask(id: 'b1', deadline: DateTime(2026, 5));
           when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
           final cmd = await TaskCrudService.buildCreateWithPropagationCommand(
@@ -180,15 +173,15 @@ void main() {
           final compound = cmd as CompoundCommand;
           expect(compound.commands.length, equals(2));
           expect(compound.commands[0], isA<CreateCommand<Task>>());
-          expect(compound.commands[1], isA<UpdateCommand>());
+          expect(compound.commands[1], isA<UpdateCommand<Task>>());
         },
       );
     });
 
     group('buildUpdateWithPropagationCommand', () {
       test('returns single UpdateCommand without propagation', () async {
-        final previous = createTestTask(id: 't1', title: 'Prev');
-        final next = createTestTask(id: 't1', title: 'Next');
+        final previous = createTestTask(title: 'Prev');
+        final next = createTestTask(title: 'Next');
         final cmd = await TaskCrudService.buildUpdateWithPropagationCommand(
           repo: mockRepo,
           previous: previous,
@@ -200,16 +193,12 @@ void main() {
       });
 
       test('returns CompoundCommand with propagation', () async {
-        final previous = createTestTask(id: 't1');
+        final previous = createTestTask();
         final next = createTestTask(
-          id: 't1',
-          deadline: DateTime(2026, 3, 1),
+          deadline: DateTime(2026, 3),
           blockedById: 'b1',
         );
-        final blocker = createTestTask(
-          id: 'b1',
-          deadline: DateTime(2026, 6, 1),
-        );
+        final blocker = createTestTask(id: 'b1', deadline: DateTime(2026, 6));
         when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
         final cmd = await TaskCrudService.buildUpdateWithPropagationCommand(
@@ -225,7 +214,7 @@ void main() {
 
     group('buildDeleteCommand', () {
       test('returns single DeleteCommand when task has no subtasks', () async {
-        final task = createTestTask(id: 't1', title: 'Task');
+        final task = createTestTask(title: 'Task');
         when(() => mockRepo.getByParent('t1')).thenAnswer((_) async => []);
         final cmd = await TaskCrudService.buildDeleteCommand(
           repo: mockRepo,

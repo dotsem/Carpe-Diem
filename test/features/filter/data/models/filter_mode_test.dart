@@ -13,7 +13,6 @@ void main() {
           projectIdsIncluded: {'proj-1'},
           labelIdsIncluded: {'label-1'},
         ),
-        isDefault: false,
       );
 
       final map = mode.toMap();

@@ -8,11 +8,11 @@ class DestructiveDialog extends StatelessWidget {
   final String destructiveText;
   final VoidCallback onConfirm;
   const DestructiveDialog({
-    super.key,
     required this.title,
     required this.message,
     required this.onConfirm,
     required this.destructiveText,
+    super.key,
   });
 
   @override

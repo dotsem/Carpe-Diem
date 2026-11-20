@@ -1,11 +1,11 @@
+import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/utils/color_utils.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_breadcrumb_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_chips_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 
 class BaseTaskCard extends StatefulWidget {
   final Task task;
@@ -39,8 +39,8 @@ class BaseTaskCard extends StatefulWidget {
   final bool? hideProjectGradient;
 
   const BaseTaskCard({
-    super.key,
     required this.task,
+    super.key,
     this.project,
     this.leading,
     this.trailing,
@@ -78,7 +78,7 @@ class _BaseTaskCardState extends State<BaseTaskCard> {
     final isHoveredOrFocused =
         _isHovered || widget.isFocused || widget.isHighlighted;
 
-    Widget? trailingWidget = widget.trailing;
+    var trailingWidget = widget.trailing;
     if (widget.trailingBuilder != null) {
       trailingWidget = widget.trailingBuilder!(context, isHoveredOrFocused);
     }
@@ -108,8 +108,6 @@ class _BaseTaskCardState extends State<BaseTaskCard> {
                           .themeDependentColor(context)
                           .withValues(alpha: 0.4),
                     ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
                     stops: [
                       0.0,
                       (1.0 - widget.taskGradientWidth).clamp(0.0, 1.0),
@@ -129,7 +127,7 @@ class _BaseTaskCardState extends State<BaseTaskCard> {
             onSecondaryTapDown: widget.onContextMenu != null
                 ? (details) => widget.onContextMenu!(
                     details.localPosition,
-                    context.findRenderObject() as RenderBox,
+                    context.findRenderObject()! as RenderBox,
                   )
                 : null,
             borderRadius: BorderRadius.circular(12),

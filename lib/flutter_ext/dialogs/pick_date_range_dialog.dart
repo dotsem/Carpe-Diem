@@ -1,5 +1,5 @@
-import 'sized_dialog.dart';
-import '../range_date_picker.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/flutter_ext/range_date_picker.dart';
 import 'package:flutter/material.dart';
 
 class PickDateRangeDialog extends StatefulWidget {
@@ -8,10 +8,10 @@ class PickDateRangeDialog extends StatefulWidget {
   final DateTime lastDate;
 
   const PickDateRangeDialog({
-    super.key,
     required this.initialDateRange,
     required this.firstDate,
     required this.lastDate,
+    super.key,
   });
 
   @override
@@ -44,7 +44,7 @@ class _PickDateRangeDialogState extends State<PickDateRangeDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Expanded(

@@ -1,14 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mocktail/mocktail.dart';
+import 'dart:async';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:carpe_diem/routes/keys.dart';
 import 'package:carpe_diem/features/command_palette/models/palette_command.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:carpe_diem/routes/keys.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
 import '../../helpers/mock_repositories.dart';
 
 void main() {
@@ -103,7 +105,7 @@ void main() {
           tagRepositoryProvider.overrideWithValue(mockTagRepo),
           tagIconRepositoryProvider.overrideWithValue(mockTagIconRepo),
           historyRepositoryProvider.overrideWithValue(mockHistoryRepo),
-          undoRedoProvider.overrideWith(() => UndoRedoNotifier()),
+          undoRedoProvider.overrideWith(UndoRedoNotifier.new),
         ],
       );
     });
@@ -191,8 +193,7 @@ void main() {
           ),
         ),
       );
-
-      CommandPalette.show();
+      unawaited(CommandPalette.show());
       await tester.pumpAndSettle();
       expect(find.byType(CommandPalette), findsOneWidget);
     });

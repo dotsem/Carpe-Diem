@@ -1,9 +1,9 @@
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -92,13 +92,7 @@ void main() {
           isTrue,
         );
         expect(
-          TaskReorderUtils.inSameGroup(
-            orphan,
-            root,
-            settings,
-            nodes: nodes,
-            isPlanView: false,
-          ),
+          TaskReorderUtils.inSameGroup(orphan, root, settings, nodes: nodes),
           isFalse,
         );
       },
@@ -108,13 +102,12 @@ void main() {
       final taskWithDeadline = Task(
         id: 'td1',
         title: 'With Deadline',
-        deadline: DateTime(2026, 9, 1),
+        deadline: DateTime(2026, 9),
         createdAt: now,
       );
       final taskWithoutDeadline = Task(
         id: 'td2',
         title: 'Without Deadline',
-        deadline: null,
         createdAt: now,
       );
       const withDeadlines = SettingsState({
@@ -184,25 +177,18 @@ void main() {
         final normal1 = Task(
           id: 'n1',
           title: 'N1',
-          isUrgent: false,
           createdAt: now,
           sortOrder: 'a1',
         );
         final normal2 = Task(
           id: 'n2',
           title: 'N2',
-          isUrgent: false,
           createdAt: now,
           sortOrder: 'a2',
         );
         final rawList = [urgentTask, normal1, normal2];
 
-        final newTask = Task(
-          id: 'new',
-          title: 'New',
-          isUrgent: false,
-          createdAt: now,
-        );
+        final newTask = Task(id: 'new', title: 'New', createdAt: now);
 
         final normalGroup = rawList
             .where((t) => TaskReorderUtils.inSameGroup(t, newTask, settings))
@@ -245,7 +231,6 @@ void main() {
         final taskD = Task(
           id: 'd',
           title: 'D',
-          scheduledDate: null,
           projectId: 'proj1',
           createdAt: now,
         );
@@ -269,12 +254,7 @@ void main() {
     );
 
     test('computeSortOrder handles fallback for empty sortOrder tasks', () {
-      final emptyTask = Task(
-        id: 'e',
-        title: 'Empty',
-        createdAt: now,
-        sortOrder: '',
-      );
+      final emptyTask = Task(id: 'e', title: 'Empty', createdAt: now);
       final topRank = TaskReorderService.computeSortOrder(
         placement: TaskPlacement.top,
         activeList: [emptyTask],

@@ -1,20 +1,20 @@
-import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/warning_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/warning_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_hierarchy_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_date_items.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_helpers.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/cascade_delete_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/cascade_schedule_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/group_tasks_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_hierarchy_actions.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_date_items.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/widgets/context_menu_helpers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void showTaskCardContextMenu(
   BuildContext context,
@@ -26,12 +26,8 @@ void showTaskCardContextMenu(
   VoidCallback? onAction,
 }) {
   final provider = ref.read(taskProvider.notifier);
-  final RenderBox overlay =
-      Overlay.of(context).context.findRenderObject() as RenderBox;
-  final Offset position = renderBox.localToGlobal(
-    localPosition,
-    ancestor: overlay,
-  );
+  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+  final position = renderBox.localToGlobal(localPosition, ancestor: overlay);
 
   final items = <PopupMenuEntry<void>>[];
 
@@ -48,9 +44,9 @@ void showTaskCardContextMenu(
       onAction,
     ),
   );
-  items.add(PopupMenuDivider(indent: 12, endIndent: 12));
+  items.add(const PopupMenuDivider(indent: 12, endIndent: 12));
   items.addAll(buildProgressStateItems(context, ref, task, onAction: onAction));
-  items.add(PopupMenuDivider(indent: 12, endIndent: 12));
+  items.add(const PopupMenuDivider(indent: 12, endIndent: 12));
 
   items.addAll([
     if (task.parentId != null)
@@ -83,7 +79,7 @@ void showTaskCardContextMenu(
       if (!tasks.any((t) => t.parentId == task.id))
         PopupMenuItem(
           onTap: () {
-            showDialog(
+            showDialog<void>(
               context: context,
               builder: (_) => GroupTasksDialog(taskIds: [task.id]),
             );
@@ -111,7 +107,7 @@ void showTaskCardContextMenu(
           color: AppColors.warning,
         ),
       ),
-    PopupMenuDivider(indent: 12, endIndent: 12, color: AppColors.error),
+    const PopupMenuDivider(indent: 12, endIndent: 12, color: AppColors.error),
 
     PopupMenuItem(
       onTap: () => _showDeleteTask(context, task, provider, onAction),
@@ -141,7 +137,7 @@ void _showDeleteTask(
 ) {
   final subtasks = provider.getAllSubtasks(task.id);
   if (subtasks.isNotEmpty) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => CascadeDeleteDialog(
         parentTask: task,
@@ -151,17 +147,17 @@ void _showDeleteTask(
           onAction?.call();
         },
         onDeleteAll: () {
-          provider.deleteTask(task, deleteSubtasks: true);
+          provider.deleteTask(task);
           onAction?.call();
         },
       ),
     );
   } else {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => DeleteDialog(
-        title: "Delete Task",
-        message: "Are you sure you want to delete this task?",
+        title: 'Delete Task',
+        message: 'Are you sure you want to delete this task?',
         onConfirm: () {
           provider.deleteTask(task);
           onAction?.call();
@@ -181,7 +177,7 @@ void _unscheduleTask(
   final hasScheduledSubtasks = subtasks.any((t) => t.scheduledDate != null);
 
   if (hasScheduledSubtasks) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => CascadeScheduleDialog.unschedule(
         parentTask: task,
@@ -190,7 +186,6 @@ void _unscheduleTask(
           provider.unScheduleTask(
             task,
             resetStatus: task.status.isDone || task.status.isInProgress,
-            unscheduleChildren: false,
           );
           onAction?.call();
         },
@@ -216,12 +211,12 @@ void _unscheduleTask(
   }
 
   if (task.status.isDone || task.status.isInProgress) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => WarningDialog(
-        title: "Unschedule Task",
+        title: 'Unschedule Task',
         message:
-            "This task is ${task.status.name}. Are you sure you want to unschedule it?",
+            'This task is ${task.status.name}. Are you sure you want to unschedule it?',
         warningText: 'Unschedule',
         onConfirm: doUnschedule,
       ),

@@ -27,7 +27,7 @@ class LabelsSection extends ConsumerWidget {
               icon: Icons.label,
               children: [
                 LabelPicker(
-                  selectedLabelIds: [],
+                  selectedLabelIds: const [],
                   onSelected: (_) {},
                   isManageMode: true,
                 ),
@@ -44,7 +44,7 @@ class LabelsSection extends ConsumerWidget {
               icon: Icons.tag,
               children: [
                 TagPicker(
-                  selectedTagIds: [],
+                  selectedTagIds: const [],
                   onSelected: (_) {},
                   isManageMode: true,
                 ),
@@ -57,7 +57,7 @@ class LabelsSection extends ConsumerWidget {
                   'Import predefined tags and icons for specific interests',
               trailing: FilledButton.tonal(
                 onPressed: () {
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (context) => const TagProfileSelectionDialog(),
                   );
@@ -67,16 +67,16 @@ class LabelsSection extends ConsumerWidget {
             ),
             SettingsDropdownTile<Absorption>(
               icon: Icons.merge,
-              title: "Tag Absorption",
+              title: 'Tag Absorption',
               subtitle:
-                  "Decide if hashtags typed in the title append to or replace current tag selections.",
+                  'Decide if hashtags typed in the title append to or replace current tag selections.',
               value: settings.tagAbsorption,
               items: const [
                 DropdownMenuItem(
                   value: Absorption.replace,
-                  child: Text("Replace"),
+                  child: Text('Replace'),
                 ),
-                DropdownMenuItem(value: Absorption.append, child: Text("Add")),
+                DropdownMenuItem(value: Absorption.append, child: Text('Add')),
               ],
               onChanged: (absorption) {
                 if (absorption == null) return;
@@ -85,19 +85,18 @@ class LabelsSection extends ConsumerWidget {
             ),
             SettingsSwitchTile(
               icon: Icons.title,
-              title: "Keep tags in title",
-              subtitle: "Preserve tags within the task title.",
+              title: 'Keep tags in title',
+              subtitle: 'Preserve tags within the task title.',
               value: settings.keepTagsInTitle,
-              onChanged: (value) => settingsNotifier.setKeepTagsInTitle(value),
+              onChanged: settingsNotifier.setKeepTagsInTitle,
             ),
             SettingsSwitchTile(
               enabled: settings.keepTagsInTitle,
               icon: Icons.tag,
-              title: "Show hashtag in title",
-              subtitle: "Show hashtag character in the title of the task.",
+              title: 'Show hashtag in title',
+              subtitle: 'Show hashtag character in the title of the task.',
               value: settings.showHashtagInTitle,
-              onChanged: (value) =>
-                  settingsNotifier.setShowHashtagInTitle(value),
+              onChanged: settingsNotifier.setShowHashtagInTitle,
             ),
           ],
         ),

@@ -13,12 +13,12 @@ class TagFilterPicker extends ConsumerWidget {
   final FilterInteractionMethod interactionMethod;
 
   const TagFilterPicker({
-    super.key,
     required this.selectedTagIds,
     required this.excludedTagIds,
     required this.onSelected,
     required this.onExcluded,
     required this.interactionMethod,
+    super.key,
   });
 
   @override

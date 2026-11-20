@@ -24,7 +24,7 @@ void main() {
       id: 'p1',
       name: 'Alpha Project',
       color: Colors.blue,
-      createdAt: DateTime(2025, 1, 1),
+      createdAt: DateTime(2025),
     );
     final projectB = Project(
       id: 'p2',
@@ -110,18 +110,22 @@ void main() {
         searchFocusNode.requestFocus();
         await tester.pumpAndSettle();
 
-        Card cardA = tester.widget(find.widgetWithText(Card, 'Alpha Project'));
-        Card cardB = tester.widget(find.widgetWithText(Card, 'Beta Project'));
-        RoundedRectangleBorder shapeA = cardA.shape! as RoundedRectangleBorder;
-        RoundedRectangleBorder shapeB = cardB.shape! as RoundedRectangleBorder;
+        var cardA = tester.widget<Card>(
+          find.widgetWithText(Card, 'Alpha Project'),
+        );
+        var cardB = tester.widget<Card>(
+          find.widgetWithText(Card, 'Beta Project'),
+        );
+        var shapeA = cardA.shape! as RoundedRectangleBorder;
+        var shapeB = cardB.shape! as RoundedRectangleBorder;
         expect(shapeA.side.color, AppColors.accent);
         expect(shapeB.side.color, Colors.transparent);
 
         await tester.sendKeyEvent(LogicalKeyboardKey.escape);
         await tester.pumpAndSettle();
 
-        cardA = tester.widget(find.widgetWithText(Card, 'Alpha Project'));
-        cardB = tester.widget(find.widgetWithText(Card, 'Beta Project'));
+        cardA = tester.widget<Card>(find.widgetWithText(Card, 'Alpha Project'));
+        cardB = tester.widget<Card>(find.widgetWithText(Card, 'Beta Project'));
         shapeA = cardA.shape! as RoundedRectangleBorder;
         shapeB = cardB.shape! as RoundedRectangleBorder;
 
@@ -131,8 +135,8 @@ void main() {
         gridKey.currentState!.moveFocus(1, 0);
         await tester.pumpAndSettle();
 
-        cardA = tester.widget(find.widgetWithText(Card, 'Alpha Project'));
-        cardB = tester.widget(find.widgetWithText(Card, 'Beta Project'));
+        cardA = tester.widget<Card>(find.widgetWithText(Card, 'Alpha Project'));
+        cardB = tester.widget<Card>(find.widgetWithText(Card, 'Beta Project'));
         shapeA = cardA.shape! as RoundedRectangleBorder;
         shapeB = cardB.shape! as RoundedRectangleBorder;
 

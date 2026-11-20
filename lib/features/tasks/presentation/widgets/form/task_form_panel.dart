@@ -1,15 +1,8 @@
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/planning_section.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/labels_and_tags_section.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/placement_section.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/projects_and_blockers_section.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/task_form_shortcuts.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_delete_handler.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/entity_timestamps_info.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_details_loader.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_submit_handler.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/entity_timestamps_info.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
@@ -20,10 +13,17 @@ import 'package:carpe_diem/features/tags/presentation/widgets/tag_highlighting_c
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/parent_task_link.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/labels_and_tags_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/placement_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/planning_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/projects_and_blockers_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/subtasks_list_section.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/task_form_shortcuts.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_delete_handler.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_details_loader.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_submit_handler.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskFormPanel extends ConsumerStatefulWidget {
   final Task? initialTask;
@@ -49,13 +49,17 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   late final TagHighlightingController _titleController;
   final _descController = TextEditingController();
   TaskPlacement? _placement;
-  DateTime? _scheduledDate, _deadline;
-  String? _selectedProjectId, _blockedById, _parentId, _titleError;
+  DateTime? _scheduledDate;
+  DateTime? _deadline;
+  String? _selectedProjectId;
+  String? _blockedById;
+  String? _parentId;
+  String? _titleError;
   List<Task> _projectTasks = [];
-  List<String> _selectedLabelIds = [],
-      _inheritedLabelIds = [],
-      _selectedTagIds = [],
-      _previousParsedIds = [];
+  List<String> _selectedLabelIds = [];
+  List<String> _inheritedLabelIds = [];
+  List<String> _selectedTagIds = [];
+  List<String> _previousParsedIds = [];
   late final List<MenuController> _menuControllers;
   late final MenuController _projectMenuController = _menuController();
   late final MenuController _blockerMenuController = _menuController();
@@ -150,8 +154,8 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
         .map((t) => t.id)
         .toList();
 
-    final set1 = Set.from(_selectedTagIds);
-    final set2 = Set.from(newTagIds);
+    final set1 = Set<String>.from(_selectedTagIds);
+    final set2 = Set<String>.from(newTagIds);
     if (set1.length != set2.length || !set1.containsAll(set2)) {
       setState(() => _selectedTagIds = newTagIds);
     }

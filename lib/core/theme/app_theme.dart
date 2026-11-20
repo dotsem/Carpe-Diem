@@ -40,7 +40,6 @@ class AppTheme {
         dynamicColorScheme ??
         ColorScheme.fromSeed(
           seedColor: AppColors.accent,
-          brightness: Brightness.light,
           primary: AppColors.accent,
           surface: AppColors.surfaceLight,
           surfaceContainer: const Color(0xFFF8F8F8),

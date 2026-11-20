@@ -1,22 +1,22 @@
 import 'package:carpe_diem/core/constants/app_constants.dart';
-import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
+import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/data/database/database_helper.dart';
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/features/common/data/database/database_helper.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/routes/app_router.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:toastification/toastification.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -24,7 +24,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await windowManager.ensureInitialized();
-  } catch (e) {
+  } on Object catch (e) {
     debugPrint('WindowManager initialization failed: $e');
   }
   await DatabaseHelper.initialize();
@@ -67,7 +67,6 @@ class CarpeDiemApp extends ConsumerWidget {
     return ToastificationWrapper(
       child: MaterialApp.router(
         title: AppConstants.appName,
-        debugShowCheckedModeBanner: true, // Leave this on true!
         theme: AppTheme.light(null),
         darkTheme: AppTheme.dark(null),
         themeMode: settings.themeMode,

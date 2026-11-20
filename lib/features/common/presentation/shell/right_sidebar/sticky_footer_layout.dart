@@ -7,9 +7,9 @@ class StickyFooterLayout extends StatelessWidget {
   final EdgeInsetsGeometry footerPadding;
 
   const StickyFooterLayout({
-    super.key,
     required this.child,
     required this.footer,
+    super.key,
     this.contentPadding = const EdgeInsets.all(8),
     this.footerPadding = const EdgeInsets.symmetric(
       horizontal: 8,

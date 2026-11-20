@@ -1,7 +1,7 @@
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
 import 'package:carpe_diem/features/settings/presentation/widgets/interactive_task_card.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -63,26 +63,24 @@ class AppearanceSection extends ConsumerWidget {
               title: 'Compact Mode',
               subtitle: 'Reduce card size and text density',
               value: settings.compactMode,
-              onChanged: (value) => settingsNotifier.setCompactMode(value),
+              onChanged: settingsNotifier.setCompactMode,
             ),
             SettingsSwitchTile(
               icon: Icons.description_outlined,
               title: 'Show Descriptions',
               subtitle: 'Display task descriptions on cards',
               value: settings.showDescriptionOnCard,
-              onChanged: (value) =>
-                  settingsNotifier.setShowDescriptionOnCard(value),
+              onChanged: settingsNotifier.setShowDescriptionOnCard,
             ),
             SettingsSwitchTile(
               icon: Icons.animation,
               title: 'Animations',
               subtitle: 'Enable or disable animations',
               value: settings.animationsEnabled,
-              onChanged: (value) =>
-                  settingsNotifier.setAnimationsEnabled(value),
+              onChanged: settingsNotifier.setAnimationsEnabled,
             ),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -104,8 +102,7 @@ class AppearanceSection extends ConsumerWidget {
                   const SizedBox(height: 12),
                   InteractiveTaskCard(
                     initialWidth: settings.taskGradientWidth,
-                    onChanged: (val) =>
-                        settingsNotifier.setTaskGradientWidth(val),
+                    onChanged: settingsNotifier.setTaskGradientWidth,
                   ),
                 ],
               ),

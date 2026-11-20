@@ -1,7 +1,7 @@
-import '../fuzzy_search/fuzzy_search_utils.dart';
-import '../keyboard.dart';
-import '../fuzzy_search/fuzzy_search_bar.dart';
-import 'searchable_dropdown_item_tile.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_bar.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:carpe_diem/flutter_ext/keyboard.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -19,11 +19,11 @@ class SearchableDropdown<T> extends StatefulWidget {
   final bool borderless;
 
   const SearchableDropdown({
-    super.key,
     required this.items,
     required this.selectedItem,
     required this.onChanged,
     required this.nameGetter,
+    super.key,
     this.leadingBuilder,
     this.hintText = 'Select item',
     this.searchHint = 'Search...',
@@ -148,7 +148,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       ),
       menuChildren: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8),
           child: SizedBox(
             width: 300,
             child: Column(
@@ -199,7 +199,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                             ]
                           : List.generate(_filteredItems.length, (index) {
                               final item = _filteredItems[index];
-                              return SearchableDropdownItemTile(
+                              return SearchableDropdownItemTile<T>(
                                 label: widget.nameGetter(item),
                                 isHighlighted: index == _selectedIndex,
                                 leading: widget.leadingBuilder?.call(item),

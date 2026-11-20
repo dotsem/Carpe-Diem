@@ -26,7 +26,7 @@ void main() {
     testWidgets(
       'handleDragEnd does not execute fallback drop when isCancelled is true',
       (tester) async {
-        int fallbackCount = 0;
+        var fallbackCount = 0;
         late ProviderContainer container;
 
         await tester.pumpWidget(
@@ -68,11 +68,7 @@ void main() {
         final scope = TaskReorderScope.of(innerContext);
 
         scope?.handleDragEnd(
-          DraggableDetails(
-            wasAccepted: false,
-            velocity: Velocity.zero,
-            offset: Offset.zero,
-          ),
+          DraggableDetails(velocity: Velocity.zero, offset: Offset.zero),
           onFallbackDrop: (_, _) => fallbackCount++,
         );
 

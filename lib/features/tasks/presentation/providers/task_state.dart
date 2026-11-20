@@ -8,11 +8,11 @@ class TaskState {
   final DateTime currentDate;
 
   const TaskState({
+    required this.currentDate,
     this.tasks = const [],
     this.overdueTasks = const [],
     this.unscheduledTasks = const [],
     this.isLoading = false,
-    required this.currentDate,
   });
 
   List<Task> get allTasks => [...tasks, ...overdueTasks, ...unscheduledTasks];

@@ -1,7 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/toast/toast_utils.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:carpe_diem/core/toast/toast_utils.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';

@@ -1,6 +1,6 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 
 class FocusSearchIntent extends Intent {
   const FocusSearchIntent();
@@ -22,7 +22,6 @@ class ProjectsShortcuts extends ConsumerWidget {
   final VoidCallback onNewTask;
 
   const ProjectsShortcuts({
-    super.key,
     required this.child,
     required this.onMoveNext,
     required this.onMovePrev,
@@ -32,6 +31,7 @@ class ProjectsShortcuts extends ConsumerWidget {
     required this.onUnfocusSearch,
     required this.onShowFilter,
     required this.onNewTask,
+    super.key,
   });
 
   @override
@@ -39,24 +39,20 @@ class ProjectsShortcuts extends ConsumerWidget {
     return AppShortcutRegistrar(
       shortcuts: projectShortcutEntries,
       child: Shortcuts(
-        shortcuts: {
-          const CharacterActivator(SearchKeys.char): const FocusSearchIntent(),
-          const SingleActivator(AppKeyBindings.escape):
-              const UnfocusSearchIntent(),
-          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
-          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-          const CharacterActivator(LeftKeys.char): const MoveLeftIntent(),
-          const CharacterActivator(RightKeys.char): const MoveRightIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown):
-              const MoveNextIntent(),
-          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
-          const SingleActivator(AppKeyBindings.arrowLeft):
-              const MoveLeftIntent(),
-          const SingleActivator(AppKeyBindings.arrowRight):
-              const MoveRightIntent(),
-          const CharacterActivator(FilterKeys.char): const FilterIntent(),
-          const CharacterActivator(AddKeys.char): const NewTaskIntent(),
-          const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
+        shortcuts: const {
+          CharacterActivator(SearchKeys.char): FocusSearchIntent(),
+          SingleActivator(AppKeyBindings.escape): UnfocusSearchIntent(),
+          CharacterActivator(DownKeys.char): MoveNextIntent(),
+          CharacterActivator(UpKeys.char): MovePrevIntent(),
+          CharacterActivator(LeftKeys.char): MoveLeftIntent(),
+          CharacterActivator(RightKeys.char): MoveRightIntent(),
+          SingleActivator(AppKeyBindings.arrowDown): MoveNextIntent(),
+          SingleActivator(AppKeyBindings.arrowUp): MovePrevIntent(),
+          SingleActivator(AppKeyBindings.arrowLeft): MoveLeftIntent(),
+          SingleActivator(AppKeyBindings.arrowRight): MoveRightIntent(),
+          CharacterActivator(FilterKeys.char): FilterIntent(),
+          CharacterActivator(AddKeys.char): NewTaskIntent(),
+          CharacterActivator(AddKeys.upper): NewTaskIntent(),
         },
         child: Actions(
           actions: {

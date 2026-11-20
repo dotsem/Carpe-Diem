@@ -1,10 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/database/database_helper.dart';
+import 'package:carpe_diem/features/history/data/repositories/history_repository.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
-import 'package:carpe_diem/features/history/data/repositories/history_repository.dart';
 import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   setUpAll(() {
@@ -36,14 +36,14 @@ void main() {
           id: 't1',
           title: 'Completed Task A',
           status: TaskStatus.done,
-          completedAt: DateTime(2026, 6, 1, 10, 0),
+          completedAt: DateTime(2026, 6, 1, 10),
           createdAt: DateTime(2026, 5, 20),
         );
         final task2 = Task(
           id: 't2',
           title: 'Completed Task B',
           status: TaskStatus.done,
-          completedAt: DateTime(2026, 6, 10, 15, 0),
+          completedAt: DateTime(2026, 6, 10, 15),
           createdAt: DateTime(2026, 5, 20),
         );
         final task3 = Task(
@@ -58,7 +58,7 @@ void main() {
         await taskRepo.insert(task3);
 
         final list = await historyRepo.getCompletedInRange(
-          DateTime(2026, 6, 1),
+          DateTime(2026, 6),
           DateTime(2026, 6, 5),
         );
 
@@ -83,7 +83,7 @@ void main() {
           status: TaskStatus.done,
           deadline: DateTime(2026, 6, 5),
           completedAt: DateTime(2026, 6, 8),
-          createdAt: DateTime(2026, 6, 1),
+          createdAt: DateTime(2026, 6),
         );
 
         // On-time task
@@ -93,14 +93,14 @@ void main() {
           status: TaskStatus.done,
           deadline: DateTime(2026, 6, 10),
           completedAt: DateTime(2026, 6, 5),
-          createdAt: DateTime(2026, 6, 1),
+          createdAt: DateTime(2026, 6),
         );
 
         await taskRepo.insert(task1);
         await taskRepo.insert(task2);
 
         final overview = await historyRepo.getHistoryOverview(
-          DateTime(2026, 6, 1),
+          DateTime(2026, 6),
           DateTime(2026, 6, 15),
         );
 

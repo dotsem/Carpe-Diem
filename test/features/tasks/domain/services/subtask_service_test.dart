@@ -53,11 +53,7 @@ void main() {
 
       test('returns conflict with incomplete subtasks only', () async {
         final parent = createTestTask(id: 'p1');
-        final sub1 = createTestTask(
-          id: 's1',
-          parentId: 'p1',
-          status: TaskStatus.todo,
-        );
+        final sub1 = createTestTask(id: 's1', parentId: 'p1');
         final sub2 = createTestTask(
           id: 's2',
           parentId: 'p1',
@@ -89,7 +85,7 @@ void main() {
 
     group('findCompletableParent', () {
       test('returns null when task has no parentId', () async {
-        final task = createTestTask(id: 't1', parentId: null);
+        final task = createTestTask();
 
         final parent = await SubtaskService.findCompletableParent(
           repo: mockRepo,
@@ -102,11 +98,7 @@ void main() {
 
       test('returns null when siblings are still incomplete', () async {
         final subtask = createTestTask(id: 's1', parentId: 'p1');
-        final sibling = createTestTask(
-          id: 's2',
-          parentId: 'p1',
-          status: TaskStatus.todo,
-        );
+        final sibling = createTestTask(id: 's2', parentId: 'p1');
         when(
           () => mockRepo.getByParent('p1'),
         ).thenAnswer((_) async => [subtask, sibling]);
@@ -180,7 +172,7 @@ void main() {
     group('getAllSubtasks (in-memory)', () {
       test('returns empty list when no tasks match parentId', () {
         final tasks = [
-          createTestTask(id: 't1'),
+          createTestTask(),
           createTestTask(id: 't2', parentId: 'other'),
         ];
 

@@ -46,7 +46,7 @@ class PlanningSection extends ConsumerWidget {
               title: 'Pick Random Task',
               subtitle: 'Enable a button to pick a random task from backlog',
               value: settings.enableRandomTask,
-              onChanged: (value) => settingsNotifier.setEnableRandomTask(value),
+              onChanged: settingsNotifier.setEnableRandomTask,
             ),
             SettingsSwitchTile(
               icon: Icons.approval,
@@ -54,7 +54,7 @@ class PlanningSection extends ConsumerWidget {
               subtitle:
                   'Adds an extra review state between in progress & done. When disabled, any tasks in review are shown as in progress',
               value: settings.reviewState,
-              onChanged: (value) => settingsNotifier.setReviewState(value),
+              onChanged: settingsNotifier.setReviewState,
             ),
           ],
         ),

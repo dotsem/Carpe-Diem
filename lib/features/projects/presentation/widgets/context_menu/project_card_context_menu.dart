@@ -16,9 +16,9 @@ void showProjectCardContextMenu(
 ) {
   final projectNotifier = ref.read(projectProvider.notifier);
   final isActive = project.isActive;
-  final RenderBox navigatorBox =
-      Navigator.of(context).context.findRenderObject() as RenderBox;
-  final Offset navigatorOffset = navigatorBox.localToGlobal(Offset.zero);
+  final navigatorBox =
+      Navigator.of(context).context.findRenderObject()! as RenderBox;
+  final navigatorOffset = navigatorBox.localToGlobal(Offset.zero);
 
   showMenu(
     context: context,
@@ -27,7 +27,7 @@ void showProjectCardContextMenu(
       navigatorOffset & navigatorBox.size,
     ),
     items: [
-      PopupMenuItem(
+      PopupMenuItem<void>(
         child: const ContextMenuItemTile(
           leading: Icon(Icons.edit),
           title: 'Edit',
@@ -35,7 +35,7 @@ void showProjectCardContextMenu(
         onTap: () =>
             context.openRightSidebar(EditProjectPanel(project.id), ref),
       ),
-      PopupMenuItem(
+      PopupMenuItem<void>(
         child: ContextMenuItemTile(
           leading: Icon(
             isActive ? Icons.archive_outlined : Icons.unarchive_outlined,
@@ -46,7 +46,7 @@ void showProjectCardContextMenu(
       ),
 
       if (!isActive)
-        PopupMenuItem(
+        PopupMenuItem<void>(
           child: const ContextMenuItemTile(
             leading: Icon(Icons.delete),
             title: 'Delete',

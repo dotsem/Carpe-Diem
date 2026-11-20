@@ -2,7 +2,6 @@ import 'package:carpe_diem/core/theme/app_breakpoints.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
-import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
@@ -10,6 +9,7 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/link_existing_subtasks_dropdown.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
+import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,8 +19,8 @@ class SubtasksListSection extends ConsumerWidget {
   final String? projectId;
 
   const SubtasksListSection({
-    super.key,
     required this.parentTask,
+    super.key,
     this.scheduledDate,
     this.projectId,
   });
@@ -106,12 +106,12 @@ class SubtasksListSection extends ConsumerWidget {
             );
           },
           icon: const Icon(Icons.add, size: 16),
-          label: Row(
+          label: const Row(
             mainAxisSize: MainAxisSize.min,
-            spacing: 8.0,
+            spacing: 8,
             children: [
-              const Text('Add Subtask'),
-              ShortcutHintBadge(label: "Ctrl + ${SubtaskKeys.upper}"),
+              Text('Add Subtask'),
+              ShortcutHintBadge(label: 'Ctrl + ${SubtaskKeys.upper}'),
             ],
           ),
           style: ElevatedButton.styleFrom(
@@ -165,7 +165,7 @@ class SubtasksListSection extends ConsumerWidget {
                 children: [
                   for (final subtask in activeSubtasks)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 6.0),
+                      padding: const EdgeInsets.only(bottom: 6),
                       child: TaskCard(
                         compactOverride: true,
                         task: subtask,
@@ -203,12 +203,12 @@ class SubtasksListSection extends ConsumerWidget {
               ),
             if (completedEarlier.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
                     const Expanded(child: Divider()),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(
                         '${completedEarlier.length} ${completedEarlier.length == 1 ? 'task' : 'tasks'} already completed earlier',
                         style: TextStyle(

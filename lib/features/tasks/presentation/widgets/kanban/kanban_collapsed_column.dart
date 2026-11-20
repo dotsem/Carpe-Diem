@@ -6,9 +6,9 @@ class KanbanCollapsedColumn extends StatelessWidget {
   final VoidCallback? onToggle;
 
   const KanbanCollapsedColumn({
-    super.key,
     required this.title,
     required this.titleColor,
+    super.key,
     this.onToggle,
   });
 

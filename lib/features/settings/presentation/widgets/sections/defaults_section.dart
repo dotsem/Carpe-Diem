@@ -33,8 +33,7 @@ class DefaultsSection extends ConsumerWidget {
                 width: 200,
                 child: ProjectPicker(
                   selectedProjectId: settings.defaultProjectId,
-                  onChanged: (value) =>
-                      settingsNotifier.setDefaultProjectId(value),
+                  onChanged: settingsNotifier.setDefaultProjectId,
                   projects: projects,
                 ),
               ),

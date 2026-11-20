@@ -3,7 +3,7 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 
 class ProjectReorderUtils {
   /// Compute new sort order string for inserting a project at slot [slotIndex] in [remainingProjects].
-  /// [slotIndex] ranges from 0 to [remainingProjects.length].
+  /// [slotIndex] ranges from 0 to `remainingProjects.length`.
   static String computeSortOrderForSlot({
     required Project draggedProject,
     required List<Project> remainingProjects,
@@ -15,10 +15,10 @@ class ProjectReorderUtils {
 
     final isUrgent = draggedProject.isUrgent;
 
-    int groupStart = -1;
-    int groupEnd = -1;
+    var groupStart = -1;
+    var groupEnd = -1;
 
-    for (int i = 0; i < remainingProjects.length; i++) {
+    for (var i = 0; i < remainingProjects.length; i++) {
       if (remainingProjects[i].isUrgent == isUrgent) {
         if (groupStart == -1) groupStart = i;
         groupEnd = i;

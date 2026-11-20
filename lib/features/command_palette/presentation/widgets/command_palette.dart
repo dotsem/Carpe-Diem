@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
-import 'package:carpe_diem/routes/keys.dart';
 import 'package:carpe_diem/features/command_palette/models/palette_command.dart';
 import 'package:carpe_diem/features/command_palette/presentation/utils/command_palette_builder.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette_empty_state.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette_footer.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette_results_list.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette_search_bar.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:carpe_diem/routes/keys.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CommandPalette extends ConsumerStatefulWidget {
   const CommandPalette({super.key});
@@ -19,7 +19,6 @@ class CommandPalette extends ConsumerStatefulWidget {
     return showDialog(
       context: targetContext,
       barrierColor: Colors.black54,
-      useRootNavigator: true,
       builder: (_) => const CommandPalette(),
     );
   }
@@ -133,7 +132,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                 controller: _searchController,
                 focusNode: _inputFocusNode,
                 query: _query,
-                onClear: () => _searchController.clear(),
+                onClear: _searchController.clear,
               ),
               const Divider(height: 1),
               Expanded(

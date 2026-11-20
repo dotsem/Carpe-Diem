@@ -1,13 +1,13 @@
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_suggestion_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tags/data/models/tag.dart';
-import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
-import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 
 // TODO: revisit this file & clean up
 class TagAutocompleteTextField extends ConsumerStatefulWidget {
@@ -19,8 +19,8 @@ class TagAutocompleteTextField extends ConsumerStatefulWidget {
   final void Function(Tag)? onTagSelected;
 
   const TagAutocompleteTextField({
-    super.key,
     required this.controller,
+    super.key,
     this.focusNode,
     this.decoration = const InputDecoration(),
     this.style,
@@ -165,7 +165,7 @@ class _TagAutocompleteTextFieldState
       final suggestions = _filterSuggestions(allTags, query);
 
       if (_activeQuery != query && _scrollController.hasClients) {
-        _scrollController.jumpTo(0.0);
+        _scrollController.jumpTo(0);
       }
 
       setState(() {
@@ -237,9 +237,8 @@ class _TagAutocompleteTextFieldState
             link: _layerLink,
             showWhenUnlinked: false,
             targetAnchor: Alignment.bottomLeft,
-            followerAnchor: Alignment.topLeft,
             child: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
+              padding: const EdgeInsets.only(top: 4),
               child: Material(
                 elevation: 8,
                 color: Theme.of(context).colorScheme.surfaceContainerHigh,

@@ -1,12 +1,13 @@
 import 'dart:math' as math;
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskReorderCorridor extends ConsumerStatefulWidget {
   final Widget child;
@@ -16,10 +17,10 @@ class TaskReorderCorridor extends ConsumerStatefulWidget {
   final void Function(Task task, int targetIndex)? onDrop;
 
   const TaskReorderCorridor({
-    super.key,
     required this.child,
     required this.scrollController,
     required this.nodes,
+    super.key,
     this.padding = const EdgeInsets.symmetric(horizontal: 16),
     this.onDrop,
   });
@@ -147,7 +148,7 @@ class _TaskReorderCorridorState extends ConsumerState<TaskReorderCorridor>
       final origin = renderBox.localToGlobal(Offset.zero);
       final size = renderBox.size;
       final rect = origin & size;
-      final horizontalMargin = math.max(32.0, widget.padding.left);
+      final horizontalMargin = math.max(32, widget.padding.left);
       final corridorLeft = rect.left - horizontalMargin;
       final corridorRight = rect.right + horizontalMargin;
 

@@ -7,11 +7,11 @@ class CommandPaletteSearchBar extends StatelessWidget {
   final VoidCallback onClear;
 
   const CommandPaletteSearchBar({
-    super.key,
     required this.controller,
     required this.focusNode,
     required this.query,
     required this.onClear,
+    super.key,
   });
 
   @override

@@ -1,9 +1,9 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/context_menu/project_card_context_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,8 +15,8 @@ class ProjectCard extends ConsumerStatefulWidget {
   final bool isHighlighted;
 
   const ProjectCard({
-    super.key,
     required this.project,
+    super.key,
     this.onTap,
     this.focusNode,
     this.isHighlighted = false,
@@ -55,7 +55,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: hasFocus
-                    ? BorderSide(color: AppColors.accent, width: 2)
+                    ? const BorderSide(color: AppColors.accent, width: 2)
                     : BorderSide(
                         color: widget.project.isActive
                             ? (widget.project.isUrgent
@@ -88,10 +88,8 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                   widget.project,
                 ),
                 onLongPress: () {
-                  final RenderBox box = context.findRenderObject() as RenderBox;
-                  final Offset pos = box.localToGlobal(
-                    box.size.center(Offset.zero),
-                  );
+                  final box = context.findRenderObject()! as RenderBox;
+                  final pos = box.localToGlobal(box.size.center(Offset.zero));
                   showProjectCardContextMenu(context, pos, ref, widget.project);
                 },
                 borderRadius: BorderRadius.circular(12),
@@ -165,7 +163,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                       () {
                         final labelState = ref.watch(labelProvider);
                         final labels = widget.project.labelIds
-                            .map((id) => labelState.getById(id))
+                            .map(labelState.getById)
                             .whereType<Label>()
                             .toList();
                         if (labels.isEmpty) return const SizedBox.shrink();

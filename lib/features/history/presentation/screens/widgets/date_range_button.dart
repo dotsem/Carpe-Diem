@@ -1,18 +1,18 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/pick_date_range_dialog.dart';
 import 'package:carpe_diem/features/history/presentation/providers/first_completed_task_date_provider.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/pick_date_range_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class DateRangeButton extends ConsumerWidget {
   final DateTimeRange dateRange;
-  final Function(DateTimeRange) onDatePicked;
+  final void Function(DateTimeRange) onDatePicked;
 
   const DateRangeButton({
-    super.key,
     required this.dateRange,
     required this.onDatePicked,
+    super.key,
   });
 
   @override

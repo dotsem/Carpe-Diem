@@ -3,7 +3,6 @@ import 'package:carpe_diem/features/common/presentation/providers/repository_pro
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,10 +103,10 @@ void main() {
         focusNodeA.requestFocus();
         await tester.pumpAndSettle();
 
-        Card cardA = tester.widget(find.widgetWithText(Card, 'Alpha'));
-        Card cardB = tester.widget(find.widgetWithText(Card, 'Beta'));
-        RoundedRectangleBorder shapeA = cardA.shape! as RoundedRectangleBorder;
-        RoundedRectangleBorder shapeB = cardB.shape! as RoundedRectangleBorder;
+        var cardA = tester.widget<Card>(find.widgetWithText(Card, 'Alpha'));
+        var cardB = tester.widget<Card>(find.widgetWithText(Card, 'Beta'));
+        var shapeA = cardA.shape! as RoundedRectangleBorder;
+        var shapeB = cardB.shape! as RoundedRectangleBorder;
 
         expect(shapeA.side.color, AppColors.accent);
         expect(shapeA.side.width, 2);
@@ -116,8 +115,8 @@ void main() {
         focusNodeB.requestFocus();
         await tester.pumpAndSettle();
 
-        cardA = tester.widget(find.widgetWithText(Card, 'Alpha'));
-        cardB = tester.widget(find.widgetWithText(Card, 'Beta'));
+        cardA = tester.widget<Card>(find.widgetWithText(Card, 'Alpha'));
+        cardB = tester.widget<Card>(find.widgetWithText(Card, 'Beta'));
         shapeA = cardA.shape! as RoundedRectangleBorder;
         shapeB = cardB.shape! as RoundedRectangleBorder;
 
@@ -136,15 +135,12 @@ void main() {
         final taskUrgent = Task(
           id: 't-urgent',
           title: 'Urgent Task',
-          status: TaskStatus.todo,
           isUrgent: true,
           createdAt: DateTime.now(),
         );
         final taskMatching = Task(
           id: 't-match',
           title: 'Apples and Oranges',
-          status: TaskStatus.todo,
-          isUrgent: false,
           createdAt: DateTime.now(),
         );
 
@@ -226,7 +222,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final Card card = tester.widget(find.widgetWithText(Card, 'Alpha'));
+        final card = tester.widget<Card>(find.widgetWithText(Card, 'Alpha'));
         final shape = card.shape! as RoundedRectangleBorder;
         expect(shape.side.color, AppColors.accent);
         expect(shape.side.width, 2);
@@ -239,13 +235,11 @@ void main() {
         final task1 = Task(
           id: 't-1',
           title: 'First Task',
-          status: TaskStatus.todo,
-          createdAt: DateTime(2025, 1, 1),
+          createdAt: DateTime(2025),
         );
         final task2 = Task(
           id: 't-2',
           title: 'Second Task',
-          status: TaskStatus.todo,
           createdAt: DateTime(2025, 1, 2),
         );
         final itemFocusNodes = <String, FocusNode>{};

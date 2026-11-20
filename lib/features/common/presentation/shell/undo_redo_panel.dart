@@ -23,7 +23,7 @@ class UndoRedoPanel extends ConsumerWidget {
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: Container(
-            height: 56.0,
+            height: 56,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHigh.withValues(
@@ -136,7 +136,7 @@ class ActionHistoryPanelWidget extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 dense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                 onTap: undoRedoState.isProcessing || isCurrent
                     ? null
                     : () => ref.read(undoRedoProvider.notifier).jumpTo(cmd),

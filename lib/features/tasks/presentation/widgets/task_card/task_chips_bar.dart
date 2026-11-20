@@ -21,11 +21,11 @@ class TaskChipsBar extends ConsumerWidget {
   final bool showScheduleDate;
 
   const TaskChipsBar({
-    super.key,
     required this.task,
-    this.project,
     required this.isOverdue,
     required this.showScheduleDate,
+    super.key,
+    this.project,
   });
 
   @override
@@ -42,19 +42,16 @@ class TaskChipsBar extends ConsumerWidget {
     final tagNotifier = ref.read(tagProvider.notifier);
 
     // Labels
-    final Set<String> allLabelIds = {...task.labelIds};
+    final allLabelIds = <String>{...task.labelIds};
     if (project != null) {
       allLabelIds.addAll(project!.labelIds);
     }
     final labels = allLabelIds
-        .map((id) => labelNotifier.getById(id))
+        .map(labelNotifier.getById)
         .whereType<Label>()
         .toList();
 
-    final tags = task.tagIds
-        .map((id) => tagNotifier.getById(id))
-        .whereType<Tag>()
-        .toList();
+    final tags = task.tagIds.map(tagNotifier.getById).whereType<Tag>().toList();
 
     final subtasksAsync = ref.watch(subtasksProvider(task.id));
     final subtasks = subtasksAsync.valueOrNull ?? [];

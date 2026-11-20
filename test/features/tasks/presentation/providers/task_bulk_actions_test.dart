@@ -36,7 +36,7 @@ void main() {
     });
 
     test('bulkUpdateTasks updates urgency, dates, and project', () async {
-      final t1 = createTestTask(id: 't1', title: 'Task 1');
+      final t1 = createTestTask(title: 'Task 1');
       final t2 = createTestTask(id: 't2', title: 'Task 2');
 
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
@@ -64,7 +64,6 @@ void main() {
 
     test('bulkUpdateTasks clears fields when clear flags are set', () async {
       final t1 = createTestTask(
-        id: 't1',
         scheduledDate: DateTime.now(),
         projectId: 'proj1',
         blockedById: 'b1',
@@ -94,7 +93,7 @@ void main() {
     });
 
     test('bulkDeleteTasks deletes tasks and subtasks recursively', () async {
-      final t1 = createTestTask(id: 't1');
+      final t1 = createTestTask();
       final sub1 = createTestTask(id: 's1', parentId: 't1');
 
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
@@ -118,7 +117,7 @@ void main() {
     test(
       'importTasksFromMarkdown creates tasks with project deadline inheritance',
       () async {
-        final projectDeadline = DateTime(2026, 12, 1);
+        final projectDeadline = DateTime(2026, 12);
         final project = Project(
           id: 'proj1',
           name: 'Project 1',

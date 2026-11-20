@@ -47,7 +47,7 @@ void main() {
   ) async {
     final color = await chipColor(
       tester,
-      deadline: DateTime(2026, 11, 1),
+      deadline: DateTime(2026, 11),
       isCompleted: true,
     );
     expect(color, isNot(AppColors.error.withValues(alpha: 0.2)));

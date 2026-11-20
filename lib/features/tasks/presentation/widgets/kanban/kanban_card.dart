@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
@@ -10,6 +8,8 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_hi
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_platform_draggable.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class KanbanCard extends ConsumerWidget {
   final TaskNode node;
@@ -21,12 +21,12 @@ class KanbanCard extends ConsumerWidget {
   final FocusNode? focusNode;
 
   const KanbanCard({
-    super.key,
     required this.node,
     required this.projectNotifier,
     required this.tasks,
     required this.onContextMenu,
     required this.onEdit,
+    super.key,
     this.focusNode,
   });
 
@@ -49,7 +49,6 @@ class KanbanCard extends ConsumerWidget {
         return TaskPlatformDraggable(
           task: task,
           feedbackWidth: constraints.maxWidth,
-          selectedCount: 1,
           child: cardContent,
         );
       },
@@ -116,12 +115,12 @@ class KanbanCardItem extends StatelessWidget {
   final Widget child;
 
   const KanbanCardItem({
-    super.key,
     required this.index,
     required this.slotInfo,
-    this.activeDrop,
     required this.nodes,
     required this.child,
+    super.key,
+    this.activeDrop,
   });
 
   @override

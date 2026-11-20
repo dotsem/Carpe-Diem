@@ -1,19 +1,19 @@
 import 'package:carpe_diem/core/theme/animation_context.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_column_header.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_collapsed_column.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_column_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
@@ -28,12 +28,15 @@ class KanbanColumn extends ConsumerStatefulWidget {
   final void Function(Task task, TaskStatus status) onStatusChange;
   final void Function(Task, Offset, RenderBox) onContextMenu;
   final void Function(Task) onEdit;
-  final bool isCollapsed, isNarrow, isPlanView;
-  final VoidCallback? onToggle, onDragEntering, onDragExiting;
+  final bool isCollapsed;
+  final bool isNarrow;
+  final bool isPlanView;
+  final VoidCallback? onToggle;
+  final VoidCallback? onDragEntering;
+  final VoidCallback? onDragExiting;
   final Map<String, FocusNode>? itemFocusNodes;
 
   const KanbanColumn({
-    super.key,
     required this.title,
     required this.titleColor,
     required this.tasks,
@@ -41,6 +44,7 @@ class KanbanColumn extends ConsumerStatefulWidget {
     required this.onStatusChange,
     required this.onContextMenu,
     required this.onEdit,
+    super.key,
     this.isNarrow = false,
     this.isPlanView = true,
     this.isCollapsed = false,

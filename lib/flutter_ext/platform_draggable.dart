@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'secondary_click_drag_canceller.dart';
+import 'package:carpe_diem/flutter_ext/secondary_click_drag_canceller.dart';
 import 'package:flutter/material.dart';
 
 class PlatformDraggable<T extends Object> extends StatelessWidget {
@@ -18,10 +18,10 @@ class PlatformDraggable<T extends Object> extends StatelessWidget {
   final bool cancelOnSecondaryClick;
 
   const PlatformDraggable({
-    super.key,
     required this.data,
     required this.child,
     required this.feedback,
+    super.key,
     this.childWhenDragging,
     this.delay = const Duration(milliseconds: 150),
     this.onDragStarted,

@@ -10,11 +10,11 @@ class TaskListDoneSection extends StatelessWidget {
   final List<Widget> children;
 
   const TaskListDoneSection({
-    super.key,
     required this.count,
     required this.isExpanded,
     required this.onToggle,
     required this.children,
+    super.key,
   });
 
   @override

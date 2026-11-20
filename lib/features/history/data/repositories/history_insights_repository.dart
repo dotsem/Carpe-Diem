@@ -1,8 +1,8 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class HistoryInsightsRepository implements IHistoryInsightsRepository {
   final Database _db;
@@ -21,7 +21,7 @@ class HistoryInsightsRepository implements IHistoryInsightsRepository {
       for (final r in rows)
         (
           projectId: r['projectId'] as String?,
-          completedAt: DateTime.parse(r['completedAt'] as String),
+          completedAt: DateTime.parse(r['completedAt']! as String),
         ),
     ];
   }
@@ -35,7 +35,7 @@ class HistoryInsightsRepository implements IHistoryInsightsRepository {
     );
     return {
       for (final r in rows)
-        r['projectId'] as String: (r['count'] as num).toInt(),
+        r['projectId']! as String: (r['count']! as num).toInt(),
     };
   }
 
@@ -66,11 +66,11 @@ class HistoryInsightsRepository implements IHistoryInsightsRepository {
       for (final r in rows)
         (
           projectId: r['projectId'] as String?,
-          createdAt: DateTime.parse(r['createdAt'] as String),
-          completedAt: DateTime.parse(r['completedAt'] as String),
+          createdAt: DateTime.parse(r['createdAt']! as String),
+          completedAt: DateTime.parse(r['completedAt']! as String),
           firstScheduledAt: r['firstScheduledAt'] == null
               ? null
-              : DateTime.parse(r['firstScheduledAt'] as String),
+              : DateTime.parse(r['firstScheduledAt']! as String),
         ),
     ];
   }
@@ -92,9 +92,9 @@ class HistoryInsightsRepository implements IHistoryInsightsRepository {
     return [
       for (final r in rows)
         (
-          id: r['id'] as String,
-          title: r['title'] as String,
-          moves: (r['moves'] as num).toInt(),
+          id: r['id']! as String,
+          title: r['title']! as String,
+          moves: (r['moves']! as num).toInt(),
         ),
     ];
   }
@@ -122,9 +122,9 @@ class HistoryInsightsRepository implements IHistoryInsightsRepository {
     );
     final byTask = <String, List<ScheduleEvent>>{};
     for (final e in events) {
-      (byTask[e['taskId'] as String] ??= []).add(
+      (byTask[e['taskId']! as String] ??= []).add(
         ScheduleEvent(
-          at: DateTime.parse(e['at'] as String),
+          at: DateTime.parse(e['at']! as String),
           from: _parse(e['fromValue']),
           to: _parse(e['toValue']),
         ),
@@ -135,7 +135,7 @@ class HistoryInsightsRepository implements IHistoryInsightsRepository {
         ScheduleTimeline(
           current: _parse(t['scheduledDate']),
           completedAt: _parse(t['completedAt']),
-          events: byTask[t['id'] as String] ?? const [],
+          events: byTask[t['id']! as String] ?? const [],
         ),
     ];
   }

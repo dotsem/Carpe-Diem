@@ -9,37 +9,31 @@ void main() {
         progress: 0.5,
         color: Colors.blue,
         width: 2.5,
-        borderRadius: 12.0,
       );
       const painterIdentical = ProgressBorderPainter(
         progress: 0.5,
         color: Colors.blue,
         width: 2.5,
-        borderRadius: 12.0,
       );
       const painterDiffProgress = ProgressBorderPainter(
         progress: 0.6,
         color: Colors.blue,
         width: 2.5,
-        borderRadius: 12.0,
       );
       const painterDiffColor = ProgressBorderPainter(
         progress: 0.5,
         color: Colors.red,
         width: 2.5,
-        borderRadius: 12.0,
       );
       const painterDiffWidth = ProgressBorderPainter(
         progress: 0.5,
         color: Colors.blue,
-        width: 3.0,
-        borderRadius: 12.0,
+        width: 3,
       );
       const painterDiffSide = ProgressBorderPainter(
         progress: 0.5,
         color: Colors.blue,
         width: 2.5,
-        borderRadius: 12.0,
         left: false,
       );
 
@@ -47,7 +41,6 @@ void main() {
         progress: 0.5,
         color: Colors.blue,
         width: 2.5,
-        borderRadius: 12.0,
         strokeJoin: StrokeJoin.miter,
       );
 

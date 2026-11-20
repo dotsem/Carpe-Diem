@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('tasks', () {
@@ -30,7 +31,7 @@ void main() {
 
     test('should cancel pending state and void execution timer', () {
       final notifier = container.read(taskTimerProvider.notifier);
-      bool callbackCalled = false;
+      var callbackCalled = false;
 
       notifier.startPending('task-1', 1, () async {
         callbackCalled = true;
@@ -65,8 +66,8 @@ void main() {
       'should cancel previous timer and execute only latest callback when restarted',
       () async {
         final notifier = container.read(taskTimerProvider.notifier);
-        bool firstCallbackCalled = false;
-        bool secondCallbackCalled = false;
+        var firstCallbackCalled = false;
+        var secondCallbackCalled = false;
 
         notifier.startPending('task-1', 1, () async {
           firstCallbackCalled = true;
@@ -77,7 +78,7 @@ void main() {
         });
 
         // wait for timer to trigger
-        await Future.delayed(const Duration(milliseconds: 1500));
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
 
         expect(firstCallbackCalled, isFalse);
         expect(secondCallbackCalled, isTrue);

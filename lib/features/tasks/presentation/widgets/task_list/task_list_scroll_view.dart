@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/active_task_reorderable_list.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_done_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_reorder_corridor.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskListScrollView extends ConsumerStatefulWidget {
   final List<TaskHierarchyNode> activeNodes;
@@ -25,13 +25,13 @@ class TaskListScrollView extends ConsumerStatefulWidget {
   final ScrollController? scrollController;
 
   const TaskListScrollView({
-    super.key,
     required this.activeNodes,
     required this.activeWidgets,
     required this.doneWidgets,
     required this.doneCount,
     required this.isDoneExpanded,
     required this.onToggleDone,
+    super.key,
     this.selectedTaskIds = const {},
     this.isReorderEnabled = true,
     this.isPlanView = false,
@@ -133,9 +133,9 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
               ),
             ),
             if (widget.activeNodes.isNotEmpty)
-              SliverFillRemaining(
+              const SliverFillRemaining(
                 hasScrollBody: false,
-                child: const TaskEmptySpaceDropZone(),
+                child: TaskEmptySpaceDropZone(),
               ),
           ],
         ),

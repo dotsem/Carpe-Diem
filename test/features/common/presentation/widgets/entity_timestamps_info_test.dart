@@ -1,6 +1,6 @@
+import 'package:carpe_diem/features/common/presentation/widgets/entity_timestamps_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/entity_timestamps_info.dart';
 
 void main() {
   group('EntityTimestampsInfo', () {
@@ -30,9 +30,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: EntityTimestampsInfo(createdAt: createdAt, updatedAt: null),
-          ),
+          home: Scaffold(body: EntityTimestampsInfo(createdAt: createdAt)),
         ),
       );
 

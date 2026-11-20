@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class KanbanScope extends InheritedWidget {
-  const KanbanScope({super.key, required super.child});
+  const KanbanScope({required super.child, super.key});
 
   static bool of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<KanbanScope>() != null;
@@ -32,11 +32,11 @@ class KanbanBoard extends ConsumerStatefulWidget {
   final bool isPlanView;
 
   const KanbanBoard({
-    super.key,
     required this.tasks,
     required this.onStatusChange,
     required this.onContextMenu,
     required this.onEdit,
+    super.key,
     this.itemFocusNodes,
     this.onOrderedIdsChanged,
     this.isPlanView = true,
@@ -77,9 +77,9 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
 
     if (widget.onOrderedIdsChanged != null) {
       final taskState = ref.watch(taskProvider);
-      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
-        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+      final allAvailableTasks = {for (final t in taskState.tasks) t.id: t}
+        ..addAll({for (final t in taskState.overdueTasks) t.id: t})
+        ..addAll({for (final t in taskState.unscheduledTasks) t.id: t});
 
       List<String> getFlatIds(List<Task> categoryTasks) {
         final flattened = TaskHierarchyUtils.buildHierarchy(
@@ -118,7 +118,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
                     narrowColumnWidth / (columnCount - 1)
               : standardColumnWidth;
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,

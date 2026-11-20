@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_slot.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+@immutable
 class TaskReorderActiveDrop {
   final int index;
   final Task task;
@@ -42,12 +43,12 @@ class TaskReorderScope extends ConsumerStatefulWidget {
   final Widget child;
 
   const TaskReorderScope({
-    super.key,
     required this.nodes,
-    this.isPlanView = false,
-    this.settings,
     required this.onDrop,
     required this.child,
+    super.key,
+    this.isPlanView = false,
+    this.settings,
   });
 
   static TaskReorderScopeInherited? of(BuildContext context) {
@@ -73,11 +74,11 @@ class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
   }
 
   TaskReorderSlot _resolveSlot(Task task, int rawIndex) {
-    SettingsState? settings = widget.settings;
+    var settings = widget.settings;
     if (settings == null) {
       try {
         settings = ref.read(settingsProvider);
-      } catch (_) {
+      } on Object catch (_) {
         // fallback for isolated widget tests without settings provider overrides
       }
     }
@@ -181,17 +182,17 @@ class TaskReorderScopeInherited extends InheritedWidget {
   Offset? get pointerOffset => pointerOffsetGetter?.call();
 
   const TaskReorderScopeInherited({
-    super.key,
     required this.activeDropNotifier,
     required this.nodes,
     required this.isPlanView,
-    this.pointerOffsetGetter,
     required this.resolveSlot,
     required this.onHoverSlot,
     required this.onLeaveSlot,
     required this.drop,
     required this.isCancelled,
     required super.child,
+    super.key,
+    this.pointerOffsetGetter,
   });
 
   void handleDragEnd(

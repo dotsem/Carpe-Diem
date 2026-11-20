@@ -1,11 +1,10 @@
 import 'package:carpe_diem/core/reorder/lexorank.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_position_info.dart';
-
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 
 class TaskReorderUtils {
   /// Get position info for a task in a list of tasks.

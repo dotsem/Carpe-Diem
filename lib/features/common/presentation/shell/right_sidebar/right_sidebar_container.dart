@@ -1,9 +1,9 @@
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_panel_body.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 
 class RightSidebarContainer extends ConsumerWidget {
   const RightSidebarContainer({super.key});
@@ -33,7 +33,6 @@ class RightSidebarContainer extends ConsumerWidget {
             border: Border(
               left: BorderSide(
                 color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-                width: 1,
               ),
             ),
           ),

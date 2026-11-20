@@ -1,12 +1,12 @@
-import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/reorder/lexorank.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
+import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/task_sort_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_state.dart';
 
 class TaskReorderService {
@@ -39,9 +39,9 @@ class TaskReorderService {
         );
         return LexoRank.generateBetween(prevRank, nextRank);
 
-      default:
+      case TaskPlacement.bottom:
         String? bottomRank;
-        for (int i = activeList.length - 1; i >= 0 && bottomRank == null; i--) {
+        for (var i = activeList.length - 1; i >= 0 && bottomRank == null; i--) {
           bottomRank = TaskReorderUtils.getEffectiveRank(activeList, i);
         }
         return LexoRank.generateBottom(bottomRank);
@@ -74,7 +74,6 @@ class TaskReorderService {
         updatedTask: task,
         prioritizeOverdue: settings.prioritizeOverdue,
         prioritizeDeadlines: settings.prioritizeDeadlines,
-        isPlanView: false,
       ),
     );
   }
@@ -105,7 +104,6 @@ class TaskReorderService {
         updates: updates,
         prioritizeOverdue: settings.prioritizeOverdue,
         prioritizeDeadlines: settings.prioritizeDeadlines,
-        isPlanOrder: false,
       ),
     );
   }

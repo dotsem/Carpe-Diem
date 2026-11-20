@@ -1,36 +1,36 @@
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
+import 'package:carpe_diem/core/utils/focus_utils.dart';
+import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
+import 'package:carpe_diem/core/utils/task_selection_utils.dart';
+import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/shortcuts/project_detail_shortcuts.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/delete_project_dialog.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_header.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_tasks_actions.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
 import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
-import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_header.dart';
-import 'package:carpe_diem/features/projects/presentation/shortcuts/project_detail_shortcuts.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/delete_project_dialog.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_tasks_actions.dart';
 import 'package:go_router/go_router.dart';
-import 'package:carpe_diem/core/utils/focus_utils.dart';
-import 'package:carpe_diem/core/utils/task_selection_utils.dart';
-import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
 
 class ProjectDetailScreen extends ConsumerStatefulWidget {
   final String projectId;
 
-  const ProjectDetailScreen({super.key, required this.projectId});
+  const ProjectDetailScreen({required this.projectId, super.key});
 
   @override
   ConsumerState<ProjectDetailScreen> createState() =>
@@ -168,7 +168,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     if (project == null) {
       return Center(
         child: Text(
-          "Project not found",
+          'Project not found',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -204,7 +204,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       project: project,
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
-      onFocusSearch: () => _searchFocusNode.requestFocus(),
+      onFocusSearch: _searchFocusNode.requestFocus,
       onUnfocusSearch: () {
         if (_searchFocusNode.hasFocus) {
           _searchFocusNode.unfocus();
@@ -246,7 +246,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       },
                     ),
                     onImportMd: () {
-                      showDialog(
+                      showDialog<void>(
                         context: context,
                         builder: (_) => ImportFromMDDialog(project: project),
                       ).then((_) => setState(() {}));
@@ -316,7 +316,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                             emptyPlaceholder: Center(
                               child: _tasks.isEmpty
                                   ? Text(
-                                      "No tasks in this project",
+                                      'No tasks in this project',
                                       style: TextStyle(
                                         color: Theme.of(
                                           context,
@@ -327,7 +327,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          "All tasks hidden by filters",
+                                          'All tasks hidden by filters',
                                           style: TextStyle(
                                             color: Theme.of(
                                               context,
@@ -339,7 +339,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                                           onPressed: () => ref
                                               .read(filterProvider.notifier)
                                               .clearFilter(),
-                                          child: const Text("Clear Filters"),
+                                          child: const Text('Clear Filters'),
                                         ),
                                       ],
                                     ),
@@ -406,15 +406,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 bottom: 16,
                 child: BulkPlanningBar(
                   selectedTaskIds: _selectedTaskIds,
-                  onClearSelection: () =>
-                      setState(() => _selectedTaskIds.clear()),
+                  onClearSelection: () => setState(_selectedTaskIds.clear),
                   disableScheduling: selectedTasksAlreadyScheduled,
                   onScheduleToday: () {
                     ref
                         .read(taskProvider.notifier)
                         .scheduleTasksForToday(_selectedTaskIds)
                         .then((_) {
-                          setState(() => _selectedTaskIds.clear());
+                          setState(_selectedTaskIds.clear);
                         });
                   },
                   onScheduleTomorrow: () {
@@ -422,7 +421,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         .read(taskProvider.notifier)
                         .scheduleTasksForTomorrow(_selectedTaskIds)
                         .then((_) {
-                          setState(() => _selectedTaskIds.clear());
+                          setState(_selectedTaskIds.clear);
                         });
                   },
                   onBulkEdit: () {
@@ -438,8 +437,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         context: context,
                         ref: ref,
                         selectedTaskIds: _selectedTaskIds,
-                        onCompleted: () =>
-                            setState(() => _selectedTaskIds.clear()),
+                        onCompleted: () => setState(_selectedTaskIds.clear),
                       );
                     }
                   },
@@ -448,8 +446,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       context: context,
                       ref: ref,
                       selectedTaskIds: _selectedTaskIds,
-                      onCompleted: () =>
-                          setState(() => _selectedTaskIds.clear()),
+                      onCompleted: () => setState(_selectedTaskIds.clear),
                     );
                   },
                   onBulkDelete: () {
@@ -458,14 +455,14 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                           .where((t) => t.id == _selectedTaskIds.first)
                           .firstOrNull;
                       if (task == null) return;
-                      showDialog(
+                      showDialog<void>(
                         context: context,
                         builder: (ctx) => DeleteDialog(
-                          title: "Delete Task",
-                          message: "Are you sure you want to delete this task?",
+                          title: 'Delete Task',
+                          message: 'Are you sure you want to delete this task?',
                           onConfirm: () {
                             ref.read(taskProvider.notifier).deleteTask(task);
-                            setState(() => _selectedTaskIds.clear());
+                            setState(_selectedTaskIds.clear);
                           },
                         ),
                       );
@@ -474,8 +471,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         context: context,
                         ref: ref,
                         selectedTaskIds: _selectedTaskIds,
-                        onCompleted: () =>
-                            setState(() => _selectedTaskIds.clear()),
+                        onCompleted: () => setState(_selectedTaskIds.clear),
                       );
                     }
                   },

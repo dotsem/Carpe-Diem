@@ -1,14 +1,14 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CompleteParentPromptDialog extends ConsumerWidget {
   final Task parent;
 
-  const CompleteParentPromptDialog({super.key, required this.parent});
+  const CompleteParentPromptDialog({required this.parent, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

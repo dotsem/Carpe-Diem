@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
+import 'package:flutter/material.dart';
 
 class TaskReorderListSlot {
   final int totalCount;
@@ -46,7 +46,7 @@ class TaskReorderListSlot {
 
     if (draggedIndex != null && draggedIndex >= 0 && draggedIndex < itemCount) {
       if (activeDrop != null && activeDrop.slot.isValid) {
-        int gapIndex = draggedIndex;
+        var gapIndex = draggedIndex;
         if (!activeDrop.slot.isUnchanged) {
           final raw = activeDrop.slot.index;
           gapIndex = (raw > draggedIndex ? raw - 1 : raw).clamp(
@@ -63,7 +63,6 @@ class TaskReorderListSlot {
       }
       return TaskReorderListSlot(
         totalCount: (itemCount - 1).clamp(0, itemCount),
-        placeholderIndex: null,
         draggedIndex: draggedIndex,
       );
     }
@@ -105,7 +104,7 @@ class TaskReorderListSlot {
     if (key is! ValueKey<String>) return null;
     if (key.value == 'drag_placeholder_gap') return placeholderIndex;
     final id = key.value.replaceFirst(prefix, '');
-    for (int i = 0; i < totalCount; i++) {
+    for (var i = 0; i < totalCount; i++) {
       if (!isPlaceholder(i)) {
         final a = toOriginalIndex(i);
         if (a < nodes.length && nodes[a].task?.id == id) return i;

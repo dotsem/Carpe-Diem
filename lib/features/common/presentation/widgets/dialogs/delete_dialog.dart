@@ -6,10 +6,10 @@ class DeleteDialog extends StatelessWidget {
   final String message;
   final VoidCallback onConfirm;
   const DeleteDialog({
-    super.key,
     required this.title,
     required this.message,
     required this.onConfirm,
+    super.key,
   });
 
   @override

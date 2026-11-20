@@ -6,9 +6,9 @@ class SmallChip extends StatelessWidget {
   final double borderRadius;
   final EdgeInsets padding;
   const SmallChip({
-    super.key,
     required this.child,
     required this.color,
+    super.key,
     this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
     this.borderRadius = 4,
   });

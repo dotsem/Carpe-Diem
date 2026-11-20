@@ -1,6 +1,6 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class LabelRepository extends ILabelRepository {
   final Database _db;

@@ -121,14 +121,14 @@ void main() {
       DateTime(2026, 11, 1, 20),
       DateTime(2026, 11, 2, 8),
     ]);
-    expect(counts[DateTime(2026, 11, 1)], 2);
+    expect(counts[DateTime(2026, 11)], 2);
     expect(counts[DateTime(2026, 11, 2)], 1);
   });
 
   group('leadTimes', () {
     test('skips tasks without a schedule event and splits the two phases', () {
-      final created = DateTime(2026, 9, 1);
-      final scheduled = DateTime(2026, 11, 1);
+      final created = DateTime(2026, 9);
+      final scheduled = DateTime(2026, 11);
       final done = DateTime(2026, 11, 4);
       final stats = leadTimes([
         (
@@ -164,13 +164,13 @@ void main() {
   });
 
   group('planAccuracy', () {
-    final since = DateTime(2026, 11, 1);
+    final since = DateTime(2026, 11);
     final d10 = DateTime(2026, 11, 10);
     final d11 = DateTime(2026, 11, 11);
 
     PlanAccuracy run(List<ScheduleTimeline> t) => planAccuracy(
       t,
-      start: DateTime(2026, 11, 1),
+      start: DateTime(2026, 11),
       end: DateTime(2026, 11, 30),
       trackingSince: since,
     );
@@ -223,7 +223,7 @@ void main() {
     test('days before tracking began are skipped', () {
       final result = planAccuracy(
         [ScheduleTimeline(current: DateTime(2026, 10, 20))],
-        start: DateTime(2026, 10, 1),
+        start: DateTime(2026, 10),
         end: DateTime(2026, 11, 30),
         trackingSince: since,
       );

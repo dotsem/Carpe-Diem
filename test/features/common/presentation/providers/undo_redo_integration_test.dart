@@ -1,15 +1,16 @@
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
@@ -80,11 +81,11 @@ void main() {
       verify(() => mockTaskRepo.insert(any())).called(1);
 
       await undoRedo.undo();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       verify(() => mockTaskRepo.delete(any())).called(1);
 
       await undoRedo.redo();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       verify(() => mockTaskRepo.insert(any())).called(1);
     });
 
@@ -104,12 +105,12 @@ void main() {
         verify(() => mockProjectRepo.insert(any())).called(1);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockProjectRepo.delete(any())).called(1);
         verify(() => mockProjectRepo.getAll()).called(greaterThan(0));
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockProjectRepo.insert(any())).called(1);
       },
     );
@@ -127,12 +128,12 @@ void main() {
         verify(() => mockLabelRepo.insert(any())).called(1);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockLabelRepo.delete(any())).called(1);
         verify(() => mockLabelRepo.getAll()).called(greaterThan(0));
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockLabelRepo.insert(any())).called(1);
       },
     );

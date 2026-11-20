@@ -201,14 +201,12 @@ void main() {
       final normal1 = Task(
         id: 'n1',
         title: 'Normal 1',
-        isUrgent: false,
         sortOrder: 'a2',
         createdAt: now,
       );
       final normal2 = Task(
         id: 'n2',
         title: 'Normal 2',
-        isUrgent: false,
         sortOrder: 'a4',
         createdAt: now,
       );
@@ -264,7 +262,6 @@ void main() {
         draggedTask: t2,
         rawIndex: 0,
         settings: deadlineSettings,
-        isPlanView: false,
       );
       expect(dailySlot.isValid, isFalse);
 

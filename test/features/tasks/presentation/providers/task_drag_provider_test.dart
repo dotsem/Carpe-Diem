@@ -56,7 +56,7 @@ void main() {
         final notifier = container.read(taskDragProvider.notifier);
         notifier.startDrag('t1');
 
-        bool receivedCancelEvent = false;
+        var receivedCancelEvent = false;
         void testRoute(PointerEvent event) {
           if (event is PointerCancelEvent && event.pointer == 42) {
             receivedCancelEvent = true;
@@ -69,11 +69,7 @@ void main() {
         });
 
         await tester.sendEventToBinding(
-          const PointerDownEvent(
-            pointer: 42,
-            kind: PointerDeviceKind.mouse,
-            buttons: kPrimaryMouseButton,
-          ),
+          const PointerDownEvent(pointer: 42, kind: PointerDeviceKind.mouse),
         );
         await tester.sendEventToBinding(
           const PointerMoveEvent(

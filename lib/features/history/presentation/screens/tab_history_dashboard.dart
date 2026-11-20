@@ -1,10 +1,10 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/overview_stat_card.dart';
 import 'package:carpe_diem/features/history/presentation/screens/widgets/activity_section.dart';
+import 'package:carpe_diem/features/history/presentation/screens/widgets/overview_stat_card.dart';
 import 'package:carpe_diem/features/history/presentation/screens/widgets/project_breakdown_item.dart';
 import 'package:carpe_diem/features/history/presentation/screens/widgets/section_header.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,9 +13,9 @@ class TabHistoryDashboard extends ConsumerWidget {
   final DateTimeRange range;
 
   const TabHistoryDashboard({
-    super.key,
     required this.overview,
     required this.range,
+    super.key,
   });
 
   @override
@@ -80,7 +80,7 @@ class TabHistoryDashboard extends ConsumerWidget {
     if (sortedProjects.isEmpty) {
       return [
         Padding(
-          padding: EdgeInsets.only(top: 16.0),
+          padding: const EdgeInsets.only(top: 16),
           child: Center(
             child: Text(
               'No project data',

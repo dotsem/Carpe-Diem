@@ -3,6 +3,7 @@ import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/common/tri_state_filter_chip.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_button.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/hidden_items_indicator.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/mode_dropdown_button.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
@@ -11,8 +12,6 @@ import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:carpe_diem/features/filter/presentation/widgets/hidden_items_indicator.dart';
 
 class FilterBar extends ConsumerWidget {
   final TaskFilter filter;
@@ -25,10 +24,10 @@ class FilterBar extends ConsumerWidget {
   final int hiddenArchivedCount;
 
   const FilterBar({
-    super.key,
     required this.filter,
     required this.onFilterTap,
     required this.onClearFilter,
+    super.key,
     this.ignoreProjects = false,
     this.isBypassed = false,
     this.hiddenCount = 0,
@@ -44,7 +43,6 @@ class FilterBar extends ConsumerWidget {
     final filterNotifier = ref.read(filterProvider.notifier);
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         FilterButton(
           isBypassed: isBypassed,
@@ -116,7 +114,7 @@ class FilterBar extends ConsumerWidget {
                         ...filter.labelIdsIncluded.map((id) {
                           final label = labelState.labels.firstWhere(
                             (l) => l.id == id,
-                            orElse: () => Label.empty(),
+                            orElse: Label.empty,
                           );
                           if (label.isEmpty) return const SizedBox.shrink();
                           return _buildChip(
@@ -131,7 +129,7 @@ class FilterBar extends ConsumerWidget {
                         ...filter.labelIdsExcluded.map((id) {
                           final label = labelState.labels.firstWhere(
                             (l) => l.id == id,
-                            orElse: () => Label.empty(),
+                            orElse: Label.empty,
                           );
                           if (label.isEmpty) return const SizedBox.shrink();
                           return _buildChip(

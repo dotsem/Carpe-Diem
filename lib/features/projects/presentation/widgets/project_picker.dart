@@ -1,19 +1,19 @@
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
 import 'package:flutter/material.dart';
 
 class ProjectPicker extends StatelessWidget {
   final List<Project> projects;
-  final Function(String?) onChanged;
+  final void Function(String?) onChanged;
   final String? selectedProjectId;
   final MenuController? menuController;
   final bool borderless;
 
   const ProjectPicker({
-    super.key,
-    this.selectedProjectId,
     required this.onChanged,
     required this.projects,
+    super.key,
+    this.selectedProjectId,
     this.menuController,
     this.borderless = false,
   });

@@ -26,7 +26,6 @@ class ItemSizeTransitionBuilder extends ConsumerStatefulWidget {
   final bool isPlanView;
 
   const ItemSizeTransitionBuilder({
-    super.key,
     required this.isExpanded,
     required this.width,
     required this.narrowWidth,
@@ -43,6 +42,7 @@ class ItemSizeTransitionBuilder extends ConsumerStatefulWidget {
     required this.onToggle,
     required this.onDragEntering,
     required this.onDragExiting,
+    super.key,
     this.isPlanView = true,
   });
 

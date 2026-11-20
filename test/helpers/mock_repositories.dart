@@ -1,5 +1,7 @@
-import 'package:mocktail/mocktail.dart';
+// Why: these mocks keep the concrete members inherited from the interface.
+// ignore_for_file: prefer_mixin
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockTaskRepository extends ITaskRepository with Mock {}
 

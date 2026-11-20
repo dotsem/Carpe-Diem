@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
 class ToastUtils {
-  static const alignment = Alignment.bottomRight;
+  static const Alignment alignment = Alignment.bottomRight;
   static const autoCloseDuration = Duration(seconds: 3);
 
   static BuildContext? _getEffectiveContext(BuildContext? context) {
