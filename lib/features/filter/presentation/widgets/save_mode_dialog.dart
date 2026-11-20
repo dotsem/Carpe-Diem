@@ -6,6 +6,7 @@ import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+@immutable
 class SaveModeResult {
   final String name;
   final int iconCodePoint;

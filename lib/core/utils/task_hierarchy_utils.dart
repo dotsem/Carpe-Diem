@@ -15,8 +15,8 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 ///   top of the list if it is urgent itself or contains at least one active,
 ///   incomplete urgent subtask in the current view. Root tasks within each section
 ///   strictly preserve their own relative root sort order.
-/// - Nesting Modes: If [asParentContainers] is `true`, parents with subtasks
-///   in view are emitted as a [ParentContainerNode] summarizing subtask counts and
+/// - Nesting Modes: If `asParentContainers` is `true`, parents with subtasks
+///   in view are emitted as a `ParentContainerNode` summarizing subtask counts and
 ///   urgency. When `false`, they are emitted as a standard [TaskNode] with depth 0,
 ///   followed by indented child [TaskNode] items at depth 1+.
 class TaskHierarchyUtils {

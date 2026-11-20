@@ -128,7 +128,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
     try {
       final map = await _repo.getAll();
       state = SettingsState(map);
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to load settings: $e');
       state = const SettingsState({});
     }

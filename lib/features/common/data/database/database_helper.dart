@@ -11,11 +11,10 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseHelper {
   final String dbPath;
-
-  DatabaseHelper({this.dbPath = ''});
-
   Database? _database;
   Future<Database>? _dbOpenFuture;
+
+  DatabaseHelper({this.dbPath = ''});
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -40,7 +39,7 @@ class DatabaseHelper {
       path = join(dir.path, AppConstants.dbName);
     }
 
-    return openDatabase(
+    return await openDatabase(
       path,
       version: DbConstants.dbVersion,
       onConfigure: (db) async {

@@ -8,18 +8,6 @@ class TagProfileItem {
 }
 
 class TagProfile {
-  final String name;
-  final String description;
-  final IconData icon;
-  final List<TagProfileItem> tags;
-
-  const TagProfile({
-    required this.name,
-    required this.description,
-    required this.icon,
-    required this.tags,
-  });
-
   static const List<TagProfile> predefinedProfiles = [
     TagProfile(
       name: 'Work / Professional',
@@ -137,4 +125,16 @@ class TagProfile {
       ],
     ),
   ];
+
+  final String name;
+  final String description;
+  final IconData icon;
+  final List<TagProfileItem> tags;
+
+  const TagProfile({
+    required this.name,
+    required this.description,
+    required this.icon,
+    required this.tags,
+  });
 }

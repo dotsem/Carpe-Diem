@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+@immutable
 class TaskDragState {
   final String? draggedTaskId;
   final bool hasValidTarget;

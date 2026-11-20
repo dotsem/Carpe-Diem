@@ -180,7 +180,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
     if (result != null) {
       ref.read(filterProvider.notifier).setFilter(result);
-      _loadData();
+      await _loadData();
     }
   }
 

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
 class CheesyToast extends StatelessWidget {
+  static const inset = 12.0;
+
   final String message;
   final String? subtitle;
   final IconData icon;
@@ -25,8 +27,6 @@ class CheesyToast extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     this.width = 380,
   });
-
-  final inset = 12.0;
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +121,6 @@ class CheesyToast extends StatelessWidget {
                 foregroundPainter: ProgressBorderPainter(
                   progress: (1.0 - value).clamp(0.0, 1.0),
                   color: color,
-                  borderRadius: inset,
                   left: false,
                 ),
                 child: child,
@@ -142,9 +141,11 @@ class CheesyToast extends StatelessWidget {
 }
 
 class _CheesyToastTextColumn extends StatelessWidget {
-  const _CheesyToastTextColumn({required this.message, this.subtitle});
   final String message;
   final String? subtitle;
+
+  const _CheesyToastTextColumn({required this.message, this.subtitle});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -193,9 +194,11 @@ class _CheesyToastTextColumn extends StatelessWidget {
 }
 
 class _CheesyToastUndoButton extends StatelessWidget {
-  const _CheesyToastUndoButton({required this.onUndo, required this.item});
   final VoidCallback onUndo;
   final ToastificationItem item;
+
+  const _CheesyToastUndoButton({required this.onUndo, required this.item});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

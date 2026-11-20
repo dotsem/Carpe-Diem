@@ -24,7 +24,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await windowManager.ensureInitialized();
-  } catch (e) {
+  } on Object catch (e) {
     debugPrint('WindowManager initialization failed: $e');
   }
   await DatabaseHelper.initialize();

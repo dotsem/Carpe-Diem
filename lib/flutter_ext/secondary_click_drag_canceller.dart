@@ -8,7 +8,7 @@ class SecondaryClickDragCanceller {
 
   SecondaryClickDragCanceller({this.onCancel});
 
-  static SecondaryClickDragCanceller start({VoidCallback? onCancel}) {
+  factory SecondaryClickDragCanceller.start({VoidCallback? onCancel}) {
     final canceller = SecondaryClickDragCanceller(onCancel: onCancel);
     canceller._attach();
     return canceller;

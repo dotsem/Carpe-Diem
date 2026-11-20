@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+
+@immutable
 class TaskReorderSlot {
   final int index;
   final bool isValid;

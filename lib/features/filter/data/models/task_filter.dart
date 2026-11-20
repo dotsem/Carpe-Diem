@@ -2,6 +2,7 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter/foundation.dart';
 
+@immutable
 class TaskFilter {
   final bool? isUrgent;
   final Set<String> projectIdsIncluded;

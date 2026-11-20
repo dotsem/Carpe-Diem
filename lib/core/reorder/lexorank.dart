@@ -96,13 +96,14 @@ class LexoRank {
   }
 
   static String _midpointFraction(String fracA, String fracB) {
+    var upper = fracB;
     final sb = StringBuffer();
     var i = 0;
 
     while (true) {
       final codeA = i < fracA.length ? _charToVal(fracA.codeUnitAt(i)) : 0;
-      final codeB = fracB.isNotEmpty && i < fracB.length
-          ? _charToVal(fracB.codeUnitAt(i))
+      final codeB = upper.isNotEmpty && i < upper.length
+          ? _charToVal(upper.codeUnitAt(i))
           : 62;
 
       if (codeA == codeB) {
@@ -119,13 +120,17 @@ class LexoRank {
 
       sb.write(_base62[codeA]);
       i++;
-      fracB = '';
+      upper = '';
     }
   }
 
-  static String generateBetween(String? prev, String? next) {
-    if (prev != null && (prev.isEmpty || prev == '~')) prev = null;
-    if (next != null && (next.isEmpty || next == '~')) next = null;
+  static String generateBetween(String? rawPrev, String? rawNext) {
+    final prev = rawPrev == null || rawPrev.isEmpty || rawPrev == '~'
+        ? null
+        : rawPrev;
+    final next = rawNext == null || rawNext.isEmpty || rawNext == '~'
+        ? null
+        : rawNext;
 
     if (prev == null && next == null) return defaultRank;
 

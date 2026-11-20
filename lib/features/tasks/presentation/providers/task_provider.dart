@@ -260,7 +260,7 @@ class TaskNotifier extends Notifier<TaskState> {
         return null;
       case TaskStatus.inProgress:
       case TaskStatus.review:
-        return completeTaskWithPossibleTimer(task);
+        return await completeTaskWithPossibleTimer(task);
       case TaskStatus.done:
         await updateTaskStatus(task, TaskStatus.todo);
         return null;

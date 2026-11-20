@@ -91,13 +91,9 @@ class TaskReorderEngine {
 
     if (parentId != null && isParentInNodes) {
       // Subtask: strictly clamped to sibling subtask range under existing parent
-      var firstChild = -1, lastChild = -1;
-      for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].task?.parentId == parentId) {
-          if (firstChild == -1) firstChild = i;
-          lastChild = i;
-        }
-      }
+      bool isChild(TaskHierarchyNode n) => n.task?.parentId == parentId;
+      final firstChild = nodes.indexWhere(isChild);
+      final lastChild = nodes.lastIndexWhere(isChild);
       if (firstChild == -1) {
         targetIndex = nodes.indexWhere((n) => n.task?.id == parentId) + 1;
       } else {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
@@ -230,7 +231,9 @@ PopupMenuItem<void> buildTopRow(
                 },
               );
               if (result != null && result != task.scheduledDate) {
-                provider.updateTask(task.copyWith(scheduledDate: result));
+                unawaited(
+                  provider.updateTask(task.copyWith(scheduledDate: result)),
+                );
               }
             },
           ),

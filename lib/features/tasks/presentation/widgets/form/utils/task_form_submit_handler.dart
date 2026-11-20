@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -71,46 +72,50 @@ abstract final class TaskFormSubmitHandler {
         : description!.trim();
 
     if (initialTask != null) {
-      ref
-          .read(taskProvider.notifier)
-          .updateTask(
-            initialTask.copyWith(
+      unawaited(
+        ref
+            .read(taskProvider.notifier)
+            .updateTask(
+              initialTask.copyWith(
+                title: titleToSave,
+                description: trimmedDesc ?? '',
+                scheduledDate: scheduledDate,
+                clearScheduledDate: scheduledDate == null,
+                deadline: deadline,
+                clearDeadline: deadline == null,
+                blockedById: blockedById,
+                clearBlockedBy: blockedById == null,
+                projectId: selectedProjectId,
+                clearProjectId: selectedProjectId == null,
+                parentId: parentId,
+                clearParent: parentId == null,
+                labelIds: selectedLabelIds,
+                tagIds: finalTagIds,
+                isUrgent: placement == TaskPlacement.urgent,
+              ),
+              placement:
+                  (initialTask.isUrgent && placement == TaskPlacement.urgent)
+                  ? null
+                  : placement,
+            ),
+      );
+    } else {
+      unawaited(
+        ref
+            .read(taskProvider.notifier)
+            .addTask(
               title: titleToSave,
-              description: trimmedDesc ?? '',
+              description: trimmedDesc,
               scheduledDate: scheduledDate,
-              clearScheduledDate: scheduledDate == null,
-              deadline: deadline,
-              clearDeadline: deadline == null,
-              blockedById: blockedById,
-              clearBlockedBy: blockedById == null,
               projectId: selectedProjectId,
-              clearProjectId: selectedProjectId == null,
+              placement: placement ?? TaskPlacement.bottom,
+              deadline: deadline,
+              blockedById: blockedById,
               parentId: parentId,
-              clearParent: parentId == null,
               labelIds: selectedLabelIds,
               tagIds: finalTagIds,
-              isUrgent: placement == TaskPlacement.urgent,
             ),
-            placement:
-                (initialTask.isUrgent && placement == TaskPlacement.urgent)
-                ? null
-                : placement,
-          );
-    } else {
-      ref
-          .read(taskProvider.notifier)
-          .addTask(
-            title: titleToSave,
-            description: trimmedDesc,
-            scheduledDate: scheduledDate,
-            projectId: selectedProjectId,
-            placement: placement ?? TaskPlacement.bottom,
-            deadline: deadline,
-            blockedById: blockedById,
-            parentId: parentId,
-            labelIds: selectedLabelIds,
-            tagIds: finalTagIds,
-          );
+      );
     }
 
     if (parentId != null && initialTask == null) {

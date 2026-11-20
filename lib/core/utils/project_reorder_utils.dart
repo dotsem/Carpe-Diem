@@ -3,7 +3,7 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 
 class ProjectReorderUtils {
   /// Compute new sort order string for inserting a project at slot [slotIndex] in [remainingProjects].
-  /// [slotIndex] ranges from 0 to [remainingProjects.length].
+  /// [slotIndex] ranges from 0 to `remainingProjects.length`.
   static String computeSortOrderForSlot({
     required Project draggedProject,
     required List<Project> remainingProjects,

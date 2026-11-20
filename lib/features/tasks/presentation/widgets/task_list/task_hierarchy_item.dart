@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -138,9 +139,11 @@ class TaskHierarchyItem extends ConsumerWidget {
                   taskNode.task,
                 );
                 if (conflict != null && context.mounted) {
-                  showDialog<void>(
-                    context: context,
-                    builder: (_) => CompleteParentDialog(conflict: conflict),
+                  unawaited(
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => CompleteParentDialog(conflict: conflict),
+                    ),
                   );
                 }
               },

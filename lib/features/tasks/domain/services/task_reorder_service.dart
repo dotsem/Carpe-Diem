@@ -39,7 +39,7 @@ class TaskReorderService {
         );
         return LexoRank.generateBetween(prevRank, nextRank);
 
-      default:
+      case TaskPlacement.bottom:
         String? bottomRank;
         for (var i = activeList.length - 1; i >= 0 && bottomRank == null; i--) {
           bottomRank = TaskReorderUtils.getEffectiveRank(activeList, i);

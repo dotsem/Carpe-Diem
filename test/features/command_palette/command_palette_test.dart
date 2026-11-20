@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/command_palette/models/palette_command.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette.dart';
@@ -192,8 +193,7 @@ void main() {
           ),
         ),
       );
-
-      CommandPalette.show();
+      unawaited(CommandPalette.show());
       await tester.pumpAndSettle();
       expect(find.byType(CommandPalette), findsOneWidget);
     });

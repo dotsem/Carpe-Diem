@@ -57,7 +57,7 @@ class FilterModesNotifier extends Notifier<FilterModesState> {
         activeModeId: activeId,
         isLoading: false,
       );
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to load filter modes: $e');
       state = state.copyWith(isLoading: false);
     }
@@ -105,7 +105,7 @@ class FilterModesNotifier extends Notifier<FilterModesState> {
       } else {
         await _kvRepo.delete(keyActiveFilterMode);
       }
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to persist active filter mode: $e');
     }
     state = state.copyWith(activeModeId: id, clearActiveModeId: id == null);

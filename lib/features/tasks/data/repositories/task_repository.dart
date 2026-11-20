@@ -69,7 +69,7 @@ class TaskRepository extends ITaskRepository {
       WHERE p.isActive IS NULL OR p.isActive = 1
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''');
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -87,7 +87,7 @@ class TaskRepository extends ITaskRepository {
     final maps = await _db.rawQuery('$_baseSelect WHERE t.blockedById = ?', [
       taskId,
     ]);
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -96,7 +96,7 @@ class TaskRepository extends ITaskRepository {
       '$_baseSelect WHERE t.parentId = ? ORDER BY ${_getOrderBy(tableAlias: 't')}',
       [parentId],
     );
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -124,7 +124,7 @@ class TaskRepository extends ITaskRepository {
       ],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -145,7 +145,7 @@ class TaskRepository extends ITaskRepository {
       [dateStr, TaskStatus.done.index],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -161,7 +161,7 @@ class TaskRepository extends ITaskRepository {
       ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''');
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -179,7 +179,7 @@ class TaskRepository extends ITaskRepository {
       [projectId],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -197,7 +197,7 @@ class TaskRepository extends ITaskRepository {
       [projectId],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override
@@ -219,7 +219,7 @@ class TaskRepository extends ITaskRepository {
       [labelId, labelId],
     );
 
-    return _loadTasksWithRelations(maps);
+    return await _loadTasksWithRelations(maps);
   }
 
   @override

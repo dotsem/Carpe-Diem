@@ -93,7 +93,7 @@ class WindowTitleNotifier extends Notifier<WindowTitleState> {
             defaultTargetPlatform == TargetPlatform.macOS)) {
       try {
         await windowManager.setTitle(state.fullTitle);
-      } catch (e) {
+      } on Object catch (e) {
         debugPrint('Failed to set window title: $e');
       }
     }

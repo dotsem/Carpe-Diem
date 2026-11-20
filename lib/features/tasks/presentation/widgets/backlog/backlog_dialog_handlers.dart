@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:carpe_diem/core/toast/toast_utils.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
@@ -131,32 +132,33 @@ class BacklogDialogHandlers {
     }
 
     if (!context.mounted) return;
-
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => SizedDialog(
-        title: "We've picked this task for you:",
-        showDefaultActions: false,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Great!'),
-          ),
-        ],
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TaskCard(
-              task: randomTask,
-              project: randomTask.projectId != null
-                  ? projectProviderVal.getById(randomTask.projectId!)
-                  : null,
-              onToggle: (_) {},
-              onTap: () {},
-              leading: const SizedBox.shrink(),
-              showStrikeThroughOnCompleted: false,
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => SizedDialog(
+          title: "We've picked this task for you:",
+          showDefaultActions: false,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Great!'),
             ),
           ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TaskCard(
+                task: randomTask,
+                project: randomTask.projectId != null
+                    ? projectProviderVal.getById(randomTask.projectId!)
+                    : null,
+                onToggle: (_) {},
+                onTap: () {},
+                leading: const SizedBox.shrink(),
+                showStrikeThroughOnCompleted: false,
+              ),
+            ],
+          ),
         ),
       ),
     );

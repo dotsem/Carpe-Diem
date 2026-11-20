@@ -61,7 +61,7 @@ class ModeDropdownButton extends ConsumerWidget {
       onSelected: (value) async {
         if (value == '_no_mode') {
           ref.read(filterProvider.notifier).clearFilter();
-          ref.read(filterModesProvider.notifier).setActiveModeId(null);
+          await ref.read(filterModesProvider.notifier).setActiveModeId(null);
         } else if (value == '_save') {
           await _handleSaveMode(context, ref);
         } else if (value == '_manage') {
@@ -76,7 +76,9 @@ class ModeDropdownButton extends ConsumerWidget {
           }
           if (mode != null) {
             ref.read(filterProvider.notifier).setFilter(mode.filter);
-            ref.read(filterModesProvider.notifier).setActiveModeId(mode.id);
+            await ref
+                .read(filterModesProvider.notifier)
+                .setActiveModeId(mode.id);
           }
         }
       },

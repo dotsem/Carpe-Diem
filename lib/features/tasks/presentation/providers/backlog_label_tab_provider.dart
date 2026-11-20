@@ -107,7 +107,7 @@ class BacklogLabelTabNotifier extends Notifier<BacklogLabelTabState> {
   Future<void> saveLastActiveTab() async {
     try {
       await _repo.set(keyLastActiveTab, state.labelId ?? state.scope.name);
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to save last active tab: $e');
     }
   }

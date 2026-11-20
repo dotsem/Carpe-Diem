@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
@@ -69,21 +70,25 @@ class HomePlannerPane extends ConsumerWidget {
                 .read(taskProvider.notifier)
                 .checkSubtaskConflict(task);
             if (conflict != null && context.mounted) {
-              showDialog<void>(
-                context: context,
-                builder: (_) => CompleteParentDialog(conflict: conflict),
+              unawaited(
+                showDialog<void>(
+                  context: context,
+                  builder: (_) => CompleteParentDialog(conflict: conflict),
+                ),
               );
               return;
             }
           }
-          ref
-              .read(taskProvider.notifier)
-              .updateTaskStatus(
-                task,
-                status,
-                newSortOrder: task.sortOrder,
-                newPlanSortOrder: task.planSortOrder,
-              );
+          unawaited(
+            ref
+                .read(taskProvider.notifier)
+                .updateTaskStatus(
+                  task,
+                  status,
+                  newSortOrder: task.sortOrder,
+                  newPlanSortOrder: task.planSortOrder,
+                ),
+          );
         },
         onContextMenu: (task, pos, box) =>
             showTaskCardContextMenu(context, ref, task, allTasks, pos, box),

@@ -7,6 +7,7 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provi
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+@immutable
 class TaskReorderActiveDrop {
   final int index;
   final Task task;
@@ -77,7 +78,7 @@ class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
     if (settings == null) {
       try {
         settings = ref.read(settingsProvider);
-      } catch (_) {
+      } on Object catch (_) {
         // fallback for isolated widget tests without settings provider overrides
       }
     }

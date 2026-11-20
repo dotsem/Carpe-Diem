@@ -31,7 +31,7 @@ class TaskHistoryNotifier extends Notifier<void> {
     TaskFilter? filter,
   }) async {
     final historyRepo = ref.read(historyRepositoryProvider);
-    return historyRepo.getCompletedInRange(
+    return await historyRepo.getCompletedInRange(
       start,
       end,
       limit: limit,
@@ -53,7 +53,7 @@ class TaskHistoryNotifier extends Notifier<void> {
     TaskFilter? filter,
   }) async {
     final historyRepo = ref.read(historyRepositoryProvider);
-    return historyRepo.getHistoryOverview(start, end, filter: filter);
+    return await historyRepo.getHistoryOverview(start, end, filter: filter);
   }
 }
 

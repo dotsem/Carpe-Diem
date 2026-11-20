@@ -26,7 +26,7 @@ class TaskLayoutNotifier extends Notifier<TaskLayout> {
     state = layout;
     try {
       await _repo.set(keyTaskLayout, layout.name);
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('Failed to save task layout: $e');
     }
   }

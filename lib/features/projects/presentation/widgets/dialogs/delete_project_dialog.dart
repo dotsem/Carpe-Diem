@@ -10,7 +10,7 @@ Future<void> showDeleteProjectDialog(
   Project project, {
   VoidCallback? onDeleted,
 }) async {
-  return showDialog(
+  return await showDialog(
     context: context,
     builder: (ctx) => DeleteDialog(
       title: 'Delete Project',

@@ -5,8 +5,8 @@ import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 class TagSyncUtils {
   /// Syncs title text changes to the selected tag IDs.
   /// If a new tag is detected in [text] (i.e., parsed tags has an ID not in [currentSelectedIds]):
-  ///   - [TagSyncMode.replace]: replaces all selected tags with the newly parsed ones.
-  ///   - [TagSyncMode.append]: appends the newly parsed tags to the current selections.
+  ///   - `TagSyncMode.replace`: replaces all selected tags with the newly parsed ones.
+  ///   - `TagSyncMode.append`: appends the newly parsed tags to the current selections.
   /// If no new tag is added, but one was removed from [text] (compared to [previousParsedIds]),
   /// we remove that tag from [currentSelectedIds].
   static List<String> syncTitleToPicker({
