@@ -20,6 +20,9 @@ linter:
     flutter_style_todos: false
     sort_constructors_first: false
     sort_unnamed_constructors_first: false
+    discarded_futures: false
+    cascade_invocations: false
+    avoid_positional_boolean_parameters: false
 
 plugins:
   member_order:
