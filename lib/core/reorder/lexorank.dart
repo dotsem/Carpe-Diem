@@ -173,6 +173,23 @@ class LexoRank {
     return '${parsedP.intPrefix}$frac';
   }
 
+  /// Rank for inserting at [slot] among [ranks] (moved item already removed).
+  /// Empty and '~' ranks are skipped when picking neighbors.
+  static String generateAtSlot(List<String?> ranks, int slot) {
+    final s = slot.clamp(0, ranks.length);
+    String? prev, next;
+    for (var i = s - 1; i >= 0 && prev == null; i--) {
+      prev = _real(ranks[i]);
+    }
+    for (var i = s; i < ranks.length && next == null; i++) {
+      next = _real(ranks[i]);
+    }
+    return generateBetween(prev, next);
+  }
+
+  static String? _real(String? r) =>
+      (r == null || r.isEmpty || r == '~') ? null : r;
+
   static String generateTop(String? currentFirst) =>
       generateBetween(null, currentFirst);
 

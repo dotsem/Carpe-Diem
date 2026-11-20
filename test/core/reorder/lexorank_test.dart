@@ -71,6 +71,30 @@ void main() {
       expect(mid.compareTo('a0'), greaterThan(0));
     });
 
+    test('generateAtSlot skips unranked neighbors', () {
+      expect(LexoRank.generateAtSlot(['', ''], 1), equals('a0'));
+      expect(LexoRank.generateAtSlot([], 0), equals('a0'));
+
+      final after = LexoRank.generateAtSlot(['a0', 'a1', '', ''], 4);
+      expect(after.compareTo('a1'), greaterThan(0));
+
+      final before = LexoRank.generateAtSlot(['', 'a1'], 0);
+      expect(before.compareTo('a1'), lessThan(0));
+
+      final mid = LexoRank.generateAtSlot(['a0', '', 'a2'], 2);
+      expect(mid.compareTo('a0'), greaterThan(0));
+      expect(mid.compareTo('a2'), lessThan(0));
+
+      expect(
+        LexoRank.generateAtSlot(['a0', 'a1'], 0),
+        equals(LexoRank.generateTop('a0')),
+      );
+      expect(
+        LexoRank.generateAtSlot(['a0', 'a1'], 2),
+        equals(LexoRank.generateBottom('a1')),
+      );
+    });
+
     test('falls back gracefully on unparseable rank keys', () {
       expect(LexoRank.generateBetween('invalid', null), equals('a0'));
       expect(LexoRank.generateBetween(null, 'invalid'), equals('a0'));
