@@ -28,7 +28,7 @@ List<PopupMenuEntry<void>> buildDateScheduleItems(
     final incompleteSubtasks = subtasks.where((t) => !t.isCompleted).toList();
 
     if (incompleteSubtasks.isNotEmpty) {
-      showDialog(
+      showDialog<void>(
         context: context,
         builder: (_) => CascadeScheduleDialog.schedule(
           parentTask: task,

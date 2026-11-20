@@ -138,7 +138,7 @@ void main() {
         container.read(filterProvider.notifier).setFilter(newFilter);
 
         // Wait a microtask to allow async database write to trigger
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
         verify(
           () => mockRepo.set(
@@ -162,7 +162,7 @@ void main() {
         notifier.setFilter(filter);
         notifier.clearFilter();
 
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
         verify(
           () => mockRepo.set(

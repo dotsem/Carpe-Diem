@@ -78,7 +78,7 @@ void main() {
         });
 
         // wait for timer to trigger
-        await Future.delayed(const Duration(milliseconds: 1500));
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
 
         expect(firstCallbackCalled, isFalse);
         expect(secondCallbackCalled, isTrue);

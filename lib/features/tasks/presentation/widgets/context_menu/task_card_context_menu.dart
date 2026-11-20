@@ -79,7 +79,7 @@ void showTaskCardContextMenu(
       if (!tasks.any((t) => t.parentId == task.id))
         PopupMenuItem(
           onTap: () {
-            showDialog(
+            showDialog<void>(
               context: context,
               builder: (_) => GroupTasksDialog(taskIds: [task.id]),
             );
@@ -137,7 +137,7 @@ void _showDeleteTask(
 ) {
   final subtasks = provider.getAllSubtasks(task.id);
   if (subtasks.isNotEmpty) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => CascadeDeleteDialog(
         parentTask: task,
@@ -153,7 +153,7 @@ void _showDeleteTask(
       ),
     );
   } else {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => DeleteDialog(
         title: 'Delete Task',
@@ -177,7 +177,7 @@ void _unscheduleTask(
   final hasScheduledSubtasks = subtasks.any((t) => t.scheduledDate != null);
 
   if (hasScheduledSubtasks) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => CascadeScheduleDialog.unschedule(
         parentTask: task,
@@ -211,7 +211,7 @@ void _unscheduleTask(
   }
 
   if (task.status.isDone || task.status.isInProgress) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => WarningDialog(
         title: 'Unschedule Task',

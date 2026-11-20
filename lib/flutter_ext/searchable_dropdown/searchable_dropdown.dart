@@ -199,7 +199,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
                             ]
                           : List.generate(_filteredItems.length, (index) {
                               final item = _filteredItems[index];
-                              return SearchableDropdownItemTile(
+                              return SearchableDropdownItemTile<T>(
                                 label: widget.nameGetter(item),
                                 isHighlighted: index == _selectedIndex,
                                 leading: widget.leadingBuilder?.call(item),

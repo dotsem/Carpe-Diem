@@ -212,7 +212,7 @@ class CommandPaletteBuilder {
         category: CommandCategory.actions,
         keywords: const ['import', 'markdown', 'file', 'md'],
         onSelect: () {
-          showDialog(
+          showDialog<void>(
             context: context,
             builder: (_) => const ImportFromMDDialog(),
           );

@@ -3,7 +3,7 @@ import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 
 class DeadlinePropagationService {
-  static Future<List<UpdateCommand>> buildPropagationCommands({
+  static Future<List<UpdateCommand<Task>>> buildPropagationCommands({
     required ITaskRepository repo,
     required Task task,
     required bool inheritParentDeadline,
@@ -22,7 +22,7 @@ class DeadlinePropagationService {
     final blocker = await repo.getById(task.blockedById!);
     if (blocker == null) return const [];
 
-    final commands = <UpdateCommand>[];
+    final commands = <UpdateCommand<Task>>[];
     if (blocker.deadline == null || blocker.deadline!.isAfter(task.deadline!)) {
       final updatedBlocker = blocker.copyWith(deadline: task.deadline);
       commands.add(

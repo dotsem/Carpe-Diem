@@ -26,8 +26,8 @@ void showLabelContextMenu(
       Offset.zero & overlay.size,
     ),
     items: [
-      PopupMenuItem(
-        onTap: () => showDialog(
+      PopupMenuItem<void>(
+        onTap: () => showDialog<void>(
           context: context,
           builder: (context) => EditLabelDialog(label: label),
         ),
@@ -36,8 +36,8 @@ void showLabelContextMenu(
           title: 'Edit',
         ),
       ),
-      PopupMenuItem(
-        onTap: () => showDialog(
+      PopupMenuItem<void>(
+        onTap: () => showDialog<void>(
           context: context,
           builder: (context) => DeleteDialog(
             title: 'Delete Label',

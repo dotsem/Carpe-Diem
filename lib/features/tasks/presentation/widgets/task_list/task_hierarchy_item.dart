@@ -138,7 +138,7 @@ class TaskHierarchyItem extends ConsumerWidget {
                   taskNode.task,
                 );
                 if (conflict != null && context.mounted) {
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (_) => CompleteParentDialog(conflict: conflict),
                   );

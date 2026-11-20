@@ -171,6 +171,9 @@ class LabelPicker extends ConsumerWidget {
   }
 
   void _showAddLabel(BuildContext context) {
-    showDialog(context: context, builder: (context) => const AddLabelDialog());
+    showDialog<void>(
+      context: context,
+      builder: (context) => const AddLabelDialog(),
+    );
   }
 }

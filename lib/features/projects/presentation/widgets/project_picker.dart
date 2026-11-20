@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class ProjectPicker extends StatelessWidget {
   final List<Project> projects;
-  final Function(String?) onChanged;
+  final void Function(String?) onChanged;
   final String? selectedProjectId;
   final MenuController? menuController;
   final bool borderless;

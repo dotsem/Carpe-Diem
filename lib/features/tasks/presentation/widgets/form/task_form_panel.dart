@@ -154,8 +154,8 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
         .map((t) => t.id)
         .toList();
 
-    final set1 = Set.from(_selectedTagIds);
-    final set2 = Set.from(newTagIds);
+    final set1 = Set<String>.from(_selectedTagIds);
+    final set2 = Set<String>.from(newTagIds);
     if (set1.length != set2.length || !set1.containsAll(set2)) {
       setState(() => _selectedTagIds = newTagIds);
     }

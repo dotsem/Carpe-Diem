@@ -47,7 +47,7 @@ void showBulkDeleteTasksConfirmDialog({
   required List<String> selectedTaskIds,
   required VoidCallback onCompleted,
 }) {
-  showDialog(
+  showDialog<void>(
     context: context,
     builder: (ctx) => AlertDialog(
       title: const Text('Confirm Deletion'),

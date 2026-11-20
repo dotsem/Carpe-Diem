@@ -165,7 +165,7 @@ class ModesSection extends ConsumerWidget {
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref, FilterMode mode) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => DeleteDialog(
         title: 'Delete Mode',

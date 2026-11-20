@@ -108,7 +108,7 @@ void main() {
 class _TestMigration implements Migration {
   @override
   final int version;
-  final Function() onUp;
+  final void Function() onUp;
 
   _TestMigration(this.version, this.onUp);
 

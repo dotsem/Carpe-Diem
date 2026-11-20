@@ -34,7 +34,10 @@ class BacklogDialogHandlers {
   }
 
   static void showImportFromMD(BuildContext context) {
-    showDialog(context: context, builder: (_) => const ImportFromMDDialog());
+    showDialog<void>(
+      context: context,
+      builder: (_) => const ImportFromMDDialog(),
+    );
   }
 
   static Future<void> showFilterDialog(
@@ -129,7 +132,7 @@ class BacklogDialogHandlers {
 
     if (!context.mounted) return;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => SizedDialog(
         title: "We've picked this task for you:",

@@ -26,8 +26,8 @@ void showTagContextMenu(
       Offset.zero & overlay.size,
     ),
     items: [
-      PopupMenuItem(
-        onTap: () => showDialog(
+      PopupMenuItem<void>(
+        onTap: () => showDialog<void>(
           context: context,
           builder: (context) => EditTagDialog(tag: tag),
         ),
@@ -36,8 +36,8 @@ void showTagContextMenu(
           title: 'Edit',
         ),
       ),
-      PopupMenuItem(
-        onTap: () => showDialog(
+      PopupMenuItem<void>(
+        onTap: () => showDialog<void>(
           context: context,
           builder: (context) => DeleteDialog(
             title: 'Delete tag',

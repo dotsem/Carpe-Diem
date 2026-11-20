@@ -81,11 +81,11 @@ void main() {
       verify(() => mockTaskRepo.insert(any())).called(1);
 
       await undoRedo.undo();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       verify(() => mockTaskRepo.delete(any())).called(1);
 
       await undoRedo.redo();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       verify(() => mockTaskRepo.insert(any())).called(1);
     });
 
@@ -105,12 +105,12 @@ void main() {
         verify(() => mockProjectRepo.insert(any())).called(1);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockProjectRepo.delete(any())).called(1);
         verify(() => mockProjectRepo.getAll()).called(greaterThan(0));
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockProjectRepo.insert(any())).called(1);
       },
     );
@@ -128,12 +128,12 @@ void main() {
         verify(() => mockLabelRepo.insert(any())).called(1);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockLabelRepo.delete(any())).called(1);
         verify(() => mockLabelRepo.getAll()).called(greaterThan(0));
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockLabelRepo.insert(any())).called(1);
       },
     );

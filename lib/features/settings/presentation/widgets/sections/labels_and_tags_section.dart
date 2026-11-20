@@ -57,7 +57,7 @@ class LabelsSection extends ConsumerWidget {
                   'Import predefined tags and icons for specific interests',
               trailing: FilledButton.tonal(
                 onPressed: () {
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (context) => const TagProfileSelectionDialog(),
                   );

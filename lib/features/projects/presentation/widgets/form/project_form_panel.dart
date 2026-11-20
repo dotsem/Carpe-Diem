@@ -193,7 +193,7 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
     final p = widget.project;
     if (p == null) return;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => DeleteDialog(
         title: 'Delete Project',

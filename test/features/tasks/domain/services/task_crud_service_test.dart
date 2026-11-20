@@ -173,7 +173,7 @@ void main() {
           final compound = cmd as CompoundCommand;
           expect(compound.commands.length, equals(2));
           expect(compound.commands[0], isA<CreateCommand<Task>>());
-          expect(compound.commands[1], isA<UpdateCommand>());
+          expect(compound.commands[1], isA<UpdateCommand<Task>>());
         },
       );
     });

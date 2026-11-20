@@ -69,7 +69,7 @@ class HomePlannerPane extends ConsumerWidget {
                 .read(taskProvider.notifier)
                 .checkSubtaskConflict(task);
             if (conflict != null && context.mounted) {
-              showDialog(
+              showDialog<void>(
                 context: context,
                 builder: (_) => CompleteParentDialog(conflict: conflict),
               );

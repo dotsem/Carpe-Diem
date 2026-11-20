@@ -5,7 +5,7 @@ class RangeDatePicker extends StatefulWidget {
   final DateTime initialEnd;
   final DateTime firstDate;
   final DateTime lastDate;
-  final Function(DateTimeRange) onRangeSelected;
+  final void Function(DateTimeRange) onRangeSelected;
 
   const RangeDatePicker({
     required this.initialStart,
@@ -232,7 +232,7 @@ class _CalendarDay extends StatelessWidget {
   final bool isInRange;
   final bool isHovered;
   final VoidCallback onTap;
-  final Function(bool) onHover;
+  final void Function(bool) onHover;
 
   const _CalendarDay({
     required this.date,

@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 
 class DateRangeButton extends ConsumerWidget {
   final DateTimeRange dateRange;
-  final Function(DateTimeRange) onDatePicked;
+  final void Function(DateTimeRange) onDatePicked;
 
   const DateRangeButton({
     required this.dateRange,

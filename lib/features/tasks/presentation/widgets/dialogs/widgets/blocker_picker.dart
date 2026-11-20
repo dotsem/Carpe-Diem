@@ -9,7 +9,7 @@ class BlockerPicker extends ConsumerWidget {
   final List<Task> availableTasks;
   final String? selectedBlockerId;
   final String? currentTaskId;
-  final Function(String?) onChanged;
+  final void Function(String?) onChanged;
   final bool borderless;
   final MenuController? menuController;
 

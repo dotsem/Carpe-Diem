@@ -50,11 +50,11 @@ void main() {
         expect(undoRedo.state.canUndo, isTrue);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(1);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(1);
       },
     );
@@ -85,11 +85,11 @@ void main() {
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
       },
     );
@@ -115,11 +115,11 @@ void main() {
         verify(() => mockTaskRepo.delete('p1')).called(1);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.insert(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.delete('s1')).called(1);
         verify(() => mockTaskRepo.delete('p1')).called(1);
       },
@@ -143,11 +143,11 @@ void main() {
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
       },
     );
@@ -182,11 +182,11 @@ void main() {
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.update(any())).called(2);
       },
     );
@@ -207,11 +207,11 @@ void main() {
       verify(() => mockTaskRepo.update(any())).called(1);
 
       await undoRedo.undo();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       verify(() => mockTaskRepo.update(any())).called(1);
 
       await undoRedo.redo();
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       verify(() => mockTaskRepo.update(any())).called(1);
     });
 
@@ -231,11 +231,11 @@ void main() {
         verify(() => mockTaskRepo.delete('t1')).called(1);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.insert(any())).called(1);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.delete('t1')).called(1);
       },
     );
@@ -256,11 +256,11 @@ void main() {
         verify(() => mockTaskRepo.insert(any())).called(2);
 
         await undoRedo.undo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.delete(any())).called(2);
 
         await undoRedo.redo();
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
         verify(() => mockTaskRepo.insert(any())).called(2);
       },
     );

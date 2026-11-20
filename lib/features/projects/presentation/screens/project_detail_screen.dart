@@ -246,7 +246,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       },
                     ),
                     onImportMd: () {
-                      showDialog(
+                      showDialog<void>(
                         context: context,
                         builder: (_) => ImportFromMDDialog(project: project),
                       ).then((_) => setState(() {}));
@@ -455,7 +455,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                           .where((t) => t.id == _selectedTaskIds.first)
                           .firstOrNull;
                       if (task == null) return;
-                      showDialog(
+                      showDialog<void>(
                         context: context,
                         builder: (ctx) => DeleteDialog(
                           title: 'Delete Task',

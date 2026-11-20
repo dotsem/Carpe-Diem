@@ -170,6 +170,6 @@ class TagPicker extends ConsumerWidget {
   }
 
   void _showAddTag(BuildContext context) {
-    showDialog(context: context, builder: (_) => const AddTagDialog());
+    showDialog<void>(context: context, builder: (_) => const AddTagDialog());
   }
 }

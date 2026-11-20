@@ -109,7 +109,7 @@ class _AppShellState extends ConsumerState<AppShell>
     ref.listen<Task?>(parentCompletionPromptProvider, (_, parent) {
       if (parent == null) return;
       ref.read(parentCompletionPromptProvider.notifier).clear();
-      showDialog(
+      showDialog<void>(
         context: context,
         builder: (_) => CompleteParentPromptDialog(parent: parent),
       );
