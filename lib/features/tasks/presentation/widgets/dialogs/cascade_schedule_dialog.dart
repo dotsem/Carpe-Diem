@@ -1,7 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -14,20 +14,20 @@ class CascadeScheduleDialog extends StatelessWidget {
   final VoidCallback onCascadeAll;
 
   const CascadeScheduleDialog.schedule({
-    super.key,
     required this.parentTask,
     required this.subtasks,
     required this.targetDate,
     required this.onParentOnly,
     required this.onCascadeAll,
+    super.key,
   }) : isUnschedule = false;
 
   const CascadeScheduleDialog.unschedule({
-    super.key,
     required this.parentTask,
     required this.subtasks,
     required this.onParentOnly,
     required this.onCascadeAll,
+    super.key,
   }) : targetDate = null,
        isUnschedule = true;
 

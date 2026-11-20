@@ -29,8 +29,8 @@ class TaskHierarchyItem extends ConsumerWidget {
   final Widget Function(BuildContext, Task)? trailingBuilder;
 
   const TaskHierarchyItem({
-    super.key,
     required this.node,
+    super.key,
     this.taskIsOverdue = false,
     this.showScheduleDate = false,
     this.autofocus = false,
@@ -52,9 +52,9 @@ class TaskHierarchyItem extends ConsumerWidget {
     if (node is ParentContainerNode) {
       final parentNode = node as ParentContainerNode;
       final taskState = ref.watch(taskProvider);
-      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
-        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+      final allAvailableTasks = {for (final t in taskState.tasks) t.id: t}
+        ..addAll({for (final t in taskState.overdueTasks) t.id: t})
+        ..addAll({for (final t in taskState.unscheduledTasks) t.id: t});
       final subtasks = allAvailableTasks.values
           .where((t) => t.parentId == parentNode.task.id)
           .toList();
@@ -113,9 +113,9 @@ class TaskHierarchyItem extends ConsumerWidget {
       final isNested = taskNode.isBundledUnderParent;
       final taskNotifier = ref.read(taskProvider.notifier);
       final taskState = ref.watch(taskProvider);
-      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
-        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+      final allAvailableTasks = {for (final t in taskState.tasks) t.id: t}
+        ..addAll({for (final t in taskState.overdueTasks) t.id: t})
+        ..addAll({for (final t in taskState.unscheduledTasks) t.id: t});
 
       child = TaskCard(
         key: ValueKey(taskNode.task.id),

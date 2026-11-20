@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
+import 'package:flutter/material.dart';
 
 class ShortcutsHelpOverlay extends StatefulWidget {
   const ShortcutsHelpOverlay({super.key});
@@ -95,7 +95,6 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay>
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          width: 1,
         ),
       ),
       child: SingleChildScrollView(
@@ -120,7 +119,7 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay>
                   ),
                 ),
                 const Spacer(),
-                _KeyBadge(label: 'Esc'),
+                const _KeyBadge(label: 'Esc'),
                 const SizedBox(width: 8),
                 Text(
                   'to close',
@@ -213,7 +212,7 @@ class ShortcutsHelpOverlayState extends State<ShortcutsHelpOverlay>
             ),
           ),
           const SizedBox(height: 8),
-          ...entries.map((e) => _buildEntry(e)),
+          ...entries.map(_buildEntry),
         ],
       ),
     );
@@ -257,7 +256,6 @@ class _KeyBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
           color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          width: 1,
         ),
       ),
       child: Text(

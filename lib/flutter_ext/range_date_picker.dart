@@ -8,12 +8,12 @@ class RangeDatePicker extends StatefulWidget {
   final Function(DateTimeRange) onRangeSelected;
 
   const RangeDatePicker({
-    super.key,
     required this.initialStart,
     required this.initialEnd,
     required this.firstDate,
     required this.lastDate,
     required this.onRangeSelected,
+    super.key,
   });
 
   @override
@@ -42,8 +42,8 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
         _endDate = null;
         _isSelecting = true;
       } else {
-        DateTime start = _startDate!;
-        DateTime end = date;
+        var start = _startDate!;
+        var end = date;
         if (end.isBefore(start)) {
           final temp = start;
           start = end;
@@ -205,8 +205,8 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
       return _isBetweenDays(date, _startDate!, _endDate!);
     }
     if (_isSelecting && _startDate != null && _hoveredDate != null) {
-      DateTime start = _startDate!;
-      DateTime end = _hoveredDate!;
+      var start = _startDate!;
+      var end = _hoveredDate!;
       if (end.isBefore(start)) {
         final temp = start;
         start = end;

@@ -10,9 +10,9 @@ enum TaskPlacement {
   bool get isUrgent => this == TaskPlacement.urgent;
 
   String get name => switch (this) {
-    TaskPlacement.top => "Top",
-    TaskPlacement.middle => "Middle",
-    TaskPlacement.bottom => "Bottom",
-    TaskPlacement.urgent => "Urgent",
+    TaskPlacement.top => 'Top',
+    TaskPlacement.middle => 'Middle',
+    TaskPlacement.bottom => 'Bottom',
+    TaskPlacement.urgent => 'Urgent',
   };
 }

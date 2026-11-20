@@ -32,7 +32,6 @@ void main() {
         final blocker = Task(
           id: 'blocker-1',
           title: 'API Schema Design',
-          status: TaskStatus.todo,
           createdAt: DateTime.now(),
         );
         final dependent = Task(

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskStatusIndicator extends ConsumerWidget {
   final Task task;
@@ -12,17 +12,17 @@ class TaskStatusIndicator extends ConsumerWidget {
   final VoidCallback onToggleAction;
 
   const TaskStatusIndicator({
-    super.key,
     required this.task,
-    this.isChecked,
     required this.selectionMode,
     required this.onToggle,
     required this.onToggleAction,
+    super.key,
+    this.isChecked,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool effectiveIsChecked = isChecked ?? task.isCompleted;
+    final effectiveIsChecked = isChecked ?? task.isCompleted;
 
     if (selectionMode) {
       return Tooltip(

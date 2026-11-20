@@ -1,15 +1,14 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
-
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 class ProjectState {
   final List<Project> projects;
@@ -53,13 +52,13 @@ class ProjectNotifier extends Notifier<ProjectState> {
     // Why: only show the spinner on first load, refreshes must not tear down the grid
     if (state.projects.isEmpty) state = state.copyWith(isLoading: true);
     final projects = await _repo.getAll();
-    state = ProjectState(projects: projects, isLoading: false);
+    state = ProjectState(projects: projects);
   }
 
   Future<void> addProject({
     required String name,
-    String? description,
     required Color color,
+    String? description,
     bool isUrgent = false,
     List<String> labelIds = const [],
     DateTime? deadline,
@@ -175,7 +174,7 @@ final filteredProjectsProvider = Provider<List<Project>>((ref) {
       .activeFilter
       .limitTo(projects: false);
 
-  return projects.where((p) => filter.applyToProject(p)).toList();
+  return projects.where(filter.applyToProject).toList();
 });
 
 final activeFilteredProjectsProvider = Provider<List<Project>>((ref) {

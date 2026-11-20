@@ -75,8 +75,8 @@ class ProgressBorderPainter extends CustomPainter {
 
     final cornerArcs = [hasTR, hasBR, hasBL, hasTL];
 
-    int startIndex = 0;
-    for (int i = 0; i < 4; i++) {
+    var startIndex = 0;
+    for (var i = 0; i < 4; i++) {
       final prev = (i - 1 + 4) % 4;
       if (enabled[i] && !enabled[prev]) {
         startIndex = i;
@@ -85,9 +85,9 @@ class ProgressBorderPainter extends CustomPainter {
     }
 
     final path = Path();
-    bool isFirst = true;
+    var isFirst = true;
 
-    for (int step = 0; step < 4; step++) {
+    for (var step = 0; step < 4; step++) {
       final i = (startIndex + step) % 4;
       if (!enabled[i]) break;
 
@@ -125,10 +125,7 @@ class ProgressBorderPainter extends CustomPainter {
     if (metrics.isEmpty) return;
 
     final metric = metrics.first;
-    final extractPath = metric.extractPath(
-      0.0,
-      metric.length * clampedProgress,
-    );
+    final extractPath = metric.extractPath(0, metric.length * clampedProgress);
 
     canvas.drawPath(extractPath, paint);
   }

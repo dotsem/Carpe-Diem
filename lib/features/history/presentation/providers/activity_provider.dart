@@ -5,7 +5,8 @@ import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Key is the calendar year, or null for the last 12 months.
-final activityProvider = FutureProvider.autoDispose.family<ActivityData, int?>((
+final AutoDisposeFutureProviderFamily<ActivityData, int?>
+activityProvider = FutureProvider.autoDispose.family<ActivityData, int?>((
   ref,
   year,
 ) async {
@@ -42,13 +43,12 @@ final activityProvider = FutureProvider.autoDispose.family<ActivityData, int?>((
   );
 });
 
-final activityYearsProvider = FutureProvider.autoDispose<List<int>>((
-  ref,
-) async {
-  ref.keepAlive();
-  final first = await ref
-      .read(historyRepositoryProvider)
-      .getFirstCompletedDate();
-  if (first == null) return const [];
-  return [for (var y = DateTime.now().year; y >= first.year; y--) y];
-});
+final AutoDisposeFutureProvider<List<int>> activityYearsProvider =
+    FutureProvider.autoDispose<List<int>>((ref) async {
+      ref.keepAlive();
+      final first = await ref
+          .read(historyRepositoryProvider)
+          .getFirstCompletedDate();
+      if (first == null) return const [];
+      return [for (var y = DateTime.now().year; y >= first.year; y--) y];
+    });

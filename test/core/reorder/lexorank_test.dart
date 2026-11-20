@@ -30,8 +30,8 @@ void main() {
     });
 
     test('handles deep consecutive insertions at top without underflow', () {
-      String current = 'a0';
-      for (int i = 0; i < 100; i++) {
+      var current = 'a0';
+      for (var i = 0; i < 100; i++) {
         final prev = LexoRank.generateTop(current);
         expect(
           prev.compareTo(current),
@@ -43,8 +43,8 @@ void main() {
     });
 
     test('handles deep consecutive insertions at bottom without overflow', () {
-      String current = 'a0';
-      for (int i = 0; i < 100; i++) {
+      var current = 'a0';
+      for (var i = 0; i < 100; i++) {
         final next = LexoRank.generateBottom(current);
         expect(
           next.compareTo(current),
@@ -56,9 +56,9 @@ void main() {
     });
 
     test('handles consecutive midpoint insertions between adjacent keys', () {
-      String low = 'a0';
+      var low = 'a0';
       const high = 'a1';
-      for (int i = 0; i < 20; i++) {
+      for (var i = 0; i < 20; i++) {
         final mid = LexoRank.generateBetween(low, high);
         expect(mid.compareTo(low), greaterThan(0));
         expect(mid.compareTo(high), lessThan(0));

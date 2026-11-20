@@ -13,11 +13,11 @@ class NavigationItem extends StatelessWidget {
   final String? shortcutHint;
 
   const NavigationItem({
-    super.key,
     required this.icon,
     required this.label,
     required this.isSelected,
     required this.onTap,
+    super.key,
     this.iconColor,
     this.iconSize = 20,
     this.outerPadding,

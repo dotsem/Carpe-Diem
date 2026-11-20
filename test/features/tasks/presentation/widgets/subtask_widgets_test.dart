@@ -21,7 +21,7 @@ void main() {
     testWidgets('SubtaskProgressChip renders completed and total count', (
       tester,
     ) async {
-      bool toggled = false;
+      var toggled = false;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -116,12 +116,7 @@ void main() {
           title: 'Parent',
           status: TaskStatus.inProgress,
         );
-        final subtask = createTestTask(
-          id: 's1',
-          title: 'Sub',
-          parentId: 'p1',
-          status: TaskStatus.todo,
-        );
+        final subtask = createTestTask(id: 's1', title: 'Sub', parentId: 'p1');
 
         final conflict = SubtaskCompletionConflict(
           parentTask: parentTask,

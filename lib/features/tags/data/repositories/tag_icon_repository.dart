@@ -11,7 +11,7 @@ class TagIconRepository implements ITagIconRepository {
   @override
   Future<Map<String, IconData>> getAllIconDatas() async {
     final List<Map<String, dynamic>> maps = await db.query('tag_icons');
-    final Map<String, IconData> result = {};
+    final result = <String, IconData>{};
     for (final map in maps) {
       final name = map['tag_name'] as String;
       final codePoint = map['icon_code_point'] as int;

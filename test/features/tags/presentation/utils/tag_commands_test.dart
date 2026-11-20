@@ -1,10 +1,11 @@
+import 'package:carpe_diem/features/tags/data/models/tag.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/delete_tag_command.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/update_tag_command.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:carpe_diem/features/tags/data/models/tag.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tags/presentation/utils/update_tag_command.dart';
-import 'package:carpe_diem/features/tags/presentation/utils/delete_tag_command.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
@@ -27,8 +28,8 @@ void main() {
     test(
       'should rename tag, move icon, and update task titles on execute and undo',
       () async {
-        final prevTag = const Tag(id: 't1', name: 'work');
-        final nextTag = const Tag(id: 't1', name: 'job');
+        const prevTag = Tag(id: 't1', name: 'work');
+        const nextTag = Tag(id: 't1', name: 'job');
 
         when(() => mockTagRepo.update(any())).thenAnswer((_) async {});
         when(
@@ -115,7 +116,7 @@ void main() {
     test(
       'should delete tag, delete icon, strip hashtag and update tagIds on execute and undo (including picker-only tags)',
       () async {
-        final tag = const Tag(id: 't1', name: 'work');
+        const tag = Tag(id: 't1', name: 'work');
 
         when(() => mockTagRepo.delete(tag.id)).thenAnswer((_) async {});
         when(() => mockTagRepo.insert(tag)).thenAnswer((_) async {});

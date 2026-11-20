@@ -74,7 +74,7 @@ void main() {
     });
 
     test('should populate profile tags and skip duplicates', () async {
-      final existingTag = const Tag(id: 't1', name: 'bug');
+      const existingTag = Tag(id: 't1', name: 'bug');
       when(() => mockTagRepo.getAll()).thenAnswer((_) async => [existingTag]);
       when(() => mockTagRepo.insert(any())).thenAnswer((_) async => {});
 

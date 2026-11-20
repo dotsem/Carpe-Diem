@@ -1,7 +1,7 @@
 // ignore_for_file: file_names, camel_case_types
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/core/reorder/lexorank.dart';
-import '../migration.dart';
+import 'package:carpe_diem/features/common/data/database/migration.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class Migration_2026_08_21_161256_BackfillSortOrders implements Migration {
   @override
@@ -17,7 +17,7 @@ class Migration_2026_08_21_161256_BackfillSortOrders implements Migration {
 
     String? currentRank;
     for (final row in tasks) {
-      final id = row['id'] as String;
+      final id = row['id']! as String;
       currentRank = LexoRank.generateBetween(currentRank, null);
       await db.rawUpdate('UPDATE tasks SET sortOrder = ? WHERE id = ?', [
         currentRank,

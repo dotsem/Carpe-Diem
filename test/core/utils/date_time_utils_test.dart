@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('core', () {
@@ -7,7 +7,7 @@ void main() {
       final friday = DateTime(2026, 5, 29); // Friday
       final saturday = DateTime(2026, 5, 30); // Saturday
       final sunday = DateTime(2026, 5, 31); // Sunday
-      final monday = DateTime(2026, 6, 1); // Monday
+      final monday = DateTime(2026, 6); // Monday
 
       expect(isEndOfWorkWeek(friday), isTrue);
       expect(isEndOfWorkWeek(saturday), isTrue);
@@ -18,7 +18,7 @@ void main() {
     test(
       'DateTimeExtension next should return the correct subsequent weekday',
       () {
-        final monday = DateTime(2026, 6, 1); // Monday
+        final monday = DateTime(2026, 6); // Monday
 
         // Next Monday should be exactly 7 days later
         expect(
@@ -41,7 +41,7 @@ void main() {
 
         // If Monday is the first day of the week
         final startMonday = wednesday.startOfWeek(DateTime.monday);
-        expect(startMonday.isSameDay(DateTime(2026, 6, 1)), isTrue);
+        expect(startMonday.isSameDay(DateTime(2026, 6)), isTrue);
 
         // If Sunday is the first day of the week
         final startSunday = wednesday.startOfWeek(DateTime.sunday);
@@ -66,12 +66,12 @@ void main() {
     test('startOfMonth / endOfMonth boundaries', () {
       final midMonth = DateTime(2026, 6, 15);
 
-      expect(midMonth.startOfMonth().isSameDay(DateTime(2026, 6, 1)), isTrue);
+      expect(midMonth.startOfMonth().isSameDay(DateTime(2026, 6)), isTrue);
       expect(midMonth.endOfMonth().isSameDay(DateTime(2026, 6, 30)), isTrue);
     });
 
     test('isBetween range checks', () {
-      final start = DateTime(2026, 6, 1);
+      final start = DateTime(2026, 6);
       final end = DateTime(2026, 6, 10);
 
       final inside = DateTime(2026, 6, 5);
@@ -95,8 +95,8 @@ void main() {
       });
 
       test('returns 0 for same day and negative for past', () {
-        expect(DateTime(2026, 5, 1).daysUntil(DateTime(2026, 5, 1)), 0);
-        expect(DateTime(2026, 5, 3).daysUntil(DateTime(2026, 5, 1)), -2);
+        expect(DateTime(2026, 5).daysUntil(DateTime(2026, 5)), 0);
+        expect(DateTime(2026, 5, 3).daysUntil(DateTime(2026, 5)), -2);
       });
 
       test('ignores time of day', () {

@@ -8,10 +8,10 @@ class FuzzySearchBar extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
 
   const FuzzySearchBar({
-    super.key,
     required this.controller,
     required this.focusNode,
     required this.onChanged,
+    super.key,
     this.onSubmitted,
     this.hintText = 'Search...',
   });

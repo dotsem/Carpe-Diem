@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class NewTaskIntent extends Intent {
   const NewTaskIntent();
@@ -26,7 +26,6 @@ class ProjectDetailShortcuts extends ConsumerWidget {
   final VoidCallback onShowFilter;
 
   const ProjectDetailShortcuts({
-    super.key,
     required this.child,
     required this.project,
     required this.onMoveNext,
@@ -35,6 +34,7 @@ class ProjectDetailShortcuts extends ConsumerWidget {
     required this.onUnfocusSearch,
     required this.onNewTask,
     required this.onShowFilter,
+    super.key,
   });
 
   @override

@@ -1,7 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,9 +14,9 @@ class BlockerPicker extends ConsumerWidget {
   final MenuController? menuController;
 
   const BlockerPicker({
-    super.key,
     required this.availableTasks,
     required this.onChanged,
+    super.key,
     this.selectedBlockerId,
     this.currentTaskId,
     this.borderless = false,

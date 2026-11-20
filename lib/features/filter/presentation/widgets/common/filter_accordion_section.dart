@@ -11,13 +11,13 @@ class FilterAccordionSection extends ConsumerWidget {
   final Widget child;
 
   const FilterAccordionSection({
-    super.key,
     required this.title,
     required this.categoryKey,
+    required this.child,
+    super.key,
     this.includedCount = 0,
     this.excludedCount = 0,
     this.initiallyExpanded = true,
-    required this.child,
   });
 
   @override
@@ -80,7 +80,7 @@ class FilterAccordionSection extends ConsumerWidget {
                           decoration: BoxDecoration(
                             color: incColor.withAlpha(35),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: incColor, width: 1),
+                            border: Border.all(color: incColor),
                           ),
                           child: Text(
                             '+$includedCount',
@@ -100,7 +100,7 @@ class FilterAccordionSection extends ConsumerWidget {
                           decoration: BoxDecoration(
                             color: excColor.withAlpha(35),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: excColor, width: 1),
+                            border: Border.all(color: excColor),
                           ),
                           child: Text(
                             '-$excludedCount',

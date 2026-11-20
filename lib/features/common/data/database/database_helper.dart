@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/features/common/data/database/constants/db_constants.dart';
 import 'package:carpe_diem/features/common/data/database/migration.dart';
 import 'package:carpe_diem/features/common/data/database/migration_registrar.dart';
@@ -6,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:carpe_diem/core/constants/app_constants.dart';
 
 class DatabaseHelper {
   final String dbPath;
@@ -146,7 +147,7 @@ class DatabaseHelper {
   }
 
   static Future<void> _seedTagIcons(Database db) async {
-    final Map<String, int> initialTagIcons = {
+    final initialTagIcons = <String, int>{
       'bug': Icons.bug_report.codePoint,
       'issue': Icons.bug_report.codePoint,
       'feature': Icons.add_circle.codePoint,

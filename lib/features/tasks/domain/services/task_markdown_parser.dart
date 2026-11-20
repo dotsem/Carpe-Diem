@@ -1,9 +1,9 @@
-import 'package:uuid/uuid.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:uuid/uuid.dart';
 
 class TaskMarkdownParser {
-  static final _uuid = const Uuid();
+  static const _uuid = Uuid();
 
   static List<Task> parseMarkdown(String markdown) {
     final tasks = <Task>[];

@@ -21,18 +21,18 @@ class SectionCard extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
 
   const SectionCard({
-    super.key,
     required this.items,
+    super.key,
     this.padding = const EdgeInsets.all(12),
     this.margin,
   });
 
   factory SectionCard.single({
-    Key? key,
     required IconData icon,
     required String title,
     required Widget child,
-    final String? shortcut,
+    Key? key,
+    String? shortcut,
 
     EdgeInsetsGeometry padding = const EdgeInsets.all(12),
   }) {
@@ -86,7 +86,7 @@ class SectionCard extends StatelessWidget {
                     ),
                   ),
                   if (item.shortcut != null) ...[
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     ShortcutHintBadge(label: item.shortcut!),
                   ],
                 ],

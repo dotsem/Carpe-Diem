@@ -7,9 +7,9 @@ class HardwareShortcuts extends StatefulWidget {
   final bool enabled;
 
   const HardwareShortcuts({
-    super.key,
     required this.child,
     required this.onKeyEvent,
+    super.key,
     this.enabled = true,
   });
 

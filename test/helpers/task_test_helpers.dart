@@ -35,7 +35,7 @@ Task createTestTask({
     projectId: projectId,
     isUrgent: isUrgent,
     deadline: deadline,
-    createdAt: createdAt ?? DateTime(2026, 1, 1),
+    createdAt: createdAt ?? DateTime(2026),
     completedAt: completedAt,
     blockedById: blockedById,
     sortOrder: sortOrder,
@@ -75,7 +75,7 @@ class TestTaskRepositories {
        mockFilterModeRepo = filterModeRepo ?? MockFilterModeRepository();
 
   void setupDefaultStubs() {
-    when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
+    when(mockSettingsRepo.getAll).thenAnswer((_) async => {});
     when(() => mockSettingsRepo.set(any(), any())).thenAnswer((_) async => {});
     when(() => mockSettingsRepo.delete(any())).thenAnswer((_) async => {});
     when(
@@ -102,11 +102,11 @@ class TestTaskRepositories {
     when(() => mockTaskRepo.getById(any())).thenAnswer((_) async => null);
     when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
     when(() => mockTaskRepo.cleanupHistory(any())).thenAnswer((_) async => 0);
-    when(() => mockLabelRepo.getAll()).thenAnswer((_) async => []);
-    when(() => mockTagRepo.getAll()).thenAnswer((_) async => []);
-    when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
-    when(() => mockTagIconRepo.getAllIconDatas()).thenAnswer((_) async => {});
-    when(() => mockFilterModeRepo.getAll()).thenAnswer((_) async => []);
+    when(mockLabelRepo.getAll).thenAnswer((_) async => []);
+    when(mockTagRepo.getAll).thenAnswer((_) async => []);
+    when(mockProjectRepo.getAll).thenAnswer((_) async => []);
+    when(mockTagIconRepo.getAllIconDatas).thenAnswer((_) async => {});
+    when(mockFilterModeRepo.getAll).thenAnswer((_) async => []);
   }
 
   List<Override> get providerOverrides => [

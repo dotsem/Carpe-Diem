@@ -6,9 +6,9 @@ class DraggableTaskTile extends StatelessWidget {
   final bool enableDrag;
 
   const DraggableTaskTile({
-    super.key,
     required this.index,
     required this.child,
+    super.key,
     this.enableDrag = true,
   });
 

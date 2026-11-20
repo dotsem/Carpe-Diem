@@ -9,7 +9,7 @@ void main() {
       tester,
     ) async {
       DraggableDetails? endDetails;
-      bool dragStarted = false;
+      var dragStarted = false;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -96,7 +96,7 @@ void main() {
     testWidgets(
       'cancels drag on secondary mouse click even if widget was unmounted during drag',
       (tester) async {
-        bool showDraggable = true;
+        var showDraggable = true;
         late StateSetter setState;
 
         await tester.pumpWidget(
@@ -147,7 +147,7 @@ void main() {
     testWidgets('invokes onDragCancel callback on secondary mouse click', (
       tester,
     ) async {
-      bool cancelCalled = false;
+      var cancelCalled = false;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -187,7 +187,7 @@ void main() {
     testWidgets('ignores unrelated pointer up event during drag session', (
       tester,
     ) async {
-      bool cancelCalled = false;
+      var cancelCalled = false;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -211,7 +211,7 @@ void main() {
 
       expect(find.text('feedback'), findsOneWidget);
 
-      final secondPointer = TestPointer(2, PointerDeviceKind.touch);
+      final secondPointer = TestPointer(2);
       await tester.sendEventToBinding(
         secondPointer.down(const Offset(200, 200)),
       );

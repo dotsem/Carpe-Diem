@@ -7,10 +7,10 @@ class CustomDatePickerDialog extends StatefulWidget {
   final DateTime lastDate;
 
   const CustomDatePickerDialog({
-    super.key,
     required this.initialDate,
     required this.firstDate,
     required this.lastDate,
+    super.key,
   });
 
   @override

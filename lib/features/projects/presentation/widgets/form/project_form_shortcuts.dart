@@ -10,11 +10,11 @@ class ProjectFormShortcuts extends StatelessWidget {
   final VoidCallback onSubmit;
 
   const ProjectFormShortcuts({
-    super.key,
     required this.child,
     required this.onUrgencyChanged,
     required this.labelMenuController,
     required this.onSubmit,
+    super.key,
   });
 
   void _toggleMenu(MenuController? controller) {

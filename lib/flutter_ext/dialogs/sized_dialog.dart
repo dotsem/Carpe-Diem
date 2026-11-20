@@ -1,5 +1,5 @@
-import '../hardware_shortcuts.dart';
-import '../keyboard.dart';
+import 'package:carpe_diem/flutter_ext/hardware_shortcuts.dart';
+import 'package:carpe_diem/flutter_ext/keyboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,8 +17,8 @@ class SizedDialog extends StatelessWidget {
   final double? minWidth;
 
   const SizedDialog({
-    super.key,
     required this.child,
+    super.key,
     this.title,
     this.actions,
     this.onSubmit,
@@ -46,7 +46,7 @@ class SizedDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth, minWidth: minWidth ?? 0),
-      child: SingleChildScrollView(padding: padding!, child: child),
+      child: SingleChildScrollView(padding: padding, child: child),
     );
 
     final dialog = AlertDialog(

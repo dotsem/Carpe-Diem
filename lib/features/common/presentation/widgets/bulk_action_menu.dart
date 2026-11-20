@@ -24,9 +24,9 @@ class BulkActionMenu extends StatelessWidget {
   final String disabledTooltip;
 
   const BulkActionMenu({
-    super.key,
     required this.options,
     required this.onOptionSelected,
+    super.key,
     this.disabledTooltip = 'select multiple tasks',
   });
 
@@ -52,12 +52,12 @@ class BulkActionMenu extends StatelessWidget {
   }
 
   void _showMenu(BuildContext context) {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final button = context.findRenderObject()! as RenderBox;
+    final overlay =
+        Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
 
     // Position underneath
-    final RelativeRect position = RelativeRect.fromRect(
+    final position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset(0, button.size.height), ancestor: overlay),
         button.localToGlobal(

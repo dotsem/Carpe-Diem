@@ -8,11 +8,11 @@ class TagSuggestionItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const TagSuggestionItem({
-    super.key,
     required this.tag,
     required this.isSelected,
     required this.icon,
     required this.onTap,
+    super.key,
   });
 
   @override

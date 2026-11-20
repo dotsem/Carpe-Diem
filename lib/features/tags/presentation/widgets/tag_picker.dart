@@ -1,10 +1,10 @@
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/chip/manageable_chip.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
-import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/add_tag_dialog.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_context_menu.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/manageable_chip.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,9 +25,9 @@ class TagPicker extends ConsumerWidget {
   chipBuilder;
 
   const TagPicker({
-    super.key,
     required this.selectedTagIds,
     required this.onSelected,
+    super.key,
     this.allowAdd = true,
     this.isManageMode = false,
     this.enableContextMenu = true,
@@ -145,7 +145,7 @@ class TagPicker extends ConsumerWidget {
       ),
     );
 
-    final Widget chip = chipBuilder != null
+    final chip = chipBuilder != null
         ? chipBuilder!(context, tag, isSelected, defaultChip)
         : defaultChip;
 
@@ -158,7 +158,7 @@ class TagPicker extends ConsumerWidget {
               ref,
               tag,
               details.localPosition,
-              context.findRenderObject() as RenderBox,
+              context.findRenderObject()! as RenderBox,
             );
           },
           child: chip,

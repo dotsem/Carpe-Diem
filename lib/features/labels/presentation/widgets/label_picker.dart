@@ -1,11 +1,11 @@
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/chip/manageable_chip.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/dialogs/add_label_dialog.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_context_menu.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/chip/manageable_chip.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
 
 class LabelPicker extends ConsumerWidget {
   final List<String> selectedLabelIds;
@@ -26,10 +26,10 @@ class LabelPicker extends ConsumerWidget {
   chipBuilder;
 
   const LabelPicker({
-    super.key,
     required this.selectedLabelIds,
-    this.inheritedLabelIds = const [],
     required this.onSelected,
+    super.key,
+    this.inheritedLabelIds = const [],
     this.allowAdd = true,
     this.isManageMode = false,
     this.enableContextMenu = true,
@@ -141,11 +141,11 @@ class LabelPicker extends ConsumerWidget {
       ),
     );
 
-    final Widget chip = chipBuilder != null
+    final chip = chipBuilder != null
         ? chipBuilder!(context, label, isSelected, isInherited, defaultChip)
         : defaultChip;
 
-    final Widget tooltipChip = isInherited
+    final tooltipChip = isInherited
         ? Tooltip(message: 'Inherited from project', child: chip)
         : chip;
 
@@ -153,7 +153,7 @@ class LabelPicker extends ConsumerWidget {
       return Builder(
         builder: (context) => GestureDetector(
           onSecondaryTapDown: (details) {
-            final RenderBox box = context.findRenderObject() as RenderBox;
+            final box = context.findRenderObject()! as RenderBox;
             showLabelContextMenu(
               context,
               ref,

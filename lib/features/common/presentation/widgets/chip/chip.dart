@@ -2,8 +2,8 @@ import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/core/utils/deadline_urgency.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter/material.dart';
@@ -33,16 +33,12 @@ class OverdueChip extends StatelessWidget {
       message: 'Overdue task',
       child: SmallChip(
         color: AppColors.error.withValues(alpha: 0.2),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.timer_off_outlined,
-              size: 10,
-              color: AppColors.error,
-            ),
-            const SizedBox(width: 4),
-            const Text(
+            Icon(Icons.timer_off_outlined, size: 10, color: AppColors.error),
+            SizedBox(width: 4),
+            Text(
               'Overdue',
               style: TextStyle(fontSize: 11, color: AppColors.error),
             ),
@@ -55,7 +51,7 @@ class OverdueChip extends StatelessWidget {
 
 class StatusChip extends ConsumerWidget {
   final Task task;
-  const StatusChip({super.key, required this.task});
+  const StatusChip({required this.task, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -77,7 +73,7 @@ class StatusChip extends ConsumerWidget {
 class ProjectChip extends StatelessWidget {
   final Project? project;
 
-  const ProjectChip({super.key, required this.project});
+  const ProjectChip({required this.project, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -102,9 +98,9 @@ class DeadlineChip extends StatelessWidget {
   final bool isCompleted;
 
   const DeadlineChip({
-    super.key,
     required this.deadline,
     required this.today,
+    super.key,
     this.isCompleted = false,
   });
 
@@ -165,7 +161,7 @@ class DeadlineChip extends StatelessWidget {
 class ScheduledChip extends StatelessWidget {
   final DateTime scheduledDate;
 
-  const ScheduledChip({super.key, required this.scheduledDate});
+  const ScheduledChip({required this.scheduledDate, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +187,7 @@ class ScheduledChip extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              "Scheduled: $scheduledDayTextValue",
+              'Scheduled: $scheduledDayTextValue',
               style: const TextStyle(fontSize: 11, color: AppColors.info),
             ),
           ],

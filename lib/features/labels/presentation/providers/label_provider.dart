@@ -1,14 +1,14 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 class LabelState {
   final List<Label> labels;
@@ -52,7 +52,7 @@ class LabelNotifier extends Notifier<LabelState> {
   Future<void> loadLabels() async {
     state = state.copyWith(isLoading: true);
     final labels = await _repo.getAll();
-    state = LabelState(labels: labels, isLoading: false);
+    state = LabelState(labels: labels);
   }
 
   Future<void> addLabel({required String name, required Color color}) async {

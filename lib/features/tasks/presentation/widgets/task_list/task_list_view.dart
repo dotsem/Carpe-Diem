@@ -1,18 +1,18 @@
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/core/utils/task_sort_utils.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_hierarchy_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_components.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_scroll_view.dart';
-import 'package:carpe_diem/core/utils/focus_utils.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskListView extends ConsumerStatefulWidget {
   final List<Task> tasks;
@@ -39,8 +39,8 @@ class TaskListView extends ConsumerStatefulWidget {
   final bool isPlanView;
 
   const TaskListView({
-    super.key,
     required this.tasks,
+    super.key,
     this.overdueTasks = const [],
     this.trailingBuilder,
     this.onContextMenu,
@@ -140,9 +140,9 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
         return categoryTasks.map((t) => TaskNode(t, 0)).toList();
       }
-      final allAvailableTasks = {for (var t in taskState.tasks) t.id: t}
-        ..addAll({for (var t in taskState.overdueTasks) t.id: t})
-        ..addAll({for (var t in taskState.unscheduledTasks) t.id: t});
+      final allAvailableTasks = {for (final t in taskState.tasks) t.id: t}
+        ..addAll({for (final t in taskState.overdueTasks) t.id: t})
+        ..addAll({for (final t in taskState.unscheduledTasks) t.id: t});
       final collapsedParentIds = ref.watch(collapsedSubtasksProvider);
       return TaskHierarchyUtils.buildHierarchy(
         categoryTasks,
@@ -167,11 +167,11 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
       });
     }
 
-    int nodeIndex = 0;
+    var nodeIndex = 0;
     Widget buildNode(TaskHierarchyNode node, bool Function(Task) overdueFn) {
       final task = node.task;
       FocusNode? focusNode;
-      bool autofocus = false;
+      var autofocus = false;
 
       if (task != null) {
         autofocus =
@@ -187,8 +187,8 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
 
       return TaskHierarchyItem(
         node: node,
-        taskIsOverdue: task != null ? overdueFn(task) : false,
-        showScheduleDate: task != null ? widget.showScheduleDate : false,
+        taskIsOverdue: task != null && overdueFn(task),
+        showScheduleDate: task != null && widget.showScheduleDate,
         autofocus: autofocus,
         focusNode: focusNode,
         isReadOnly: widget.isReadOnly,

@@ -15,7 +15,6 @@ void main() {
           id: 'p1',
           title: 'Parent',
           createdAt: now,
-          isUrgent: false,
           sortOrder: 'b0',
         );
         final urgentSub = Task(
@@ -24,14 +23,12 @@ void main() {
           parentId: 'p1',
           createdAt: now,
           isUrgent: true,
-          status: TaskStatus.todo,
           sortOrder: '0',
         );
         final normalRoot = Task(
           id: 'r2',
           title: 'Normal Root',
           createdAt: now,
-          isUrgent: false,
           sortOrder: 'a0',
         );
 
@@ -62,7 +59,6 @@ void main() {
           id: 'p1',
           title: 'Parent',
           createdAt: now,
-          isUrgent: false,
           sortOrder: 'b0',
         );
         final completedUrgentSub = Task(
@@ -78,7 +74,6 @@ void main() {
           id: 'r2',
           title: 'Normal Root',
           createdAt: now,
-          isUrgent: false,
           sortOrder: 'a0',
         );
 
@@ -108,7 +103,6 @@ void main() {
           id: 'pa',
           title: 'Parent A',
           createdAt: now,
-          isUrgent: false,
           sortOrder: 'a0',
         );
         final subA = Task(
@@ -117,14 +111,12 @@ void main() {
           parentId: 'pa',
           createdAt: now,
           isUrgent: true,
-          status: TaskStatus.todo,
           sortOrder: '0',
         );
         final parentB = Task(
           id: 'pb',
           title: 'Parent B',
           createdAt: now,
-          isUrgent: false,
           sortOrder: 'b0',
         );
         final subB = Task(
@@ -133,7 +125,6 @@ void main() {
           parentId: 'pb',
           createdAt: now,
           isUrgent: true,
-          status: TaskStatus.todo,
           sortOrder: '0',
         );
 
@@ -160,7 +151,6 @@ void main() {
           id: 'p1',
           title: 'Parent in Backlog',
           createdAt: now,
-          isUrgent: false,
           sortOrder: 'b0',
         );
         final plannedUrgentSub = Task(
@@ -170,7 +160,6 @@ void main() {
           scheduledDate: now.add(const Duration(days: 1)),
           createdAt: now,
           isUrgent: true,
-          status: TaskStatus.todo,
           sortOrder: '0',
         );
         final normalBacklogSub = Task(
@@ -178,15 +167,12 @@ void main() {
           title: 'Normal Backlog Subtask',
           parentId: 'p1',
           createdAt: now,
-          isUrgent: false,
-          status: TaskStatus.todo,
           sortOrder: '1',
         );
         final normalBacklogRoot = Task(
           id: 'r2',
           title: 'Normal Root in Backlog',
           createdAt: now,
-          isUrgent: false,
           sortOrder: 'a0',
         );
 

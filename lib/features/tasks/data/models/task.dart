@@ -35,9 +35,9 @@ class Task {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    bool scheduledOverdue =
+    final scheduledOverdue =
         scheduledDate != null && scheduledDate!.isBefore(today);
-    bool deadlineOverdue = deadline != null && deadline!.isBefore(today);
+    final deadlineOverdue = deadline != null && deadline!.isBefore(today);
 
     if (scheduledOverdue && deadline != null && !deadline!.isBefore(today)) {
       return false;
@@ -55,13 +55,13 @@ class Task {
   const Task({
     required this.id,
     required this.title,
+    required this.createdAt,
     this.description,
     this.scheduledDate,
     this.status = TaskStatus.todo,
     this.projectId,
     this.isUrgent = false,
     this.deadline,
-    required this.createdAt,
     this.updatedAt,
     this.completedAt,
     this.blockedById,

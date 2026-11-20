@@ -1,11 +1,11 @@
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/screens/backlog_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/tasks/presentation/screens/backlog_screen.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
@@ -51,7 +51,6 @@ void main() {
           Task(
             id: 't-backlog-1',
             title: 'Legacy code cleanup',
-            status: TaskStatus.todo,
             createdAt: DateTime.now(),
           ),
         ];

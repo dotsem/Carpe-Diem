@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/save_mode_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ModeDropdownButton extends ConsumerWidget {
   const ModeDropdownButton({super.key});
@@ -53,8 +53,8 @@ class ModeDropdownButton extends ConsumerWidget {
       isCustom = true;
     }
 
-    final bool hasActiveHighlight = activeMode != null || isCustom;
-    final IconData modeIcon = activeMode?.icon ?? Icons.tune;
+    final hasActiveHighlight = activeMode != null || isCustom;
+    final modeIcon = activeMode?.icon ?? Icons.tune;
 
     return PopupMenuButton<String>(
       tooltip: 'Switch filter mode',

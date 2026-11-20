@@ -8,9 +8,9 @@ class UrgencySelector extends StatelessWidget {
   final bool allowAll;
 
   const UrgencySelector({
-    super.key,
     required this.selected,
     required this.onChanged,
+    super.key,
     this.allowAll = false,
   });
 

@@ -19,7 +19,7 @@ void main() {
   Task task({DateTime? scheduled, TaskStatus status = TaskStatus.todo}) => Task(
     id: 't1',
     title: 'x',
-    createdAt: DateTime(2026, 11, 1),
+    createdAt: DateTime(2026, 11),
     scheduledDate: scheduled,
     status: status,
   );

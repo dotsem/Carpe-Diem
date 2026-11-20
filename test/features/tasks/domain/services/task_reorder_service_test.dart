@@ -1,5 +1,5 @@
-import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/reorder/lexorank.dart';
+import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
@@ -30,7 +30,7 @@ void main() {
       });
 
       test('computes top rank on non-empty list', () {
-        final t1 = createTestTask(id: 't1').copyWith(sortOrder: 'a5');
+        final t1 = createTestTask().copyWith(sortOrder: 'a5');
         final rank = TaskReorderService.computeSortOrder(
           placement: TaskPlacement.top,
           activeList: [t1],
@@ -39,7 +39,7 @@ void main() {
       });
 
       test('computes middle rank for single item list', () {
-        final t1 = createTestTask(id: 't1').copyWith(sortOrder: 'a5');
+        final t1 = createTestTask().copyWith(sortOrder: 'a5');
         final rank = TaskReorderService.computeSortOrder(
           placement: TaskPlacement.middle,
           activeList: [t1],
@@ -48,7 +48,7 @@ void main() {
       });
 
       test('computes middle rank for multiple items list', () {
-        final t1 = createTestTask(id: 't1').copyWith(sortOrder: 'a1');
+        final t1 = createTestTask().copyWith(sortOrder: 'a1');
         final t2 = createTestTask(id: 't2').copyWith(sortOrder: 'a9');
         final rank = TaskReorderService.computeSortOrder(
           placement: TaskPlacement.middle,
@@ -59,7 +59,7 @@ void main() {
       });
 
       test('computes bottom rank on non-empty list', () {
-        final t1 = createTestTask(id: 't1').copyWith(sortOrder: 'a5');
+        final t1 = createTestTask().copyWith(sortOrder: 'a5');
         final rank = TaskReorderService.computeSortOrder(
           placement: TaskPlacement.bottom,
           activeList: [t1],
@@ -70,7 +70,7 @@ void main() {
 
     group('optimisticallyReorder', () {
       test('returns currentList untouched when task is not present', () {
-        final list = [createTestTask(id: 't1')];
+        final list = [createTestTask()];
         final notInList = createTestTask(id: 't2');
         final result = TaskReorderService.optimisticallyReorder(
           currentList: list,
@@ -82,8 +82,8 @@ void main() {
       });
 
       test('sorts urgent tasks to the front', () {
-        final normal = createTestTask(id: 't1', isUrgent: false);
-        final urgent = createTestTask(id: 't2', isUrgent: false);
+        final normal = createTestTask();
+        final urgent = createTestTask(id: 't2');
         final updatedUrgent = urgent.copyWith(isUrgent: true);
         final result = TaskReorderService.optimisticallyReorder(
           currentList: [normal, urgent],
@@ -96,7 +96,7 @@ void main() {
       });
 
       test('respects sortOrder string lexicographical order', () {
-        final t1 = createTestTask(id: 't1').copyWith(sortOrder: '0|i00005:');
+        final t1 = createTestTask().copyWith(sortOrder: '0|i00005:');
         final t2 = createTestTask(id: 't2').copyWith(sortOrder: '0|i00010:');
         final updatedT2 = t2.copyWith(sortOrder: '0|i00001:');
         final result = TaskReorderService.optimisticallyReorder(
@@ -112,9 +112,9 @@ void main() {
 
     group('applyOptimisticTask and applyBulkOptimisticReorder', () {
       test('updates matching task in TaskState collections', () {
-        final t1 = createTestTask(id: 't1').copyWith(sortOrder: '0|i00010:');
+        final t1 = createTestTask().copyWith(sortOrder: '0|i00010:');
         final state = TaskState(
-          currentDate: DateTime(2026, 1, 1),
+          currentDate: DateTime(2026),
           tasks: [t1],
           overdueTasks: [t1],
           unscheduledTasks: [t1],
@@ -132,12 +132,9 @@ void main() {
       });
 
       test('applies bulk optimistic reorders across state collections', () {
-        final t1 = createTestTask(id: 't1').copyWith(sortOrder: '0|i00010:');
+        final t1 = createTestTask().copyWith(sortOrder: '0|i00010:');
         final t2 = createTestTask(id: 't2').copyWith(sortOrder: '0|i00020:');
-        final state = TaskState(
-          currentDate: DateTime(2026, 1, 1),
-          tasks: [t1, t2],
-        );
+        final state = TaskState(currentDate: DateTime(2026), tasks: [t1, t2]);
 
         final newState = TaskReorderService.applyBulkOptimisticReorder(
           state: state,
@@ -153,7 +150,7 @@ void main() {
       test(
         'buildReorderCommand creates UpdateCommand with custom description',
         () {
-          final prev = createTestTask(id: 't1', title: 'Task 1');
+          final prev = createTestTask(title: 'Task 1');
           final next = prev.copyWith(sortOrder: '0|i00050:');
           final cmd = TaskReorderService.buildReorderCommand(
             repo: mockRepo,
@@ -187,7 +184,7 @@ void main() {
       test(
         'buildBulkReorderCommand returns single UpdateCommand for 1 item',
         () async {
-          final t1 = createTestTask(id: 't1', title: 'T1');
+          final t1 = createTestTask(title: 'T1');
           when(() => mockRepo.getById('t1')).thenAnswer((_) async => t1);
 
           final cmd = await TaskReorderService.buildBulkReorderCommand(
@@ -201,7 +198,7 @@ void main() {
       test(
         'buildBulkReorderCommand returns CompoundCommand for multiple items',
         () async {
-          final t1 = createTestTask(id: 't1', title: 'T1');
+          final t1 = createTestTask(title: 'T1');
           final t2 = createTestTask(id: 't2', title: 'T2');
           when(() => mockRepo.getById('t1')).thenAnswer((_) async => t1);
           when(() => mockRepo.getById('t2')).thenAnswer((_) async => t2);
@@ -211,7 +208,7 @@ void main() {
             updates: {'t1': '0|i00010:', 't2': '0|i00020:'},
           );
           expect(cmd, isA<CompoundCommand>());
-          expect((cmd as CompoundCommand).commands.length, equals(2));
+          expect((cmd! as CompoundCommand).commands.length, equals(2));
         },
       );
     });
@@ -234,7 +231,6 @@ void main() {
           when(
             () => mockRepo.getByProjectUnscheduled(
               'proj1',
-              prioritizeDeadlines: true,
               prioritizeOverdue: true,
             ),
           ).thenAnswer((_) async => []);
@@ -249,16 +245,12 @@ void main() {
           verify(
             () => mockRepo.getByProjectUnscheduled(
               'proj1',
-              prioritizeDeadlines: true,
               prioritizeOverdue: true,
             ),
           ).called(1);
 
           when(
-            () => mockRepo.getUnscheduled(
-              prioritizeDeadlines: false,
-              prioritizeOverdue: false,
-            ),
+            () => mockRepo.getUnscheduled(prioritizeDeadlines: false),
           ).thenAnswer((_) async => []);
           await TaskReorderService.getRelevantTasksList(
             repo: mockRepo,
@@ -269,10 +261,7 @@ void main() {
             prioritizeOverdue: false,
           );
           verify(
-            () => mockRepo.getUnscheduled(
-              prioritizeDeadlines: false,
-              prioritizeOverdue: false,
-            ),
+            () => mockRepo.getUnscheduled(prioritizeDeadlines: false),
           ).called(1);
         },
       );

@@ -7,11 +7,11 @@ class FilterButton extends StatelessWidget {
   final VoidCallback onClear;
 
   const FilterButton({
-    super.key,
     required this.isBypassed,
     required this.onFilterTap,
     required this.onToggleBypass,
     required this.onClear,
+    super.key,
   });
 
   @override

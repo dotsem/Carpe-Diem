@@ -1,14 +1,14 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/subtask_completion_conflict.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CompleteParentDialog extends ConsumerWidget {
   final SubtaskCompletionConflict conflict;
 
-  const CompleteParentDialog({super.key, required this.conflict});
+  const CompleteParentDialog({required this.conflict, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

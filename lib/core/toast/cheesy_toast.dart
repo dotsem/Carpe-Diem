@@ -15,10 +15,10 @@ class CheesyToast extends StatelessWidget {
   final double width;
 
   const CheesyToast({
-    super.key,
     required this.message,
     required this.icon,
     required this.color,
+    super.key,
     this.subtitle,
     this.onUndo,
     this.item,
@@ -63,7 +63,7 @@ class CheesyToast extends StatelessWidget {
                 toastification.dismiss(item!);
               }
             },
-            child: Container(
+            child: ColoredBox(
               color: theme.colorScheme.surfaceContainerHigh,
               child: IntrinsicHeight(
                 child: Row(
@@ -121,7 +121,6 @@ class CheesyToast extends StatelessWidget {
                 foregroundPainter: ProgressBorderPainter(
                   progress: (1.0 - value).clamp(0.0, 1.0),
                   color: color,
-                  width: 2.0,
                   borderRadius: inset,
                   left: false,
                 ),

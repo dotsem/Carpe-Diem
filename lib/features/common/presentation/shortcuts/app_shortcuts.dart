@@ -1,25 +1,25 @@
-import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:carpe_diem/routes/app_router.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/shortcuts_help_overlay.dart';
+import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_intents.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcuts_help_overlay.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/mode_selection_dialog.dart';
+import 'package:carpe_diem/routes/app_router.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+export 'package:carpe_diem/features/common/presentation/shortcuts/base_screen_shortcuts.dart';
 export 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_intents.dart';
 export 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
-export 'package:carpe_diem/features/common/presentation/shortcuts/base_screen_shortcuts.dart';
 
 bool isTypingInTextField() {
   final focus = FocusManager.instance.primaryFocus;
   final context = focus?.context;
   if (context == null) return false;
 
-  bool isTextInput = false;
+  var isTextInput = false;
 
   // Check if the focused widget itself is a text input
   final widget = context.widget;
@@ -66,7 +66,7 @@ class NonTypingAction<T extends Intent> extends Action<T> {
 class GlobalShortcuts extends ConsumerStatefulWidget {
   final Widget child;
 
-  const GlobalShortcuts({super.key, required this.child});
+  const GlobalShortcuts({required this.child, super.key});
 
   @override
   ConsumerState<GlobalShortcuts> createState() => GlobalShortcutsState();
@@ -146,51 +146,39 @@ class GlobalShortcutsState extends ConsumerState<GlobalShortcuts> {
       focusNode: FocusNode(skipTraversal: true),
       onKeyEvent: _handleKeyEvent,
       child: Shortcuts(
-        shortcuts: {
-          const CharacterActivator(TodayKeys.upper):
-              const NavigateToTodayIntent(),
-          const CharacterActivator(BacklogKeys.upper):
-              const NavigateToBacklogIntent(),
-          const CharacterActivator(ProjectsKeys.upper):
-              const NavigateToProjectsIntent(),
-          const CharacterActivator(HistoryKeys.upper):
-              const NavigateToHistoryIntent(),
-          const CharacterActivator(TodayKeys.char):
-              const NavigateToTodayIntent(),
-          const CharacterActivator(BacklogKeys.char):
-              const NavigateToBacklogIntent(),
-          const CharacterActivator(ProjectsKeys.char):
-              const NavigateToProjectsIntent(),
-          const CharacterActivator(HistoryKeys.char):
-              const NavigateToHistoryIntent(),
-          const CharacterActivator(HelpKeys.char): const ToggleHelpIntent(),
-          const CharacterActivator(ModeKeys.char): const SwitchModeIntent(),
-          const CharacterActivator(ModeKeys.upper): const SwitchModeIntent(),
-          const CharacterActivator(FilterKeys.upper):
-              const ToggleFilterBypassIntent(),
-          const SingleActivator(AppKeyBindings.escape): const CloseHelpIntent(),
-          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
-          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-          const CharacterActivator(DownKeys.upper): const MoveNextIntent(),
-          const CharacterActivator(UpKeys.upper): const MovePrevIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown):
-              const MoveNextIntent(),
-          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
+        shortcuts: const {
+          CharacterActivator(TodayKeys.upper): NavigateToTodayIntent(),
+          CharacterActivator(BacklogKeys.upper): NavigateToBacklogIntent(),
+          CharacterActivator(ProjectsKeys.upper): NavigateToProjectsIntent(),
+          CharacterActivator(HistoryKeys.upper): NavigateToHistoryIntent(),
+          CharacterActivator(TodayKeys.char): NavigateToTodayIntent(),
+          CharacterActivator(BacklogKeys.char): NavigateToBacklogIntent(),
+          CharacterActivator(ProjectsKeys.char): NavigateToProjectsIntent(),
+          CharacterActivator(HistoryKeys.char): NavigateToHistoryIntent(),
+          CharacterActivator(HelpKeys.char): ToggleHelpIntent(),
+          CharacterActivator(ModeKeys.char): SwitchModeIntent(),
+          CharacterActivator(ModeKeys.upper): SwitchModeIntent(),
+          CharacterActivator(FilterKeys.upper): ToggleFilterBypassIntent(),
+          SingleActivator(AppKeyBindings.escape): CloseHelpIntent(),
+          CharacterActivator(DownKeys.char): MoveNextIntent(),
+          CharacterActivator(UpKeys.char): MovePrevIntent(),
+          CharacterActivator(DownKeys.upper): MoveNextIntent(),
+          CharacterActivator(UpKeys.upper): MovePrevIntent(),
+          SingleActivator(AppKeyBindings.arrowDown): MoveNextIntent(),
+          SingleActivator(AppKeyBindings.arrowUp): MovePrevIntent(),
 
-          const CharacterActivator(UndoKeys.char, control: true):
-              const UndoIntent(),
-          const CharacterActivator(RedoKeys.char, control: true):
-              const RedoIntent(),
+          CharacterActivator(UndoKeys.char, control: true): UndoIntent(),
+          CharacterActivator(RedoKeys.char, control: true): RedoIntent(),
 
           // TODO: may remove ctrl+k
-          const SingleActivator(LogicalKeyboardKey.keyK, control: true):
-              const OpenCommandPaletteIntent(),
-          const SingleActivator(LogicalKeyboardKey.keyK, meta: true):
-              const OpenCommandPaletteIntent(),
-          const SingleActivator(LogicalKeyboardKey.keyP, control: true):
-              const OpenCommandPaletteIntent(),
-          const SingleActivator(LogicalKeyboardKey.keyP, meta: true):
-              const OpenCommandPaletteIntent(),
+          SingleActivator(LogicalKeyboardKey.keyK, control: true):
+              OpenCommandPaletteIntent(),
+          SingleActivator(LogicalKeyboardKey.keyK, meta: true):
+              OpenCommandPaletteIntent(),
+          SingleActivator(LogicalKeyboardKey.keyP, control: true):
+              OpenCommandPaletteIntent(),
+          SingleActivator(LogicalKeyboardKey.keyP, meta: true):
+              OpenCommandPaletteIntent(),
         },
         child: Actions(
           actions: {
@@ -281,9 +269,9 @@ class AppShortcutRegistrar extends StatefulWidget {
   final Widget child;
 
   const AppShortcutRegistrar({
-    super.key,
     required this.shortcuts,
     required this.child,
+    super.key,
   });
 
   @override

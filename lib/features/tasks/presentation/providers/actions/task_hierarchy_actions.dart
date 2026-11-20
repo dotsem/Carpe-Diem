@@ -33,7 +33,7 @@ extension TaskHierarchyActions on TaskNotifier {
 
     String? currentRank;
     for (
-      int i = existingSiblings.length - 1;
+      var i = existingSiblings.length - 1;
       i >= 0 && currentRank == null;
       i--
     ) {
@@ -89,7 +89,7 @@ extension TaskHierarchyActions on TaskNotifier {
     DateTime? scheduledDate,
   }) async {
     final settings = ref.read(settingsProvider);
-    String? effectiveProjectId = projectId;
+    var effectiveProjectId = projectId;
     if (effectiveProjectId == null && childTaskIds.isNotEmpty) {
       final childProjects = childTaskIds
           .map((id) => tasksState.getById(id)?.projectId)
@@ -106,7 +106,6 @@ extension TaskHierarchyActions on TaskNotifier {
       description: description,
       projectId: effectiveProjectId,
       scheduledDate: scheduledDate,
-      parentId: null,
     );
 
     final commands = <Command>[

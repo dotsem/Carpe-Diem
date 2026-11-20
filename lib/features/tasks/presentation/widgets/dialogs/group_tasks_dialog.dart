@@ -1,19 +1,19 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_hierarchy_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GroupTasksDialog extends ConsumerStatefulWidget {
   final List<String> taskIds;
 
-  const GroupTasksDialog({super.key, required this.taskIds});
+  const GroupTasksDialog({required this.taskIds, super.key});
 
   @override
   ConsumerState<GroupTasksDialog> createState() => _GroupTasksDialogState();

@@ -23,7 +23,6 @@ void main() {
         () {
           final date = DateTime(2026, 7, 10);
           final task = createTestTask(
-            id: 't1',
             title: 'Complete Task',
             scheduledDate: date,
             status: TaskStatus.inProgress,
@@ -47,11 +46,7 @@ void main() {
       test(
         'sets scheduledDate to today normalized when original date is null',
         () {
-          final task = createTestTask(
-            id: 't1',
-            scheduledDate: null,
-            status: TaskStatus.todo,
-          );
+          final task = createTestTask();
 
           final cmd = TaskCompletionService.buildCompleteCommand(
             repo: mockRepo,
@@ -72,12 +67,7 @@ void main() {
     group('buildStartCommand', () {
       test('sets status to inProgress and preserves scheduledDate', () {
         final date = DateTime(2026, 8, 15);
-        final task = createTestTask(
-          id: 't1',
-          title: 'Start Task',
-          scheduledDate: date,
-          status: TaskStatus.todo,
-        );
+        final task = createTestTask(title: 'Start Task', scheduledDate: date);
 
         final cmd = TaskCompletionService.buildStartCommand(
           repo: mockRepo,
@@ -93,7 +83,7 @@ void main() {
       test(
         'sets scheduledDate to today normalized when original date is null',
         () {
-          final task = createTestTask(id: 't1', scheduledDate: null);
+          final task = createTestTask();
 
           final cmd = TaskCompletionService.buildStartCommand(
             repo: mockRepo,
@@ -115,7 +105,6 @@ void main() {
         'updates status and retains existing sortOrder when newSortOrder is null',
         () {
           final task = createTestTask(
-            id: 't1',
             status: TaskStatus.inProgress,
           ).copyWith(sortOrder: '0|i00005:');
 
@@ -134,9 +123,7 @@ void main() {
       test(
         'updates status and modifies sortOrder when newSortOrder is provided',
         () {
-          final task = createTestTask(
-            id: 't1',
-          ).copyWith(sortOrder: '0|i00001:');
+          final task = createTestTask().copyWith(sortOrder: '0|i00001:');
 
           final cmd = TaskCompletionService.buildStatusUpdateCommand(
             repo: mockRepo,
@@ -161,18 +148,13 @@ void main() {
             title: 'Parent Task',
             status: TaskStatus.inProgress,
           );
-          final sub1 = createTestTask(
-            id: 's1',
-            title: 'Sub 1',
-            parentId: 'p1',
-            status: TaskStatus.todo,
-          );
+          final sub1 = createTestTask(id: 's1', title: 'Sub 1', parentId: 'p1');
           final sub2 = createTestTask(
             id: 's2',
             title: 'Sub 2',
             parentId: 'p1',
             status: TaskStatus.inProgress,
-            scheduledDate: DateTime(2026, 9, 1),
+            scheduledDate: DateTime(2026, 9),
           );
 
           final conflict = SubtaskCompletionConflict(
@@ -205,7 +187,7 @@ void main() {
           expect(sub2Cmd.next.status, equals(TaskStatus.done));
           expect(
             sub2Cmd.next.scheduledDate,
-            equals(DateTime(2026, 9, 1).normalize),
+            equals(DateTime(2026, 9).normalize),
           );
 
           expect(parentCmd.next.id, equals('p1'));

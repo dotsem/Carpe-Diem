@@ -16,7 +16,6 @@ void main() {
     final task1 = Task(
       id: 't1',
       title: 'Task 1',
-      status: TaskStatus.todo,
       sortOrder: 'a0',
       planSortOrder: 'a0',
       createdAt: now,
@@ -24,7 +23,6 @@ void main() {
     final task2 = Task(
       id: 't2',
       title: 'Task 2',
-      status: TaskStatus.todo,
       sortOrder: 'a1',
       planSortOrder: 'a1',
       createdAt: now,

@@ -9,9 +9,9 @@ class TaskPlacementSelector extends StatelessWidget {
   final bool mini;
 
   const TaskPlacementSelector({
-    super.key,
     required this.selected,
     required this.onChanged,
+    super.key,
     this.mini = false,
   });
 
@@ -23,22 +23,22 @@ class TaskPlacementSelector extends StatelessWidget {
           ? [
               ButtonSegment(
                 value: TaskPlacement.bottom,
-                label: Icon(Icons.vertical_align_bottom),
+                label: const Icon(Icons.vertical_align_bottom),
                 tooltip: TaskPlacement.bottom.name,
               ),
               ButtonSegment(
                 value: TaskPlacement.middle,
-                label: Icon(Icons.vertical_align_center),
+                label: const Icon(Icons.vertical_align_center),
                 tooltip: TaskPlacement.middle.name,
               ),
               ButtonSegment(
                 value: TaskPlacement.top,
-                label: Icon(Icons.vertical_align_top),
+                label: const Icon(Icons.vertical_align_top),
                 tooltip: TaskPlacement.top.name,
               ),
               ButtonSegment(
                 value: TaskPlacement.urgent,
-                label: Icon(
+                label: const Icon(
                   Icons.warning_amber_rounded,
                 ), // TODO: replace everywhere with priority_high
                 tooltip: TaskPlacement.urgent.name,

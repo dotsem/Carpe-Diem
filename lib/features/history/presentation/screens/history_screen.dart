@@ -1,23 +1,22 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/horizontal_tab.dart';
-import 'package:carpe_diem/features/history/data/models/history_overview.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/date_range_button.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_history_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/history/presentation/screens/tab_history_list.dart';
-import 'package:carpe_diem/features/history/presentation/screens/tab_history_dashboard.dart';
-import 'package:carpe_diem/features/history/presentation/screens/tab_history_insights.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
+import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/history/presentation/providers/activity_provider.dart';
 import 'package:carpe_diem/features/history/presentation/providers/history_insights_provider.dart';
+import 'package:carpe_diem/features/history/presentation/screens/tab_history_dashboard.dart';
+import 'package:carpe_diem/features/history/presentation/screens/tab_history_insights.dart';
+import 'package:carpe_diem/features/history/presentation/screens/tab_history_list.dart';
+import 'package:carpe_diem/features/history/presentation/screens/widgets/date_range_button.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_history_provider.dart';
+import 'package:carpe_diem/flutter_ext/horizontal_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -51,7 +50,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           start: DateTime(now.year, now.month, now.day),
           end: DateTime(now.year, now.month, now.day),
         );
-        break;
       case 'monthly':
         _dateRange = DateTimeRange(
           start: DateTime(
@@ -61,7 +59,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ).subtract(const Duration(days: 30)),
           end: now,
         );
-        break;
       case 'weekly':
       default:
         _dateRange = DateTimeRange(
@@ -72,7 +69,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ).subtract(const Duration(days: 6)),
           end: now,
         );
-        break;
     }
 
     _loadData();
@@ -174,7 +170,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     }
   }
 
-  void _showFilterDialog() async {
+  Future<void> _showFilterDialog() async {
     final filterProviderVal = ref.read(filterProvider);
     final result = await showDialog<TaskFilter>(
       context: context,
@@ -228,17 +224,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             ),
 
             TabBar(
-              tabs: [
+              tabs: const [
                 HorizontalTab(
-                  icon: const Icon(Icons.dashboard, size: 16),
+                  icon: Icon(Icons.dashboard, size: 16),
                   label: 'Dashboard',
                 ),
                 HorizontalTab(
-                  icon: const Icon(Icons.history, size: 16),
+                  icon: Icon(Icons.history, size: 16),
                   label: 'History',
                 ),
                 HorizontalTab(
-                  icon: const Icon(Icons.insights, size: 16),
+                  icon: Icon(Icons.insights, size: 16),
                   label: 'Insights',
                 ),
               ],

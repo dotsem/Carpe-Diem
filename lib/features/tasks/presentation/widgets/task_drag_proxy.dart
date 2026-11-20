@@ -12,10 +12,10 @@ class TaskDragProxy extends ConsumerWidget {
   final double width;
 
   const TaskDragProxy({
-    super.key,
     required this.task,
     required this.selectedCount,
     required this.width,
+    super.key,
   });
 
   @override
@@ -27,7 +27,6 @@ class TaskDragProxy extends ConsumerWidget {
 
     final cardContent = Material(
       color: Colors.transparent,
-      elevation: 0,
       child: Transform.scale(
         scale: 1.02,
         child: Container(

@@ -16,9 +16,9 @@ void showProjectCardContextMenu(
 ) {
   final projectNotifier = ref.read(projectProvider.notifier);
   final isActive = project.isActive;
-  final RenderBox navigatorBox =
-      Navigator.of(context).context.findRenderObject() as RenderBox;
-  final Offset navigatorOffset = navigatorBox.localToGlobal(Offset.zero);
+  final navigatorBox =
+      Navigator.of(context).context.findRenderObject()! as RenderBox;
+  final navigatorOffset = navigatorBox.localToGlobal(Offset.zero);
 
   showMenu(
     context: context,

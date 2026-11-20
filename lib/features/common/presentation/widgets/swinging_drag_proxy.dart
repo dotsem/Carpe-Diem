@@ -10,9 +10,9 @@ class SwingingDragProxy extends ConsumerStatefulWidget {
   final double width;
 
   const SwingingDragProxy({
-    super.key,
     required this.child,
     required this.width,
+    super.key,
   });
 
   @override
@@ -22,18 +22,18 @@ class SwingingDragProxy extends ConsumerStatefulWidget {
 class _SwingingDragProxyState extends ConsumerState<SwingingDragProxy>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
-  double _angle = 0.0;
-  double _angularVelocity = 0.0;
-  double _targetAngle = 0.0;
+  double _angle = 0;
+  double _angularVelocity = 0;
+  double _targetAngle = 0;
   Duration _lastTick = Duration.zero;
   DateTime? _lastPointerMoveTime;
   double? _lastPointerX;
 
-  static const double _stiffness = 196.0;
+  static const double _stiffness = 196;
   static const double _damping = 12.6;
   double get _widthScale => (300.0 / widget.width).clamp(0.25, 1.0);
   double get _maxAngle => 0.14 * _widthScale;
-  Alignment _pivot = const Alignment(0.0, -1.2);
+  Alignment _pivot = const Alignment(0, -1.2);
   bool _pivotInitialized = false;
 
   @override

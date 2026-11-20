@@ -1,6 +1,6 @@
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
-import 'package:carpe_diem/flutter_ext/hardware_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
+import 'package:carpe_diem/flutter_ext/hardware_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -15,15 +15,15 @@ class TaskFormShortcuts extends StatelessWidget {
   final VoidCallback onSubmit;
 
   const TaskFormShortcuts({
-    super.key,
     required this.child,
     required this.onPlacementChanged,
     required this.projectMenuController,
+    required this.onSubmit,
+    super.key,
     this.blockerMenuController,
     this.labelMenuController,
     this.tagMenuController,
     this.onAddSubtask,
-    required this.onSubmit,
   });
 
   void _toggleMenu(MenuController? controller) {

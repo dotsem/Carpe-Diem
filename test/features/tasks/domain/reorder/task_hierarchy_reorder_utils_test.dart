@@ -13,16 +13,10 @@ void main() {
       isUrgent: true,
       createdAt: now,
     );
-    final normalB = Task(
-      id: 'n1',
-      title: 'Normal 1',
-      isUrgent: false,
-      createdAt: now,
-    );
+    final normalB = Task(id: 'n1', title: 'Normal 1', createdAt: now);
     final deadlineC = Task(
       id: 'd1',
       title: 'Deadline 1',
-      isUrgent: false,
       deadline: DateTime(2026, 10, 20),
       createdAt: now,
     );
@@ -73,7 +67,6 @@ void main() {
           targetIndex: 3,
           nodes: nodes,
           settings: deadlineSettings,
-          isPlanView: false,
         ),
         isFalse,
       );

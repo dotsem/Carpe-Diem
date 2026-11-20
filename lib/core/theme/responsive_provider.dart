@@ -1,7 +1,8 @@
 import 'dart:ui';
+
+import 'package:carpe_diem/core/theme/app_breakpoints.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'app_breakpoints.dart';
 
 final screenBreakpointProvider =
     NotifierProvider<ScreenBreakpointNotifier, AppBreakpoint>(

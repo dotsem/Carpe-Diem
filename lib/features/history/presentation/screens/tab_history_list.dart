@@ -1,9 +1,9 @@
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class TabHistoryList extends ConsumerStatefulWidget {
   final List<Task> tasks;
@@ -12,11 +12,11 @@ class TabHistoryList extends ConsumerStatefulWidget {
   final bool isLoadingMore;
 
   const TabHistoryList({
-    super.key,
     required this.tasks,
     required this.hasMore,
     required this.onLoadMore,
     required this.isLoadingMore,
+    super.key,
   });
 
   @override
@@ -74,7 +74,7 @@ class _TabHistoryListState extends ConsumerState<TabHistoryList> {
         if (index == sortedKeys.length) {
           return const Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16),
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           );

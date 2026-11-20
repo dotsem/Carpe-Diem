@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('tags', () {

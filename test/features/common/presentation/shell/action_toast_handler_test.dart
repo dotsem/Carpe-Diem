@@ -21,7 +21,7 @@ class MockTagRepository extends Mock implements ITagRepository {}
 class MockLabelRepository extends Mock implements ILabelRepository {}
 
 void main() {
-  final testDate = DateTime(2026, 1, 1);
+  final testDate = DateTime(2026);
   Task makeTask(String id, {bool isUrgent = false, String? projectId}) => Task(
     id: id,
     title: 'Task $id',
@@ -61,7 +61,7 @@ void main() {
         expect(
           ActionToastHandler.isTaskHidden(
             task: task,
-            filterState: const FilterState(filter: TaskFilter()),
+            filterState: const FilterState(),
             projects: [],
           ),
           isFalse,
@@ -84,7 +84,7 @@ void main() {
         () {
           expect(
             ActionToastHandler.isTaskHidden(
-              task: makeTask('1', isUrgent: false),
+              task: makeTask('1'),
               filterState: const FilterState(
                 filter: TaskFilter(isUrgent: true),
               ),
@@ -122,7 +122,6 @@ void main() {
       test('resolves default for null and visible task creation', () {
         final nullData = ActionToastHandler.resolveExecuteToastData(
           cmd: null,
-          filterState: const FilterState(),
           projects: [],
         );
         expect(nullData.icon, Icons.check_circle_outline);
@@ -137,7 +136,6 @@ void main() {
         );
         final visibleData = ActionToastHandler.resolveExecuteToastData(
           cmd: createCmd,
-          filterState: const FilterState(),
           projects: [],
         );
         expect(visibleData.icon, Icons.add_task);
@@ -148,7 +146,7 @@ void main() {
       test(
         'resolves hidden warning on task creation when hidden by filter',
         () {
-          final hiddenTask = makeTask('1', isUrgent: false);
+          final hiddenTask = makeTask('1');
           final createCmd = CreateCommand<Task>(
             repo: taskRepo,
             item: hiddenTask,
@@ -170,12 +168,8 @@ void main() {
       test('resolves CRUD action icons and colors across models', () {
         final task = makeTask('1');
         final project = makeProject('p1');
-        final tag = Tag(id: 't1', name: 'Tag');
-        final label = const Label(
-          id: 'l1',
-          name: 'Label',
-          color: Color(0xFFFFFFFF),
-        );
+        const tag = Tag(id: 't1', name: 'Tag');
+        const label = Label(id: 'l1', name: 'Label', color: Color(0xFFFFFFFF));
 
         final updateTaskData = ActionToastHandler.resolveExecuteToastData(
           cmd: UpdateCommand<Task>(
@@ -184,7 +178,6 @@ void main() {
             next: task,
             displayName: task.title,
           ),
-          filterState: const FilterState(),
           projects: [],
         );
         expect(updateTaskData.icon, Icons.edit_outlined);
@@ -197,7 +190,6 @@ void main() {
             id: task.id,
             displayName: task.title,
           ),
-          filterState: const FilterState(),
           projects: [],
         );
         expect(deleteTaskData.icon, Icons.delete_outline);
@@ -210,7 +202,6 @@ void main() {
             id: project.id,
             displayName: project.name,
           ),
-          filterState: const FilterState(),
           projects: [],
         );
         expect(createProjectData.icon, Icons.create_new_folder_outlined);
@@ -223,7 +214,6 @@ void main() {
             id: tag.id,
             displayName: tag.name,
           ),
-          filterState: const FilterState(),
           projects: [],
         );
         expect(createTagData.icon, Icons.tag);
@@ -236,7 +226,6 @@ void main() {
             id: label.id,
             displayName: label.name,
           ),
-          filterState: const FilterState(),
           projects: [],
         );
         expect(createLabelData.icon, Icons.label_outline);
@@ -248,7 +237,6 @@ void main() {
         () {
           final bulkDelete = ActionToastHandler.resolveExecuteToastData(
             cmd: CompoundCommand([], 'Delete 3 tasks'),
-            filterState: const FilterState(),
             projects: [],
           );
           expect(bulkDelete.icon, Icons.delete_sweep_outlined);
@@ -256,7 +244,6 @@ void main() {
 
           final bulkUpdate = ActionToastHandler.resolveExecuteToastData(
             cmd: CompoundCommand([], 'Update 4 tasks'),
-            filterState: const FilterState(),
             projects: [],
           );
           expect(bulkUpdate.icon, Icons.checklist);
@@ -264,7 +251,6 @@ void main() {
 
           final bulkImport = ActionToastHandler.resolveExecuteToastData(
             cmd: CompoundCommand([], 'Import 5 tasks'),
-            filterState: const FilterState(),
             projects: [],
           );
           expect(bulkImport.icon, Icons.file_upload_outlined);

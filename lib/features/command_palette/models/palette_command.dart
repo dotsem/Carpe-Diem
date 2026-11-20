@@ -23,11 +23,11 @@ class PaletteCommand {
   const PaletteCommand({
     required this.id,
     required this.title,
-    this.subtitle,
     required this.icon,
-    this.iconColor,
     required this.category,
     required this.onSelect,
+    this.subtitle,
+    this.iconColor,
     this.keywords = const [],
   });
 

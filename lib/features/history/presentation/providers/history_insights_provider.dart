@@ -5,7 +5,8 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final historyInsightsProvider = FutureProvider.autoDispose
+final AutoDisposeFutureProviderFamily<HistoryInsights, DateTimeRange<DateTime>>
+historyInsightsProvider = FutureProvider.autoDispose
     .family<HistoryInsights, DateTimeRange>((ref, range) async {
       // Why: survive tab switches; HistoryScreen invalidates on open and on filter or range change
       ref.keepAlive();

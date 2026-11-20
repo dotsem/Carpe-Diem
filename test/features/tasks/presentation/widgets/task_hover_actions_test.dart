@@ -29,7 +29,7 @@ void main() {
     testWidgets('renders action buttons with correct tooltips when hovered', (
       tester,
     ) async {
-      bool editCalled = false;
+      var editCalled = false;
 
       await tester.pumpWidget(
         ProviderScope(
@@ -88,7 +88,7 @@ void main() {
     testWidgets('updates hover state on pointer enter and exit', (
       tester,
     ) async {
-      bool capturedHover = false;
+      var capturedHover = false;
 
       await tester.pumpWidget(
         ProviderScope(
@@ -148,7 +148,6 @@ void main() {
       totalSubtasks: 3,
       completedSubtasks: 1,
       plannedSubtasks: 1,
-      isCollapsed: false,
     );
 
     testWidgets(

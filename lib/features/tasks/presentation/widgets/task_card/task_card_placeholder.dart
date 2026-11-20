@@ -10,8 +10,8 @@ class TaskCardPlaceholder extends ConsumerWidget {
   final double opacity;
 
   const TaskCardPlaceholder({
-    super.key,
     required this.task,
+    super.key,
     this.opacity = 0.5,
   });
 

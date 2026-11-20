@@ -53,13 +53,13 @@ class LexoRank {
       // 'a'..'z'
       final digitCount = head - 97 + 1;
       if (key.length < 1 + digitCount) return null;
-      int val = 0;
-      for (int i = 0; i < digitCount; i++) {
+      var val = 0;
+      for (var i = 0; i < digitCount; i++) {
         final cVal = _charToVal(key.codeUnitAt(1 + i));
         if (cVal < 0) return null;
         val = val * 62 + cVal;
       }
-      int intVal = val;
+      var intVal = val;
       if (digitCount == 2) intVal += 62;
       if (digitCount == 3) intVal += 62 + 3844;
       return (
@@ -71,8 +71,8 @@ class LexoRank {
       // 'A'..'Z'
       final digitCount = 90 - head + 1;
       if (key.length < 1 + digitCount) return null;
-      int val = 0;
-      for (int i = 0; i < digitCount; i++) {
+      var val = 0;
+      for (var i = 0; i < digitCount; i++) {
         final cVal = _charToVal(key.codeUnitAt(1 + i));
         if (cVal < 0) return null;
         val = val * 62 + cVal;
@@ -97,7 +97,7 @@ class LexoRank {
 
   static String _midpointFraction(String fracA, String fracB) {
     final sb = StringBuffer();
-    int i = 0;
+    var i = 0;
 
     while (true) {
       final codeA = i < fracA.length ? _charToVal(fracA.codeUnitAt(i)) : 0;
@@ -177,7 +177,8 @@ class LexoRank {
   /// Empty and '~' ranks are skipped when picking neighbors.
   static String generateAtSlot(List<String?> ranks, int slot) {
     final s = slot.clamp(0, ranks.length);
-    String? prev, next;
+    String? prev;
+    String? next;
     for (var i = s - 1; i >= 0 && prev == null; i--) {
       prev = _real(ranks[i]);
     }

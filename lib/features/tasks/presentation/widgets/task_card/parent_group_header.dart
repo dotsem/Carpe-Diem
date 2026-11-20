@@ -31,8 +31,8 @@ class ParentGroupHeader extends ConsumerStatefulWidget {
   final bool isHighlighted;
 
   const ParentGroupHeader({
-    super.key,
     required this.node,
+    super.key,
     this.project,
     this.focusNode,
     this.isChecked = false,
@@ -72,19 +72,16 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
     final labelNotifier = ref.read(labelProvider.notifier);
     final tagNotifier = ref.read(tagProvider.notifier);
 
-    final Set<String> allLabelIds = {...task.labelIds};
+    final allLabelIds = <String>{...task.labelIds};
     if (widget.project != null) {
       allLabelIds.addAll(widget.project!.labelIds);
     }
     final labels = allLabelIds
-        .map((id) => labelNotifier.getById(id))
+        .map(labelNotifier.getById)
         .whereType<Label>()
         .toList();
 
-    final tags = task.tagIds
-        .map((id) => tagNotifier.getById(id))
-        .whereType<Tag>()
-        .toList();
+    final tags = task.tagIds.map(tagNotifier.getById).whereType<Tag>().toList();
 
     final customTrailing =
         widget.trailingBuilder?.call(context, isHoveredOrFocused) ??
@@ -106,7 +103,7 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
         onSecondaryTapDown: widget.onContextMenu != null
             ? (details) => widget.onContextMenu!(
                 details.localPosition,
-                context.findRenderObject() as RenderBox,
+                context.findRenderObject()! as RenderBox,
               )
             : null,
         child: Container(
@@ -208,7 +205,7 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
                       color: AppColors.error.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
@@ -216,7 +213,7 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
                           size: 12,
                           color: AppColors.error,
                         ),
-                        const SizedBox(width: 2),
+                        SizedBox(width: 2),
                         Text(
                           'Urgent',
                           style: TextStyle(

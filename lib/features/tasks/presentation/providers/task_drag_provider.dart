@@ -81,11 +81,7 @@ class TaskDragNotifier extends Notifier<TaskDragState> {
 
   void startDrag(String taskId) {
     _addPointerListener();
-    state = TaskDragState(
-      draggedTaskId: taskId,
-      hasValidTarget: false,
-      isCancelled: false,
-    );
+    state = TaskDragState(draggedTaskId: taskId);
   }
 
   void cancelDrag([PointerEvent? event]) {

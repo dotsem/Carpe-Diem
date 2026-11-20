@@ -1,25 +1,25 @@
+import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/common/presentation/shell/sidebar_projects_hidden_badge.dart';
+import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/navigation_item.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
-import 'package:carpe_diem/features/common/presentation/shell/undo_redo_panel.dart';
-import 'package:carpe_diem/features/common/presentation/shell/sidebar_projects_hidden_badge.dart';
 
 class SideNav extends ConsumerWidget {
   final String currentPath;
   final bool isMobile;
 
-  const SideNav({super.key, required this.currentPath, required this.isMobile});
+  const SideNav({required this.currentPath, required this.isMobile, super.key});
 
   void _navigateTo(BuildContext context, String path) {
     context.go(path);
@@ -41,7 +41,7 @@ class SideNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
+    return ColoredBox(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Column(
         children: [
@@ -140,9 +140,9 @@ class ProjectList extends ConsumerWidget {
   final ValueChanged<String> onProjectSelected;
 
   const ProjectList({
-    super.key,
     required this.currentPath,
     required this.onProjectSelected,
+    super.key,
   });
 
   @override
@@ -160,7 +160,7 @@ class ProjectList extends ConsumerWidget {
     if (activeProjects.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: ElevatedButton.icon(
             onPressed: () =>
                 context.openRightSidebar(const AddProjectPanel(), ref),

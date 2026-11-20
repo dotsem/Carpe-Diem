@@ -1,14 +1,14 @@
-import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/icon_picker.dart';
-import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
+import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class EditTagDialog extends ConsumerStatefulWidget {
   final Tag tag;
-  const EditTagDialog({super.key, required this.tag});
+  const EditTagDialog({required this.tag, super.key});
 
   @override
   ConsumerState<EditTagDialog> createState() => _EditTagDialogState();

@@ -37,7 +37,6 @@ void main() {
           id: 'sub1',
           title: 'Sub 1',
           parentId: 'p1',
-          scheduledDate: null,
         );
 
         when(() => mockTaskRepo.getById('p1')).thenAnswer((_) async => parent);
@@ -73,7 +72,6 @@ void main() {
           id: 'sub1',
           title: 'Sub 1',
           parentId: 'p1',
-          scheduledDate: null,
         );
 
         when(() => mockTaskRepo.getById('p1')).thenAnswer((_) async => parent);
@@ -85,7 +83,7 @@ void main() {
         final notifier = container.read(taskProvider.notifier);
         await notifier.scheduleTaskWithCascade(
           parent,
-          DateTime(2026, 10, 1),
+          DateTime(2026, 10),
           cascadeChildren: false,
         );
 
@@ -189,7 +187,6 @@ void main() {
           id: 'sub1',
           title: 'Sub 1',
           parentId: 'p1',
-          scheduledDate: null,
         );
 
         when(() => mockTaskRepo.getById('p1')).thenAnswer((_) async => parent);
@@ -236,7 +233,7 @@ void main() {
         when(() => mockTaskRepo.delete(any())).thenAnswer((_) async => {});
 
         final notifier = container.read(taskProvider.notifier);
-        await notifier.deleteTask(parent, deleteSubtasks: true);
+        await notifier.deleteTask(parent);
 
         verify(() => mockTaskRepo.delete('p1')).called(1);
         verify(() => mockTaskRepo.delete('sub1')).called(1);

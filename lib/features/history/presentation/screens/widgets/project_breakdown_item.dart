@@ -7,11 +7,11 @@ class ProjectBreakdownItem extends StatelessWidget {
   final double widthFactor;
 
   const ProjectBreakdownItem({
-    super.key,
     required this.projectName,
     required this.taskCount,
     required this.projectColor,
     required this.widthFactor,
+    super.key,
   });
 
   @override

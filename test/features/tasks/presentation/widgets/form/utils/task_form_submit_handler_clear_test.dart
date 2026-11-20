@@ -16,7 +16,6 @@ void main() {
     late TestTaskRepositories repos;
 
     final existingTask = createTestTask(
-      id: 't1',
       title: 'Filled Task',
       description: 'Some description',
       scheduledDate: DateTime(2026, 11, 10),
@@ -69,7 +68,6 @@ void main() {
         parentId: null,
         selectedLabelIds: [],
         selectedTagIds: [],
-        placement: null,
         initialTask: existingTask,
       );
       await tester.pumpAndSettle();

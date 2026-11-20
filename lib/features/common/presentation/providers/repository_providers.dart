@@ -1,15 +1,15 @@
-import 'package:carpe_diem/features/tags/data/repositories/tag_repository.dart';
-import 'package:carpe_diem/features/tags/data/repositories/tag_icon_repository.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
-import 'package:carpe_diem/features/settings/data/repositories/settings_repository.dart';
+import 'package:carpe_diem/features/filter/data/repositories/filter_mode_repository.dart';
+import 'package:carpe_diem/features/history/data/repositories/history_insights_repository.dart';
+import 'package:carpe_diem/features/history/data/repositories/history_repository.dart';
 import 'package:carpe_diem/features/labels/data/repositories/label_repository.dart';
 import 'package:carpe_diem/features/projects/data/repositories/project_repository.dart';
+import 'package:carpe_diem/features/settings/data/repositories/settings_repository.dart';
+import 'package:carpe_diem/features/tags/data/repositories/tag_icon_repository.dart';
+import 'package:carpe_diem/features/tags/data/repositories/tag_repository.dart';
 import 'package:carpe_diem/features/tasks/data/repositories/task_repository.dart';
-import 'package:carpe_diem/features/filter/data/repositories/filter_mode_repository.dart';
-import 'package:carpe_diem/features/history/data/repositories/history_repository.dart';
-import 'package:carpe_diem/features/history/data/repositories/history_insights_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sqflite/sqflite.dart';
 
 final databaseProvider = Provider<Database>((ref) {
   throw UnimplementedError(

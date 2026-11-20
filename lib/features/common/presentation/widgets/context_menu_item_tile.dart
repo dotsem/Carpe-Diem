@@ -6,9 +6,9 @@ class ContextMenuItemTile extends StatelessWidget {
   final Color? color;
 
   const ContextMenuItemTile({
-    super.key,
     required this.leading,
     required this.title,
+    super.key,
     this.color,
   });
 

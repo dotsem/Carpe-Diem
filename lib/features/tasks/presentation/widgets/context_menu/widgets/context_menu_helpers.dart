@@ -1,14 +1,14 @@
+import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/context_menu_item_tile.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/dialogs/custom_date_picker_dialog.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/core/constants/app_constants.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/custom_date_picker_dialog.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 
 List<PopupMenuEntry<void>> buildProgressStateItems(
   BuildContext context,
@@ -150,8 +150,8 @@ PopupMenuItem<void> _buildBackToInProgress(
 PopupMenuItem<void> buildTopRow(
   BuildContext context,
   WidgetRef ref,
-  final Task task,
-  final List<Task> tasks,
+  Task task,
+  List<Task> tasks,
 ) {
   final settings = ref.watch(settingsProvider);
   final provider = ref.read(taskProvider.notifier);
@@ -167,7 +167,7 @@ PopupMenuItem<void> buildTopRow(
     child: IconTheme(
       data: IconThemeData(
         color: Theme.of(context).colorScheme.onSurface,
-        opacity: 1.0,
+        opacity: 1,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -217,7 +217,7 @@ PopupMenuItem<void> buildTopRow(
             onPressed: () async {
               final navigator = Navigator.of(context);
               navigator.pop();
-              final DateTime? result = await showDialog(
+              final result = await showDialog(
                 context: context,
                 builder: (dialogCtx) {
                   return CustomDatePickerDialog(

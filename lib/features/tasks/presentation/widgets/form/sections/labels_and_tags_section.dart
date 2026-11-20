@@ -14,12 +14,12 @@ class CategorizationSection extends StatelessWidget {
   final MenuController? tagMenuController;
 
   const CategorizationSection({
-    super.key,
     required this.selectedLabelIds,
     required this.inheritedLabelIds,
     required this.onLabelsSelected,
     required this.selectedTagIds,
     required this.onTagsSelected,
+    super.key,
     this.labelMenuController,
     this.tagMenuController,
   });
@@ -32,7 +32,7 @@ class CategorizationSection extends StatelessWidget {
         SectionItem(
           icon: Icons.label_outlined,
           title: 'Labels',
-          shortcut: "Ctrl + ${LabelsKeys.upper}",
+          shortcut: 'Ctrl + ${LabelsKeys.upper}',
           child: LabelPicker(
             selectedLabelIds: selectedLabelIds,
             inheritedLabelIds: inheritedLabelIds,
@@ -44,7 +44,7 @@ class CategorizationSection extends StatelessWidget {
         SectionItem(
           icon: Icons.tag,
           title: 'Tags',
-          shortcut: "Ctrl + ${TagsKeys.upper}",
+          shortcut: 'Ctrl + ${TagsKeys.upper}',
           child: TagPicker(
             selectedTagIds: selectedTagIds,
             onSelected: onTagsSelected,

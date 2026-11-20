@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
-import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
-import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
@@ -64,7 +65,7 @@ void main() {
         expect(find.text('personal'), findsOneWidget);
         expect(find.text('New Tag'), findsOneWidget);
 
-        final FilterChip workChip = tester.widget(
+        final workChip = tester.widget(
           find.ancestor(
             of: find.text('work'),
             matching: find.byType(FilterChip),
@@ -72,7 +73,7 @@ void main() {
         );
         expect(workChip.selected, isTrue);
 
-        final FilterChip personalChip = tester.widget(
+        final personalChip = tester.widget(
           find.ancestor(
             of: find.text('personal'),
             matching: find.byType(FilterChip),

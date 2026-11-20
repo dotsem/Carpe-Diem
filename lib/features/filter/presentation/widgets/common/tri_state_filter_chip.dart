@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:flutter/material.dart';
 
 class TriStateFilterChip extends StatelessWidget {
   final String label;
@@ -18,8 +18,8 @@ class TriStateFilterChip extends StatelessWidget {
   final String? tooltip;
 
   const TriStateFilterChip({
-    super.key,
     required this.label,
+    super.key,
     this.isIncluded = false,
     this.isExcluded = false,
     this.isInherited = false,
@@ -83,7 +83,7 @@ class TriStateFilterChip extends StatelessWidget {
       color: textColor,
     );
 
-    final bool isClickable =
+    final isClickable =
         !isDisabled &&
         (onTap != null ||
             onCycle != null ||
@@ -133,7 +133,7 @@ class TriStateFilterChip extends StatelessWidget {
     );
 
     if (tooltip != null) {
-      chip = Tooltip(message: tooltip!, child: chip);
+      chip = Tooltip(message: tooltip, child: chip);
     }
 
     return chip;

@@ -20,18 +20,8 @@ void main() {
       isUrgent: true,
       createdAt: now,
     );
-    final normalTask1 = Task(
-      id: 'n1',
-      title: 'Normal Task 1',
-      isUrgent: false,
-      createdAt: now,
-    );
-    final normalTask2 = Task(
-      id: 'n2',
-      title: 'Normal Task 2',
-      isUrgent: false,
-      createdAt: now,
-    );
+    final normalTask1 = Task(id: 'n1', title: 'Normal Task 1', createdAt: now);
+    final normalTask2 = Task(id: 'n2', title: 'Normal Task 2', createdAt: now);
 
     setUp(() {
       repos = TestTaskRepositories();
@@ -67,7 +57,7 @@ void main() {
                               if (slotInfo.isPlaceholder(i)) {
                                 return TaskReorderPlaceholderItem(
                                   slotIndex: slotInfo.placeholderIndex!,
-                                  task: slotInfo.task!,
+                                  task: slotInfo.task,
                                 );
                               }
                               final itemIndex = slotInfo.toOriginalIndex(i);
@@ -85,9 +75,9 @@ void main() {
                               );
                             }),
                             if (includeEmptySpace)
-                              SizedBox(
+                              const SizedBox(
                                 height: 100,
-                                child: const TaskEmptySpaceDropZone(),
+                                child: TaskEmptySpaceDropZone(),
                               ),
                           ],
                         );

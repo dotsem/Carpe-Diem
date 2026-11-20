@@ -5,13 +5,13 @@ class FocusUtils {
     required List<String> orderedItemIds,
     required Map<String, FocusNode> itemFocusNodes,
     required int delta,
-    FocusNode? firstItemFocusNode,
     required String debugLabelPrefix,
+    FocusNode? firstItemFocusNode,
   }) {
     if (orderedItemIds.isEmpty) return;
 
-    int currentIndex = -1;
-    for (int j = 0; j < orderedItemIds.length; j++) {
+    var currentIndex = -1;
+    for (var j = 0; j < orderedItemIds.length; j++) {
       final node = (j == 0 && firstItemFocusNode != null)
           ? firstItemFocusNode
           : itemFocusNodes[orderedItemIds[j]];
@@ -53,7 +53,7 @@ class FocusUtils {
     FocusNode? firstItemFocusNode,
   }) {
     if (orderedItemIds.isEmpty) return null;
-    for (int i = 0; i < orderedItemIds.length; i++) {
+    for (var i = 0; i < orderedItemIds.length; i++) {
       final node = (i == 0 && firstItemFocusNode != null)
           ? firstItemFocusNode
           : itemFocusNodes[orderedItemIds[i]];

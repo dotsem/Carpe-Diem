@@ -127,7 +127,6 @@ void main() {
         final foreignTask = Task(
           id: 't_foreign',
           title: 'Foreign Task',
-          status: TaskStatus.todo,
           createdAt: now,
         );
         final sameStatusTask = Task(
@@ -180,8 +179,8 @@ void main() {
               matching: find.byType(AnimatedContainer),
             ),
           );
-          final decoration = animatedContainer.decoration as BoxDecoration;
-          return decoration.border as Border;
+          final decoration = animatedContainer.decoration! as BoxDecoration;
+          return decoration.border! as Border;
         }
 
         expect(getColumnBorder().top.width, 1.0);
@@ -243,9 +242,9 @@ void main() {
                       feedback: const Text('Dragging Task 1'),
                       child: const Text('Drag Source'),
                     ),
-                    TaskReorderItem(
+                    const TaskReorderItem(
                       index: 0,
-                      child: const SizedBox(
+                      child: SizedBox(
                         key: ValueKey('item_box_0'),
                         height: 60,
                         child: Text('Item 0 Content'),

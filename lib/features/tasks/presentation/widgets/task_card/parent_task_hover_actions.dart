@@ -14,8 +14,8 @@ class ParentTaskHoverActions extends ConsumerWidget {
   final VoidCallback? onAddSubtask;
 
   const ParentTaskHoverActions({
-    super.key,
     required this.task,
+    super.key,
     this.allTasks,
     this.onAction,
     this.onAddSubtask,
@@ -76,7 +76,7 @@ class ParentTaskHoverActions extends ConsumerWidget {
     BuildContext buttonContext,
     WidgetRef ref,
   ) {
-    final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
+    final renderBox = buttonContext.findRenderObject()! as RenderBox;
     final tasks = allTasks ?? ref.read(taskProvider).tasks;
     showTaskCardContextMenu(
       context,

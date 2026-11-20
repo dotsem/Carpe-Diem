@@ -137,7 +137,7 @@ void main() {
         SettingsConstants.keyPrioritizeDeadlines: 'true',
       });
 
-      final d1 = DateTime(2026, 5, 1);
+      final d1 = DateTime(2026, 5);
       final d2 = DateTime(2026, 5, 2);
 
       final t1 = makeTask('t1', 'a0', deadline: d1);

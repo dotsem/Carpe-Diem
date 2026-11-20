@@ -1,14 +1,15 @@
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tags/data/models/tag.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
+import 'package:carpe_diem/features/tags/presentation/widgets/tag_autocomplete_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/tags/data/models/tag.dart';
-import 'package:carpe_diem/features/tags/presentation/widgets/tag_autocomplete_text_field.dart';
-import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
-import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
@@ -83,7 +84,7 @@ void main() {
       (tester) async {
         final mockSettingsRepo = MockKeyValueRepository();
         when(
-          () => mockSettingsRepo.getAll(),
+          mockSettingsRepo.getAll,
         ).thenAnswer((_) async => {'keep_tags_in_title': 'true'});
 
         final container = ProviderContainer(
@@ -136,7 +137,7 @@ void main() {
       (tester) async {
         final mockSettingsRepo = MockKeyValueRepository();
         when(
-          () => mockSettingsRepo.getAll(),
+          mockSettingsRepo.getAll,
         ).thenAnswer((_) async => {'keep_tags_in_title': 'false'});
 
         final container = ProviderContainer(
@@ -189,7 +190,7 @@ void main() {
       (tester) async {
         final mockSettingsRepo = MockKeyValueRepository();
         when(
-          () => mockSettingsRepo.getAll(),
+          mockSettingsRepo.getAll,
         ).thenAnswer((_) async => {'keep_tags_in_title': 'true'});
 
         final container = ProviderContainer(
@@ -286,7 +287,7 @@ void main() {
         final scrollable = tester.state<ScrollableState>(scrollableFinder);
         expect(scrollable.position.pixels, equals(0.0));
 
-        for (int i = 0; i < 6; i++) {
+        for (var i = 0; i < 6; i++) {
           await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
           await tester.pumpAndSettle();
         }

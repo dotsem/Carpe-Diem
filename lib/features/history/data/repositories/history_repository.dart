@@ -1,9 +1,9 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
-import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class HistoryRepository implements IHistoryRepository {
   final Database _db;
@@ -24,7 +24,7 @@ class HistoryRepository implements IHistoryRepository {
     final where = StringBuffer(
       't.status = ? AND t.completedAt >= ? AND t.completedAt <= ?',
     );
-    final List<dynamic> whereArgs = [TaskStatus.done.index, startStr, endStr];
+    final whereArgs = <dynamic>[TaskStatus.done.index, startStr, endStr];
 
     if (filter != null) {
       _applyFilterToWhereClause(filter, where, whereArgs);
@@ -41,9 +41,9 @@ class HistoryRepository implements IHistoryRepository {
 
     final maps = await _db.rawQuery(query, whereArgs);
 
-    List<Task> tasks = [];
+    final tasks = <Task>[];
     for (final map in maps) {
-      final id = map['id'] as String;
+      final id = map['id']! as String;
       final labelIds = await _getLabelIds(id);
       final tagIds = await _getTagIds(id);
       tasks.add(Task.fromMap(map, labelIds: labelIds, tagIds: tagIds));
@@ -62,7 +62,7 @@ class HistoryRepository implements IHistoryRepository {
     );
 
     if (maps.isEmpty) return null;
-    return DateTime.parse(maps.first['completedAt'] as String);
+    return DateTime.parse(maps.first['completedAt']! as String);
   }
 
   @override
@@ -77,10 +77,10 @@ class HistoryRepository implements IHistoryRepository {
     final where = StringBuffer(
       't.status = ? AND t.completedAt >= ? AND t.completedAt <= ?',
     );
-    final List<dynamic> whereArgs = [TaskStatus.done.index, startStr, endStr];
+    final whereArgs = <dynamic>[TaskStatus.done.index, startStr, endStr];
 
     final whereCreated = StringBuffer('t.createdAt >= ? AND t.createdAt <= ?');
-    final List<dynamic> whereCreatedArgs = [startStr, endStr];
+    final whereCreatedArgs = <dynamic>[startStr, endStr];
 
     if (filter != null) {
       _applyFilterToWhereClause(filter, where, whereArgs);
@@ -105,7 +105,7 @@ class HistoryRepository implements IHistoryRepository {
 
     // 3. Completed Late (after scheduled date)
     final completedLateResult = await _db.rawQuery(
-      'SELECT COUNT(DISTINCT t.id) as count FROM tasks t WHERE $where AND t.scheduledDate IS NOT NULL AND t.completedAt > datetime(t.scheduledDate, \'+1 day\')',
+      "SELECT COUNT(DISTINCT t.id) as count FROM tasks t WHERE $where AND t.scheduledDate IS NOT NULL AND t.completedAt > datetime(t.scheduledDate, '+1 day')",
       whereArgs,
     );
     final completedLate =
@@ -125,8 +125,8 @@ class HistoryRepository implements IHistoryRepository {
       whereArgs,
     );
     final tasksByProject = {
-      for (var r in projectsResult)
-        (r['projectId'] as String? ?? 'none'): r['count'] as int,
+      for (final r in projectsResult)
+        (r['projectId'] as String? ?? 'none'): r['count']! as int,
     };
 
     // 6. Tasks by Label
@@ -138,7 +138,7 @@ class HistoryRepository implements IHistoryRepository {
       GROUP BY tl.labelId
       ''', whereArgs);
     final tasksByLabel = {
-      for (var r in labelsResult) r['labelId'] as String: r['count'] as int,
+      for (final r in labelsResult) r['labelId']! as String: r['count']! as int,
     };
 
     return HistoryOverview(
@@ -158,7 +158,7 @@ class HistoryRepository implements IHistoryRepository {
       columns: ['labelId'],
       whereArgs: [taskId],
     );
-    return maps.map((m) => m['labelId'] as String).toList();
+    return maps.map((m) => m['labelId']! as String).toList();
   }
 
   Future<List<String>> _getTagIds(String taskId) async {
@@ -168,7 +168,7 @@ class HistoryRepository implements IHistoryRepository {
       columns: ['tagId'],
       whereArgs: [taskId],
     );
-    return maps.map((m) => m['tagId'] as String).toList();
+    return maps.map((m) => m['tagId']! as String).toList();
   }
 
   void _applyFilterToWhereClause(

@@ -1,7 +1,7 @@
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -26,14 +26,12 @@ void main() {
     final normal1 = Task(
       id: 'n1',
       title: 'Normal 1',
-      isUrgent: false,
       createdAt: now,
       sortOrder: 'a2',
     );
     final normal2 = Task(
       id: 'n2',
       title: 'Normal 2',
-      isUrgent: false,
       createdAt: now,
       sortOrder: 'a3',
     );
@@ -167,20 +165,8 @@ void main() {
         createdAt: now,
         sortOrder: 'a0',
       );
-      final n1 = Task(
-        id: 'n1',
-        title: 'N1',
-        isUrgent: false,
-        createdAt: now,
-        sortOrder: 'a8',
-      );
-      final n2 = Task(
-        id: 'n2',
-        title: 'N2',
-        isUrgent: false,
-        createdAt: now,
-        sortOrder: 'aG',
-      );
+      final n1 = Task(id: 'n1', title: 'N1', createdAt: now, sortOrder: 'a8');
+      final n2 = Task(id: 'n2', title: 'N2', createdAt: now, sortOrder: 'aG');
 
       final listNodes = [TaskNode(u, 0), TaskNode(n1, 0), TaskNode(n2, 0)];
 
@@ -201,7 +187,6 @@ void main() {
         final parent = Task(
           id: 'p',
           title: 'Parent',
-          isUrgent: false,
           createdAt: now,
           sortOrder: 'a0',
         );
@@ -209,25 +194,10 @@ void main() {
           task: parent,
           depth: 0,
           totalSubtasks: 1,
-          completedSubtasks: 0,
-          plannedSubtasks: 0,
           hasUrgentChild: true,
-          isCollapsed: false,
         );
-        final n1 = Task(
-          id: 'n1',
-          title: 'N1',
-          isUrgent: false,
-          createdAt: now,
-          sortOrder: 'a2',
-        );
-        final n2 = Task(
-          id: 'n2',
-          title: 'N2',
-          isUrgent: false,
-          createdAt: now,
-          sortOrder: 'a4',
-        );
+        final n1 = Task(id: 'n1', title: 'N1', createdAt: now, sortOrder: 'a2');
+        final n2 = Task(id: 'n2', title: 'N2', createdAt: now, sortOrder: 'a4');
 
         final listNodes = [parentNode, TaskNode(n1, 0), TaskNode(n2, 0)];
 

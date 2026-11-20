@@ -8,8 +8,8 @@ class ProjectDragProxy extends StatelessWidget {
   final double width;
 
   const ProjectDragProxy({
-    super.key,
     required this.project,
+    super.key,
     this.width = 240.0,
   });
 

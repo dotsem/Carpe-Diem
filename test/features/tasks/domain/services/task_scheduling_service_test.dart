@@ -29,9 +29,9 @@ void main() {
           final overdueDeadline = DateTime(2026, 8, 5);
           final futureDeadline = DateTime(2026, 8, 20);
 
-          final task1 = createTestTask(id: 't1', deadline: overdueDeadline);
+          final task1 = createTestTask(deadline: overdueDeadline);
           final task2 = createTestTask(id: 't2', deadline: futureDeadline);
-          final task3 = createTestTask(id: 't3', deadline: null);
+          final task3 = createTestTask(id: 't3');
 
           when(
             () => mockRepo.getUnscheduled(),
@@ -78,7 +78,7 @@ void main() {
         final cmd = TaskSchedulingService.buildScheduleCascadeCommand(
           repo: mockRepo,
           task: task,
-          date: DateTime(2026, 9, 1),
+          date: DateTime(2026, 9),
           cascadeChildren: false,
           subtasks: [subtask],
         );
@@ -91,11 +91,7 @@ void main() {
         'returns CompoundCommand when cascadeChildren is true with incomplete subtasks',
         () {
           final task = createTestTask(id: 'p1', title: 'Parent Task');
-          final sub1 = createTestTask(
-            id: 's1',
-            parentId: 'p1',
-            status: TaskStatus.todo,
-          );
+          final sub1 = createTestTask(id: 's1', parentId: 'p1');
           final sub2 = createTestTask(
             id: 's2',
             parentId: 'p1',
@@ -105,7 +101,7 @@ void main() {
           final cmd = TaskSchedulingService.buildScheduleCascadeCommand(
             repo: mockRepo,
             task: task,
-            date: DateTime(2026, 9, 1),
+            date: DateTime(2026, 9),
             cascadeChildren: true,
             subtasks: [sub1, sub2],
           );
@@ -125,7 +121,7 @@ void main() {
       test('returns single UpdateCommand when unscheduleChildren is false', () {
         final task = createTestTask(
           id: 'p1',
-          scheduledDate: DateTime(2026, 8, 1),
+          scheduledDate: DateTime(2026, 8),
           status: TaskStatus.inProgress,
         );
 
@@ -149,18 +145,14 @@ void main() {
           final parent = createTestTask(
             id: 'p1',
             title: 'Parent',
-            scheduledDate: DateTime(2026, 8, 1),
+            scheduledDate: DateTime(2026, 8),
           );
           final sub1 = createTestTask(
             id: 's1',
             parentId: 'p1',
-            scheduledDate: DateTime(2026, 8, 1),
+            scheduledDate: DateTime(2026, 8),
           );
-          final sub2 = createTestTask(
-            id: 's2',
-            parentId: 'p1',
-            scheduledDate: null,
-          );
+          final sub2 = createTestTask(id: 's2', parentId: 'p1');
 
           final cmd = TaskSchedulingService.buildUnscheduleCascadeCommand(
             repo: mockRepo,
@@ -186,7 +178,7 @@ void main() {
         final cmd = await TaskSchedulingService.buildBulkScheduleCommand(
           repo: mockRepo,
           taskIds: [],
-          date: DateTime(2026, 8, 1),
+          date: DateTime(2026, 8),
           getTaskById: (id) async => null,
         );
         expect(cmd, isNull);
@@ -196,12 +188,7 @@ void main() {
         'schedules tasks and auto-schedules unscheduled incomplete subtasks',
         () async {
           final parent = createTestTask(id: 'p1', title: 'Parent');
-          final sub1 = createTestTask(
-            id: 's1',
-            parentId: 'p1',
-            scheduledDate: null,
-            status: TaskStatus.todo,
-          );
+          final sub1 = createTestTask(id: 's1', parentId: 'p1');
 
           when(
             () => mockRepo.getByParent('p1'),
@@ -210,12 +197,12 @@ void main() {
           final cmd = await TaskSchedulingService.buildBulkScheduleCommand(
             repo: mockRepo,
             taskIds: ['p1'],
-            date: DateTime(2026, 8, 1),
+            date: DateTime(2026, 8),
             getTaskById: (id) async => id == 'p1' ? parent : null,
           );
 
           expect(cmd, isA<CompoundCommand>());
-          final compound = cmd as CompoundCommand;
+          final compound = cmd! as CompoundCommand;
           expect(compound.commands.length, equals(2));
         },
       );
@@ -227,7 +214,7 @@ void main() {
       });
 
       test('returns null when all tasks are blocked or completed', () {
-        final blocked = createTestTask(id: 't1', blockedById: 'blocker');
+        final blocked = createTestTask(blockedById: 'blocker');
         final done = createTestTask(id: 't2', status: TaskStatus.done);
 
         final task = TaskSchedulingService.pickRandomTask([blocked, done]);
@@ -235,8 +222,8 @@ void main() {
       });
 
       test('picks unblocked and incomplete task', () {
-        final blocked = createTestTask(id: 't1', blockedById: 'blocker');
-        final unblocked = createTestTask(id: 't2', status: TaskStatus.todo);
+        final blocked = createTestTask(blockedById: 'blocker');
+        final unblocked = createTestTask(id: 't2');
 
         final task = TaskSchedulingService.pickRandomTask([blocked, unblocked]);
         expect(task, isNotNull);

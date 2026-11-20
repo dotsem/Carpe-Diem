@@ -1,8 +1,8 @@
-import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HiddenProjectsCount {
   final int activeHidden;
@@ -28,8 +28,8 @@ final hiddenProjectsCountProvider = Provider<HiddenProjectsCount>((ref) {
   final projectState = ref.watch(projectProvider);
   final projects = projectState.projects;
 
-  int activeHidden = 0;
-  int archivedHidden = 0;
+  var activeHidden = 0;
+  var archivedHidden = 0;
 
   for (final project in projects) {
     if (!filter.applyToProject(project)) {
@@ -58,7 +58,7 @@ final hiddenUnscheduledTasksCountProvider = Provider<int>((ref) {
   final projectState = ref.watch(projectProvider);
   final unscheduled = taskState.unscheduledTasks;
 
-  int hidden = 0;
+  var hidden = 0;
   for (final task in unscheduled) {
     final project = task.projectId != null
         ? projectState.getById(task.projectId!)
@@ -89,7 +89,7 @@ final hiddenTodayTasksCountProvider = Provider<int>((ref) {
   final projectState = ref.watch(projectProvider);
   final todayTasks = taskState.tasks;
 
-  int hidden = 0;
+  var hidden = 0;
   for (final task in todayTasks) {
     final project = task.projectId != null
         ? projectState.getById(task.projectId!)

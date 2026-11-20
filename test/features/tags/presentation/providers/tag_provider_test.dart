@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
@@ -81,7 +82,7 @@ void main() {
         expect(initial.tags, isEmpty);
         expect(initial.isLoading, isFalse);
 
-        final dummyTag = const Tag(id: 't1', name: 'urgent');
+        const dummyTag = Tag(id: 't1', name: 'urgent');
         when(() => mockRepo.getAll()).thenAnswer((_) async => [dummyTag]);
 
         await container.read(tagProvider.notifier).loadTags();
@@ -105,7 +106,7 @@ void main() {
     });
 
     test('should update tag, call update, and trigger reload', () async {
-      final tag = const Tag(id: 't1', name: 'work');
+      const tag = Tag(id: 't1', name: 'work');
       when(() => mockRepo.getById('t1')).thenAnswer((_) async => tag);
       when(() => mockRepo.update(any())).thenAnswer((_) async => {});
       when(() => mockRepo.getAll()).thenAnswer((_) async => [tag]);
@@ -119,7 +120,7 @@ void main() {
     });
 
     test('should delete tag, call delete, and trigger reload', () async {
-      final tag = const Tag(id: 't1', name: 'work');
+      const tag = Tag(id: 't1', name: 'work');
       when(() => mockRepo.getById('t1')).thenAnswer((_) async => tag);
       when(() => mockRepo.delete('t1')).thenAnswer((_) async => {});
       when(() => mockRepo.getAll()).thenAnswer((_) async => []);

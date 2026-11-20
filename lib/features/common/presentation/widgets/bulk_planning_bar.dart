@@ -17,14 +17,14 @@ class BulkPlanningBar extends ConsumerWidget {
   final VoidCallback? onGroupTasks;
 
   const BulkPlanningBar({
-    super.key,
     required this.selectedTaskIds,
-    this.disableScheduling = false,
     required this.onClearSelection,
     required this.onScheduleToday,
     required this.onScheduleTomorrow,
     required this.onBulkEdit,
     required this.onBulkDelete,
+    super.key,
+    this.disableScheduling = false,
     this.onGroupTasks,
   });
 

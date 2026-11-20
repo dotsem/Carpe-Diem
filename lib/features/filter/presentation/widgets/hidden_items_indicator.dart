@@ -1,6 +1,6 @@
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 
 class HiddenItemsIndicator extends ConsumerWidget {
   final int count;
@@ -9,9 +9,9 @@ class HiddenItemsIndicator extends ConsumerWidget {
   final VoidCallback? onTap;
 
   const HiddenItemsIndicator({
-    super.key,
     required this.count,
     required this.itemType,
+    super.key,
     this.archivedCount = 0,
     this.onTap,
   });
@@ -68,10 +68,7 @@ class HiddenItemsIndicator extends ConsumerWidget {
             decoration: BoxDecoration(
               color: warningColor.withValues(alpha: isDark ? 0.2 : 0.12),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: warningColor.withValues(alpha: 0.4),
-                width: 1,
-              ),
+              border: Border.all(color: warningColor.withValues(alpha: 0.4)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

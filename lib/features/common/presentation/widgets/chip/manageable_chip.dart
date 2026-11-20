@@ -6,10 +6,10 @@ class ManageableChip extends StatefulWidget {
   final void Function(TapDownDetails details, RenderBox box) onTap;
 
   const ManageableChip({
-    super.key,
     required this.label,
-    this.avatar,
     required this.onTap,
+    super.key,
+    this.avatar,
   });
 
   @override
@@ -33,11 +33,11 @@ class _ManageableChipState extends State<ManageableChip> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapDown: (details) {
-              final RenderBox box = context.findRenderObject() as RenderBox;
+              final box = context.findRenderObject()! as RenderBox;
               widget.onTap(details, box);
             },
             onSecondaryTapDown: (details) {
-              final RenderBox box = context.findRenderObject() as RenderBox;
+              final box = context.findRenderObject()! as RenderBox;
               widget.onTap(details, box);
             },
             child: Chip(

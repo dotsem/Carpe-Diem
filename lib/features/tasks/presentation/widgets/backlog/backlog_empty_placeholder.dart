@@ -5,9 +5,9 @@ class BacklogEmptyPlaceholder extends StatelessWidget {
   final VoidCallback onClearFilter;
 
   const BacklogEmptyPlaceholder({
-    super.key,
     required this.isFiltering,
     required this.onClearFilter,
+    super.key,
   });
 
   @override

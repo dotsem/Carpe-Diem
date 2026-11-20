@@ -34,7 +34,6 @@ void main() {
                   child: TaskReorderCorridor(
                     scrollController: scrollController,
                     nodes: nodes,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     onDrop: onDrop,
                     child: Column(
                       children: [

@@ -8,12 +8,12 @@ class SearchableDropdownItemTile<T> extends StatelessWidget {
   final VoidCallback onHover;
 
   const SearchableDropdownItemTile({
-    super.key,
     required this.label,
     required this.isHighlighted,
-    this.leading,
     required this.onTap,
     required this.onHover,
+    super.key,
+    this.leading,
   });
 
   @override

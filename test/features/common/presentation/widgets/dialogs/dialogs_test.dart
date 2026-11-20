@@ -1,16 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/destructive_dialog.dart';
 import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('common', () {
     testWidgets('DeleteDialog renders text and triggers callback', (
-      WidgetTester tester,
+      tester,
     ) async {
-      bool confirmed = false;
+      var confirmed = false;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -48,9 +48,9 @@ void main() {
     });
 
     testWidgets('DestructiveDialog cancel dismisses without confirm', (
-      WidgetTester tester,
+      tester,
     ) async {
-      bool confirmed = false;
+      var confirmed = false;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -87,10 +87,8 @@ void main() {
       expect(find.text('Destructive Action'), findsNothing);
     });
 
-    testWidgets('SizedDialog submits on Ctrl+Enter', (
-      WidgetTester tester,
-    ) async {
-      bool submitted = false;
+    testWidgets('SizedDialog submits on Ctrl+Enter', (tester) async {
+      var submitted = false;
 
       await tester.pumpWidget(
         MaterialApp(

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
+import 'package:flutter/material.dart';
 
 class TaskEmptySpaceDropZone extends StatelessWidget {
   final Widget? child;

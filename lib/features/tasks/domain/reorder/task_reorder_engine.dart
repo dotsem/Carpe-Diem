@@ -19,7 +19,7 @@ class TaskReorderEngine {
 
   /// Resolves the urgent section end index in [nodes].
   static int getUrgentSectionEndIndex(List<TaskHierarchyNode> nodes) {
-    for (int i = 0; i < nodes.length; i++) {
+    for (var i = 0; i < nodes.length; i++) {
       if (_isRootNode(nodes[i]) && !_isNodeUrgent(nodes[i])) return i;
     }
     return nodes.length;
@@ -30,7 +30,7 @@ class TaskReorderEngine {
     List<TaskHierarchyNode> nodes,
     int urgentEnd,
   ) {
-    for (int i = urgentEnd; i < nodes.length; i++) {
+    for (var i = urgentEnd; i < nodes.length; i++) {
       if (_isRootNode(nodes[i]) && !_isNodeOverdue(nodes[i])) return i;
     }
     return nodes.length;
@@ -91,8 +91,8 @@ class TaskReorderEngine {
 
     if (parentId != null && isParentInNodes) {
       // Subtask: strictly clamped to sibling subtask range under existing parent
-      int firstChild = -1, lastChild = -1;
-      for (int i = 0; i < nodes.length; i++) {
+      var firstChild = -1, lastChild = -1;
+      for (var i = 0; i < nodes.length; i++) {
         if (nodes[i].task?.parentId == parentId) {
           if (firstChild == -1) firstChild = i;
           lastChild = i;
@@ -101,7 +101,7 @@ class TaskReorderEngine {
       if (firstChild == -1) {
         targetIndex = nodes.indexWhere((n) => n.task?.id == parentId) + 1;
       } else {
-        int endChild = lastChild + 1;
+        var endChild = lastChild + 1;
         final lastDepth = nodes[lastChild].depth;
         while (endChild < nodes.length && nodes[endChild].depth > lastDepth) {
           endChild++;
@@ -123,9 +123,9 @@ class TaskReorderEngine {
         if ((node is TaskNode && node.isBundledUnderParent) ||
             (node.task?.parentId != null && node.depth > 0)) {
           final pId = node.task?.parentId;
-          int parentIdx = -1;
-          int groupEnd = clamped + 1;
-          for (int i = 0; i < nodes.length; i++) {
+          var parentIdx = -1;
+          var groupEnd = clamped + 1;
+          for (var i = 0; i < nodes.length; i++) {
             if (nodes[i].task?.id == pId) parentIdx = i;
             if (nodes[i].task?.parentId == pId) groupEnd = i + 1;
           }
@@ -168,8 +168,9 @@ class TaskReorderEngine {
     required SettingsState settings,
     bool isPlanView = false,
   }) {
-    int first = -1, last = -1;
-    for (int i = 0; i < nodes.length; i++) {
+    var first = -1;
+    var last = -1;
+    for (var i = 0; i < nodes.length; i++) {
       final t = nodes[i].task;
       if (t != null &&
           inSameGroup(
@@ -184,7 +185,7 @@ class TaskReorderEngine {
       }
     }
     if (first == -1) return true;
-    int effectiveLast = last;
+    var effectiveLast = last;
     final parentId = draggedTask.parentId;
     final isParentInNodes =
         parentId != null && nodes.any((n) => n.task?.id == parentId);
@@ -271,12 +272,12 @@ class TaskReorderEngine {
     }
 
     String? prev;
-    for (int i = targetCount - 1; i >= 0 && prev == null; i--) {
+    for (var i = targetCount - 1; i >= 0 && prev == null; i--) {
       prev = getEffectiveRank(remaining, i, isPlanView: isPlanView);
     }
 
     String? next;
-    for (int i = targetCount; i < remaining.length && next == null; i++) {
+    for (var i = targetCount; i < remaining.length && next == null; i++) {
       next = getEffectiveRank(remaining, i, isPlanView: isPlanView);
     }
     if (!isMulti) {
@@ -289,7 +290,7 @@ class TaskReorderEngine {
     if (selected.isEmpty) return null;
 
     final newSortOrders = <String, String>{};
-    String? currentPrev = prev;
+    var currentPrev = prev;
     for (final task in selected) {
       final rank = LexoRank.generateBetween(currentPrev, next);
       newSortOrders[task.id] = currentPrev = rank;

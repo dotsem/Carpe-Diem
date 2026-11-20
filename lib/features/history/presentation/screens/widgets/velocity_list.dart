@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class VelocityList extends ConsumerWidget {
   final List<ProjectVelocity> items;
 
-  const VelocityList({super.key, required this.items});
+  const VelocityList({required this.items, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,10 +1,10 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/services/deadline_propagation_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
@@ -28,8 +28,8 @@ class TaskCrudService {
     List<String> labelIds = const [],
     List<String> tagIds = const [],
   }) async {
-    DateTime? effectiveScheduledDate = scheduledDate;
-    String? effectiveProjectId = projectId;
+    var effectiveScheduledDate = scheduledDate;
+    var effectiveProjectId = projectId;
     if (parentId != null) {
       final parentTask = await repo.getById(parentId);
       if (parentTask != null) {

@@ -80,7 +80,7 @@ void main() {
       'handleDragEnd triggers fallback drop when wasAccepted is false',
       (tester) async {
         final nodes = [TaskNode(task1, 0), TaskNode(task2, 0)];
-        int fallbackDropCount = 0;
+        var fallbackDropCount = 0;
         Task? fallbackTask;
         int? fallbackIndex;
 
@@ -100,7 +100,6 @@ void main() {
                           scope?.onHoverSlot(task2, 0);
                           scope?.handleDragEnd(
                             DraggableDetails(
-                              wasAccepted: false,
                               velocity: Velocity.zero,
                               offset: Offset.zero,
                             ),

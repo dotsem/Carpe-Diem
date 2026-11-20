@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('common', () {
     testWidgets('renders icon, label, and optional shortcutHint', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -27,9 +27,7 @@ void main() {
       expect(find.text('Ctrl+S'), findsOneWidget);
     });
 
-    testWidgets('triggers onTap callback when tapped', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('triggers onTap callback when tapped', (tester) async {
       var tapped = false;
 
       await tester.pumpWidget(
@@ -52,7 +50,7 @@ void main() {
     });
 
     testWidgets('applies active theme color and background when selected', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -83,7 +81,7 @@ void main() {
 
     testWidgets(
       'applies transparent background and default color when unselected',
-      (WidgetTester tester) async {
+      (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -106,9 +104,7 @@ void main() {
       },
     );
 
-    testWidgets('respects custom iconColor and iconSize', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('respects custom iconColor and iconSize', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

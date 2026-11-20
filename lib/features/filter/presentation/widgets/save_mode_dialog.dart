@@ -1,8 +1,8 @@
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/icon_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/constants/illegal_mode_names.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/constants/tag_icon_constants.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

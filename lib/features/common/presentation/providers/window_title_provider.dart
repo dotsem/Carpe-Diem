@@ -1,6 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 class WindowTitleState {
@@ -10,8 +10,8 @@ class WindowTitleState {
 
   const WindowTitleState({
     required this.baseTitle,
-    this.baseSubtitle,
     required this.subtitleStack,
+    this.baseSubtitle,
   });
 
   String get title => baseTitle;

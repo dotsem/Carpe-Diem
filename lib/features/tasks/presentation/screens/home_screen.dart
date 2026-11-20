@@ -1,26 +1,26 @@
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
+import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/midnight_timer.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/clock_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/shortcuts/home_shortcuts.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/home_day_selector.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/home_planner_pane.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/selected_date_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/home_day_selector.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/home_planner_pane.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
-import 'package:carpe_diem/core/utils/focus_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/shortcuts/home_shortcuts.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -133,7 +133,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ? _dateFormat.format(selectedDate)
                   : switch (daysFromToday) {
                       1 => '1 day from now',
-                      int d => '$d days from now',
+                      final int d => '$d days from now',
                     },
               actions: [
                 IconButton(
@@ -156,7 +156,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ],
             ),
-            HomeDaySelector(),
+            const HomeDaySelector(),
             FilterBar(
               filter: filterState.filter,
               isBypassed: filterState.isBypassed,
@@ -207,7 +207,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     context.openRightSidebar(EditTaskPanel(task.id));
   }
 
-  void _showFilterDialog(BuildContext context) async {
+  Future<void> _showFilterDialog(BuildContext context) async {
     final filterProviderVal = ref.read(filterProvider);
     final result = await showDialog<TaskFilter>(
       context: context,

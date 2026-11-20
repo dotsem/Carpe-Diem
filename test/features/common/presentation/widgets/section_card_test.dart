@@ -11,7 +11,7 @@ void main() {
             body: SectionCard.single(
               icon: Icons.star,
               title: 'Single Title',
-              child: Text('Child Widget'),
+              child: const Text('Child Widget'),
             ),
           ),
         ),

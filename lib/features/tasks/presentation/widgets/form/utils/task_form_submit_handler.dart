@@ -23,8 +23,8 @@ abstract final class TaskFormSubmitHandler {
     required String? parentId,
     required List<String> selectedLabelIds,
     required List<String> selectedTagIds,
-    TaskPlacement? placement,
     required Task? initialTask,
+    TaskPlacement? placement,
   }) async {
     final parsedTagNames = TagParser.parseTags(rawTitle);
     final existingTags = ref.read(tagProvider).tags;
@@ -35,8 +35,8 @@ abstract final class TaskFormSubmitHandler {
         .where((name) => !existingNamesSet.contains(name.toLowerCase()))
         .toList();
 
-    List<String> finalTagIds = List.from(selectedTagIds);
-    final List<String> tagsToStrip = [];
+    final finalTagIds = List<String>.from(selectedTagIds);
+    final tagsToStrip = <String>[];
 
     if (newTagNames.isNotEmpty) {
       final result = await showDialog<CreateTagsPromptResult>(
@@ -76,7 +76,7 @@ abstract final class TaskFormSubmitHandler {
           .updateTask(
             initialTask.copyWith(
               title: titleToSave,
-              description: trimmedDesc ?? "",
+              description: trimmedDesc ?? '',
               scheduledDate: scheduledDate,
               clearScheduledDate: scheduledDate == null,
               deadline: deadline,

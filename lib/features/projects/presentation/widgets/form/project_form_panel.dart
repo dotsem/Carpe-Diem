@@ -1,19 +1,19 @@
-import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/form/project_form_shortcuts.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
+import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/color_picker.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/date_picker_button.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/entity_timestamps_info.dart';
+import 'package:carpe_diem/features/common/presentation/widgets/section_card.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/section_card.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/form/project_form_shortcuts.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProjectFormPanel extends ConsumerStatefulWidget {
   final Project? project;
@@ -136,12 +136,11 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
               items: [
                 SectionItem(
                   icon: Icons.warning_amber_rounded,
-                  shortcut: "Ctrl + 1..2",
+                  shortcut: 'Ctrl + 1..2',
                   title: 'Urgency',
                   child: UrgencySelector(
                     selected: _isUrgent,
                     onChanged: (v) => setState(() => _isUrgent = v!),
-                    allowAll: false,
                   ),
                 ),
                 if (isEditing)
@@ -158,7 +157,7 @@ class _ProjectFormPanelState extends ConsumerState<ProjectFormPanel> {
             const SizedBox(height: 12),
             SectionCard.single(
               icon: Icons.label_outlined,
-              shortcut: "Ctrl + ${LabelsKeys.upper}",
+              shortcut: 'Ctrl + ${LabelsKeys.upper}',
               title: 'Labels',
               child: LabelPicker(
                 menuController: _labelMenuController,

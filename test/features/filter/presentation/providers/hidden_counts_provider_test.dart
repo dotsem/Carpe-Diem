@@ -1,16 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/mock_repositories.dart';
 
@@ -61,22 +61,18 @@ void main() {
         color: const Color(0xFF0000FF),
         createdAt: now,
         isUrgent: true,
-        isActive: true,
       );
       final p2 = Project(
         id: 'p2',
         name: 'Normal Active Project',
         color: const Color(0xFF0000FF),
         createdAt: now,
-        isUrgent: false,
-        isActive: true,
       );
       final p3 = Project(
         id: 'p3',
         name: 'Normal Archived Project',
         color: const Color(0xFF0000FF),
         createdAt: now,
-        isUrgent: false,
         isActive: false,
       );
 
@@ -105,15 +101,12 @@ void main() {
         color: const Color(0xFF0000FF),
         createdAt: now,
         isUrgent: true,
-        isActive: true,
       );
       final p2 = Project(
         id: 'p2',
         name: 'Normal Active Project',
         color: const Color(0xFF0000FF),
         createdAt: now,
-        isUrgent: false,
-        isActive: true,
       );
 
       when(() => mockProjectRepo.getAll()).thenAnswer((_) async => [p1, p2]);
@@ -136,12 +129,7 @@ void main() {
         isUrgent: true,
         createdAt: now,
       );
-      final t2 = Task(
-        id: 't2',
-        title: 'Normal Task',
-        isUrgent: false,
-        createdAt: now,
-      );
+      final t2 = Task(id: 't2', title: 'Normal Task', createdAt: now);
 
       when(
         () => mockTaskRepo.getUnscheduled(),
@@ -164,21 +152,18 @@ void main() {
           id: 't1',
           title: 'Work Task',
           labelIds: ['l1'],
-          isUrgent: false,
           createdAt: now,
         );
         final t2 = Task(
           id: 't2',
           title: 'Personal Task',
           labelIds: ['l2'],
-          isUrgent: false,
           createdAt: now,
         );
         final t3 = Task(
           id: 't3',
           title: 'Inbox Task',
           labelIds: [],
-          isUrgent: false,
           createdAt: now,
         );
 

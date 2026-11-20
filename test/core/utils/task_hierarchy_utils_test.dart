@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('core', () {
@@ -64,11 +64,7 @@ void main() {
       () {
         final tasks = [createTask(id: '2', blockedById: '1')];
         final allTasks = {
-          '1': createTask(
-            id: '1',
-            status: TaskStatus.todo,
-            title: 'Blocker Title',
-          ),
+          '1': createTask(id: '1', title: 'Blocker Title'),
           '2': createTask(id: '2', blockedById: '1'),
         };
 
@@ -143,12 +139,7 @@ void main() {
     test(
       'buildHierarchy with asParentContainers emits ParentContainerNode with urgent flag',
       () {
-        final parent = Task(
-          id: 'parent_1',
-          title: 'Parent',
-          createdAt: now,
-          isUrgent: false,
-        );
+        final parent = Task(id: 'parent_1', title: 'Parent', createdAt: now);
         final urgentSubtask = Task(
           id: 'sub_1',
           title: 'Urgent Subtask',
@@ -178,18 +169,12 @@ void main() {
     test(
       'buildHierarchy with asParentContainers updates urgent flag when subtask is non-urgent',
       () {
-        final parent = Task(
-          id: 'parent_1',
-          title: 'Parent',
-          createdAt: now,
-          isUrgent: false,
-        );
+        final parent = Task(id: 'parent_1', title: 'Parent', createdAt: now);
         final normalSubtask = Task(
           id: 'sub_1',
           title: 'Normal Subtask',
           parentId: 'parent_1',
           createdAt: now,
-          isUrgent: false,
         );
 
         final result = TaskHierarchyUtils.buildHierarchy([
@@ -211,7 +196,6 @@ void main() {
           id: 'blocker_1',
           title: 'Blocker Task',
           createdAt: now,
-          isUrgent: false,
         );
         final blockedTask = Task(
           id: 'blocked_1',

@@ -7,8 +7,8 @@ class ScreenHeader extends StatelessWidget {
   final EdgeInsets? padding;
 
   const ScreenHeader({
-    super.key,
     required this.title,
+    super.key,
     this.subtitle,
     this.actions,
     this.padding,
@@ -17,8 +17,7 @@ class ScreenHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          padding ?? const EdgeInsets.symmetric(vertical: 16, horizontal: 0),
+      padding: padding ?? const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

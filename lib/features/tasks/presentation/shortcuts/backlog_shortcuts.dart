@@ -1,6 +1,6 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 
 class FocusSearchIntent extends Intent {
   const FocusSearchIntent();
@@ -28,7 +28,6 @@ class BacklogShortcuts extends ConsumerWidget {
   final VoidCallback onPlanTaskTomorrow;
 
   const BacklogShortcuts({
-    super.key,
     required this.child,
     required this.onMoveNext,
     required this.onMovePrev,
@@ -40,6 +39,7 @@ class BacklogShortcuts extends ConsumerWidget {
     required this.onNewTask,
     required this.onPlanTask,
     required this.onPlanTaskTomorrow,
+    super.key,
   });
 
   @override
@@ -47,33 +47,26 @@ class BacklogShortcuts extends ConsumerWidget {
     return AppShortcutRegistrar(
       shortcuts: backlogShortcutEntries,
       child: Shortcuts(
-        shortcuts: {
-          const CharacterActivator(SearchKeys.char): const FocusSearchIntent(),
-          const SingleActivator(AppKeyBindings.escape):
-              const UnfocusSearchIntent(),
-          const CharacterActivator(AddKeys.char): const NewTaskIntent(),
-          const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
-          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
-          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-          const CharacterActivator(LeftKeys.char): const MoveLeftIntent(),
-          const CharacterActivator(LeftKeys.upper): const MoveLeftIntent(),
-          const SingleActivator(AppKeyBindings.arrowLeft):
-              const MoveLeftIntent(),
-          const CharacterActivator(RightKeys.char): const MoveRightIntent(),
-          const CharacterActivator(RightKeys.upper): const MoveRightIntent(),
-          const SingleActivator(AppKeyBindings.arrowRight):
-              const MoveRightIntent(),
-          const CharacterActivator(FilterKeys.char): const FilterIntent(),
-          const SingleActivator(TodayKeys.keyboardKey, control: true):
-              const PlanTaskIntent(),
-          const SingleActivator(
-            TodayKeys.keyboardKey,
-            control: true,
-            shift: true,
-          ): const PlanTaskTomorrowIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown):
-              const MoveNextIntent(),
-          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
+        shortcuts: const {
+          CharacterActivator(SearchKeys.char): FocusSearchIntent(),
+          SingleActivator(AppKeyBindings.escape): UnfocusSearchIntent(),
+          CharacterActivator(AddKeys.char): NewTaskIntent(),
+          CharacterActivator(AddKeys.upper): NewTaskIntent(),
+          CharacterActivator(DownKeys.char): MoveNextIntent(),
+          CharacterActivator(UpKeys.char): MovePrevIntent(),
+          CharacterActivator(LeftKeys.char): MoveLeftIntent(),
+          CharacterActivator(LeftKeys.upper): MoveLeftIntent(),
+          SingleActivator(AppKeyBindings.arrowLeft): MoveLeftIntent(),
+          CharacterActivator(RightKeys.char): MoveRightIntent(),
+          CharacterActivator(RightKeys.upper): MoveRightIntent(),
+          SingleActivator(AppKeyBindings.arrowRight): MoveRightIntent(),
+          CharacterActivator(FilterKeys.char): FilterIntent(),
+          SingleActivator(TodayKeys.keyboardKey, control: true):
+              PlanTaskIntent(),
+          SingleActivator(TodayKeys.keyboardKey, control: true, shift: true):
+              PlanTaskTomorrowIntent(),
+          SingleActivator(AppKeyBindings.arrowDown): MoveNextIntent(),
+          SingleActivator(AppKeyBindings.arrowUp): MovePrevIntent(),
         },
         child: Actions(
           actions: {

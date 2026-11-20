@@ -51,8 +51,8 @@ void main() {
         id: 'p1',
         name: 'Project 1',
         color: Colors.blue,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
       );
       final blockerTask = createTestTask(
         id: 'task_b',
@@ -136,8 +136,8 @@ void main() {
           id: 'p1',
           name: 'Project 1',
           color: Colors.blue,
-          createdAt: DateTime(2026, 1, 1),
-          updatedAt: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
         );
         final blockerTask = createTestTask(
           id: 'task_b',

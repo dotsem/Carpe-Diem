@@ -1,12 +1,12 @@
 import 'package:carpe_diem/core/utils/color_utils.dart';
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:flutter/material.dart';
 
 class LabelChip extends StatelessWidget {
   final Label label;
   final double verticalPadding;
 
-  const LabelChip({super.key, required this.label, this.verticalPadding = 2});
+  const LabelChip({required this.label, super.key, this.verticalPadding = 2});
 
   @override
   Widget build(BuildContext context) {

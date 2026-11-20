@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:carpe_diem/features/common/data/database/database_helper.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/data/repositories/project_repository.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   setUpAll(() {
@@ -40,7 +40,7 @@ void main() {
         color: Colors.blue,
         isUrgent: true,
         labelIds: const ['label-1'],
-        createdAt: DateTime(2026, 6, 1),
+        createdAt: DateTime(2026, 6),
       );
 
       await repository.insert(project);
@@ -71,7 +71,7 @@ void main() {
         name: 'Draft Version',
         color: Colors.grey,
         labelIds: const ['label-1'],
-        createdAt: DateTime(2026, 6, 1),
+        createdAt: DateTime(2026, 6),
       );
       await repository.insert(project);
 
@@ -130,15 +130,13 @@ void main() {
           id: 'pA',
           name: 'A_Project',
           color: Colors.blue,
-          isUrgent: false,
           sortOrder: 'c',
-          createdAt: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026),
         );
         final pB = Project(
           id: 'pB',
           name: 'B_Project',
           color: Colors.blue,
-          isUrgent: false,
           sortOrder: 'b',
           createdAt: DateTime(2026, 1, 2),
         );

@@ -22,11 +22,7 @@ class ProjectCardPlaceholder extends StatelessWidget {
       decoration: BoxDecoration(
         color: fillColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: borderColor,
-          width: 2,
-          style: BorderStyle.solid,
-        ),
+        border: Border.all(color: borderColor, width: 2),
       ),
       child: Center(
         child: Icon(

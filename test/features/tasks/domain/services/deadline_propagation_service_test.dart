@@ -15,8 +15,7 @@ void main() {
 
     test('returns empty list when inheritParentDeadline is false', () async {
       final task = createTestTask(
-        id: 't1',
-        deadline: DateTime(2026, 5, 1),
+        deadline: DateTime(2026, 5),
         blockedById: 'b1',
       );
 
@@ -32,7 +31,7 @@ void main() {
     });
 
     test('returns empty list when task deadline is null', () async {
-      final task = createTestTask(id: 't1', deadline: null, blockedById: 'b1');
+      final task = createTestTask(blockedById: 'b1');
 
       final commands =
           await DeadlinePropagationService.buildPropagationCommands(
@@ -46,11 +45,7 @@ void main() {
     });
 
     test('returns empty list when blockedById is null', () async {
-      final task = createTestTask(
-        id: 't1',
-        deadline: DateTime(2026, 5, 1),
-        blockedById: null,
-      );
+      final task = createTestTask(deadline: DateTime(2026, 5));
 
       final commands =
           await DeadlinePropagationService.buildPropagationCommands(
@@ -65,8 +60,7 @@ void main() {
 
     test('returns empty list when blocker is not found in repo', () async {
       final task = createTestTask(
-        id: 't1',
-        deadline: DateTime(2026, 5, 1),
+        deadline: DateTime(2026, 5),
         blockedById: 'nonexistent',
       );
       when(() => mockRepo.getById('nonexistent')).thenAnswer((_) async => null);
@@ -84,7 +78,6 @@ void main() {
 
     test('returns empty list when blocker has earlier deadline', () async {
       final task = createTestTask(
-        id: 't1',
         deadline: DateTime(2026, 5, 10),
         blockedById: 'b1',
       );
@@ -103,11 +96,7 @@ void main() {
 
     test('returns empty list when blocker has exact same deadline', () async {
       final deadline = DateTime(2026, 5, 10);
-      final task = createTestTask(
-        id: 't1',
-        deadline: deadline,
-        blockedById: 'b1',
-      );
+      final task = createTestTask(deadline: deadline, blockedById: 'b1');
       final blocker = createTestTask(id: 'b1', deadline: deadline);
       when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
@@ -123,8 +112,7 @@ void main() {
 
     test('updates blocker when blocker deadline is later', () async {
       final task = createTestTask(
-        id: 't1',
-        deadline: DateTime(2026, 5, 1),
+        deadline: DateTime(2026, 5),
         blockedById: 'b1',
       );
       final blocker = createTestTask(
@@ -143,17 +131,16 @@ void main() {
 
       expect(commands.length, equals(1));
       expect(commands.first.previous, equals(blocker));
-      expect(commands.first.next.deadline, equals(DateTime(2026, 5, 1)));
+      expect(commands.first.next.deadline, equals(DateTime(2026, 5)));
       expect(commands.first.displayName, equals('Blocker Task'));
     });
 
     test('updates blocker when blocker deadline is null', () async {
       final task = createTestTask(
-        id: 't1',
-        deadline: DateTime(2026, 5, 1),
+        deadline: DateTime(2026, 5),
         blockedById: 'b1',
       );
-      final blocker = createTestTask(id: 'b1', deadline: null);
+      final blocker = createTestTask(id: 'b1');
       when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
       final commands =
@@ -164,13 +151,12 @@ void main() {
           );
 
       expect(commands.length, equals(1));
-      expect(commands.first.next.deadline, equals(DateTime(2026, 5, 1)));
+      expect(commands.first.next.deadline, equals(DateTime(2026, 5)));
     });
 
     test('propagates deadline up multi-level blocker chain', () async {
       final task = createTestTask(
-        id: 't1',
-        deadline: DateTime(2026, 3, 1),
+        deadline: DateTime(2026, 3),
         blockedById: 'b1',
       );
       final blocker1 = createTestTask(
@@ -195,9 +181,9 @@ void main() {
 
       expect(commands.length, equals(2));
       expect(commands[0].next.id, equals('b1'));
-      expect(commands[0].next.deadline, equals(DateTime(2026, 3, 1)));
+      expect(commands[0].next.deadline, equals(DateTime(2026, 3)));
       expect(commands[1].next.id, equals('b2'));
-      expect(commands[1].next.deadline, equals(DateTime(2026, 3, 1)));
+      expect(commands[1].next.deadline, equals(DateTime(2026, 3)));
     });
 
     test(
@@ -205,7 +191,7 @@ void main() {
       () async {
         final taskA = createTestTask(
           id: 'a',
-          deadline: DateTime(2026, 4, 1),
+          deadline: DateTime(2026, 4),
           blockedById: 'b',
         );
         final taskB = createTestTask(

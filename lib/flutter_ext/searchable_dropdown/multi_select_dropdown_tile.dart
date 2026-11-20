@@ -10,14 +10,14 @@ class MultiSelectDropdownTile extends StatelessWidget {
   final ValueChanged<bool?>? onChanged;
 
   const MultiSelectDropdownTile({
-    super.key,
     required this.name,
-    this.leading,
     required this.isSelected,
     required this.isDisabled,
     required this.isHighlighted,
     required this.onHover,
     required this.onChanged,
+    super.key,
+    this.leading,
   });
 
   @override

@@ -6,7 +6,7 @@ enum CreateTagsPromptResult { createAndSave, saveWithoutTags, cancel }
 class CreateTagsPromptDialog extends StatelessWidget {
   final List<String> newTagNames;
 
-  const CreateTagsPromptDialog({super.key, required this.newTagNames});
+  const CreateTagsPromptDialog({required this.newTagNames, super.key});
 
   @override
   Widget build(BuildContext context) {

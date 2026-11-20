@@ -1,15 +1,14 @@
+import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
-
-import 'package:flutter/material.dart';
-import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/flutter_ext/progress_border_painter.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_status_indicator.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/base_task_card.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_status_indicator.dart';
+import 'package:carpe_diem/flutter_ext/progress_border_painter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskCard extends ConsumerStatefulWidget {
   final Task task;
@@ -38,11 +37,11 @@ class TaskCard extends ConsumerStatefulWidget {
   final void Function(Offset localPosition, RenderBox renderBox)? onContextMenu;
 
   const TaskCard({
-    super.key,
     required this.task,
-    this.project,
     required this.onToggle,
     required this.onTap,
+    super.key,
+    this.project,
     this.trailing,
     this.trailingBuilder,
     this.isOverdue = false,
@@ -132,7 +131,7 @@ class _TaskCardState extends ConsumerState<TaskCard>
   Widget build(BuildContext context) {
     final timerState = ref.watch(taskTimerProvider);
     final isPending = timerState.pendingCompletions.containsKey(widget.task.id);
-    final bool showDone =
+    final showDone =
         widget.isChecked == null && (widget.task.isCompleted || isPending);
     final settings = ref.watch(settingsProvider);
 
@@ -162,8 +161,7 @@ class _TaskCardState extends ConsumerState<TaskCard>
                   color: widget.task.status.isReview
                       ? AppColors.review
                       : AppColors.accent,
-                  width: 3.0,
-                  borderRadius: 12.0,
+                  width: 3,
                 )
               : null,
           child: child,

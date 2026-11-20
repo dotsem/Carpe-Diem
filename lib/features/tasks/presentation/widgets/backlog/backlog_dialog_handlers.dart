@@ -1,21 +1,21 @@
-import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_tasks_actions.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
 import 'package:carpe_diem/core/toast/toast_utils.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_tasks_actions.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
+import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
+import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BacklogDialogHandlers {
   static void showEditTask(BuildContext context, Task task, {WidgetRef? ref}) {
@@ -37,7 +37,10 @@ class BacklogDialogHandlers {
     showDialog(context: context, builder: (_) => const ImportFromMDDialog());
   }
 
-  static void showFilterDialog(BuildContext context, WidgetRef ref) async {
+  static Future<void> showFilterDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final filterVal = ref.read(filterProvider);
     final result = await showDialog<TaskFilter>(
       context: context,
@@ -90,7 +93,7 @@ class BacklogDialogHandlers {
     );
   }
 
-  static void pickRandomTask(
+  static Future<void> pickRandomTask(
     BuildContext context,
     WidgetRef ref,
     String searchQuery,
@@ -129,7 +132,7 @@ class BacklogDialogHandlers {
     showDialog(
       context: context,
       builder: (ctx) => SizedDialog(
-        title: 'We\'ve picked this task for you:',
+        title: "We've picked this task for you:",
         showDefaultActions: false,
         actions: [
           TextButton(

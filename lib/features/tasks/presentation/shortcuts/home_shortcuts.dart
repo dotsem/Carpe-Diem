@@ -1,6 +1,6 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 
 class PrevDayIntent extends Intent {
   const PrevDayIntent();
@@ -30,7 +30,6 @@ class HomeShortcuts extends ConsumerWidget {
   final VoidCallback onNavigateToToday;
 
   const HomeShortcuts({
-    super.key,
     required this.child,
     required this.onPrevDay,
     required this.onNextDay,
@@ -40,6 +39,7 @@ class HomeShortcuts extends ConsumerWidget {
     required this.onMoveNext,
     required this.onMovePrev,
     required this.onNavigateToToday,
+    super.key,
   });
 
   @override
@@ -47,27 +47,22 @@ class HomeShortcuts extends ConsumerWidget {
     return AppShortcutRegistrar(
       shortcuts: homeShortcutEntries,
       child: Shortcuts(
-        shortcuts: {
-          const CharacterActivator(LeftKeys.char): const PrevDayIntent(),
-          const CharacterActivator(RightKeys.char): const NextDayIntent(),
-          const CharacterActivator(AddKeys.char): const NewTaskIntent(),
-          const CharacterActivator(ToggleLayoutKeys.char):
-              const ToggleLayoutIntent(),
-          const CharacterActivator(FilterKeys.char): const FilterIntent(),
-          const CharacterActivator(LeftKeys.upper): const PrevDayIntent(),
-          const CharacterActivator(RightKeys.upper): const NextDayIntent(),
-          const CharacterActivator(AddKeys.upper): const NewTaskIntent(),
-          const CharacterActivator(ToggleLayoutKeys.upper):
-              const ToggleLayoutIntent(),
-          const CharacterActivator(DownKeys.char): const MoveNextIntent(),
-          const CharacterActivator(UpKeys.char): const MovePrevIntent(),
-          const SingleActivator(AppKeyBindings.arrowLeft):
-              const PrevDayIntent(),
-          const SingleActivator(AppKeyBindings.arrowRight):
-              const NextDayIntent(),
-          const SingleActivator(AppKeyBindings.arrowDown):
-              const MoveNextIntent(),
-          const SingleActivator(AppKeyBindings.arrowUp): const MovePrevIntent(),
+        shortcuts: const {
+          CharacterActivator(LeftKeys.char): PrevDayIntent(),
+          CharacterActivator(RightKeys.char): NextDayIntent(),
+          CharacterActivator(AddKeys.char): NewTaskIntent(),
+          CharacterActivator(ToggleLayoutKeys.char): ToggleLayoutIntent(),
+          CharacterActivator(FilterKeys.char): FilterIntent(),
+          CharacterActivator(LeftKeys.upper): PrevDayIntent(),
+          CharacterActivator(RightKeys.upper): NextDayIntent(),
+          CharacterActivator(AddKeys.upper): NewTaskIntent(),
+          CharacterActivator(ToggleLayoutKeys.upper): ToggleLayoutIntent(),
+          CharacterActivator(DownKeys.char): MoveNextIntent(),
+          CharacterActivator(UpKeys.char): MovePrevIntent(),
+          SingleActivator(AppKeyBindings.arrowLeft): PrevDayIntent(),
+          SingleActivator(AppKeyBindings.arrowRight): NextDayIntent(),
+          SingleActivator(AppKeyBindings.arrowDown): MoveNextIntent(),
+          SingleActivator(AppKeyBindings.arrowUp): MovePrevIntent(),
         },
         child: Actions(
           actions: {

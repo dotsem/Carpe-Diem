@@ -11,10 +11,10 @@ class KanbanColumnHeader extends StatelessWidget {
   final VoidCallback? onToggle;
 
   const KanbanColumnHeader({
-    super.key,
     required this.title,
     required this.titleColor,
     required this.count,
+    super.key,
     this.isNarrow = false,
     this.onToggle,
   });

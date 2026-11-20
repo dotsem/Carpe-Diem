@@ -23,14 +23,14 @@ class BacklogHierarchyItem extends ConsumerWidget {
   final Widget Function(BuildContext, Task)? trailingBuilder;
 
   const BacklogHierarchyItem({
-    super.key,
     required this.node,
     required this.allTasks,
     required this.selectedTaskIds,
-    this.highlightedTaskId,
     required this.itemFocusNodes,
     required this.onSelectedChanged,
     required this.onEdit,
+    super.key,
+    this.highlightedTaskId,
     this.trailingBuilder,
   });
 

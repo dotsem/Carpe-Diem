@@ -31,13 +31,13 @@ abstract final class TaskFormDetailsLoader {
     required DateTime? currentDeadline,
   }) async {
     final settings = ref.read(settingsProvider);
-    List<String> parentLabelIds = [];
-    String? selectedProjectId = currentProjectId;
-    DateTime? scheduledDate = currentScheduledDate;
-    DateTime? deadline = currentDeadline;
+    var parentLabelIds = <String>[];
+    var selectedProjectId = currentProjectId;
+    var scheduledDate = currentScheduledDate;
+    var deadline = currentDeadline;
 
     if (!isEditing && parentId != null) {
-      Task? parentTask = ref.read(taskProvider).getById(parentId);
+      var parentTask = ref.read(taskProvider).getById(parentId);
       if (parentTask == null) {
         final repo = ref.read(taskRepositoryProvider);
         parentTask = await repo.getById(parentId);

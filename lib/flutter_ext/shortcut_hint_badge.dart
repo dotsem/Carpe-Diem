@@ -6,8 +6,8 @@ class ShortcutHintBadge extends StatelessWidget {
   final double fontSize;
 
   const ShortcutHintBadge({
-    super.key,
     required this.label,
+    super.key,
     this.padding = const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
     this.fontSize = 11,
   });

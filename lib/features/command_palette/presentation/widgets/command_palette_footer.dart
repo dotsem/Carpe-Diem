@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
+import 'package:flutter/material.dart';
 
 class CommandPaletteFooter extends StatelessWidget {
   final int count;
 
-  const CommandPaletteFooter({super.key, required this.count});
+  const CommandPaletteFooter({required this.count, super.key});
 
   @override
   Widget build(BuildContext context) {

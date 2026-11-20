@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class LeadTimeCard extends ConsumerWidget {
   final LeadTimeStats stats;
 
-  const LeadTimeCard({super.key, required this.stats});
+  const LeadTimeCard({required this.stats, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -20,7 +20,6 @@ class BacklogDraggableItem extends ConsumerWidget {
   final int? visualIndex;
 
   const BacklogDraggableItem({
-    super.key,
     required this.node,
     required this.index,
     required this.allTasks,
@@ -29,8 +28,9 @@ class BacklogDraggableItem extends ConsumerWidget {
     required this.itemFocusNodes,
     required this.onSelectedChanged,
     required this.onEdit,
-    this.trailingBuilder,
     required this.maxWidth,
+    super.key,
+    this.trailingBuilder,
     this.visualIndex,
   });
 

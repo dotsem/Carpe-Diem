@@ -1,7 +1,7 @@
-import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
+import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,7 +9,7 @@ class ParentTaskLink extends ConsumerWidget {
   final String parentId;
   final VoidCallback? onClear;
 
-  const ParentTaskLink({super.key, required this.parentId, this.onClear});
+  const ParentTaskLink({required this.parentId, super.key, this.onClear});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

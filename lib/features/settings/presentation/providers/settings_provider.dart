@@ -1,13 +1,13 @@
 import 'dart:convert';
 
 import 'package:carpe_diem/core/utils/key_value_map_utils.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
-import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart'
-    show FilterInteractionMethod;
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart'
+    show FilterInteractionMethod;
+import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SettingsState {
   final Map<String, String> _map;
@@ -140,16 +140,12 @@ class SettingsNotifier extends Notifier<SettingsState> {
     switch (value) {
       case String():
         stringValue = value;
-        break;
       case Enum():
         stringValue = value.name;
-        break;
       case Map():
         stringValue = jsonEncode(value);
-        break;
       default:
         stringValue = value.toString();
-        break;
     }
 
     final updatedMap = Map<String, String>.from(state._map);

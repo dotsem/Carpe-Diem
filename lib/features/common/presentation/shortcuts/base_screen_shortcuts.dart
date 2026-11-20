@@ -1,6 +1,6 @@
+import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
 
 class BaseScreenShortcuts extends ConsumerWidget {
   final Widget child;
@@ -21,9 +21,9 @@ class BaseScreenShortcuts extends ConsumerWidget {
   final Map<Type, Action<Intent>>? customActions;
 
   const BaseScreenShortcuts({
-    super.key,
     required this.child,
     required this.helpEntries,
+    super.key,
     this.onMoveNext,
     this.onMovePrev,
     this.onMoveLeft,

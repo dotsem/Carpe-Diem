@@ -1,6 +1,6 @@
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 
 class RightSidebarNotifier extends Notifier<RightSidebarState> {
   @override
@@ -11,7 +11,7 @@ class RightSidebarNotifier extends Notifier<RightSidebarState> {
   void open(RightSidebarPanel panel) {
     if (state.activePanel == panel) return;
     if (state.activePanel == null) {
-      state = RightSidebarState(activePanel: panel, history: const []);
+      state = RightSidebarState(activePanel: panel);
     } else {
       state = RightSidebarState(
         activePanel: panel,

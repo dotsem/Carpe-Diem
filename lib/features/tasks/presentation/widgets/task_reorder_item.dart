@@ -1,8 +1,8 @@
 import 'package:carpe_diem/core/theme/animation_context.dart';
-import 'package:flutter/material.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_list_slot.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
+import 'package:flutter/material.dart';
 
 export 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_list_slot.dart';
 
@@ -13,10 +13,10 @@ class TaskReorderItem extends StatefulWidget {
   final bool Function(Task)? canAccept;
 
   const TaskReorderItem({
-    super.key,
     required this.index,
-    this.visualIndex,
     required this.child,
+    super.key,
+    this.visualIndex,
     this.canAccept,
   });
 
@@ -61,7 +61,7 @@ class _TaskReorderItemState extends State<TaskReorderItem>
             end: Offset.zero,
           ).animate(_curvedAnimation);
         });
-        _controller.forward(from: 0.0);
+        _controller.forward(from: 0);
       }
     }
   }
@@ -155,8 +155,8 @@ class TaskReorderPlaceholderItem extends StatelessWidget {
   final double height;
 
   const TaskReorderPlaceholderItem({
-    super.key,
     required this.slotIndex,
+    super.key,
     this.task,
     this.height = 52.0,
   });
@@ -190,7 +190,6 @@ class TaskReorderPlaceholderItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: theme.colorScheme.primary.withValues(alpha: 0.22),
-            strokeAlign: BorderSide.strokeAlignInside,
             width: 1.5,
           ),
         ),

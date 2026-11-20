@@ -1,11 +1,12 @@
+import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+
 import '../../../../helpers/mock_repositories.dart';
 
 void main() {
@@ -81,7 +82,6 @@ void main() {
           id: 'p1',
           name: 'Archived',
           color: Colors.blue,
-          isActive: true,
           createdAt: DateTime.now(),
         );
 
@@ -121,7 +121,6 @@ void main() {
           id: 'p2',
           name: 'Normal',
           color: Colors.blue,
-          isUrgent: false,
           createdAt: DateTime.now(),
         );
 
@@ -145,7 +144,6 @@ void main() {
           id: 'p1',
           name: 'Active',
           color: Colors.green,
-          isActive: true,
           createdAt: DateTime.now(),
         );
         final inactive = Project(

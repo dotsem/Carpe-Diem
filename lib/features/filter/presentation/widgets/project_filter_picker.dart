@@ -11,11 +11,11 @@ class ProjectFilterPicker extends ConsumerWidget {
   final FilterInteractionMethod interactionMethod;
 
   const ProjectFilterPicker({
-    super.key,
     required this.included,
     required this.excluded,
     required this.onChanged,
     required this.interactionMethod,
+    super.key,
   });
 
   @override

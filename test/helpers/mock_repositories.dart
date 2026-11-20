@@ -1,5 +1,5 @@
-import 'package:mocktail/mocktail.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockTaskRepository extends ITaskRepository with Mock {}
 

@@ -5,17 +5,17 @@ class TaskHierarchyIndicator extends StatelessWidget {
   final Widget child;
 
   const TaskHierarchyIndicator({
-    super.key,
     required this.depth,
     required this.child,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     if (depth == 0) return child;
 
-    Widget current = child;
-    for (int i = 0; i < depth; i++) {
+    var current = child;
+    for (var i = 0; i < depth; i++) {
       current = Container(
         margin: const EdgeInsets.only(left: 8),
         decoration: BoxDecoration(

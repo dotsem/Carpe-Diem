@@ -1,5 +1,5 @@
-import 'package:flutter/widgets.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
+import 'package:flutter/widgets.dart';
 
 class OpenCommandPaletteIntent extends Intent {
   const OpenCommandPaletteIntent();

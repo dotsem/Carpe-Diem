@@ -1,6 +1,6 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class ProjectRepository extends IProjectRepository {
   final Database _db;
@@ -15,9 +15,9 @@ class ProjectRepository extends IProjectRepository {
           "isUrgent DESC, CASE WHEN sortOrder = '' THEN '~' ELSE sortOrder END ASC, createdAt DESC",
     );
 
-    List<Project> projects = [];
+    final projects = <Project>[];
     for (final map in maps) {
-      final id = map['id'] as String;
+      final id = map['id']! as String;
       final labelIds = await _getLabelIds(id);
       projects.add(Project.fromMap(map, labelIds: labelIds));
     }
@@ -101,6 +101,6 @@ class ProjectRepository extends IProjectRepository {
       columns: ['labelId'],
       whereArgs: [projectId],
     );
-    return maps.map((m) => m['labelId'] as String).toList();
+    return maps.map((m) => m['labelId']! as String).toList();
   }
 }

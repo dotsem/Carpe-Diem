@@ -8,9 +8,9 @@ class HorizontalTab extends StatelessWidget {
   final bool showIconOnly;
   final double spacing;
   const HorizontalTab({
+    required this.label,
     super.key,
     this.icon,
-    required this.label,
     this.count,
     this.accentColor,
     this.spacing = 4.0,

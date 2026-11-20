@@ -28,7 +28,7 @@ extension DateTimeExtension on DateTime {
   DateTime startOfNextWeek(int firstDayOfWeek) => next(firstDayOfWeek);
 
   DateTime startOfWeek(int firstDayOfWeek) {
-    int dayOffset = (weekday - firstDayOfWeek) % DateTime.daysPerWeek;
+    final dayOffset = (weekday - firstDayOfWeek) % DateTime.daysPerWeek;
     return DateTime(year, month, day).subtract(Duration(days: dayOffset));
   }
 
@@ -53,7 +53,7 @@ extension DateTimeExtension on DateTime {
             (month > other.month || (month == other.month && day > other.day)));
   }
 
-  DateTime startOfMonth() => DateTime(year, month, 1);
+  DateTime startOfMonth() => DateTime(year, month);
   DateTime endOfMonth() => DateTime(year, month + 1, 0);
 
   bool isBetween(DateTime start, DateTime end) {

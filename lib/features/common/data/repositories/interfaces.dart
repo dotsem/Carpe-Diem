@@ -1,12 +1,12 @@
-import 'package:flutter/widgets.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
-import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/tags/data/models/tag.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/tags/data/models/tag.dart';
+import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:flutter/widgets.dart';
 
 abstract class ICrudRepository<T> {
   String get repositoryName;
