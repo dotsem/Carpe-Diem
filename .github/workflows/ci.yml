@@ -17,10 +17,11 @@ permissions:
 
 jobs:
   ci:
-    uses: dotactions/flutter/.github/workflows/ci.yml@3290bcaf8b46e39b7f3126778f3ca23bec7adb16
+    uses: dotactions/flutter/.github/workflows/ci.yml@f1c52b2bd546d25774f64a300d068e613f780d33
     with:
       pr-targets: '["linux"]'
       push-targets: '["linux", "windows", "macos"]'
 
       pr-build-mode: "debug"
       push-build-mode: "release"
+      verify-generated: true
