@@ -4,13 +4,20 @@ import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show FutureProviderFamily;
 
-final AutoDisposeFutureProviderFamily<HistoryInsights, DateTimeRange<DateTime>>
+final FutureProviderFamily<HistoryInsights, DateTimeRange<DateTime>>
 historyInsightsProvider = FutureProvider.autoDispose
     .family<HistoryInsights, DateTimeRange>((ref, range) async {
       // Why: survive tab switches; HistoryScreen invalidates on open and on filter or range change
       ref.keepAlive();
       final insightsRepo = ref.read(historyInsightsRepositoryProvider);
+      final activeIds = ref
+          .read(projectProvider)
+          .projects
+          .where((p) => p.isActive)
+          .map((p) => p.id)
+          .toSet();
       final firstCompleted = await ref
           .read(historyRepositoryProvider)
           .getFirstCompletedDate();
@@ -23,12 +30,6 @@ historyInsightsProvider = FutureProvider.autoDispose
       final completions = await insightsRepo.getCompletionsSince(velocityStart);
       final openCounts = await insightsRepo.getOpenCountsByProject();
 
-      final activeIds = ref
-          .read(projectProvider)
-          .projects
-          .where((p) => p.isActive)
-          .map((p) => p.id)
-          .toSet();
       final velocity = projectVelocity(
         completions.where((c) => activeIds.contains(c.projectId)),
         openCounts,

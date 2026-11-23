@@ -6,6 +6,7 @@ import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.d
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import '../../../../helpers/mock_repositories.dart';

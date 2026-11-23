@@ -1,5 +1,4 @@
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_scheduling_service.dart';
@@ -95,7 +94,6 @@ extension TaskScheduleActions on TaskNotifier {
   }
 
   Future<void> scheduleTasksForNextWorkDay(List<String> taskIds) async {
-    final settings = ref.read(settingsProvider);
     await scheduleTasksForDate(
       taskIds,
       DateTime.now().next(settings.firstDayOfWeek),

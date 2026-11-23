@@ -30,7 +30,7 @@ class HomeDaySelector extends ConsumerWidget {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  ref.read(selectedDateProvider.notifier).state = day;
+                  ref.read(selectedDateProvider.notifier).select(day);
                   ref.read(taskProvider.notifier).loadTasksForDate(day);
                 },
                 child: AnimatedContainer(

@@ -3,9 +3,10 @@ import 'package:carpe_diem/core/utils/history_stats_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show FutureProviderFamily;
 
 /// Key is the calendar year, or null for the last 12 months.
-final AutoDisposeFutureProviderFamily<ActivityData, int?>
+final FutureProviderFamily<ActivityData, int?>
 activityProvider = FutureProvider.autoDispose.family<ActivityData, int?>((
   ref,
   year,
@@ -43,7 +44,7 @@ activityProvider = FutureProvider.autoDispose.family<ActivityData, int?>((
   );
 });
 
-final AutoDisposeFutureProvider<List<int>> activityYearsProvider =
+final FutureProvider<List<int>> activityYearsProvider =
     FutureProvider.autoDispose<List<int>>((ref) async {
       ref.keepAlive();
       final first = await ref

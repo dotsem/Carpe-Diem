@@ -48,7 +48,7 @@ class BlockerPicker extends ConsumerWidget {
     final selectedTask = selectedBlockerId == null
         ? null
         : (availableTasks.where((t) => t.id == selectedBlockerId).firstOrNull ??
-              ref.watch(taskByIdProvider(selectedBlockerId!)).valueOrNull);
+              ref.watch(taskByIdProvider(selectedBlockerId!)).value);
 
     final items =
         selectedTask != null && !selectableTasks.contains(selectedTask)

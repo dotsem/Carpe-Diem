@@ -33,7 +33,7 @@ class CommandPaletteBuilder {
         keywords: const ['today', 'tasks', 'schedule', 'home'],
         onSelect: () {
           final today = DateTime.now();
-          ref.read(selectedDateProvider.notifier).state = today;
+          ref.read(selectedDateProvider.notifier).select(today);
           ref.read(taskProvider.notifier).loadTasksForDate(today);
           appRouter.go('/');
         },
@@ -47,7 +47,7 @@ class CommandPaletteBuilder {
         keywords: const ['tomorrow', 'tasks', 'schedule', 'home'],
         onSelect: () {
           final tomorrow = DateTime.now().add(const Duration(days: 1));
-          ref.read(selectedDateProvider.notifier).state = tomorrow;
+          ref.read(selectedDateProvider.notifier).select(tomorrow);
           ref.read(taskProvider.notifier).loadTasksForDate(tomorrow);
           appRouter.go('/');
         },

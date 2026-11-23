@@ -1,8 +1,6 @@
 import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/services/deadline_propagation_service.dart';
@@ -29,9 +27,6 @@ extension TaskBulkActions on TaskNotifier {
     bool updateBlockedById = false,
     bool clearBlockedById = false,
   }) async {
-    final projectRepo = ref.read(projectRepositoryProvider);
-    final settings = ref.read(settingsProvider);
-
     DateTime? projectDeadline;
     var shouldInheritDeadline = false;
     if (updateProjectId &&
@@ -130,9 +125,6 @@ extension TaskBulkActions on TaskNotifier {
     required String markdown,
     required String? projectId,
   }) async {
-    final projectRepo = ref.read(projectRepositoryProvider);
-    final settings = ref.read(settingsProvider);
-
     final tasks = TaskMarkdownParser.parseMarkdown(markdown);
     if (tasks.isEmpty) return;
 

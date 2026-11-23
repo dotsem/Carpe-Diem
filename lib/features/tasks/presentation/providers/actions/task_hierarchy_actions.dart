@@ -1,6 +1,5 @@
 import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_crud_service.dart';
@@ -12,7 +11,6 @@ extension TaskHierarchyActions on TaskNotifier {
     required List<String> taskIds,
     required String? newParentId,
   }) async {
-    final settings = ref.read(settingsProvider);
     Task? parent;
     if (newParentId != null) {
       parent =
@@ -88,7 +86,6 @@ extension TaskHierarchyActions on TaskNotifier {
     String? projectId,
     DateTime? scheduledDate,
   }) async {
-    final settings = ref.read(settingsProvider);
     var effectiveProjectId = projectId;
     if (effectiveProjectId == null && childTaskIds.isNotEmpty) {
       final childProjects = childTaskIds

@@ -2,10 +2,19 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/presentation/providers/clock_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final selectedDateProvider = StateProvider<DateTime>((ref) {
-  final now = ref.read(clockProvider);
-  return DateTime(now.year, now.month, now.day);
-});
+final selectedDateProvider = NotifierProvider<SelectedDateNotifier, DateTime>(
+  SelectedDateNotifier.new,
+);
+
+class SelectedDateNotifier extends Notifier<DateTime> {
+  @override
+  DateTime build() {
+    final now = ref.read(clockProvider);
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  void select(DateTime date) => state = date;
+}
 
 final daysRangeProvider = Provider<List<DateTime>>((ref) {
   final settings = ref.watch(settingsProvider);
