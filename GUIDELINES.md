@@ -21,7 +21,7 @@ This document defines the coding standards, architectural decisions, and practic
 - **DRY (Don't Repeat Yourself)**: Generalized utilities must be extracted. Never duplicate logic.
 - **KISS (Keep It Simple, Stupid)**: Favor simple, readable solutions over overly clever or complex abstractions.
 - **Function Names**: The name must clearly reflect the function's single action. Avoid generic names or names with "And" (which signals multiple responsibilities).
-- **File Length Limit**: A strict ceiling of **300 lines per file** (generated `*.freezed.dart` files are exempt). If a file exceeds this:
+- **File Length Limit**: A strict ceiling of **300 lines per file** (generated `*.freezed.dart` files and test files (`test/**`) are exempt). If a file exceeds this:
   - Aggressively decouple, group, and split into sub-modules or logical extensions.
   - **Important for AI**: Ask the developer for permission before performing a major file split/refactoring. Do not do it autonomously.
 - **Clean Code**: No dead, unused, or commented-out code. Use named constants instead of magic numbers.

@@ -7,7 +7,7 @@ This file provides high-level guidelines and instructions for Claude models inte
 ## CRITICAL CONSTRAINTS (Must Follow Without Exception)
 
 1. **Strict File Line Limit (300 Lines)**
-   - Every file has a strict maximum ceiling of **300 lines**; generated `*.freezed.dart` files are exempt.
+   - Every file has a strict maximum ceiling of **300 lines**; generated `*.freezed.dart` files and test files (`test/**`) are exempt.
    - If your generated or refactored code exceeds this, you must aggressively decouple and split it into sub-modules or logical widgets/classes.
    - Do **NOT** do major refactoring or file splitting autonomously; ask the developer for permission first.
 
