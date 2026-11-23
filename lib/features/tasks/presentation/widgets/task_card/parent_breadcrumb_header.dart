@@ -22,7 +22,7 @@ class _ParentBreadcrumbHeaderState
   @override
   Widget build(BuildContext context) {
     final parentTaskAsync = ref.watch(taskByIdProvider(widget.parentId));
-    final parentTask = parentTaskAsync.valueOrNull;
+    final parentTask = parentTaskAsync.value;
     if (parentTask == null) return const SizedBox.shrink();
 
     final cleanTitle = TagParser.hideHashtagSymbols(parentTask.title);

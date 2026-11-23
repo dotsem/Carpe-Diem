@@ -17,8 +17,8 @@ class _ActivitySectionState extends ConsumerState<ActivitySection> {
 
   @override
   Widget build(BuildContext context) {
-    final years = ref.watch(activityYearsProvider).valueOrNull ?? const [];
-    final data = ref.watch(activityProvider(_year)).valueOrNull;
+    final years = ref.watch(activityYearsProvider).value ?? const [];
+    final data = ref.watch(activityProvider(_year)).value;
     final firstDayOfWeek = ref.watch(
       settingsProvider.select((s) => s.firstDayOfWeek),
     );

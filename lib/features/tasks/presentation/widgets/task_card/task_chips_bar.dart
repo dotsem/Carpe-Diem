@@ -54,7 +54,7 @@ class TaskChipsBar extends ConsumerWidget {
     final tags = task.tagIds.map(tagNotifier.getById).whereType<Tag>().toList();
 
     final subtasksAsync = ref.watch(subtasksProvider(task.id));
-    final subtasks = subtasksAsync.valueOrNull ?? [];
+    final subtasks = subtasksAsync.value ?? [];
 
     final collapsedSet = ref.watch(collapsedSubtasksProvider);
     final isCollapsedSubtasks = collapsedSet.contains(task.id);

@@ -34,7 +34,7 @@ void main() {
 
     test('should update selected date when state is changed', () {
       final tomorrow = DateTime.now().add(const Duration(days: 1));
-      container.read(selectedDateProvider.notifier).state = tomorrow;
+      container.read(selectedDateProvider.notifier).select(tomorrow);
 
       final updatedDate = container.read(selectedDateProvider);
       expect(updatedDate, equals(tomorrow));

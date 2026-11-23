@@ -33,7 +33,7 @@ class SideNav extends ConsumerWidget {
     final today = DateTime(now.year, now.month, now.day);
     final selectedDate = ref.read(selectedDateProvider);
     if (selectedDate.normalize.isBefore(today)) {
-      ref.read(selectedDateProvider.notifier).state = now;
+      ref.read(selectedDateProvider.notifier).select(now);
       ref.read(taskProvider.notifier).loadTasksForDate(now);
     }
     _navigateTo(context, '/');

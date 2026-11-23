@@ -56,7 +56,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final selectedDate = ref.read(selectedDateProvider);
     if (selectedDate.normalize.isBefore(today)) {
-      ref.read(selectedDateProvider.notifier).state = now;
+      ref.read(selectedDateProvider.notifier).select(now);
     }
   }
 
@@ -70,7 +70,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final selectedDate = ref.read(selectedDateProvider);
     if (selectedDate.normalize.isBefore(today)) {
-      ref.read(selectedDateProvider.notifier).state = now;
+      ref.read(selectedDateProvider.notifier).select(now);
       ref.read(taskProvider.notifier).loadTasksForDate(now);
     }
   }
@@ -118,7 +118,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
       onNavigateToToday: () {
-        ref.read(selectedDateProvider.notifier).state = _today;
+        ref.read(selectedDateProvider.notifier).select(_today);
         ref.read(taskProvider.notifier).loadTasksForDate(_today);
       },
       child: Focus(
@@ -192,7 +192,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final nextIndex = currentIndex + delta;
     if (nextIndex >= 0 && nextIndex < daysRange.length) {
       final nextDay = daysRange[nextIndex];
-      ref.read(selectedDateProvider.notifier).state = nextDay;
+      ref.read(selectedDateProvider.notifier).select(nextDay);
       ref.read(taskProvider.notifier).loadTasksForDate(nextDay);
     }
   }

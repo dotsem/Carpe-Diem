@@ -32,6 +32,8 @@ void main() async {
   final database = await dbHelper.database;
 
   final container = ProviderContainer(
+    // Why: sqlite failures are not transient, so riverpod 3 auto-retry would only mask them
+    retry: (_, _) => null,
     overrides: [databaseProvider.overrideWithValue(database)],
   );
 

@@ -22,8 +22,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TaskNotifier extends Notifier<TaskState> {
   late final ITaskRepository repo;
-
   TaskState get tasksState => state;
+  SettingsState get settings => ref.read(settingsProvider);
+  IProjectRepository get projectRepo => ref.read(projectRepositoryProvider);
 
   @override
   TaskState build() {
@@ -57,7 +58,7 @@ class TaskNotifier extends Notifier<TaskState> {
     if (!silent) state = state.copyWith(isLoading: true);
     final normalized = date.normalize;
     state = state.copyWith(currentDate: normalized);
-    final s = ref.read(settingsProvider);
+    final s = settings;
     final tasks = await repo.getByDate(
       normalized,
       prioritizeDeadlines: s.prioritizeDeadlines,
@@ -73,7 +74,7 @@ class TaskNotifier extends Notifier<TaskState> {
 
   Future<void> loadUnscheduledTasks({bool silent = false}) async {
     if (!silent) state = state.copyWith(isLoading: true);
-    final s = ref.read(settingsProvider);
+    final s = settings;
     final unscheduled = await repo.getUnscheduled(
       prioritizeDeadlines: s.prioritizeDeadlines,
       prioritizeOverdue: s.prioritizeOverdue,
@@ -94,7 +95,7 @@ class TaskNotifier extends Notifier<TaskState> {
     List<String> labelIds = const [],
     List<String> tagIds = const [],
   }) async {
-    final s = ref.read(settingsProvider);
+    final s = settings;
     final task = await TaskCrudService.buildNewTask(
       repo: repo,
       settings: s,
@@ -121,7 +122,7 @@ class TaskNotifier extends Notifier<TaskState> {
   Future<void> updateTask(Task task, {TaskPlacement? placement}) async {
     final oldTask = await repo.getById(task.id);
     if (oldTask == null) return;
-    final s = ref.read(settingsProvider);
+    final s = settings;
     final updated = await TaskCrudService.resolveUpdatedTask(
       repo: repo,
       settings: s,
@@ -157,7 +158,7 @@ class TaskNotifier extends Notifier<TaskState> {
     state = TaskReorderService.applyOptimisticTask(
       state: state,
       task: updated,
-      settings: ref.read(settingsProvider),
+      settings: settings,
       isPlanOrder: isPlanOrder,
     );
     final cmd = TaskReorderService.buildReorderCommand(
@@ -176,7 +177,7 @@ class TaskNotifier extends Notifier<TaskState> {
     state = TaskReorderService.applyBulkOptimisticReorder(
       state: state,
       updates: updates,
-      settings: ref.read(settingsProvider),
+      settings: settings,
       isPlanOrder: isPlanOrder,
     );
     final cmd = await TaskReorderService.buildBulkReorderCommand(
@@ -227,7 +228,6 @@ class TaskNotifier extends Notifier<TaskState> {
     Task task, {
     bool useTimer = false,
   }) async {
-    final settings = ref.read(settingsProvider);
     final timerNotifier = ref.read(taskTimerProvider.notifier);
     if (timerNotifier.isTaskPending(task.id)) {
       timerNotifier.cancelPending(task.id);
@@ -284,7 +284,7 @@ class TaskNotifier extends Notifier<TaskState> {
 
   Future<List<Task>> getTasksForProject(String projectId) => repo.getByProject(
     projectId,
-    prioritizeDeadlines: ref.read(settingsProvider).prioritizeDeadlines,
+    prioritizeDeadlines: settings.prioritizeDeadlines,
   );
 
   Future<void> refreshTasks() => refreshAll();

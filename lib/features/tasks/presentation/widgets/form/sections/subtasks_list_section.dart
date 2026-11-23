@@ -28,7 +28,7 @@ class SubtasksListSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subtasksAsync = ref.watch(subtasksProvider(parentTask.id));
-    final subtasks = subtasksAsync.valueOrNull ?? [];
+    final subtasks = subtasksAsync.value ?? [];
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
