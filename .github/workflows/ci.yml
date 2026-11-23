@@ -28,3 +28,4 @@ jobs:
       pr-build-mode: "debug"
       push-build-mode: "release"
       verify-generated: true
+      coverage-report: true
