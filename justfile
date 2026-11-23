@@ -7,3 +7,6 @@ migrate-dev name="create migration":
 
 migrate-build:
     dart build cli -t sqlite_migrator/sqlite_migrator.dart -o build/sqlite_migrator
+
+gen:
+    dart run build_runner build -d
