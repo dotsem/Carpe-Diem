@@ -54,9 +54,7 @@ extension TaskHierarchyActions on TaskNotifier {
 
       final updated = task.copyWith(
         parentId: newParentId,
-        clearParent: newParentId == null,
-        projectId: newParentId != null ? parent?.projectId : null,
-        clearProjectId: newParentId != null && parent?.projectId == null,
+        projectId: newParentId != null ? parent?.projectId : task.projectId,
         sortOrder: currentRank,
       );
 
@@ -128,7 +126,6 @@ extension TaskHierarchyActions on TaskNotifier {
       final updated = child.copyWith(
         parentId: parentTask.id,
         projectId: parentTask.projectId,
-        clearProjectId: parentTask.projectId == null,
         sortOrder: currentRank,
       );
       commands.add(

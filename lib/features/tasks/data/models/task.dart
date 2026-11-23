@@ -1,78 +1,58 @@
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class Task {
-  final String id;
-  final String title;
-  final String? description;
-  final DateTime? scheduledDate;
-  final TaskStatus status;
-  final String? projectId;
-  final bool isUrgent;
-  final DateTime? deadline;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
-  final DateTime? completedAt;
-  final String? blockedById;
-  final String? parentId;
-  final String sortOrder;
-  final String? planSortOrder;
-  final List<String> labelIds;
-  final List<String> tagIds;
-  final String? blockerTitle;
-  final TaskStatus? blockerStatus;
+part 'task.freezed.dart';
+
+@freezed
+abstract class Task with _$Task {
+  const Task._();
+  const factory Task({
+    required String id,
+    required String title,
+    required DateTime createdAt,
+    String? description,
+    DateTime? scheduledDate,
+    @Default(TaskStatus.todo) TaskStatus status,
+    String? projectId,
+    @Default(false) bool isUrgent,
+    DateTime? deadline,
+    DateTime? updatedAt,
+    DateTime? completedAt,
+    String? blockedById,
+    String? parentId,
+    @Default('') String sortOrder,
+    String? planSortOrder,
+    @Default([]) List<String> labelIds,
+    @Default([]) List<String> tagIds,
+    String? blockerTitle,
+    TaskStatus? blockerStatus,
+  }) = _Task;
 
   bool get isCompleted => status.isDone;
-
   bool get isBlocked =>
       !isCompleted &&
       blockedById != null &&
       blockerStatus != null &&
       !blockerStatus!.isDone;
-
-  bool get isOverdue {
-    if (isCompleted) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    final scheduledOverdue =
-        scheduledDate != null && scheduledDate!.isBefore(today);
-    final deadlineOverdue = deadline != null && deadline!.isBefore(today);
-
-    if (scheduledOverdue && deadline != null && !deadline!.isBefore(today)) {
-      return false;
-    }
-
-    return scheduledOverdue || deadlineOverdue;
-  }
-
   bool isBlockedBy(Task? blocker) =>
       !isCompleted &&
       blockedById != null &&
       blocker != null &&
       !blocker.isCompleted;
 
-  const Task({
-    required this.id,
-    required this.title,
-    required this.createdAt,
-    this.description,
-    this.scheduledDate,
-    this.status = TaskStatus.todo,
-    this.projectId,
-    this.isUrgent = false,
-    this.deadline,
-    this.updatedAt,
-    this.completedAt,
-    this.blockedById,
-    this.parentId,
-    this.sortOrder = '',
-    this.planSortOrder,
-    this.labelIds = const [],
-    this.tagIds = const [],
-    this.blockerTitle,
-    this.blockerStatus,
-  });
+  bool get isOverdue {
+    if (isCompleted) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final scheduledOverdue =
+        scheduledDate != null && scheduledDate!.isBefore(today);
+    final deadlineOverdue = deadline != null && deadline!.isBefore(today);
+    if (scheduledOverdue && deadline != null && !deadline!.isBefore(today)) {
+      return false;
+    }
+    return scheduledOverdue || deadlineOverdue;
+  }
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -129,61 +109,12 @@ class Task {
         : null,
   );
 
-  Task copyWith({
-    String? title,
-    String? description,
-    DateTime? scheduledDate,
-    bool clearScheduledDate = false,
-    TaskStatus? status,
-    String? projectId,
-    bool clearProjectId = false,
-    bool? isUrgent,
-    DateTime? deadline,
-    bool clearDeadline = false,
-    DateTime? updatedAt,
-    DateTime? completedAt,
-    String? blockedById,
-    bool clearBlockedBy = false,
-    String? parentId,
-    bool clearParent = false,
-    String? sortOrder,
-    String? planSortOrder,
-    bool clearPlanSortOrder = false,
-    List<String>? labelIds,
-    List<String>? tagIds,
-    String? blockerTitle,
-    bool clearBlockerTitle = false,
-    TaskStatus? blockerStatus,
-    bool clearBlockerStatus = false,
-  }) => Task(
-    id: id,
-    title: title ?? this.title,
-    description: description ?? this.description,
-    scheduledDate: clearScheduledDate
-        ? null
-        : (scheduledDate ?? this.scheduledDate),
-    status: status ?? this.status,
-    projectId: clearProjectId ? null : (projectId ?? this.projectId),
-    isUrgent: isUrgent ?? this.isUrgent,
-    deadline: clearDeadline ? null : (deadline ?? this.deadline),
-    createdAt: createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
-    completedAt: status == TaskStatus.done
-        ? (completedAt ?? DateTime.now())
-        : (status != null && !status.isDone ? null : this.completedAt),
-    blockedById: clearBlockedBy ? null : (blockedById ?? this.blockedById),
-    parentId: clearParent ? null : (parentId ?? this.parentId),
-    sortOrder: sortOrder ?? this.sortOrder,
-    planSortOrder: clearPlanSortOrder
-        ? null
-        : (planSortOrder ?? this.planSortOrder),
-    labelIds: labelIds ?? this.labelIds,
-    tagIds: tagIds ?? this.tagIds,
-    blockerTitle: clearBlockerTitle
-        ? null
-        : (blockerTitle ?? this.blockerTitle),
-    blockerStatus: clearBlockerStatus
-        ? null
-        : (blockerStatus ?? this.blockerStatus),
-  );
+  /// Changes status while preserving a completion timestamp for done → done.
+  Task withStatus(TaskStatus nextStatus, {DateTime? at}) {
+    if (status.isDone == nextStatus.isDone) return copyWith(status: nextStatus);
+    return copyWith(
+      status: nextStatus,
+      completedAt: nextStatus.isDone ? (at ?? DateTime.now()) : null,
+    );
+  }
 }

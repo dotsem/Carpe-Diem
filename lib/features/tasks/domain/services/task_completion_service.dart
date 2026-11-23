@@ -10,11 +10,11 @@ class TaskCompletionService {
     required ITaskRepository repo,
     required Task task,
   }) {
-    final updated = task.copyWith(
-      status: TaskStatus.done,
-      scheduledDate: task.scheduledDate ?? DateTime.now().normalize,
-      completedAt: DateTime.now(),
-    );
+    final updated = task
+        .withStatus(TaskStatus.done)
+        .copyWith(
+          scheduledDate: task.scheduledDate ?? DateTime.now().normalize,
+        );
     return UpdateCommand(
       repo: repo,
       previous: task,
@@ -27,10 +27,11 @@ class TaskCompletionService {
     required ITaskRepository repo,
     required Task task,
   }) {
-    final updated = task.copyWith(
-      status: TaskStatus.inProgress,
-      scheduledDate: task.scheduledDate ?? DateTime.now().normalize,
-    );
+    final updated = task
+        .withStatus(TaskStatus.inProgress)
+        .copyWith(
+          scheduledDate: task.scheduledDate ?? DateTime.now().normalize,
+        );
     return UpdateCommand(
       repo: repo,
       previous: task,
@@ -46,14 +47,15 @@ class TaskCompletionService {
     String? newSortOrder,
     String? newPlanSortOrder,
   }) {
-    final updated = task.copyWith(
-      status: status,
-      sortOrder: newSortOrder ?? task.sortOrder,
-      scheduledDate: status == TaskStatus.todo
-          ? task.scheduledDate
-          : (task.scheduledDate ?? DateTime.now().normalize),
-      planSortOrder: newPlanSortOrder ?? task.planSortOrder,
-    );
+    final updated = task
+        .withStatus(status)
+        .copyWith(
+          sortOrder: newSortOrder ?? task.sortOrder,
+          scheduledDate: status == TaskStatus.todo
+              ? task.scheduledDate
+              : (task.scheduledDate ?? DateTime.now().normalize),
+          planSortOrder: newPlanSortOrder ?? task.planSortOrder,
+        );
     return UpdateCommand(
       repo: repo,
       previous: task,
@@ -72,21 +74,19 @@ class TaskCompletionService {
         UpdateCommand(
           repo: repo,
           previous: subtask,
-          next: subtask.copyWith(
-            status: TaskStatus.done,
-            scheduledDate: subtask.scheduledDate ?? now.normalize,
-            completedAt: now,
-          ),
+          next: subtask
+              .withStatus(TaskStatus.done, at: now)
+              .copyWith(scheduledDate: subtask.scheduledDate ?? now.normalize),
           displayName: subtask.title,
         ),
       UpdateCommand(
         repo: repo,
         previous: conflict.parentTask,
-        next: conflict.parentTask.copyWith(
-          status: TaskStatus.done,
-          scheduledDate: conflict.parentTask.scheduledDate ?? now.normalize,
-          completedAt: now,
-        ),
+        next: conflict.parentTask
+            .withStatus(TaskStatus.done, at: now)
+            .copyWith(
+              scheduledDate: conflict.parentTask.scheduledDate ?? now.normalize,
+            ),
         displayName: conflict.parentTask.title,
       ),
     ];

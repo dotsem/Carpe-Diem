@@ -62,7 +62,6 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
       onSubmit: () {
         final filter = widget.initialFilter.copyWith(
           isUrgent: _isUrgent,
-          clearIsUrgent: _isUrgent == null,
           projectIdsIncluded: _projectIdsIncluded,
           projectIdsExcluded: _projectIdsExcluded,
           labelIdsIncluded: _labelIdsIncluded,

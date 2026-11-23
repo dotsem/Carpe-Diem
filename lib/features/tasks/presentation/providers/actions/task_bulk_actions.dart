@@ -44,17 +44,23 @@ extension TaskBulkActions on TaskNotifier {
       final task = tasksState.getById(id) ?? await repo.getById(id);
       if (task != null) {
         final updated = task.copyWith(
-          isUrgent: updateUrgent ? isUrgent : null,
-          scheduledDate: updateScheduledDate ? scheduledDate : null,
-          clearScheduledDate: clearScheduledDate,
-          projectId: updateProjectId ? projectId : null,
-          clearProjectId: clearProjectId,
-          deadline: updateDeadline
-              ? deadline
-              : (shouldInheritDeadline ? projectDeadline : null),
-          clearDeadline: clearDeadline,
-          blockedById: updateBlockedById ? blockedById : null,
-          clearBlockedBy: clearBlockedById,
+          isUrgent: updateUrgent ? isUrgent ?? task.isUrgent : task.isUrgent,
+          scheduledDate: clearScheduledDate
+              ? null
+              : (updateScheduledDate ? scheduledDate : task.scheduledDate),
+          projectId: clearProjectId
+              ? null
+              : (updateProjectId ? projectId : task.projectId),
+          deadline: clearDeadline
+              ? null
+              : (updateDeadline
+                    ? deadline
+                    : (shouldInheritDeadline
+                          ? projectDeadline
+                          : task.deadline)),
+          blockedById: clearBlockedById
+              ? null
+              : (updateBlockedById ? blockedById : task.blockedById),
         );
         commands.add(
           UpdateCommand(

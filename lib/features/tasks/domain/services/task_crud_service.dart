@@ -207,7 +207,7 @@ class TaskCrudService {
         UpdateCommand(
           repo: repo,
           previous: subtask,
-          next: subtask.copyWith(clearParent: true),
+          next: subtask.copyWith(parentId: null),
           displayName: subtask.title,
         ),
       DeleteCommand(

@@ -69,9 +69,11 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
   void _updateOrder(Task task, String? order) {
     if (task.status != widget.acceptedStatus) {
       final updated = order ?? task.sortOrder;
-      final plan = widget.isPlanView ? updated : null;
       widget.onStatusChange(
-        task.copyWith(sortOrder: updated, planSortOrder: plan),
+        task.copyWith(
+          sortOrder: updated,
+          planSortOrder: widget.isPlanView ? updated : task.planSortOrder,
+        ),
         widget.acceptedStatus,
       );
     } else if (order != null) {

@@ -1,26 +1,21 @@
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-@immutable
-class TaskFilter {
-  final bool? isUrgent;
-  final Set<String> projectIdsIncluded;
-  final Set<String> labelIdsIncluded;
-  final Set<String> tagIdsIncluded;
-  final Set<String> projectIdsExcluded;
-  final Set<String> labelIdsExcluded;
-  final Set<String> tagIdsExcluded;
+part 'task_filter.freezed.dart';
 
-  const TaskFilter({
-    this.isUrgent,
-    this.projectIdsIncluded = const {},
-    this.labelIdsIncluded = const {},
-    this.tagIdsIncluded = const {},
-    this.projectIdsExcluded = const {},
-    this.labelIdsExcluded = const {},
-    this.tagIdsExcluded = const {},
-  });
+@freezed
+abstract class TaskFilter with _$TaskFilter {
+  const TaskFilter._();
+  const factory TaskFilter({
+    bool? isUrgent,
+    @Default({}) Set<String> projectIdsIncluded,
+    @Default({}) Set<String> labelIdsIncluded,
+    @Default({}) Set<String> tagIdsIncluded,
+    @Default({}) Set<String> projectIdsExcluded,
+    @Default({}) Set<String> labelIdsExcluded,
+    @Default({}) Set<String> tagIdsExcluded,
+  }) = _TaskFilter;
 
   bool get isEmpty =>
       isUrgent == null &&
@@ -38,27 +33,6 @@ class TaskFilter {
       labelIdsIncluded.isNotEmpty || labelIdsExcluded.isNotEmpty;
   bool get hasTagFilter =>
       tagIdsIncluded.isNotEmpty || tagIdsExcluded.isNotEmpty;
-
-  TaskFilter copyWith({
-    bool? isUrgent,
-    bool clearIsUrgent = false,
-    Set<String>? projectIdsIncluded,
-    Set<String>? labelIdsIncluded,
-    Set<String>? tagIdsIncluded,
-    Set<String>? projectIdsExcluded,
-    Set<String>? labelIdsExcluded,
-    Set<String>? tagIdsExcluded,
-  }) {
-    return TaskFilter(
-      isUrgent: clearIsUrgent ? null : (isUrgent ?? this.isUrgent),
-      projectIdsIncluded: projectIdsIncluded ?? this.projectIdsIncluded,
-      labelIdsIncluded: labelIdsIncluded ?? this.labelIdsIncluded,
-      tagIdsIncluded: tagIdsIncluded ?? this.tagIdsIncluded,
-      projectIdsExcluded: projectIdsExcluded ?? this.projectIdsExcluded,
-      labelIdsExcluded: labelIdsExcluded ?? this.labelIdsExcluded,
-      tagIdsExcluded: tagIdsExcluded ?? this.tagIdsExcluded,
-    );
-  }
 
   /// @returns true if the task matches the filter
   /// (or no filter has been set for the given category),
@@ -183,40 +157,6 @@ class TaskFilter {
       tagIdsExcluded: stringSetFromList(
         map['tagIdsExcluded'] as List<dynamic>?,
       ),
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is TaskFilter &&
-        other.isUrgent == isUrgent &&
-        setEquals(other.projectIdsIncluded, projectIdsIncluded) &&
-        setEquals(other.labelIdsIncluded, labelIdsIncluded) &&
-        setEquals(other.tagIdsIncluded, tagIdsIncluded) &&
-        setEquals(other.projectIdsExcluded, projectIdsExcluded) &&
-        setEquals(other.labelIdsExcluded, labelIdsExcluded) &&
-        setEquals(other.tagIdsExcluded, tagIdsExcluded);
-  }
-
-  static int _hashSet(Set<String> set) {
-    var h = 0;
-    for (final s in set) {
-      h ^= s.hashCode;
-    }
-    return h;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      isUrgent,
-      _hashSet(projectIdsIncluded),
-      _hashSet(labelIdsIncluded),
-      _hashSet(tagIdsIncluded),
-      _hashSet(projectIdsExcluded),
-      _hashSet(labelIdsExcluded),
-      _hashSet(tagIdsExcluded),
     );
   }
 }

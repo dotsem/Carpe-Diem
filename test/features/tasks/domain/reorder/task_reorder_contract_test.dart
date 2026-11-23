@@ -354,7 +354,7 @@ void main() {
           slot: slot,
         )!;
 
-        final updated = [a, b, c.copyWith(sortOrder: ranks['c'])];
+        final updated = [a, b, c.copyWith(sortOrder: ranks['c'] ?? '')];
         TaskSortUtils.sortTasks(updated, defaultSettings);
 
         expect(updated.map((t) => t.id).toList(), equals(['c', 'a', 'b']));

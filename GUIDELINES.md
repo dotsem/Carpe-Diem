@@ -21,7 +21,7 @@ This document defines the coding standards, architectural decisions, and practic
 - **DRY (Don't Repeat Yourself)**: Generalized utilities must be extracted. Never duplicate logic.
 - **KISS (Keep It Simple, Stupid)**: Favor simple, readable solutions over overly clever or complex abstractions.
 - **Function Names**: The name must clearly reflect the function's single action. Avoid generic names or names with "And" (which signals multiple responsibilities).
-- **File Length Limit**: A strict ceiling of **300 lines per file**. If a file exceeds this:
+- **File Length Limit**: A strict ceiling of **300 lines per file** (generated `*.freezed.dart` files are exempt). If a file exceeds this:
   - Aggressively decouple, group, and split into sub-modules or logical extensions.
   - **Important for AI**: Ask the developer for permission before performing a major file split/refactoring. Do not do it autonomously.
 - **Clean Code**: No dead, unused, or commented-out code. Use named constants instead of magic numbers.
@@ -68,7 +68,7 @@ This document defines the coding standards, architectural decisions, and practic
 - **Localization (i18n)**: Use `flutter_localizations` and `intl`. Never hardcode user-facing strings in presentation files.
 
 ### 2.3 Models & Serialization
-- **No Freezed / Code Gen Models**: Do not use `freezed` or `json_serializable`. Models must be defined manually as immutable classes with `final` fields, a `const` constructor, standard `toMap()`/`fromMap()` methods, a `copyWith()` utility, and an `empty()` factory where appropriate.
+- **Generated Models**: Use `freezed` for data models when specified. Keep `toMap()`/`fromMap()` hand-written; do not use `json_serializable`. Do not use Riverpod generator.
 
 ### 2.4 Persistence & Repositories
 - **Database Decoupling**: Repositories must depend on abstract interfaces (e.g., `ITaskRepository`) and accept the database instance via constructor injection. This enables swapping sqlite implementations with mocks during testing.
@@ -87,5 +87,6 @@ Run the following commands to ensure absolute compliance before finalizing code:
 | Action | Command |
 |---|---|
 | **Format** | `dart format .` |
+| **Generate** | `dart run build_runner build -d` |
 | **Lint / Analyze** | `flutter analyze` |
 | **Test Run** | `flutter test` |
