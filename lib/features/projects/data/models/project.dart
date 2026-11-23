@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class Project implements Comparable<Project> {
-  final String id;
-  final String name;
-  final String? description;
-  final Color color;
-  final bool isUrgent;
-  final List<String> labelIds;
-  final DateTime? deadline;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
+part 'project.freezed.dart';
 
-  final bool isActive;
-  final String sortOrder;
-
-  const Project({
-    required this.id,
-    required this.name,
-    required this.color,
-    required this.createdAt,
-    this.description,
-    this.isUrgent = false,
-    this.labelIds = const [],
-    this.deadline,
-    this.updatedAt,
-    this.isActive = true,
-    this.sortOrder = '',
-  });
+@freezed
+abstract class Project with _$Project implements Comparable<Project> {
+  const Project._();
+  const factory Project({
+    required String id,
+    required String name,
+    required Color color,
+    required DateTime createdAt,
+    String? description,
+    @Default(false) bool isUrgent,
+    @Default([]) List<String> labelIds,
+    DateTime? deadline,
+    DateTime? updatedAt,
+    @Default(true) bool isActive,
+    @Default('') String sortOrder,
+  }) = _Project;
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -62,40 +54,14 @@ class Project implements Comparable<Project> {
     sortOrder: map['sortOrder'] as String? ?? '',
   );
 
-  Project copyWith({
-    String? name,
-    String? description,
-    Color? color,
-    bool? isUrgent,
-    List<String>? labelIds,
-    DateTime? deadline,
-    DateTime? updatedAt,
-    bool? isActive,
-    String? sortOrder,
-  }) => Project(
-    id: id,
-    name: name ?? this.name,
-    description: description ?? this.description,
-    color: color ?? this.color,
-    isUrgent: isUrgent ?? this.isUrgent,
-    labelIds: labelIds ?? this.labelIds,
-    deadline: deadline ?? this.deadline,
-    createdAt: createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
-    isActive: isActive ?? this.isActive,
-    sortOrder: sortOrder ?? this.sortOrder,
-  );
-
   @override
   int compareTo(Project other) {
     if (isUrgent && !other.isUrgent) return -1;
     if (!isUrgent && other.isUrgent) return 1;
-
-    final aSort = sortOrder.isEmpty ? '~' : sortOrder;
-    final bSort = other.sortOrder.isEmpty ? '~' : other.sortOrder;
-    final sortComp = aSort.compareTo(bSort);
+    final sortComp = (sortOrder.isEmpty ? '~' : sortOrder).compareTo(
+      other.sortOrder.isEmpty ? '~' : other.sortOrder,
+    );
     if (sortComp != 0) return sortComp;
-
     return other.createdAt.compareTo(createdAt);
   }
 }

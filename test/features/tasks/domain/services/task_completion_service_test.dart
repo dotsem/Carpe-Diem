@@ -10,6 +10,32 @@ import '../../../../helpers/mock_repositories.dart';
 import '../../../../helpers/task_test_helpers.dart';
 
 void main() {
+  group('Task.withStatus', () {
+    test('sets completion time when entering done', () {
+      final at = DateTime(2026, 11, 23, 10);
+      final result = createTestTask().withStatus(TaskStatus.done, at: at);
+      expect(result.completedAt, equals(at));
+    });
+
+    test('keeps completion time when done remains done', () {
+      final completedAt = DateTime(2026, 11, 22);
+      final result = createTestTask(
+        status: TaskStatus.done,
+        completedAt: completedAt,
+      ).withStatus(TaskStatus.done, at: DateTime(2026, 11, 23));
+      expect(result.completedAt, equals(completedAt));
+    });
+
+    test('clears completion time when leaving done', () {
+      final task = createTestTask(
+        status: TaskStatus.done,
+        completedAt: DateTime(2026, 11, 22),
+      );
+      expect(task.withStatus(TaskStatus.todo).completedAt, isNull);
+      expect(task.withStatus(TaskStatus.review).completedAt, isNull);
+    });
+  });
+
   group('TaskCompletionService', () {
     late MockTaskRepository mockRepo;
 

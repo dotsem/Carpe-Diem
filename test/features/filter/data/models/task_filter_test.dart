@@ -48,7 +48,7 @@ void main() {
       final copied = filter.copyWith(
         projectIdsIncluded: {'p1'},
         tagIdsIncluded: {'t1'},
-        clearIsUrgent: true,
+        isUrgent: null,
       );
 
       expect(copied.isUrgent, isNull);

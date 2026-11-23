@@ -118,6 +118,28 @@ void main() {
     });
 
     group('buildUnscheduleCascadeCommand', () {
+      test('keeps completedAt when unscheduling a done task', () {
+        final completedAt = DateTime(2026, 8, 12, 9);
+        final task = createTestTask(
+          id: 'done-task',
+          scheduledDate: DateTime(2026, 8, 12),
+          status: TaskStatus.done,
+          completedAt: completedAt,
+        );
+
+        final cmd = TaskSchedulingService.buildUnscheduleCascadeCommand(
+          repo: mockRepo,
+          task: task,
+          resetStatus: false,
+          unscheduleChildren: false,
+          subtasks: [],
+        );
+
+        final updated = (cmd as UpdateCommand<Task>).next;
+        expect(updated.scheduledDate, isNull);
+        expect(updated.completedAt, completedAt);
+      });
+
       test('returns single UpdateCommand when unscheduleChildren is false', () {
         final task = createTestTask(
           id: 'p1',

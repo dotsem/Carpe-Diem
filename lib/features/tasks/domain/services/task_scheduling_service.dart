@@ -43,7 +43,7 @@ class TaskSchedulingService {
     final isDateChanging = task.scheduledDate != normalizedDate;
     final updatedParent = task.copyWith(
       scheduledDate: normalizedDate,
-      clearPlanSortOrder: isDateChanging,
+      planSortOrder: isDateChanging ? null : task.planSortOrder,
     );
     final dateLabel = _formatDateLabel(date);
 
@@ -63,7 +63,7 @@ class TaskSchedulingService {
           final isSubDateChanging = subtask.scheduledDate != normalizedDate;
           final updatedSubtask = subtask.copyWith(
             scheduledDate: normalizedDate,
-            clearPlanSortOrder: isSubDateChanging,
+            planSortOrder: isSubDateChanging ? null : subtask.planSortOrder,
           );
           commands.add(
             UpdateCommand(
@@ -102,11 +102,9 @@ class TaskSchedulingService {
     required bool unscheduleChildren,
     required List<Task> subtasks,
   }) {
-    final updatedParent = task.copyWith(
-      clearScheduledDate: true,
-      clearPlanSortOrder: true,
-      status: resetStatus ? TaskStatus.todo : task.status,
-    );
+    final updatedParent = task
+        .copyWith(scheduledDate: null, planSortOrder: null)
+        .withStatus(resetStatus ? TaskStatus.todo : task.status);
 
     if (unscheduleChildren) {
       final scheduledSubtasks = subtasks
@@ -123,11 +121,9 @@ class TaskSchedulingService {
           ),
         ];
         for (final subtask in scheduledSubtasks) {
-          final updatedSubtask = subtask.copyWith(
-            clearScheduledDate: true,
-            clearPlanSortOrder: true,
-            status: resetStatus ? TaskStatus.todo : subtask.status,
-          );
+          final updatedSubtask = subtask
+              .copyWith(scheduledDate: null, planSortOrder: null)
+              .withStatus(resetStatus ? TaskStatus.todo : subtask.status);
           commands.add(
             UpdateCommand(
               repo: repo,
@@ -170,7 +166,7 @@ class TaskSchedulingService {
         final isDateChanging = task.scheduledDate != normalizedDate;
         final updated = task.copyWith(
           scheduledDate: normalizedDate,
-          clearPlanSortOrder: isDateChanging,
+          planSortOrder: isDateChanging ? null : task.planSortOrder,
         );
         commands.add(
           UpdateCommand(
@@ -193,7 +189,7 @@ class TaskSchedulingService {
                 previous: subtask,
                 next: subtask.copyWith(
                   scheduledDate: normalizedDate,
-                  clearPlanSortOrder: true,
+                  planSortOrder: null,
                 ),
                 displayName: subtask.title,
                 customDescription:

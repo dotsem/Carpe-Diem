@@ -154,12 +154,7 @@ class FilterNotifier extends Notifier<FilterState> {
   }
 
   void setUrgentFilter(bool? isUrgent) {
-    state = state.copyWith(
-      filter: state.filter.copyWith(
-        isUrgent: isUrgent,
-        clearIsUrgent: isUrgent == null,
-      ),
-    );
+    state = state.copyWith(filter: state.filter.copyWith(isUrgent: isUrgent));
     _persistIfEnabled();
   }
 }

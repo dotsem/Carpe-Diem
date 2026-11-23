@@ -1,10 +1,10 @@
 # 0001: Freezed for data models
 
-Status: draft
+Status: approved
 
 ## Why
 
-- `Task.copyWith` needs 10 `clearX` flags to set a nullable field to null. `Project.copyWith` can't clear `description` or `deadline` at all.
+- `Task.copyWith` needs 8 `clearX` flags to set a nullable field to null. `Project.copyWith` can't clear `description` or `deadline` at all.
 - `Task`, `Project`, `Label` and `Tag` have no `==`, so they compare by identity. `TaskFilter` and `FilterMode` maintain `==`/`hashCode` by hand.
 - **Bug:** `Task.copyWith(status: done)` without an explicit `completedAt` sets `completedAt` to now, even when the task was already done. Unscheduling a done task, and likely reordering inside the done column, quietly rewrites the completion date, which skews history and insights.
 
@@ -36,6 +36,8 @@ abstract class Task with _$Task {
 
 - `clearX: true` → `x: null`
 - `clearX: cond, x: v` → `x: cond ? null : v`, or just `x: v` where `v` is already null in the clear case (form submit handler).
+- Project forms can clear `description` and `deadline` by passing null through `copyWith`.
+- Filter modes can clear their icon when `iconCodePoint` is null.
 
 **`completedAt` becomes explicit (hard to reverse, surprising, real trade-off):**
 
@@ -64,9 +66,9 @@ Task withStatus(TaskStatus status, {DateTime? at});
 
 1. A status call site is missed or converted wrong, so `completedAt` is wrong again.
 2. Equality changes when Riverpod notifies: Riverpod 3 skips an update whose new state `==` the old one. Checked: notifier states holding models are lists (compared by identity) or `parentCompletionPromptProvider`, which resets to null after each prompt.
-3. A remaining in-place mutation of a model list throws at runtime (unmodifiable view).
+3. A remaining in-place mutation of a model list throws at runtime (unmodifiable view). Done: no `.add`/`.remove` mutations were found on model lists.
 4. Generated files go stale when someone edits a model without running `build_runner`.
-5. The `clearX: cond` → `x: cond ? null : v` rewrite gets the condition backwards and clears data in bulk edit or the task form.
+5. Any `copyWith(x: maybeNull)` where null previously meant keep can now clear data unexpectedly, including bulk edit, scheduling, forms, filters, and UI reorder paths.
 
 ## Plan
 
@@ -103,10 +105,10 @@ Single PR.
 - **Risk 1:**
   - Unit tests for `withStatus`: todo→done sets `completedAt`; done→done keeps it; done→todo and done→review clear it; `at` is honoured.
   - Regression test: unscheduling a done task keeps its `completedAt`.
-- **Risk 2:** run the full `flutter test`. Manual check: the parent-completion prompt still appears twice in a row for different parents.
+- **Risk 2:** run the full `flutter test`. Manual check: the parent-completion prompt still appears twice in a row for the same parent.
 - **Risk 3:** `grep` for `.add(`/`.remove(` on model list fields (`labelIds`, `tagIds`, filter id sets) before merging.
-- **Risk 4:** a CI step runs `build_runner build` and fails on `git diff --exit-code`.
-- **Risk 5:** the existing bulk-edit and task-form tests pass unchanged, plus one test that bulk edit without "clear" keeps the fields.
+- **Risk 4:** CI (`verify-generated: true`) runs `build_runner build` and fails if `git status --porcelain` is not empty, which also catches uncommitted generated files.
+- **Risk 5:** audit every model `copyWith` call that passes a value which can be null. The existing bulk-edit and task-form tests pass, plus tests that bulk edit without clear flags keeps fields and that each clear flag, including `clearDeadline`, clears its field.
 - **Manual:** complete a task, unschedule a done task, drag inside the done column, then check that dates on the history screen haven't changed.
 - `dart format .`, `flutter analyze`, `flutter test` all pass.
 

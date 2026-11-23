@@ -67,6 +67,7 @@ void main() {
         scheduledDate: DateTime.now(),
         projectId: 'proj1',
         blockedById: 'b1',
+        deadline: DateTime(2026, 12),
       );
 
       when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => t1);
@@ -78,6 +79,7 @@ void main() {
         clearScheduledDate: true,
         clearProjectId: true,
         clearBlockedById: true,
+        clearDeadline: true,
       );
 
       verify(
@@ -86,7 +88,39 @@ void main() {
             that: isA<Task>()
                 .having((t) => t.scheduledDate, 'scheduledDate', isNull)
                 .having((t) => t.projectId, 'projectId', isNull)
-                .having((t) => t.blockedById, 'blockedById', isNull),
+                .having((t) => t.blockedById, 'blockedById', isNull)
+                .having((t) => t.deadline, 'deadline', isNull),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('bulkUpdateTasks without clear flags keeps nullable fields', () async {
+      final task = createTestTask(
+        scheduledDate: DateTime(2026, 8),
+        projectId: 'proj1',
+        blockedById: 'b1',
+        deadline: DateTime(2026, 12),
+      );
+      when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => task);
+      when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+
+      await container
+          .read(taskProvider.notifier)
+          .bulkUpdateTasks(taskIds: ['t1']);
+
+      verify(
+        () => mockTaskRepo.update(
+          any(
+            that: isA<Task>()
+                .having(
+                  (t) => t.scheduledDate,
+                  'scheduledDate',
+                  task.scheduledDate,
+                )
+                .having((t) => t.projectId, 'projectId', task.projectId)
+                .having((t) => t.blockedById, 'blockedById', task.blockedById)
+                .having((t) => t.deadline, 'deadline', task.deadline),
           ),
         ),
       ).called(1);
