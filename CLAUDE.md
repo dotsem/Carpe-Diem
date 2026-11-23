@@ -7,13 +7,13 @@ This file provides high-level guidelines and instructions for Claude models inte
 ## CRITICAL CONSTRAINTS (Must Follow Without Exception)
 
 1. **Strict File Line Limit (300 Lines)**
-   - Every file has a strict maximum ceiling of **300 lines**.
+   - Every file has a strict maximum ceiling of **300 lines**; generated `*.freezed.dart` files are exempt.
    - If your generated or refactored code exceeds this, you must aggressively decouple and split it into sub-modules or logical widgets/classes.
    - Do **NOT** do major refactoring or file splitting autonomously; ask the developer for permission first.
 
 2. **No Code Generation for State or Models**
    - **State Management**: Use manual Riverpod classes (`Notifier`, `AsyncNotifier`, `NotifierProvider`, etc.). **Do not use `@riverpod` annotations or the riverpod generator**.
-   - **Data Models**: Write models manually with standard `toMap()`, `fromMap()`, and `copyWith()` methods. **Do not use `freezed` or `json_serializable`**.
+   - **Data Models**: Use `freezed` for data models. Keep standard `toMap()` and `fromMap()` methods hand-written. **Do not use `json_serializable`**.
 
 3. **Comment Standards**
    - **No Inline Comments**: Do not explain standard Dart/Flutter syntax, control flow, or simple operations.
@@ -36,6 +36,7 @@ Always format and check your code before finishing tasks:
 | Command | Purpose |
 |---|---|
 | `dart format .` | Formats all Dart files |
+| `dart run build_runner build -d` | Regenerates Freezed models |
 | `flutter analyze` | Runs static analysis and lints |
 | `flutter test` | Executes the unit/widget test suite |
 
