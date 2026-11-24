@@ -1,15 +1,13 @@
 import 'package:carpe_diem/core/theme/app_breakpoints.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
-import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/link_existing_subtasks_dropdown.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/add_subtask_button.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
-import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -90,46 +88,10 @@ class SubtasksListSection extends ConsumerWidget {
       ),
     );
 
-    final actionButtons = Row(
-      mainAxisSize: MainAxisSize.min,
-      spacing: 4,
-      children: [
-        ElevatedButton.icon(
-          onPressed: () {
-            context.openRightSidebar(
-              AddTaskPanel(
-                initialDate: scheduledDate ?? parentTask.scheduledDate,
-                initialProjectId: projectId ?? parentTask.projectId,
-                initialParentId: parentTask.id,
-              ),
-              ref,
-            );
-          },
-          icon: const Icon(Icons.add, size: 16),
-          label: const Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 8,
-            children: [
-              Text('Add Subtask'),
-              ShortcutHintBadge(label: 'Ctrl + ${SubtaskKeys.upper}'),
-            ],
-          ),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            visualDensity: VisualDensity.compact,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.horizontal(
-                left: Radius.circular(16),
-                right: Radius.circular(4),
-              ),
-            ),
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.3),
-          ),
-        ),
-        LinkExistingSubtasksDropdown(parentTask: parentTask),
-      ],
+    final actionButtons = AddSubtaskButton(
+      parentTask: parentTask,
+      scheduledDate: scheduledDate,
+      projectId: projectId,
     );
 
     return Column(
