@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/misc.dart' show FutureProviderFamily;
 final FutureProviderFamily<HistoryInsights, DateTimeRange<DateTime>>
 historyInsightsProvider = FutureProvider.autoDispose
     .family<HistoryInsights, DateTimeRange>((ref, range) async {
-      // Why: survive tab switches; HistoryScreen invalidates on open and on filter or range change
+      // why: survive tab switches; HistoryScreen invalidates on open and on filter or range change
       ref.keepAlive();
       final insightsRepo = ref.read(historyInsightsRepositoryProvider);
       final activeIds = ref
@@ -23,7 +23,7 @@ historyInsightsProvider = FutureProvider.autoDispose
           .getFirstCompletedDate();
       final now = DateTime.now();
 
-      // Why: velocity looks at the trailing 63 days regardless of the picked range
+      // why: velocity looks at the trailing 63 days regardless of the picked range
       final velocityStart = now.subtract(
         const Duration(days: velocityBaselineDays + velocityRecentDays),
       );
@@ -36,7 +36,7 @@ historyInsightsProvider = FutureProvider.autoDispose
         now: now,
       );
 
-      // Why: nothing happened before the first ever completion
+      // why: nothing happened before the first ever completion
       final rangeStart =
           firstCompleted != null && firstCompleted.isAfter(range.start)
           ? firstCompleted

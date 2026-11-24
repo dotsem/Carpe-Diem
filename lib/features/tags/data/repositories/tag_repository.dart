@@ -8,9 +8,6 @@ class TagRepository extends ITagRepository {
   TagRepository(this.db);
 
   @override
-  String get repositoryName => 'tag';
-
-  @override
   Future<List<Tag>> getAll() async {
     final List<Map<String, dynamic>> maps = await db.query('tags');
     return List.generate(maps.length, (i) => Tag.fromMap(maps[i]));

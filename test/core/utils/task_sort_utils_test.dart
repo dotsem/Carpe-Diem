@@ -114,5 +114,36 @@ void main() {
       expect(tasks.first.id, '1');
       expect(tasks.last.id, '2');
     });
+
+    test('uses creation time and deadline as final tie breakers', () {
+      final old = Task(
+        id: 'old',
+        title: 'Old',
+        deadline: DateTime(2026, 2),
+        createdAt: DateTime(2026),
+      );
+      final recent = Task(
+        id: 'recent',
+        title: 'Recent',
+        deadline: DateTime(2026),
+        createdAt: DateTime(2026, 1, 2),
+      );
+      expect(
+        TaskSortUtils.compareTasks(
+          old,
+          recent,
+          const SettingsState({'prioritize_deadlines': 'false'}),
+        ),
+        greaterThan(0),
+      );
+      expect(
+        TaskSortUtils.compareTasks(
+          old.copyWith(createdAt: recent.createdAt),
+          recent,
+          const SettingsState({'prioritize_deadlines': 'false'}),
+        ),
+        greaterThan(0),
+      );
+    });
   });
 }

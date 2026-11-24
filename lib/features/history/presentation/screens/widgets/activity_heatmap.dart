@@ -39,7 +39,7 @@ class ActivityHeatmap extends StatelessWidget {
       !weekStart.isAfter(end);
       weekStart = DateTime(weekStart.year, weekStart.month, weekStart.day + 7)
     ) {
-      // Why: a week belongs to the month of its middle day so adjacent labels never overlap
+      // why: a week belongs to the month of its middle day so adjacent labels never overlap
       final middle = DateTime(
         weekStart.year,
         weekStart.month,

@@ -45,6 +45,17 @@ void main() {
       expect(callbackCalled, isFalse);
     });
 
+    test('reports zero or bounded progress', () async {
+      final notifier = container.read(taskTimerProvider.notifier);
+      expect(notifier.getPendingProgress('missing', 1), 0);
+      notifier.startPending('task', 1, () async {});
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(
+        notifier.getPendingProgress('task', 1),
+        inInclusiveRange(0.0, 1.0),
+      );
+    });
+
     test(
       'should execute callback and auto-cleanup state after duration delay finishes',
       () async {

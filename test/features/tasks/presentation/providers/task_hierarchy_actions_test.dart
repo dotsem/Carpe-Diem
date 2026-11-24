@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_hierarchy_actions.dart';
@@ -231,5 +232,146 @@ void main() {
       // Verify taskWithChild was NOT updated because it has subtasks
       verifyNever(() => mockTaskRepo.update(any()));
     });
+
+    test(
+      'reparentTasks rejects missing or nested parents and skips unchanged tasks',
+      () async {
+        final nested = Task(
+          id: 'nested',
+          title: 'Nested',
+          parentId: 'root',
+          createdAt: DateTime(2026),
+        );
+        when(
+          () => mockTaskRepo.getById('missing'),
+        ).thenAnswer((_) async => null);
+        when(
+          () => mockTaskRepo.getById('nested'),
+        ).thenAnswer((_) async => nested);
+        final notifier = container.read(taskProvider.notifier);
+
+        await notifier.reparentTasks(taskIds: ['task'], newParentId: 'missing');
+        await notifier.reparentTasks(taskIds: ['task'], newParentId: 'nested');
+        verifyNever(() => mockTaskRepo.update(any()));
+      },
+    );
+
+    test(
+      'createParent infers a shared project and skips invalid children',
+      () async {
+        final child = Task(
+          id: 'child',
+          title: 'Child',
+          projectId: 'project',
+          createdAt: DateTime(2026),
+        );
+        final parentChild = Task(
+          id: 'parent-child',
+          title: 'Existing',
+          parentId: 'child',
+          createdAt: DateTime(2026),
+        );
+        when(
+          () => mockTaskRepo.getById('child'),
+        ).thenAnswer((_) async => child);
+        when(
+          () => mockTaskRepo.getById('missing'),
+        ).thenAnswer((_) async => null);
+        when(
+          () => mockTaskRepo.getByParent('child'),
+        ).thenAnswer((_) async => [parentChild]);
+        when(
+          () => mockTaskRepo.getByParent('missing'),
+        ).thenAnswer((_) async => []);
+
+        when(
+          () => mockTaskRepo.getUnscheduled(
+            prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+            prioritizeOverdue: any(named: 'prioritizeOverdue'),
+          ),
+        ).thenAnswer((_) async => [child]);
+        await container.read(taskProvider.notifier).loadUnscheduledTasks();
+
+        await container
+            .read(taskProvider.notifier)
+            .createParentWithSubtasks(
+              title: 'Parent',
+              childTaskIds: const ['child'],
+            );
+
+        verify(
+          () => mockTaskRepo.insert(
+            any(
+              that: isA<Task>().having(
+                (t) => t.projectId,
+                'projectId',
+                'project',
+              ),
+            ),
+          ),
+        ).called(1);
+        verifyNever(() => mockTaskRepo.update(any()));
+      },
+    );
+
+    test('reparentTasks ranks tasks added in one call in order', () async {
+      final parent = createTestTask(id: 'parent');
+      final first = createTestTask(id: 'first');
+      final second = createTestTask(id: 'second');
+      when(
+        () => mockTaskRepo.getById('parent'),
+      ).thenAnswer((_) async => parent);
+      when(() => mockTaskRepo.getById('first')).thenAnswer((_) async => first);
+      when(
+        () => mockTaskRepo.getById('second'),
+      ).thenAnswer((_) async => second);
+      when(() => mockTaskRepo.getByParent(any())).thenAnswer((_) async => []);
+
+      await container
+          .read(taskProvider.notifier)
+          .reparentTasks(taskIds: ['first', 'second'], newParentId: 'parent');
+
+      final updated = verify(
+        () => mockTaskRepo.update(captureAny()),
+      ).captured.cast<Task>();
+      expect(updated.map((t) => t.id), ['first', 'second']);
+      expect(updated[0].sortOrder, LexoRank.defaultRank);
+      expect(updated[0].sortOrder.compareTo(updated[1].sortOrder), isNegative);
+    });
+
+    test(
+      'reparentTasks starts from the default rank when no sibling has one',
+      () async {
+        final parent = createTestTask(id: 'parent');
+        final task = createTestTask(id: 'task');
+        final unranked = [createTestTask(id: 's1'), createTestTask(id: 's2')];
+        when(
+          () => mockTaskRepo.getById('parent'),
+        ).thenAnswer((_) async => parent);
+        when(() => mockTaskRepo.getById('task')).thenAnswer((_) async => task);
+        when(
+          () => mockTaskRepo.getByParent('parent'),
+        ).thenAnswer((_) async => unranked);
+        when(
+          () => mockTaskRepo.getByParent('task'),
+        ).thenAnswer((_) async => []);
+
+        await container
+            .read(taskProvider.notifier)
+            .reparentTasks(taskIds: ['task'], newParentId: 'parent');
+
+        verify(
+          () => mockTaskRepo.update(
+            any(
+              that: isA<Task>().having(
+                (t) => t.sortOrder,
+                'sortOrder',
+                LexoRank.defaultRank,
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
   });
 }

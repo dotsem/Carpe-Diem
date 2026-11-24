@@ -18,7 +18,7 @@ This file provides high-level guidelines and instructions for Gemini models inte
 3. **Comment Standards**
    - **No Inline Comments**: Do not explain standard Dart/Flutter syntax, control flow, or simple operations.
    - **No Redundant Comments**: Comments like `counter++ // increment counter` are strictly banned.
-   - **Allowed**: Standard Dartdoc on public APIs, high-level `// Why:` comments, and `// TODO:` comments for future improvements. Keep short comments lowercase.
+   - **Allowed**: Standard Dartdoc on public APIs, high-level `// why:` comments, and `// TODO:` comments for future improvements. Keep short comments lowercase.
 
 4. **Workflow Restrictions**
    - **No Git Access**: Never run git commits or push changes. Commits are reserved exclusively for the human developer.

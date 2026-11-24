@@ -19,6 +19,7 @@ void main() {
       when(() => item.elapsedDuration).thenReturn(Duration.zero);
       when(() => item.isStarted).thenReturn(true);
       when(() => item.timeStatus).thenReturn(ToastTimeStatus.started);
+      when(() => item.alignment).thenReturn(Alignment.topRight);
       when(() => item.addListenerOnTimeStatus(any())).thenReturn(null);
       when(() => item.removeListenerOnTimeStatus(any())).thenReturn(null);
     });
@@ -115,6 +116,53 @@ void main() {
       // Available width is 476, right margin is at 488 (500 - 12).
       // Since SizedBox is right aligned, right edge should be at 488.
       expect(sizedBoxRect.right, equals(488));
+    });
+
+    testWidgets('renders subtitle and invokes undo without a timer', (
+      tester,
+    ) async {
+      when(() => item.hasTimer).thenReturn(false);
+      var undone = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CheesyToast(
+              message: 'Deleted',
+              subtitle: 'Hidden item',
+              icon: Icons.delete,
+              color: Colors.red,
+              item: item,
+              onUndo: () => undone = true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Hidden item'), findsOneWidget);
+      expect(find.byType(ToastTimerAnimationBuilder), findsNothing);
+      await tester.tap(find.text('Undo'));
+      await tester.pump();
+      expect(undone, isTrue);
+    });
+
+    testWidgets('tapping a toast with an item dismisses it', (tester) async {
+      when(() => item.hasTimer).thenReturn(false);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CheesyToast(
+              message: 'Dismiss',
+              icon: Icons.info,
+              color: Colors.blue,
+              item: item,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Dismiss'));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
     });
   });
 }

@@ -50,6 +50,32 @@ void main() {
       expect(state.isCancelled, isFalse);
     });
 
+    test('state equality, hash, pointer offset, and scope clearing work', () {
+      const first = TaskDragState(
+        draggedTaskId: 'task',
+        hasValidTarget: true,
+        activeScopeId: 'scope',
+      );
+      const second = TaskDragState(
+        draggedTaskId: 'task',
+        hasValidTarget: true,
+        activeScopeId: 'scope',
+      );
+      expect(first, second);
+      expect(first.hashCode, second.hashCode);
+
+      final notifier = container.read(taskDragProvider.notifier);
+      notifier.updatePointerOffset(const Offset(3, 4));
+      expect(notifier.pointerOffset, const Offset(3, 4));
+      notifier.setValidTarget(true);
+      notifier.setValidTarget(true);
+      notifier.setActiveScope('scope');
+      notifier.setActiveScope('scope');
+      notifier.clearActiveScope('other');
+      notifier.clearActiveScope('scope');
+      expect(container.read(taskDragProvider).activeScopeId, isNull);
+    });
+
     testWidgets(
       'right mouse button pointer event triggers cancelDrag and dispatches PointerCancelEvent',
       (tester) async {

@@ -49,7 +49,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
   }
 
   Future<void> loadProjects() async {
-    // Why: only show the spinner on first load, refreshes must not tear down the grid
+    // why: only show the spinner on first load, refreshes must not tear down the grid
     if (state.projects.isEmpty) state = state.copyWith(isLoading: true);
     final projects = await _repo.getAll();
     state = ProjectState(projects: projects);

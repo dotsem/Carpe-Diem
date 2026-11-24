@@ -252,5 +252,64 @@ void main() {
         expect(task!.id, equals('t2'));
       });
     });
+
+    group('plan order when the date is unchanged', () {
+      final date = DateTime(2026, 9);
+
+      test(
+        'cascade keeps planSortOrder only for tasks already on the date',
+        () {
+          final parent = createTestTask(
+            id: 'p1',
+            scheduledDate: date,
+          ).copyWith(planSortOrder: 'parent');
+          final sameDay = createTestTask(
+            id: 's1',
+            parentId: 'p1',
+            scheduledDate: date,
+          ).copyWith(planSortOrder: 'same');
+          final otherDay = createTestTask(
+            id: 's2',
+            parentId: 'p1',
+            scheduledDate: DateTime(2026, 10),
+          ).copyWith(planSortOrder: 'other');
+
+          final cmd =
+              TaskSchedulingService.buildScheduleCascadeCommand(
+                    repo: mockRepo,
+                    task: parent,
+                    date: date,
+                    cascadeChildren: true,
+                    subtasks: [sameDay, otherDay],
+                  )
+                  as CompoundCommand;
+
+          final next = cmd.commands
+              .cast<UpdateCommand<Task>>()
+              .map((c) => c.next.planSortOrder)
+              .toList();
+          expect(next, ['parent', 'same', null]);
+        },
+      );
+
+      test(
+        'bulk schedule keeps planSortOrder for a task already on the date',
+        () async {
+          final task = createTestTask(
+            scheduledDate: date,
+          ).copyWith(planSortOrder: 'keep');
+          when(() => mockRepo.getByParent('t1')).thenAnswer((_) async => []);
+
+          final cmd = await TaskSchedulingService.buildBulkScheduleCommand(
+            repo: mockRepo,
+            taskIds: ['t1'],
+            date: date,
+            getTaskById: (_) async => task,
+          );
+
+          expect((cmd! as UpdateCommand<Task>).next.planSortOrder, 'keep');
+        },
+      );
+    });
   });
 }

@@ -20,6 +20,7 @@ void main() {
       when(() => mockRepo.getAll()).thenAnswer((_) async => {});
       when(() => mockRepo.set(any(), any())).thenAnswer((_) async => {});
       when(() => mockRepo.get(any())).thenAnswer((_) async => null);
+      when(() => mockRepo.delete(any())).thenAnswer((_) async => {});
 
       container = ProviderContainer(
         overrides: [keyValueRepositoryProvider.overrideWithValue(mockRepo)],
@@ -172,5 +173,55 @@ void main() {
         ).called(1);
       },
     );
+
+    test('removes included and excluded filters for every category', () {
+      final notifier = container.read(filterProvider.notifier);
+      notifier.setFilter(
+        const TaskFilter(
+          labelIdsIncluded: {'li'},
+          labelIdsExcluded: {'le'},
+          projectIdsIncluded: {'pi'},
+          projectIdsExcluded: {'pe'},
+          tagIdsIncluded: {'ti'},
+          tagIdsExcluded: {'te'},
+        ),
+      );
+
+      notifier.removeLabelFilter('li');
+      notifier.removeLabelFilter('le');
+      notifier.removeProjectFilter('pi');
+      notifier.removeProjectFilter('pe');
+      notifier.removeTagFilter('ti');
+      notifier.removeTagFilter('te');
+      notifier.removeTagFilter('missing');
+
+      expect(container.read(filterProvider).filter.isEmpty, isTrue);
+    });
+
+    test('clearPersistedFilter deletes the stored filter', () async {
+      await container.read(filterProvider.notifier).clearPersistedFilter();
+
+      verify(() => mockRepo.delete(keyPersistentFilterValues)).called(1);
+    });
+
+    test('persistence failures leave the in-memory filter usable', () async {
+      when(
+        () => mockRepo.getAll(),
+      ).thenAnswer((_) async => {'persistent_filter': 'true'});
+      when(
+        () => mockRepo.get(any()),
+      ).thenThrow(const FormatException('bad json'));
+      when(() => mockRepo.set(any(), any())).thenThrow(StateError('write'));
+      when(() => mockRepo.delete(any())).thenThrow(StateError('delete'));
+      await container.read(settingsProvider.notifier).loadSettings();
+      final notifier = container.read(filterProvider.notifier);
+
+      await notifier.loadFilter();
+      notifier.setUrgentFilter(true);
+      await notifier.saveFilter();
+      await notifier.clearPersistedFilter();
+
+      expect(container.read(filterProvider).filter.isUrgent, isTrue);
+    });
   });
 }

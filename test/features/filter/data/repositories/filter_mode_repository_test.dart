@@ -29,6 +29,8 @@ void main() {
     test('getAll returns empty list initially', () async {
       final modes = await repo.getAll();
       expect(modes, isEmpty);
+      expect(repo.repositoryName, 'filter_mode');
+      expect(await repo.getById('missing'), isNull);
     });
 
     test('insert and getById retrieves stored filter mode', () async {
@@ -83,5 +85,28 @@ void main() {
       await repo.delete('mode-3');
       expect(await repo.getById('mode-3'), isNull);
     });
+
+    test(
+      'invalid persisted filter data falls back to an empty filter',
+      () async {
+        await db.insert('filter_modes', {
+          'id': 'bad-json',
+          'name': 'Bad JSON',
+          'filter': '{',
+          'is_default': 0,
+        });
+        await db.insert('filter_modes', {
+          'id': 'bad-shape',
+          'name': 'Bad shape',
+          'filter': '[]',
+          'is_default': 0,
+        });
+
+        final modes = await repo.getAll();
+
+        expect(modes, hasLength(2));
+        expect(modes.every((mode) => mode.filter.isEmpty), isTrue);
+      },
+    );
   });
 }

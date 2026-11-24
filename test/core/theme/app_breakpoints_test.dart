@@ -44,5 +44,45 @@ void main() {
       expect(constraintsLarge.isSmallerThan(AppBreakpoint.xs), isFalse);
       expect(constraintsLarge.isAtLeast(AppBreakpoint.md), isTrue);
     });
+
+    test('compareTo and remaining comparison operators are ordered', () {
+      expect(AppBreakpoint.sm.compareTo(AppBreakpoint.md), lessThan(0));
+      expect(AppBreakpoint.lg > AppBreakpoint.md, isTrue);
+      expect(AppBreakpoint.lg <= AppBreakpoint.md, isFalse);
+    });
+
+    testWidgets('ResponsiveContext classifies screen sizes', (tester) async {
+      Future<void> expectSize(Size size, AppBreakpoint expected) async {
+        await tester.pumpWidget(
+          MediaQuery(
+            data: MediaQueryData(size: size),
+            child: Builder(
+              builder: (context) {
+                expect(context.screenBreakpoint, expected);
+                expect(context.isMobile, expected < AppBreakpoint.md);
+                expect(
+                  context.isTablet,
+                  expected >= AppBreakpoint.md && expected < AppBreakpoint.lg,
+                );
+                expect(context.isDesktop, expected >= AppBreakpoint.lg);
+                expect(
+                  context.isScreenSmallerThan(AppBreakpoint.lg),
+                  expected < AppBreakpoint.lg,
+                );
+                expect(
+                  context.isScreenAtLeast(AppBreakpoint.md),
+                  expected >= AppBreakpoint.md,
+                );
+                return const SizedBox();
+              },
+            ),
+          ),
+        );
+      }
+
+      await expectSize(const Size(400, 800), AppBreakpoint.xs);
+      await expectSize(const Size(800, 800), AppBreakpoint.md);
+      await expectSize(const Size(1200, 800), AppBreakpoint.lg);
+    });
   });
 }

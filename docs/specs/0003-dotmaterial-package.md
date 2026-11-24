@@ -2,7 +2,7 @@
 
 Status: draft
 
-## Why
+## why
 
 - `lib/flutter_ext/README.md` says everything in the folder must be usable in other apps as-is, and may import only `dart:*`, Flutter, `package:fuzzy` and its own files through relative imports. Nothing enforces that. Five files already import `package:carpe_diem/flutter_ext/...`.
 - Inside the app, `flutter_ext` coverage gets mixed with app coverage, and app tests can cover it by accident.

@@ -34,7 +34,7 @@ class TaskEventLogger {
     }
   }
 
-  // Why: undo/redo is generic and calls update(previous), so a change that
+  // why: undo/redo is generic and calls update(previous), so a change that
   // exactly reverses the latest event cancels it instead of adding a new one.
   static Future<void> _record(
     DatabaseExecutor txn,

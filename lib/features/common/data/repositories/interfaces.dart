@@ -139,8 +139,6 @@ abstract class ITagRepository implements ICrudRepository<Tag> {
 
 abstract class IFilterModeRepository implements ICrudRepository<FilterMode> {
   @override
-  String get repositoryName => 'filter_mode';
-  @override
   Future<List<FilterMode>> getAll();
   @override
   Future<FilterMode?> getById(String id);

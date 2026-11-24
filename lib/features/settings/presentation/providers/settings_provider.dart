@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:carpe_diem/core/utils/key_value_map_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
@@ -142,8 +140,6 @@ class SettingsNotifier extends Notifier<SettingsState> {
         stringValue = value;
       case Enum():
         stringValue = value.name;
-      case Map():
-        stringValue = jsonEncode(value);
       default:
         stringValue = value.toString();
     }

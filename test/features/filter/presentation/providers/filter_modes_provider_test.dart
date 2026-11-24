@@ -167,5 +167,17 @@ void main() {
         expect(container.read(activeFilterModeProvider), isNull);
       },
     );
+
+    test('load and persistence failures are contained', () async {
+      when(() => mockModeRepo.getAll()).thenThrow(StateError('read'));
+      await container.read(filterModesProvider.notifier).loadModes();
+      expect(container.read(filterModesProvider).isLoading, isFalse);
+
+      when(() => mockKvRepo.set(any(), any())).thenThrow(StateError('write'));
+      await container
+          .read(filterModesProvider.notifier)
+          .setActiveModeId('failed');
+      expect(container.read(filterModesProvider).activeModeId, 'failed');
+    });
   });
 }

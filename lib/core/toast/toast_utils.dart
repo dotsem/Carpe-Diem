@@ -25,6 +25,9 @@ class ToastUtils {
       context: context,
       alignment: alignment,
       autoCloseDuration: autoCloseDuration,
+      // why: toastification does not mount custom builders in widget tests;
+      // CheesyToast is covered directly in its own tests.
+      // coverage:ignore-start
       builder: (context, holder) => CheesyToast(
         message: message,
         icon: icon,
@@ -33,6 +36,7 @@ class ToastUtils {
         onUndo: onUndo,
         item: holder,
       ),
+      // coverage:ignore-end
     );
   }
 

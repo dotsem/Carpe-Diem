@@ -75,5 +75,15 @@ void main() {
       expect(container.read(taskLayoutProvider), equals(TaskLayout.list));
       verify(() => mockRepo.set(keyTaskLayout, 'list')).called(1);
     });
+
+    test('keeps local layout when persistence fails', () async {
+      when(() => mockRepo.set(any(), any())).thenThrow(StateError('write'));
+
+      await container
+          .read(taskLayoutProvider.notifier)
+          .setLayout(TaskLayout.kanban);
+
+      expect(container.read(taskLayoutProvider), TaskLayout.kanban);
+    });
   });
 }

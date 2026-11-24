@@ -165,5 +165,112 @@ void main() {
 
       expect(selected, containsAll(['t1', 't2', 't3']));
     });
+
+    test('parent state without subtasks reflects direct selection', () {
+      expect(
+        TaskSelectionUtils.getParentSelectionState(
+          parentId: 'p1',
+          subtasks: const [],
+          selectedTaskIds: const {'p1'},
+        ),
+        isTrue,
+      );
+      expect(
+        TaskSelectionUtils.getParentSelectionState(
+          parentId: 'p1',
+          subtasks: const [],
+          selectedTaskIds: const {},
+        ),
+        isFalse,
+      );
+    });
+
+    test('standalone task toggles in both directions', () {
+      final task = Task(id: 'one', title: 'One', createdAt: now);
+      expect(
+        TaskSelectionUtils.toggleSelection(
+          task: task,
+          allTasks: [task],
+          currentSelectedIds: const {},
+        ),
+        {'one'},
+      );
+      expect(
+        TaskSelectionUtils.toggleSelection(
+          task: task,
+          allTasks: [task],
+          currentSelectedIds: const {'one'},
+        ),
+        isEmpty,
+      );
+    });
+
+    test('selectRange falls back when anchor or target is absent', () {
+      final task = Task(id: 'one', title: 'One', createdAt: now);
+      expect(
+        TaskSelectionUtils.selectRange(
+          targetTask: task,
+          lastSelectedTaskId: null,
+          orderedIds: const ['one'],
+          currentSelectedIds: const {},
+          allTasks: [task],
+        ),
+        {'one'},
+      );
+      expect(
+        TaskSelectionUtils.selectRange(
+          targetTask: task,
+          lastSelectedTaskId: 'anchor',
+          orderedIds: const ['anchor'],
+          currentSelectedIds: const {},
+          allTasks: [task],
+        ),
+        {'one'},
+      );
+    });
+
+    test('range selection includes children of selected parents', () {
+      final selected = TaskSelectionUtils.selectRange(
+        targetTask: parent,
+        lastSelectedTaskId: 'p1',
+        orderedIds: const ['p1'],
+        currentSelectedIds: const {},
+        allTasks: allTasks,
+      );
+
+      expect(selected, {'p1', 's1', 's2'});
+    });
+
+    test('handleSelection toggles normally without shift', () {
+      expect(
+        TaskSelectionUtils.handleSelection(
+          task: parent,
+          lastSelectedTaskId: null,
+          orderedIds: const ['p1'],
+          currentSelectedIds: const {},
+          allTasks: allTasks,
+          isShiftPressed: false,
+        ),
+        {'p1', 's1', 's2'},
+      );
+    });
+
+    test('hasMixedProjects handles empty, uniform, and mixed inputs', () {
+      final first = Task(
+        id: 'one',
+        title: 'One',
+        projectId: 'p1',
+        createdAt: now,
+      );
+      final second = Task(
+        id: 'two',
+        title: 'Two',
+        projectId: 'p2',
+        createdAt: now,
+      );
+      expect(TaskSelectionUtils.hasMixedProjects(const []), isFalse);
+      expect(TaskSelectionUtils.hasMixedProjects([first]), isFalse);
+      expect(TaskSelectionUtils.hasMixedProjects([first, second]), isTrue);
+    });
   });
 }

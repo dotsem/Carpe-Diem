@@ -11,7 +11,7 @@ activityProvider = FutureProvider.autoDispose.family<ActivityData, int?>((
   ref,
   year,
 ) async {
-  // Why: survive tab switches; HistoryScreen invalidates on open and on filter or range change
+  // why: survive tab switches; HistoryScreen invalidates on open and on filter or range change
   ref.keepAlive();
   final firstCompleted = await ref
       .read(historyRepositoryProvider)

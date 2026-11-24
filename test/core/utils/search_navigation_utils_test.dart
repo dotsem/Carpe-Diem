@@ -140,6 +140,42 @@ void main() {
       expect(changedId, 'item-1');
     });
 
+    testWidgets(
+      'arrowUp from null uses last item and scrolls attached focus node',
+      (tester) async {
+        final node = FocusNode();
+        addTearDown(node.dispose);
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: SingleChildScrollView(
+              child: Focus(
+                focusNode: node,
+                child: const SizedBox(height: 1000),
+              ),
+            ),
+          ),
+        );
+        String? changed;
+        final result = SearchNavigationUtils.handleSearchKeyEvent(
+          event: const KeyDownEvent(
+            physicalKey: PhysicalKeyboardKey.arrowUp,
+            logicalKey: LogicalKeyboardKey.arrowUp,
+            timeStamp: Duration.zero,
+          ),
+          orderedIds: orderedIds,
+          currentHighlightId: null,
+          itemFocusNodes: {'item-3': node},
+          onHighlightChanged: (id) => changed = id,
+          onSelect: () {},
+        );
+        await tester.pumpAndSettle();
+
+        expect(result, KeyEventResult.handled);
+        expect(changed, 'item-3');
+      },
+    );
+
     test('enter and numpadEnter trigger onSelect', () {
       for (final key in [
         LogicalKeyboardKey.enter,

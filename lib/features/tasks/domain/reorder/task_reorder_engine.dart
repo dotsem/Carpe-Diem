@@ -99,9 +99,13 @@ class TaskReorderEngine {
       } else {
         var endChild = lastChild + 1;
         final lastDepth = nodes[lastChild].depth;
+        // why: hierarchies are two levels deep (reparentTasks rejects nested
+        // parents), so no deeper node can follow the last subtask.
+        // coverage:ignore-start
         while (endChild < nodes.length && nodes[endChild].depth > lastDepth) {
           endChild++;
         }
+        // coverage:ignore-end
         targetIndex = rawIndex.clamp(firstChild, endChild);
       }
     } else {

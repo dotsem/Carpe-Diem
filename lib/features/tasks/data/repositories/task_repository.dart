@@ -318,10 +318,9 @@ class TaskRepository extends ITaskRepository {
         where: 'id = ?',
         whereArgs: [task.id],
       )).firstOrNull;
+      if (oldRow == null) return;
       await txn.update('tasks', map, where: 'id = ?', whereArgs: [task.id]);
-      if (oldRow != null) {
-        await TaskEventLogger.logUpdate(txn, task.id, oldRow, map);
-      }
+      await TaskEventLogger.logUpdate(txn, task.id, oldRow, map);
 
       await txn.delete(
         'task_labels',

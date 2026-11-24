@@ -43,7 +43,7 @@ Another great way to contribute is by suggesting improvements to the project, e.
    followed. Here are some questions to consider:
    1. Will more users of the project benefit from this idea or only yourself?
    2. What problem does your idea solve?
-   3. Why is your suggestion better than what already exists in the code?
+   3. why is your suggestion better than what already exists in the code?
    4. Is it really worth taking time to implement your idea within
       our priorities?
 
