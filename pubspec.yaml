@@ -7,6 +7,9 @@ environment:
   sdk: ^3.10.4 # This is the dart SDK version, not the Flutter version
   flutter: 3.47.1
 
+workspace:
+  - packages/dotmaterial
+
 dependencies:
   flutter:
     sdk: flutter
@@ -21,7 +24,7 @@ dependencies:
   intl: ^0.20.2
   uuid: ^4.5.1
   google_fonts: ^6.2.1
-  fuzzy: ^0.5.1
+  dotmaterial: ^0.0.0
   toastification: ^3.2.2
   window_manager: ^0.5.2
   very_good_analysis: ^11.0.0

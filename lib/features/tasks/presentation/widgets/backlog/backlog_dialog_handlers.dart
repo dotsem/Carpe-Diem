@@ -13,8 +13,7 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_tasks_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_card.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

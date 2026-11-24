@@ -7,7 +7,7 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/blocker_picker.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

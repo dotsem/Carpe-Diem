@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/progress_border_painter.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 

@@ -1,0 +1,28 @@
+name: dotmaterial CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["packages/dotmaterial/**", "pubspec.lock", ".github/workflows/dotmaterial.yml"]
+  pull_request:
+    branches: ["**"]
+    paths: ["packages/dotmaterial/**", "pubspec.lock", ".github/workflows/dotmaterial.yml"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  ci:
+    uses: dotactions/flutter/.github/workflows/ci.yml@0c1be7aed443c07e2ca95b7de7e15279b9a33440 # v0.4.0
+    with:
+      working-directory: packages/dotmaterial
+      targets: "[]"
+      # why: coverage-action's comment-key is fixed to "flutter", so this would overwrite the app's coverage comment
+      coverage-report: false

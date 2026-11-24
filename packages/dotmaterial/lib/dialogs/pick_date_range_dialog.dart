@@ -1,5 +1,5 @@
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
-import 'package:carpe_diem/flutter_ext/range_date_picker.dart';
+import 'package:dotmaterial/dialogs/sized_dialog.dart';
+import 'package:dotmaterial/src/range_date_picker.dart';
 import 'package:flutter/material.dart';
 
 class PickDateRangeDialog extends StatefulWidget {

@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 
-export 'package:carpe_diem/flutter_ext/keyboard.dart'
-    show isControlOrMetaPressed;
+export 'package:dotmaterial/dotmaterial.dart' show isControlOrMetaPressed;
 
 // Navigation Screens
 abstract class TodayKeys {

@@ -3,7 +3,7 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_card_placeholder.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_drag_proxy.dart';
-import 'package:carpe_diem/flutter_ext/platform_draggable.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 
 class ProjectGridSection extends StatefulWidget {

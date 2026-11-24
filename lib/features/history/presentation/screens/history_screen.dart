@@ -14,7 +14,7 @@ import 'package:carpe_diem/features/history/presentation/screens/widgets/date_ra
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_history_provider.dart';
-import 'package:carpe_diem/flutter_ext/horizontal_tab.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

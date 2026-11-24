@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:carpe_diem/flutter_ext/dialogs/pick_date_range_dialog.dart';
-import 'package:carpe_diem/flutter_ext/range_date_picker.dart';
+import 'package:dotmaterial/dotmaterial.dart';
+import 'package:dotmaterial/src/range_date_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

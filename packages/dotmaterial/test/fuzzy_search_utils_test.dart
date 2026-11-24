@@ -1,4 +1,4 @@
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

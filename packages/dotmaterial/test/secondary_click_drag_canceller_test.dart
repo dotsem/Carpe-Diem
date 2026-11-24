@@ -1,4 +1,4 @@
-import 'package:carpe_diem/flutter_ext/secondary_click_drag_canceller.dart';
+import 'package:dotmaterial/src/secondary_click_drag_canceller.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 

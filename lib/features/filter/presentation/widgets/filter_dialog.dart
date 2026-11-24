@@ -5,7 +5,7 @@ import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_pic
 import 'package:carpe_diem/features/filter/presentation/widgets/project_filter_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/tag_filter_picker.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

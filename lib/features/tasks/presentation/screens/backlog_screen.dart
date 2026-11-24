@@ -16,7 +16,7 @@ import 'package:carpe_diem/features/tasks/presentation/shortcuts/backlog_shortcu
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_dialog_handlers.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_label_tab_bar.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_list.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_bar.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

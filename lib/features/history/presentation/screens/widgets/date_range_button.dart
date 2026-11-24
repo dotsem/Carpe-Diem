@@ -1,6 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/history/presentation/providers/first_completed_task_date_provider.dart';
-import 'package:carpe_diem/flutter_ext/dialogs/pick_date_range_dialog.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

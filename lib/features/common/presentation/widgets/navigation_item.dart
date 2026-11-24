@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
-import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 
 class NavigationItem extends StatelessWidget {

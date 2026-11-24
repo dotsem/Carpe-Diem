@@ -1,10 +1,11 @@
 import 'dart:async';
+
 import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/command_palette/models/palette_command.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
 import 'package:carpe_diem/routes/keys.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

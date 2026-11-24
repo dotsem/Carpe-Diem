@@ -5,9 +5,7 @@ import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_hierarchy_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
-import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
-import 'package:carpe_diem/flutter_ext/split_button_half.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,5 +1,5 @@
 import 'package:carpe_diem/core/toast/cheesy_toast.dart';
-import 'package:carpe_diem/flutter_ext/progress_border_painter.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

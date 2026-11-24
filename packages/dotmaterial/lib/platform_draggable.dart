@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:carpe_diem/flutter_ext/secondary_click_drag_canceller.dart';
+import 'package:dotmaterial/src/secondary_click_drag_canceller.dart';
 import 'package:flutter/material.dart';
 
 class PlatformDraggable<T extends Object> extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/searchable_dropdown.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 
 class ProjectPicker extends StatelessWidget {

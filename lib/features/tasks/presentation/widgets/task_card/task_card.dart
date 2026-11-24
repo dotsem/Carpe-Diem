@@ -6,7 +6,7 @@ import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.d
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/base_task_card.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_status_indicator.dart';
-import 'package:carpe_diem/flutter_ext/progress_border_painter.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
