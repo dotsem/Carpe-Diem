@@ -85,6 +85,33 @@ void main() {
       expect(outsideAfter.isBetween(start, end), isFalse);
     });
 
+    test(
+      'null-safe day comparisons, today and tomorrow checks, and fractional days',
+      () {
+        final now = DateTime.now();
+        expect(todayIsEndOfWorkWeek(), isA<bool>());
+        expect(now.startOfNextWeek(DateTime.monday), now.next(DateTime.monday));
+        expect(DateTime(2026, 6).isStartOfWeek(DateTime.monday), isTrue);
+        expect(now.isSameDay(null), isFalse);
+        expect(now.isBeforeDay(null), isFalse);
+        expect(now.isAfterDay(null), isFalse);
+        expect(now.isToday, isTrue);
+        expect(now.add(const Duration(days: 1)).isTomorrow, isTrue);
+        expect(now.daysFromToday, 0);
+        expect(
+          DateTime(
+            2026,
+            1,
+            1,
+            12,
+          ).fractionalDaysUntil(DateTime(2026, 1, 2, 18)),
+          1.25,
+        );
+        expect(DateTime(2026, 1, 2).fractionalDaysUntil(DateTime(2026)), 0);
+        expect(DateTime(2026, 1, 2, 12).normalize, DateTime(2026, 1, 2));
+      },
+    );
+
     group('daysUntil', () {
       test('counts calendar days across spring-forward dst', () {
         expect(DateTime(2026, 3, 28).daysUntil(DateTime(2026, 3, 30)), 2);

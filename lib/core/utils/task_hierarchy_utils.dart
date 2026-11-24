@@ -64,7 +64,8 @@ class TaskHierarchyUtils {
     void emit(String taskId, int depth) {
       if (!emitted.add(taskId)) return;
       final task = taskMap[taskId];
-      if (task == null) return;
+      // why: emit receives only IDs sourced from taskMap or childrenOf.
+      if (task == null) return; // coverage:ignore-line
 
       final isBundledUnderParent =
           task.parentId != null && taskMap.containsKey(task.parentId);

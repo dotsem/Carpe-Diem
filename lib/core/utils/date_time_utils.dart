@@ -69,7 +69,7 @@ extension DateTimeExtension on DateTime {
   bool get isToday => isSameDay(DateTime.now());
 
   /// Calendar days from this date to [other], ignoring time of day.
-  // Why: utc avoids 23h/25h dst days truncating `inDays` on local midnights.
+  // why: utc avoids 23h/25h dst days truncating `inDays` on local midnights.
   int daysUntil(DateTime other) => DateTime.utc(
     other.year,
     other.month,
@@ -77,7 +77,7 @@ extension DateTimeExtension on DateTime {
   ).difference(DateTime.utc(year, month, day)).inDays;
 
   /// Wall-clock days from this moment to [other], never negative. Keeps time of day.
-  // Why: utc fields ignore the dst offset, so the same time tomorrow is exactly 1 day.
+  // why: utc fields ignore the dst offset, so the same time tomorrow is exactly 1 day.
   double fractionalDaysUntil(DateTime other) {
     final from = DateTime.utc(year, month, day, hour, minute);
     final to = DateTime.utc(

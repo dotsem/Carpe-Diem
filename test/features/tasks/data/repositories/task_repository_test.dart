@@ -254,5 +254,136 @@ void main() {
       final emptySubtasks = await repository.getByParent('non-existent');
       expect(emptySubtasks, isEmpty);
     });
+
+    test('nulls invalid foreign references on insert and update', () async {
+      await repository.insert(
+        Task(
+          id: 'invalid',
+          title: 'Invalid references',
+          projectId: 'missing-project',
+          blockedById: 'missing-blocker',
+          parentId: 'missing-parent',
+          createdAt: DateTime(2026),
+        ),
+      );
+
+      var fetched = await repository.getById('invalid');
+      expect(fetched!.projectId, isNull);
+      expect(fetched.blockedById, isNull);
+      expect(fetched.parentId, isNull);
+
+      await repository.update(
+        fetched.copyWith(
+          projectId: 'still-missing',
+          blockedById: 'still-missing',
+          parentId: 'invalid',
+        ),
+      );
+      fetched = await repository.getById('invalid');
+      expect(fetched!.projectId, isNull);
+      expect(fetched.blockedById, isNull);
+      expect(fetched.parentId, isNull);
+    });
+
+    test('queries by project, project backlog, and inherited label', () async {
+      await db.insert('projects', {
+        'id': 'project',
+        'name': 'Project',
+        'color': 0,
+        'createdAt': DateTime(2026).toIso8601String(),
+      });
+      await db.insert('labels', {'id': 'label', 'name': 'Label', 'color': 0});
+      await db.insert('tags', {'id': 'tag', 'name': 'Tag'});
+      await db.insert('project_labels', {
+        'projectId': 'project',
+        'labelId': 'label',
+      });
+
+      await repository.insert(
+        Task(
+          id: 'backlog',
+          title: 'Backlog',
+          projectId: 'project',
+          labelIds: const ['label', 'missing-label'],
+          tagIds: const ['tag', 'missing-tag'],
+          createdAt: DateTime(2026),
+        ),
+      );
+      await repository.insert(
+        Task(
+          id: 'scheduled',
+          title: 'Scheduled',
+          projectId: 'project',
+          scheduledDate: DateTime(2026, 2),
+          createdAt: DateTime(2026),
+        ),
+      );
+      await repository.insert(
+        Task(id: 'other', title: 'Other', createdAt: DateTime(2026)),
+      );
+
+      expect(
+        (await repository.getByProject('project')).map((task) => task.id),
+        containsAll(['backlog', 'scheduled']),
+      );
+      expect(
+        (await repository.getByProjectUnscheduled('project')).single.id,
+        'backlog',
+      );
+      expect(
+        (await repository.getByLabel('label')).map((task) => task.id),
+        containsAll(['backlog', 'scheduled']),
+      );
+      final all = await repository.getAll(prioritizeDeadlines: false);
+      final backlog = all.singleWhere((task) => task.id == 'backlog');
+      expect(backlog.labelIds, ['label']);
+      expect(backlog.tagIds, ['tag']);
+    });
+
+    test('updates valid labels and handles a missing update target', () async {
+      await db.insert('labels', {'id': 'label', 'name': 'Label', 'color': 0});
+      final task = Task(id: 'task', title: 'Task', createdAt: DateTime(2026));
+      await repository.insert(task);
+      await repository.update(task.copyWith(labelIds: const ['label']));
+
+      expect((await repository.getById('task'))!.labelIds, ['label']);
+      await repository.update(
+        Task(
+          id: 'missing',
+          title: 'Missing',
+          labelIds: const ['label'],
+          createdAt: DateTime(2026),
+        ),
+      );
+      expect(await repository.getById('missing'), isNull);
+    });
+
+    test('can prioritize overdue tasks', () async {
+      await repository.insert(
+        Task(
+          id: 'overdue',
+          title: 'Overdue',
+          scheduledDate: DateTime(2020),
+          createdAt: DateTime(2026),
+        ),
+      );
+      await repository.insert(
+        Task(id: 'current', title: 'Current', createdAt: DateTime(2026)),
+      );
+
+      final result = await repository.getAll(prioritizeOverdue: true);
+
+      expect(result.first.id, 'overdue');
+    });
+
+    test('deletes a task', () async {
+      await repository.insert(
+        Task(id: 'delete-me', title: 'Delete me', createdAt: DateTime(2026)),
+      );
+
+      await repository.delete('delete-me');
+
+      expect(await repository.getById('delete-me'), isNull);
+    });
   });
 }

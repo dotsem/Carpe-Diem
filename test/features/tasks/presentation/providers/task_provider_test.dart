@@ -2,6 +2,7 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -97,6 +98,18 @@ void main() {
       ).called(1);
     });
 
+    test('getters and a missing task update are safe', () async {
+      when(() => mockTaskRepo.getById('missing')).thenAnswer((_) async => null);
+      final notifier = container.read(taskProvider.notifier);
+
+      expect(notifier.tasksState.tasks, isEmpty);
+      expect(notifier.settings, isA<SettingsState>());
+      expect(notifier.projectRepo, same(repos.mockProjectRepo));
+      await notifier.updateTask(createTestTask(id: 'missing'));
+
+      verifyNever(() => mockTaskRepo.update(any()));
+    });
+
     test('deleteTask deletes task from repository', () async {
       final task = createTestTask();
       when(() => mockTaskRepo.delete('t1')).thenAnswer((_) async => {});
@@ -121,6 +134,27 @@ void main() {
               (t) => t.sortOrder,
               'sortOrder',
               '0|i00010:',
+            ),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('reorderTask can update plan sort order', () async {
+      final task = createTestTask();
+      when(() => mockTaskRepo.update(any())).thenAnswer((_) async {});
+
+      await container
+          .read(taskProvider.notifier)
+          .reorderTask(task, 'plan', isPlanOrder: true);
+
+      verify(
+        () => mockTaskRepo.update(
+          any(
+            that: isA<Task>().having(
+              (t) => t.planSortOrder,
+              'planSortOrder',
+              'plan',
             ),
           ),
         ),
@@ -316,6 +350,96 @@ void main() {
           prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
         ),
       ).called(1);
+    });
+
+    test('toggleComplete cancels an already pending completion', () async {
+      final task = createTestTask(status: TaskStatus.inProgress);
+      final notifier = container.read(taskProvider.notifier);
+      container
+          .read(taskTimerProvider.notifier)
+          .startPending(task.id, 30, () async {});
+
+      await notifier.toggleComplete(task, useTimer: true);
+
+      expect(
+        container.read(taskTimerProvider.notifier).isTaskPending(task.id),
+        isFalse,
+      );
+    });
+
+    test(
+      'exposes all nested subtasks and completes a parent directly',
+      () async {
+        final parent = createTestTask(id: 'parent');
+        final child = createTestTask(id: 'child', parentId: 'parent');
+        final grandchild = createTestTask(id: 'grand', parentId: 'child');
+        when(
+          () => mockTaskRepo.getByDate(
+            any(),
+            prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+            prioritizeOverdue: any(named: 'prioritizeOverdue'),
+          ),
+        ).thenAnswer((_) async => [parent, child, grandchild]);
+        when(() => mockTaskRepo.getOverdue(any())).thenAnswer((_) async => []);
+        when(
+          () => mockTaskRepo.getById('parent'),
+        ).thenAnswer((_) async => parent);
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async {});
+        final notifier = container.read(taskProvider.notifier);
+        await notifier.loadTasksForDate(DateTime(2026));
+
+        expect(notifier.getAllSubtasks('parent').map((t) => t.id), [
+          'child',
+          'grand',
+        ]);
+        await notifier.completeParentOnly(parent);
+        verify(() => mockTaskRepo.update(any())).called(1);
+      },
+    );
+
+    test(
+      'toggleComplete with a timer holds the completion until it fires',
+      () async {
+        final task = createTestTask(status: TaskStatus.inProgress);
+        when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+        final notifier = container.read(taskProvider.notifier);
+        final timer = container.read(taskTimerProvider.notifier);
+
+        await notifier.toggleComplete(task, useTimer: true);
+
+        expect(timer.isTaskPending(task.id), isTrue);
+        verifyNever(() => mockTaskRepo.update(any()));
+
+        await notifier.toggleComplete(task);
+        expect(timer.isTaskPending(task.id), isFalse);
+      },
+    );
+
+    test('toggleComplete completes the task once the timer fires', () async {
+      final task = createTestTask(status: TaskStatus.inProgress);
+      when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+      await container.read(settingsProvider.notifier).setTaskCompletionDelay(0);
+
+      await container
+          .read(taskProvider.notifier)
+          .toggleComplete(task, useTimer: true);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      verify(
+        () => mockTaskRepo.update(
+          any(
+            that: isA<Task>().having(
+              (t) => t.status,
+              'status',
+              TaskStatus.done,
+            ),
+          ),
+        ),
+      ).called(1);
+      expect(
+        container.read(taskTimerProvider.notifier).isTaskPending(task.id),
+        isFalse,
+      );
     });
   });
 }

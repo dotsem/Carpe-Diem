@@ -5,7 +5,7 @@ There's one PR per step. Each step ends with `dart format .`, `flutter analyze`,
 ## 1. Groundwork
 
 - Delete `lib/core/utils/task_reorder_utils.dart`, `lib/core/theme/responsive_provider.dart` and `lib/features/common/data/database/migration_runner.dart`.
-- Exclusion probe: add `// coverage:ignore-file` to `lib/core/theme/app_theme.dart`, plus one `ignore-line` and one `ignore-start`/`ignore-end` block in `lib/core/utils/focus_utils.dart` (on the `Platform.*` branches). Check that the excluded lines are gone from `lcov.info`.
+- Exclusion probe: add `// coverage:ignore-file` to `lib/core/theme/app_theme.dart`, one `ignore-line` in `lib/core/utils/task_hierarchy_utils.dart` and one `ignore-start`/`ignore-end` block in `lib/features/common/data/database/database_helper.dart` (the `getApplicationDocumentsDirectory` branch). Check that the excluded lines are gone from `lcov.info`.
 
 ## 2. Routes (32)
 
@@ -43,7 +43,7 @@ If this PR grows past roughly 1500 lines of tests, split it by feature.
 
 - `reorder/lexorank.dart` (21): the multi-character keys from `_encodeInteger` (`b`/`c`/`Y`/`X`) and the edges of `generateBetween`. Add a property-style check that thousands of consecutive keys stay strictly ordered.
 - `toast/cheesy_toast.dart` (22), `toast/toast_utils.dart` (17, 0%)
-- `utils/focus_utils.dart` (27, 0%), after the step 1 exclusions
+- `utils/focus_utils.dart` (27, 0%)
 - `utils/task_selection_utils.dart` (13)
 - `undo_redo/undo_redo_provider.dart` (10)
 - `theme/app_breakpoints.dart` (9)

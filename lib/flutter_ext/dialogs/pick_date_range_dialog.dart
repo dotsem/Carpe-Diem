@@ -48,19 +48,11 @@ class _PickDateRangeDialogState extends State<PickDateRangeDialog> {
               child: Row(
                 children: [
                   Expanded(
-                    child: _DateTab(
-                      label: 'START',
-                      date: _startDate,
-                      isSelected: true,
-                    ),
+                    child: _DateTab(label: 'START', date: _startDate),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _DateTab(
-                      label: 'END',
-                      date: _endDate,
-                      isSelected: true,
-                    ),
+                    child: _DateTab(label: 'END', date: _endDate),
                   ),
                 ],
               ),
@@ -91,13 +83,8 @@ class _PickDateRangeDialogState extends State<PickDateRangeDialog> {
 class _DateTab extends StatelessWidget {
   final String label;
   final DateTime date;
-  final bool isSelected;
 
-  const _DateTab({
-    required this.label,
-    required this.date,
-    required this.isSelected,
-  });
+  const _DateTab({required this.label, required this.date});
 
   @override
   Widget build(BuildContext context) {
@@ -105,15 +92,11 @@ class _DateTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Colors.transparent,
+          color: Theme.of(context).colorScheme.primary,
           width: 2,
         ),
         borderRadius: BorderRadius.circular(8),
-        color: isSelected
-            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-            : Theme.of(context).colorScheme.surfaceContainerHigh,
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,9 +106,7 @@ class _DateTab extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(height: 4),
@@ -133,10 +114,8 @@ class _DateTab extends StatelessWidget {
             '${date.day}/${date.month}/${date.year}',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.onSurface
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],

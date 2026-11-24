@@ -233,5 +233,43 @@ void main() {
         expect(captured[1].sortOrder, equals('a7'));
       },
     );
+
+    test('bulkUpdateTasks inherits the deadline of the new project', () async {
+      final projectDeadline = DateTime(2026, 12, 24);
+      final project = Project(
+        id: 'proj1',
+        name: 'Project',
+        color: Colors.blue,
+        deadline: projectDeadline,
+        createdAt: DateTime(2026),
+      );
+      final task = createTestTask();
+      when(() => mockTaskRepo.getById('t1')).thenAnswer((_) async => task);
+      when(() => mockTaskRepo.update(any())).thenAnswer((_) async => {});
+      when(
+        () => mockProjectRepo.getById('proj1'),
+      ).thenAnswer((_) async => project);
+      await container
+          .read(settingsProvider.notifier)
+          .setInheritProjectDeadline(true);
+
+      await container
+          .read(taskProvider.notifier)
+          .bulkUpdateTasks(
+            taskIds: ['t1'],
+            updateProjectId: true,
+            projectId: 'proj1',
+          );
+
+      verify(
+        () => mockTaskRepo.update(
+          any(
+            that: isA<Task>()
+                .having((t) => t.projectId, 'projectId', 'proj1')
+                .having((t) => t.deadline, 'deadline', projectDeadline),
+          ),
+        ),
+      ).called(1);
+    });
   });
 }

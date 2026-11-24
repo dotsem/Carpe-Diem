@@ -118,6 +118,24 @@ void main() {
       expect(result[1].depth, 1);
     });
 
+    test('parent container falls back to visible child count', () {
+      final parent = Task(id: 'parent', title: 'Parent', createdAt: now);
+      final child = Task(
+        id: 'child',
+        title: 'Child',
+        parentId: 'parent',
+        createdAt: now,
+      );
+
+      final result = TaskHierarchyUtils.buildHierarchy(
+        [parent, child],
+        allTasks: const {},
+        asParentContainers: true,
+      );
+
+      expect((result.first as ParentContainerNode).totalSubtasks, 1);
+    });
+
     test(
       'buildHierarchy renders subtask at depth 0 when parent is not present in category',
       () {

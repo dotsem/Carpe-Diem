@@ -54,5 +54,12 @@ void main() {
       expect(all['theme'], equals('dark'));
       expect(all['compact'], equals('true'));
     });
+
+    test('deletes a setting', () async {
+      await repository.set('remove', 'value');
+      await repository.delete('remove');
+
+      expect(await repository.get('remove'), isNull);
+    });
   });
 }

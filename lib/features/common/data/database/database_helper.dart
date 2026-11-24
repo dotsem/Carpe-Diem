@@ -35,8 +35,12 @@ class DatabaseHelper {
     if (dbPath.isNotEmpty) {
       path = dbPath;
     } else {
+      // why: path_provider's application directory requires a platform host;
+      // repository tests pass an explicit in-memory path.
+      // coverage:ignore-start
       final dir = await getApplicationDocumentsDirectory();
       path = join(dir.path, AppConstants.dbName);
+      // coverage:ignore-end
     }
 
     return await openDatabase(

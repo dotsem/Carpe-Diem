@@ -131,6 +131,17 @@ void main() {
         expect(state.labelId, 'l1');
       });
 
+      test('loadLastActiveTab uses all when nothing was stored', () async {
+        await container
+            .read(backlogLabelTabProvider.notifier)
+            .loadLastActiveTab();
+
+        expect(
+          container.read(backlogLabelTabProvider).scope,
+          BacklogLabelTabScope.all,
+        );
+      });
+
       test(
         'loadLastActiveTab falls back to all when label id is invalid',
         () async {
@@ -164,6 +175,19 @@ void main() {
         ).called(greaterThanOrEqualTo(1));
       });
 
+      test('removing every label resets a non-all tab', () async {
+        await container.read(labelProvider.notifier).loadLabels();
+        container.read(backlogLabelTabProvider.notifier).selectInbox();
+        when(() => mockLabelRepo.getAll()).thenAnswer((_) async => []);
+
+        await container.read(labelProvider.notifier).loadLabels();
+
+        expect(
+          container.read(backlogLabelTabProvider).scope,
+          BacklogLabelTabScope.all,
+        );
+      });
+
       test(
         'excluding active label in filter resets state to all and persists',
         () async {
@@ -181,6 +205,40 @@ void main() {
           ).called(greaterThanOrEqualTo(1));
         },
       );
+
+      test('incompatible included labels reset label and inbox tabs', () async {
+        await container.read(labelProvider.notifier).loadLabels();
+        final notifier = container.read(backlogLabelTabProvider.notifier);
+        notifier.selectLabel('l1');
+        container
+            .read(filterProvider.notifier)
+            .setFilter(const TaskFilter(labelIdsIncluded: {'l2'}));
+        expect(
+          container.read(backlogLabelTabProvider).scope,
+          BacklogLabelTabScope.all,
+        );
+
+        notifier.selectInbox();
+        container
+            .read(filterProvider.notifier)
+            .setFilter(const TaskFilter(labelIdsIncluded: {'l1'}));
+        expect(
+          container.read(backlogLabelTabProvider).scope,
+          BacklogLabelTabScope.all,
+        );
+      });
+
+      test('persistence failures do not revert tab selection', () async {
+        when(() => mockRepo.set(any(), any())).thenThrow(StateError('write'));
+
+        container.read(backlogLabelTabProvider.notifier).selectInbox();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          container.read(backlogLabelTabProvider).scope,
+          BacklogLabelTabScope.inbox,
+        );
+      });
 
       test(
         'nextTab cycles forward through all -> l1 -> l2 -> inbox -> all',
@@ -249,6 +307,18 @@ void main() {
           );
         },
       );
+
+      test('nextTab only visits labels included by the filter', () async {
+        await container.read(labelProvider.notifier).loadLabels();
+        container
+            .read(filterProvider.notifier)
+            .setFilter(const TaskFilter(labelIdsIncluded: {'l2'}));
+        final notifier = container.read(backlogLabelTabProvider.notifier);
+
+        notifier.nextTab();
+
+        expect(container.read(backlogLabelTabProvider).labelId, 'l2');
+      });
 
       test('nextTab skips labels excluded by filter', () async {
         await container.read(labelProvider.notifier).loadLabels();

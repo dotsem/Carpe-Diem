@@ -82,6 +82,20 @@ void main() {
       expect(limitPriorityOnly.tagIdsExcluded, isEmpty);
     });
 
+    test('limitTo keeps every constraint by default', () {
+      const filter = TaskFilter(
+        isUrgent: true,
+        projectIdsIncluded: {'p1'},
+        labelIdsIncluded: {'l1'},
+        tagIdsIncluded: {'t1'},
+        projectIdsExcluded: {'p2'},
+        labelIdsExcluded: {'l2'},
+        tagIdsExcluded: {'t2'},
+      );
+
+      expect(filter.limitTo(), filter);
+    });
+
     test('toMap and fromMap serialize tag filters correctly', () {
       const filter = TaskFilter(
         isUrgent: true,

@@ -104,6 +104,19 @@ void main() {
       });
     });
 
+    group('buildNewTask deadlines', () {
+      test('strips the time of day from the deadline', () async {
+        final task = await TaskCrudService.buildNewTask(
+          repo: mockRepo,
+          settings: defaultSettings,
+          title: 'Dated',
+          deadline: DateTime(2026, 3, 5, 14, 30),
+        );
+
+        expect(task.deadline, DateTime(2026, 3, 5));
+      });
+    });
+
     group('resolveUpdatedTask', () {
       test('returns unchanged task when placement is null', () async {
         final task = createTestTask(title: 'Task 1');

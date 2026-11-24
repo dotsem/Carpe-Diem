@@ -224,6 +224,13 @@ void main() {
 
         expect(container.read(parentCompletionPromptProvider)?.id, 'p1');
       });
+
+      test('clear dismisses the pending parent prompt', () async {
+        await container.read(taskProvider.notifier).completeTask(sub2);
+        container.read(parentCompletionPromptProvider.notifier).clear();
+
+        expect(container.read(parentCompletionPromptProvider), isNull);
+      });
     });
 
     test(

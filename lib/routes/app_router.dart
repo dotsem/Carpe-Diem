@@ -10,6 +10,23 @@ import 'package:carpe_diem/routes/keys.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+Section? parseSettingsSection(Uri uri, Object? extra) {
+  final sectionParam = uri.queryParameters['section'];
+  if (sectionParam == 'filtering' || sectionParam == 'modes') {
+    return Section.filteringAndModes;
+  }
+  if (sectionParam != null) {
+    for (final section in Section.values) {
+      if (section.name == sectionParam) return section;
+    }
+    return null;
+  }
+  return extra is Section ? extra : null;
+}
+
+// why: declarative route builders are verified through findMatch without
+// constructing screens and their repository graphs.
+// coverage:ignore-start
 final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/',
@@ -50,22 +67,7 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/settings',
           pageBuilder: (context, state) {
-            final sectionParam = state.uri.queryParameters['section'];
-            Section? section;
-            if (sectionParam != null) {
-              if (sectionParam == 'filtering' || sectionParam == 'modes') {
-                section = Section.filteringAndModes;
-              } else {
-                for (final s in Section.values) {
-                  if (s.name == sectionParam) {
-                    section = s;
-                    break;
-                  }
-                }
-              }
-            } else if (state.extra is Section) {
-              section = state.extra! as Section;
-            }
+            final section = parseSettingsSection(state.uri, state.extra);
             return NoTransitionPage(
               child: SettingsScreen(
                 key: ValueKey(section),
@@ -78,3 +80,4 @@ final appRouter = GoRouter(
     ),
   ],
 );
+// coverage:ignore-end

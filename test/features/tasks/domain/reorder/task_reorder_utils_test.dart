@@ -5,9 +5,14 @@ import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockTaskNotifier extends Mock implements TaskNotifier {}
 
 void main() {
+  setUpAll(() => registerFallbackValue(<String, String>{}));
   group('core', () {
     final now = DateTime.now();
     const settings = SettingsState({});
@@ -266,5 +271,96 @@ void main() {
       expect(topRank, equals('a0'));
       expect(bottomRank, equals('a0'));
     });
+
+    test('getTaskPosition can group without settings', () {
+      final first = t('first', 'First', sortOrder: 'a0');
+      final last = t('last', 'Last', sortOrder: 'a1');
+
+      final position = TaskReorderUtils.getTaskPosition(
+        task: last,
+        tasks: [first, last],
+      );
+
+      expect(position.indexInList, 1);
+      expect(position.isLastInGroup, isTrue);
+    });
+
+    test('moveToTop and moveToBottom reorder within the same group', () {
+      final notifier = MockTaskNotifier();
+      final first = t('first', 'First', sortOrder: 'a0');
+      final middle = t('middle', 'Middle', sortOrder: 'a1');
+      final last = t('last', 'Last', sortOrder: 'a2');
+      when(
+        () => notifier.reorderTask(
+          middle,
+          any(),
+          isPlanOrder: any(named: 'isPlanOrder'),
+        ),
+      ).thenAnswer((_) async {});
+
+      TaskReorderUtils.moveToTop(notifier, middle, [
+        first,
+        middle,
+        last,
+      ], settings);
+      final topRank =
+          verify(
+                () => notifier.reorderTask(middle, captureAny()),
+              ).captured.single
+              as String;
+      expect(topRank.compareTo(first.sortOrder), lessThan(0));
+
+      TaskReorderUtils.moveToBottom(
+        notifier,
+        middle,
+        [first, middle, last],
+        settings,
+        isPlanView: true,
+      );
+      final bottomRank =
+          verify(
+                () => notifier.reorderTask(
+                  middle,
+                  captureAny(),
+                  isPlanOrder: true,
+                ),
+              ).captured.single
+              as String;
+      expect(bottomRank.compareTo(last.sortOrder), greaterThan(0));
+    });
+
+    test('moveToTop and moveToBottom do nothing at an existing edge', () {
+      final notifier = MockTaskNotifier();
+      final first = t('first', 'First', sortOrder: 'a0');
+      final last = t('last', 'Last', sortOrder: 'a1');
+
+      TaskReorderUtils.moveToTop(notifier, first, [first, last], settings);
+      TaskReorderUtils.moveToBottom(notifier, last, [first, last], settings);
+
+      verifyNoMoreInteractions(notifier);
+    });
+
+    test(
+      'dispatches multi reorder through a notifier when no callback is supplied',
+      () {
+        final notifier = MockTaskNotifier();
+        final first = t('first', 'First', sortOrder: 'a0');
+        final middle = t('middle', 'Middle', sortOrder: 'a1');
+        final last = t('last', 'Last', sortOrder: 'a2');
+        when(() => notifier.bulkReorderTasks(any())).thenAnswer((_) async {});
+
+        final result = TaskReorderUtils.dispatchReorder(
+          nodes: [TaskNode(first, 0), TaskNode(middle, 0), TaskNode(last, 0)],
+          draggedTask: middle,
+          newIndex: 0,
+          settings: settings,
+          selectedTaskIds: const {'middle', 'last'},
+          notifier: notifier,
+        );
+
+        expect(result, isTrue);
+        verify(() => notifier.bulkReorderTasks(any())).called(1);
+      },
+    );
   });
 }

@@ -1,3 +1,6 @@
+// coverage:ignore-file
+// why: this file is declarative theme configuration with no application logic.
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

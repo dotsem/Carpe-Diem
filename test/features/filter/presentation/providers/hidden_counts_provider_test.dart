@@ -31,6 +31,20 @@ void main() {
       when(() => mockSettingsRepo.getAll()).thenAnswer((_) async => {});
       when(() => mockProjectRepo.getAll()).thenAnswer((_) async => []);
       when(() => mockTaskRepo.getAll()).thenAnswer((_) async => []);
+      when(
+        () => mockTaskRepo.getByDate(
+          any(),
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          prioritizeOverdue: any(named: 'prioritizeOverdue'),
+        ),
+      ).thenAnswer((_) async => []);
+      when(() => mockTaskRepo.getOverdue(any())).thenAnswer((_) async => []);
+      when(
+        () => mockTaskRepo.getUnscheduled(
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          prioritizeOverdue: any(named: 'prioritizeOverdue'),
+        ),
+      ).thenAnswer((_) async => []);
 
       container = ProviderContainer(
         overrides: [
@@ -193,5 +207,79 @@ void main() {
         expect(container.read(hiddenUnscheduledTasksCountProvider), 0);
       },
     );
+
+    test(
+      'hides unscheduled tasks whose project carries an excluded label',
+      () async {
+        final project = Project(
+          id: 'p1',
+          name: 'Project',
+          color: Colors.blue,
+          labelIds: const ['project-label'],
+          createdAt: DateTime(2026),
+        );
+        final inherited = Task(
+          id: 'inherited',
+          title: 'Inherited',
+          projectId: 'p1',
+          createdAt: DateTime(2026),
+        );
+        final plain = Task(
+          id: 'plain',
+          title: 'Plain',
+          createdAt: DateTime(2026),
+        );
+        when(() => mockProjectRepo.getAll()).thenAnswer((_) async => [project]);
+        when(
+          () => mockTaskRepo.getUnscheduled(),
+        ).thenAnswer((_) async => [inherited, plain]);
+        await container.read(projectProvider.notifier).loadProjects();
+        await container.read(taskProvider.notifier).loadUnscheduledTasks();
+        container
+            .read(filterProvider.notifier)
+            .setFilter(const TaskFilter(labelIdsExcluded: {'project-label'}));
+
+        expect(container.read(hiddenUnscheduledTasksCountProvider), 1);
+      },
+    );
+
+    test('calculates hidden today tasks including inherited labels', () async {
+      final project = Project(
+        id: 'p1',
+        name: 'Project',
+        color: Colors.blue,
+        labelIds: const ['project-label'],
+        createdAt: DateTime(2026),
+      );
+      final task = Task(
+        id: 'task',
+        title: 'Task',
+        projectId: 'p1',
+        createdAt: DateTime(2026),
+      );
+      when(() => mockProjectRepo.getAll()).thenAnswer((_) async => [project]);
+      when(
+        () => mockTaskRepo.getByDate(
+          any(),
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          prioritizeOverdue: any(named: 'prioritizeOverdue'),
+        ),
+      ).thenAnswer((_) async => [task]);
+      await container.read(projectProvider.notifier).loadProjects();
+      await container
+          .read(taskProvider.notifier)
+          .loadTasksForDate(DateTime(2026));
+      container
+          .read(filterProvider.notifier)
+          .setFilter(const TaskFilter(labelIdsExcluded: {'project-label'}));
+
+      expect(container.read(hiddenTodayTasksCountProvider), 1);
+      container.read(filterProvider.notifier).toggleBypass();
+      expect(container.read(hiddenTodayTasksCountProvider), 0);
+    });
+
+    test('hidden today count is zero for an empty filter', () {
+      expect(container.read(hiddenTodayTasksCountProvider), 0);
+    });
   });
 }

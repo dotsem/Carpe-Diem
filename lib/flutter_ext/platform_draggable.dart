@@ -43,6 +43,8 @@ class PlatformDraggable<T extends Object> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (Platform.isIOS || Platform.isAndroid) {
+      // why: this mobile-only widget branch cannot execute on desktop CI.
+      // coverage:ignore-start
       return LongPressDraggable<T>(
         data: data,
         delay: delay ?? const Duration(milliseconds: 150),
@@ -55,6 +57,7 @@ class PlatformDraggable<T extends Object> extends StatelessWidget {
         rootOverlay: rootOverlay,
         child: child,
       );
+      // coverage:ignore-end
     }
 
     return Draggable<T>(

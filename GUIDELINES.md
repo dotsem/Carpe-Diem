@@ -12,7 +12,7 @@ This document defines the coding standards, architectural decisions, and practic
 - **Allowed Comments**:
   - Package/Library-level docstrings.
   - Standard Dartdoc documentation on public interfaces, classes, functions, and variables.
-  - High-level `// Why:` comments explaining non-obvious architecture or business constraints.
+  - High-level `// why:` comments explaining non-obvious architecture or business constraints.
   - Actionable `// TODO:` comments explaining future improvements, shortcuts taken, or technical debt to resolve.
 - **Style**: Keep short comments lowercase. Use capital letters only for multi-line contextual explanations.
 

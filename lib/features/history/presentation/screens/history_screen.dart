@@ -75,7 +75,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   Future<void> _loadData() async {
-    // Why: ref.invalidate listens to the scope, which throws when called from initState
+    // why: ref.invalidate listens to the scope, which throws when called from initState
     ProviderScope.containerOf(context, listen: false)
       ..invalidate(historyInsightsProvider)
       ..invalidate(activityProvider)

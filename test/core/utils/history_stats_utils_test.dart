@@ -152,6 +152,25 @@ void main() {
     test('returns null when nothing is tracked', () {
       expect(leadTimes([]), isNull);
     });
+
+    test('averages the two middle values for an even sample', () {
+      final stats = leadTimes([
+        (
+          projectId: 'a',
+          createdAt: DateTime(2026),
+          firstScheduledAt: DateTime(2026, 1, 2),
+          completedAt: DateTime(2026, 1, 4),
+        ),
+        (
+          projectId: 'b',
+          createdAt: DateTime(2026),
+          firstScheduledAt: DateTime(2026, 1, 4),
+          completedAt: DateTime(2026, 1, 8),
+        ),
+      ]);
+      expect(stats!.medianIncubationDays, 2);
+      expect(stats.medianExecutionDays, 3);
+    });
   });
 
   test('slipStats ignores tasks that never moved in the top list', () {

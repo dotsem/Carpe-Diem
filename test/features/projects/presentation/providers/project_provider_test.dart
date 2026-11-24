@@ -1,5 +1,9 @@
+import 'package:carpe_diem/core/undo_redo/undo_redo_provider.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
+import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/labels/data/models/label.dart';
+import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +66,36 @@ void main() {
         verify(() => mockRepo.getAll()).called(1);
       },
     );
+
+    test('state lookup/copy and missing update are safe', () async {
+      final project = Project(
+        id: 'p1',
+        name: 'Project',
+        color: Colors.blue,
+        createdAt: DateTime(2026),
+      );
+      final state = ProjectState(projects: [project]);
+      expect(state.copyWith().projects, [project]);
+      expect(state.getById('p1'), project);
+      when(() => mockRepo.getById('p1')).thenAnswer((_) async => null);
+
+      await container.read(projectProvider.notifier).updateProject(project);
+
+      verifyNever(() => mockRepo.update(any()));
+    });
+
+    test('undoing a project creation refreshes projects', () async {
+      when(() => mockRepo.insert(any())).thenAnswer((_) async {});
+      when(() => mockRepo.delete(any())).thenAnswer((_) async {});
+      when(() => mockRepo.getAll()).thenAnswer((_) async => []);
+
+      await container
+          .read(projectProvider.notifier)
+          .addProject(name: 'New', color: Colors.blue);
+      await container.read(undoRedoProvider.notifier).undo();
+
+      verify(() => mockRepo.getAll()).called(2);
+    });
 
     test('should add project, call insert, and trigger reload', () async {
       when(() => mockRepo.insert(any())).thenAnswer((_) async => {});
@@ -164,5 +198,75 @@ void main() {
         expect(result.first.id, equals('p1'));
       },
     );
+
+    test('reorders, finds, and resolves project labels', () async {
+      final project = Project(
+        id: 'p1',
+        name: 'Project',
+        color: Colors.blue,
+        createdAt: DateTime(2026),
+        sortOrder: 'a0',
+        labelIds: const ['label', 'missing'],
+      );
+      const label = Label(id: 'label', name: 'Label', color: Colors.red);
+      when(() => mockRepo.getAll()).thenAnswer((_) async => [project]);
+      when(() => mockRepo.getById('p1')).thenAnswer((_) async => project);
+      when(() => mockRepo.update(any())).thenAnswer((_) async {});
+      await container.read(projectProvider.notifier).loadProjects();
+      final notifier = container.read(projectProvider.notifier);
+
+      await notifier.reorderProject(project, 'a1');
+
+      expect(notifier.getById('p1'), project);
+      expect(notifier.getById('missing'), isNull);
+      expect(notifier.getLabels(project, const LabelState(labels: [label])), [
+        label,
+      ]);
+      verify(
+        () => mockRepo.update(
+          any(
+            that: isA<Project>().having((p) => p.sortOrder, 'sortOrder', 'a1'),
+          ),
+        ),
+      ).called(1);
+
+      await notifier.reorderProject(project, 'a0');
+      verifyNever(() => mockRepo.update(any()));
+    });
+
+    test('reorder safely stops when the persisted project is gone', () async {
+      final project = Project(
+        id: 'gone',
+        name: 'Gone',
+        color: Colors.blue,
+        createdAt: DateTime(2026),
+      );
+      when(() => mockRepo.getById('gone')).thenAnswer((_) async => null);
+
+      await container
+          .read(projectProvider.notifier)
+          .reorderProject(project, 'a1');
+
+      verifyNever(() => mockRepo.update(any()));
+    });
+
+    test('deletes a project and removes its active filter', () async {
+      final project = Project(
+        id: 'p1',
+        name: 'Project',
+        color: Colors.blue,
+        createdAt: DateTime(2026),
+      );
+      when(() => mockRepo.delete('p1')).thenAnswer((_) async {});
+      when(() => mockRepo.getAll()).thenAnswer((_) async => []);
+      container
+          .read(filterProvider.notifier)
+          .setFilter(const TaskFilter(projectIdsIncluded: {'p1'}));
+
+      await container.read(projectProvider.notifier).deleteProject(project);
+
+      verify(() => mockRepo.delete('p1')).called(1);
+      expect(container.read(filterProvider).filter.projectIdsIncluded, isEmpty);
+    });
   });
 }

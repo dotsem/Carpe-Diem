@@ -266,5 +266,66 @@ void main() {
         },
       );
     });
+
+    group('plan order and date lookups', () {
+      test(
+        'getRelevantTasksList loads the scheduled day without a parent',
+        () async {
+          final date = DateTime(2026, 5, 4);
+          when(
+            () => mockRepo.getByDate(
+              date,
+              prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+              prioritizeOverdue: any(named: 'prioritizeOverdue'),
+            ),
+          ).thenAnswer((_) async => [createTestTask()]);
+
+          final tasks = await TaskReorderService.getRelevantTasksList(
+            repo: mockRepo,
+            parentId: null,
+            projectId: null,
+            scheduledDate: date,
+            prioritizeDeadlines: true,
+            prioritizeOverdue: false,
+          );
+
+          expect(tasks.map((t) => t.id), ['t1']);
+        },
+      );
+
+      test(
+        'buildBulkReorderCommand writes planSortOrder for plan order',
+        () async {
+          final task = createTestTask().copyWith(sortOrder: 'keep');
+          when(() => mockRepo.getById('t1')).thenAnswer((_) async => task);
+
+          final cmd = await TaskReorderService.buildBulkReorderCommand(
+            repo: mockRepo,
+            updates: {'t1': 'plan'},
+            isPlanOrder: true,
+          );
+
+          final next = (cmd! as UpdateCommand<Task>).next;
+          expect(next.planSortOrder, 'plan');
+          expect(next.sortOrder, 'keep');
+        },
+      );
+
+      test('applyBulkOptimisticReorderList reorders by planSortOrder', () {
+        final first = createTestTask().copyWith(planSortOrder: 'a');
+        final second = createTestTask(id: 't2').copyWith(planSortOrder: 'b');
+
+        final result = TaskReorderService.applyBulkOptimisticReorderList(
+          list: [first, second],
+          updates: {'t1': 'c'},
+          prioritizeOverdue: false,
+          prioritizeDeadlines: false,
+          isPlanOrder: true,
+        );
+
+        expect(result.map((t) => t.id), ['t2', 't1']);
+        expect(result.last.sortOrder, first.sortOrder);
+      });
+    });
   });
 }

@@ -105,6 +105,41 @@ void main() {
       verify(() => mockRepo.getAll()).called(1);
     });
 
+    test(
+      'adds an icon, supports state lookup, and exposes notifier lookup',
+      () async {
+        when(() => mockRepo.insert(any())).thenAnswer((_) async {});
+        when(() => mockRepo.getAll()).thenAnswer((_) async => []);
+        final notifier = container.read(tagProvider.notifier);
+
+        final tag = await notifier.addTag('bug', icon: Icons.bug_report);
+
+        verify(
+          () => mockTagIconRepo.setIconDataForTag('bug', Icons.bug_report),
+        ).called(1);
+        expect(
+          const TagState(
+            tags: [Tag(id: 'id', name: 'Name')],
+          ).getById('id')?.name,
+          'Name',
+        );
+        expect(const TagState().getById(null), isNull);
+        expect(notifier.getById(null), isNull);
+        expect(notifier.getById(tag.id), isNull);
+      },
+    );
+
+    test('missing tags make update and delete no-ops', () async {
+      when(() => mockRepo.getById('missing')).thenAnswer((_) async => null);
+      final notifier = container.read(tagProvider.notifier);
+
+      await notifier.updateTag(const Tag(id: 'missing', name: 'Missing'));
+      await notifier.deleteTag('missing');
+
+      verifyNever(() => mockRepo.update(any()));
+      verifyNever(() => mockRepo.delete(any()));
+    });
+
     test('should update tag, call update, and trigger reload', () async {
       const tag = Tag(id: 't1', name: 'work');
       when(() => mockRepo.getById('t1')).thenAnswer((_) async => tag);

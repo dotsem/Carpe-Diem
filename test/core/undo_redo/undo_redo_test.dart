@@ -33,6 +33,7 @@ void main() {
       expect(state.redoStack, isEmpty);
       expect(state.isProcessing, isFalse);
       expect(state.lastOperationType, equals(UndoRedoOperationType.none));
+      expect(state.copyWith().canUndo, isFalse);
     });
 
     test('should execute command and update stack state', () async {
@@ -190,6 +191,44 @@ void main() {
         expect(state.undoStack, isEmpty);
       },
     );
+
+    test('jumpTo restores stacks when grouped undo fails', () async {
+      final first = MockCommand();
+      final second = MockCommand();
+      when(first.execute).thenAnswer((_) async {});
+      when(second.execute).thenAnswer((_) async {});
+      when(first.undo).thenAnswer((_) async {});
+      when(second.undo).thenThrow(StateError('undo'));
+      when(() => first.description).thenReturn('First');
+      when(() => second.description).thenReturn('Second');
+      await notifier.execute(first);
+      await notifier.execute(second);
+
+      await expectLater(notifier.jumpTo(first), throwsStateError);
+
+      expect(notifier.state.undoStack, [first, second]);
+      expect(notifier.state.redoStack, isEmpty);
+    });
+
+    test('jumpTo restores stacks when grouped redo fails', () async {
+      final first = MockCommand();
+      final second = MockCommand();
+      when(first.execute).thenAnswer((_) async {});
+      when(second.execute).thenAnswer((_) async {});
+      when(first.undo).thenAnswer((_) async {});
+      when(second.undo).thenAnswer((_) async {});
+      when(() => first.description).thenReturn('First');
+      when(() => second.description).thenReturn('Second');
+      await notifier.execute(first);
+      await notifier.execute(second);
+      await notifier.jumpTo(first);
+      when(second.execute).thenThrow(StateError('redo'));
+
+      await expectLater(notifier.jumpTo(second), throwsStateError);
+
+      expect(notifier.state.undoStack, [first]);
+      expect(notifier.state.redoStack, [second]);
+    });
 
     test(
       'should handle exception during undo and restore command to undoStack',

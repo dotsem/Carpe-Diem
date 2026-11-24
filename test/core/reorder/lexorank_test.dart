@@ -99,6 +99,54 @@ void main() {
       expect(LexoRank.generateBetween('invalid', null), equals('a0'));
       expect(LexoRank.generateBetween(null, 'invalid'), equals('a0'));
       expect(LexoRank.generateBetween('invalid', 'invalid2'), equals('a0'));
+      expect(LexoRank.generateBetween('a!', null), equals('a0'));
+    });
+
+    test('crosses every multi-character integer prefix in order', () {
+      var ascending = 'a0';
+      var sawB = false;
+      var sawC = false;
+      for (var i = 0; i < 4000; i++) {
+        final next = LexoRank.generateBottom(ascending);
+        expect(next.compareTo(ascending), greaterThan(0));
+        sawB |= next.startsWith('b');
+        sawC |= next.startsWith('c');
+        ascending = next;
+      }
+
+      var descending = 'a0';
+      var sawY = false;
+      var sawX = false;
+      for (var i = 0; i < 4000; i++) {
+        final previous = LexoRank.generateTop(descending);
+        expect(previous.compareTo(descending), lessThan(0));
+        sawY |= previous.startsWith('Y');
+        sawX |= previous.startsWith('X');
+        descending = previous;
+      }
+
+      expect((sawB, sawC, sawY, sawX), (true, true, true, true));
+    });
+
+    test('interpolates fractions with shared prefixes', () {
+      final middle = LexoRank.generateBetween('a0A', 'a0Az');
+
+      expect(middle.compareTo('a0A'), greaterThan(0));
+      expect(middle.compareTo('a0Az'), lessThan(0));
+      expect(LexoRank.generateMiddle('a0A', 'a0C'), 'a0B');
+    });
+
+    test('normalizes reversed bounds', () {
+      final middle = LexoRank.generateBetween('a5', 'a0');
+
+      expect(middle.compareTo('a0'), greaterThan(0));
+      expect(middle.compareTo('a5'), lessThan(0));
+    });
+
+    test('parses three-digit negative keys', () {
+      final before = LexoRank.generateTop('Xzzz');
+
+      expect(before.compareTo('Xzzz'), lessThan(0));
     });
   });
 }
