@@ -16,9 +16,11 @@ void main() {
 
   group('TaskSchedulingService', () {
     late MockTaskRepository mockRepo;
+    late TaskSchedulingService service;
 
     setUp(() {
       mockRepo = MockTaskRepository();
+      service = TaskSchedulingService(mockRepo);
     });
 
     group('autoScheduleDeadlines', () {
@@ -38,10 +40,7 @@ void main() {
           ).thenAnswer((_) async => [task1, task2, task3]);
           when(() => mockRepo.update(any())).thenAnswer((_) async => {});
 
-          await TaskSchedulingService.autoScheduleDeadlines(
-            repo: mockRepo,
-            today: today,
-          );
+          await service.autoScheduleDeadlines(today: today);
 
           verify(
             () => mockRepo.update(
@@ -75,8 +74,7 @@ void main() {
         final task = createTestTask(id: 'p1', title: 'Parent');
         final subtask = createTestTask(id: 's1', parentId: 'p1');
 
-        final cmd = TaskSchedulingService.buildScheduleCascadeCommand(
-          repo: mockRepo,
+        final cmd = service.buildScheduleCascadeCommand(
           task: task,
           date: DateTime(2026, 9),
           cascadeChildren: false,
@@ -98,8 +96,7 @@ void main() {
             status: TaskStatus.done,
           );
 
-          final cmd = TaskSchedulingService.buildScheduleCascadeCommand(
-            repo: mockRepo,
+          final cmd = service.buildScheduleCascadeCommand(
             task: task,
             date: DateTime(2026, 9),
             cascadeChildren: true,
@@ -127,8 +124,7 @@ void main() {
           completedAt: completedAt,
         );
 
-        final cmd = TaskSchedulingService.buildUnscheduleCascadeCommand(
-          repo: mockRepo,
+        final cmd = service.buildUnscheduleCascadeCommand(
           task: task,
           resetStatus: false,
           unscheduleChildren: false,
@@ -147,8 +143,7 @@ void main() {
           status: TaskStatus.inProgress,
         );
 
-        final cmd = TaskSchedulingService.buildUnscheduleCascadeCommand(
-          repo: mockRepo,
+        final cmd = service.buildUnscheduleCascadeCommand(
           task: task,
           resetStatus: true,
           unscheduleChildren: false,
@@ -176,8 +171,7 @@ void main() {
           );
           final sub2 = createTestTask(id: 's2', parentId: 'p1');
 
-          final cmd = TaskSchedulingService.buildUnscheduleCascadeCommand(
-            repo: mockRepo,
+          final cmd = service.buildUnscheduleCascadeCommand(
             task: parent,
             resetStatus: false,
             unscheduleChildren: true,
@@ -197,8 +191,7 @@ void main() {
 
     group('buildBulkScheduleCommand', () {
       test('returns null when taskIds is empty', () async {
-        final cmd = await TaskSchedulingService.buildBulkScheduleCommand(
-          repo: mockRepo,
+        final cmd = await service.buildBulkScheduleCommand(
           taskIds: [],
           date: DateTime(2026, 8),
           getTaskById: (id) async => null,
@@ -216,8 +209,7 @@ void main() {
             () => mockRepo.getByParent('p1'),
           ).thenAnswer((_) async => [sub1]);
 
-          final cmd = await TaskSchedulingService.buildBulkScheduleCommand(
-            repo: mockRepo,
+          final cmd = await service.buildBulkScheduleCommand(
             taskIds: ['p1'],
             date: DateTime(2026, 8),
             getTaskById: (id) async => id == 'p1' ? parent : null,
@@ -232,14 +224,14 @@ void main() {
 
     group('pickRandomTask', () {
       test('returns null when task list is empty', () {
-        expect(TaskSchedulingService.pickRandomTask([]), isNull);
+        expect(service.pickRandomTask([]), isNull);
       });
 
       test('returns null when all tasks are blocked or completed', () {
         final blocked = createTestTask(blockedById: 'blocker');
         final done = createTestTask(id: 't2', status: TaskStatus.done);
 
-        final task = TaskSchedulingService.pickRandomTask([blocked, done]);
+        final task = service.pickRandomTask([blocked, done]);
         expect(task, isNull);
       });
 
@@ -247,7 +239,7 @@ void main() {
         final blocked = createTestTask(blockedById: 'blocker');
         final unblocked = createTestTask(id: 't2');
 
-        final task = TaskSchedulingService.pickRandomTask([blocked, unblocked]);
+        final task = service.pickRandomTask([blocked, unblocked]);
         expect(task, isNotNull);
         expect(task!.id, equals('t2'));
       });
@@ -275,8 +267,7 @@ void main() {
           ).copyWith(planSortOrder: 'other');
 
           final cmd =
-              TaskSchedulingService.buildScheduleCascadeCommand(
-                    repo: mockRepo,
+              service.buildScheduleCascadeCommand(
                     task: parent,
                     date: date,
                     cascadeChildren: true,
@@ -300,8 +291,7 @@ void main() {
           ).copyWith(planSortOrder: 'keep');
           when(() => mockRepo.getByParent('t1')).thenAnswer((_) async => []);
 
-          final cmd = await TaskSchedulingService.buildBulkScheduleCommand(
-            repo: mockRepo,
+          final cmd = await service.buildBulkScheduleCommand(
             taskIds: ['t1'],
             date: date,
             getTaskById: (_) async => task,

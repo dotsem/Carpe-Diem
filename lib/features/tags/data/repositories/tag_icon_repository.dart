@@ -1,5 +1,5 @@
+import 'package:carpe_diem/core/constants/tag_icon_constants.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
-import 'package:carpe_diem/features/tags/presentation/constants/tag_icon_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 

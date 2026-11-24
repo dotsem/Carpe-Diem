@@ -1,4 +1,3 @@
-import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
@@ -37,11 +36,9 @@ abstract final class TaskFormDetailsLoader {
     var deadline = currentDeadline;
 
     if (!isEditing && parentId != null) {
-      var parentTask = ref.read(taskProvider).getById(parentId);
-      if (parentTask == null) {
-        final repo = ref.read(taskRepositoryProvider);
-        parentTask = await repo.getById(parentId);
-      }
+      final parentTask = await ref
+          .read(taskProvider.notifier)
+          .findById(parentId);
       if (parentTask != null) {
         selectedProjectId ??= parentTask.projectId;
         scheduledDate ??= parentTask.scheduledDate;

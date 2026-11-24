@@ -1,13 +1,14 @@
 import 'package:carpe_diem/core/theme/animation_context.dart';
 import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
+import 'package:carpe_diem/features/common/presentation/providers/task_service_providers.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
-import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -59,10 +60,10 @@ class KanbanColumn extends ConsumerStatefulWidget {
 }
 
 class _KanbanColumnState extends ConsumerState<KanbanColumn> {
-  bool _inSameGroup(Task a, Task b) => TaskReorderUtils.inSameGroup(
+  bool _inSameGroup(Task a, Task b) => TaskReorderEngine.inSameGroup(
     a,
     b,
-    ref.read(settingsProvider),
+    ref.read(settingsProvider).taskPrefs,
     isPlanView: widget.isPlanView,
   );
 
@@ -89,10 +90,9 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
     final same = widget.tasks.where((t) => _inSameGroup(t, task)).toList();
     _updateOrder(
       task,
-      TaskReorderService.computeSortOrder(
-        placement: TaskPlacement.bottom,
-        activeList: same,
-      ),
+      ref
+          .read(taskReorderServiceProvider)
+          .computeSortOrder(placement: TaskPlacement.bottom, activeList: same),
     );
   }
 
@@ -103,7 +103,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
         nodes: nodes,
         draggedTask: task,
         newIndex: newIndex,
-        settings: ref.read(settingsProvider),
+        settings: ref.read(settingsProvider).taskPrefs,
         isPlanView: widget.isPlanView,
       ),
     );

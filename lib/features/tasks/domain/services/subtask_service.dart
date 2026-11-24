@@ -3,45 +3,38 @@ import 'package:carpe_diem/features/tasks/data/models/subtask_completion_conflic
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 
 class SubtaskService {
-  static Future<SubtaskCompletionConflict?> checkSubtaskConflict({
-    required ITaskRepository repo,
-    required Task task,
-  }) async {
-    final subtasks = await repo.getByParent(task.id);
-    final incomplete = subtasks.where((s) => !s.isCompleted).toList();
-    if (incomplete.isNotEmpty) {
-      return SubtaskCompletionConflict(
-        parentTask: task,
-        incompleteSubtasks: incomplete,
-      );
-    }
-    return null;
+  final ITaskRepository _repo;
+  const SubtaskService(this._repo);
+
+  Future<SubtaskCompletionConflict?> checkSubtaskConflict(Task task) async {
+    final incomplete = (await _repo.getByParent(
+      task.id,
+    )).where((subtask) => !subtask.isCompleted).toList();
+    return incomplete.isEmpty
+        ? null
+        : SubtaskCompletionConflict(
+            parentTask: task,
+            incompleteSubtasks: incomplete,
+          );
   }
 
-  /// Returns the parent of [task] if completing [task] leaves every sibling
-  /// done and the parent itself is still open.
-  static Future<Task?> findCompletableParent({
-    required ITaskRepository repo,
-    required Task task,
-  }) async {
+  Future<Task?> findCompletableParent(Task task) async {
     if (task.parentId == null) return null;
-    final siblings = await repo.getByParent(task.parentId!);
+    final siblings = await _repo.getByParent(task.parentId!);
     if (!siblings.where((s) => s.id != task.id).every((s) => s.isCompleted)) {
       return null;
     }
-    final parent = await repo.getById(task.parentId!);
-    if (parent == null || parent.isCompleted) return null;
-    return parent;
+    final parent = await _repo.getById(task.parentId!);
+    return parent == null || parent.isCompleted ? null : parent;
   }
 
-  static List<Task> getAllSubtasks({
+  List<Task> getAllSubtasks({
     required String parentId,
     required List<Task> allTasks,
   }) {
     final result = <Task>[];
-    void collect(String pid) {
-      final children = allTasks.where((t) => t.parentId == pid).toList();
-      for (final child in children) {
+    void collect(String id) {
+      for (final child in allTasks.where((task) => task.parentId == id)) {
         result.add(child);
         collect(child.id);
       }
@@ -51,14 +44,10 @@ class SubtaskService {
     return result;
   }
 
-  static Future<List<Task>> getAllSubtasksFromRepo({
-    required ITaskRepository repo,
-    required String parentId,
-  }) async {
+  Future<List<Task>> getAllSubtasksFromRepo(String parentId) async {
     final result = <Task>[];
-    Future<void> collect(String pid) async {
-      final children = await repo.getByParent(pid);
-      for (final child in children) {
+    Future<void> collect(String id) async {
+      for (final child in await _repo.getByParent(id)) {
         result.add(child);
         await collect(child.id);
       }

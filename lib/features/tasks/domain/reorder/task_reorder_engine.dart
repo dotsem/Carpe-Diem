@@ -1,8 +1,8 @@
 import 'package:carpe_diem/core/reorder/lexorank.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_slot.dart';
+import 'package:carpe_diem/features/tasks/domain/task_prefs.dart';
 
 class TaskReorderEngine {
   static bool _isRootNode(TaskHierarchyNode node) => node is ParentContainerNode
@@ -39,7 +39,7 @@ class TaskReorderEngine {
   static (int start, int end) _getSectionBounds(
     List<TaskHierarchyNode> nodes,
     Task task,
-    SettingsState? settings,
+    TaskPrefs? settings,
   ) {
     final urgentEnd = getUrgentSectionEndIndex(nodes);
     if (task.isUrgent) return (0, urgentEnd);
@@ -55,7 +55,7 @@ class TaskReorderEngine {
   static bool inSameGroup(
     Task a,
     Task b,
-    SettingsState settings, {
+    TaskPrefs settings, {
     bool isPlanView = false,
     List<TaskHierarchyNode>? nodes,
   }) {
@@ -75,7 +75,7 @@ class TaskReorderEngine {
     required List<TaskHierarchyNode> nodes,
     required Task draggedTask,
     required int rawIndex,
-    SettingsState? settings,
+    TaskPrefs? settings,
     bool isPlanView = false,
   }) {
     if (nodes.isEmpty) {
@@ -165,7 +165,7 @@ class TaskReorderEngine {
     required Task draggedTask,
     required int targetIndex,
     required List<TaskHierarchyNode> nodes,
-    required SettingsState settings,
+    required TaskPrefs settings,
     bool isPlanView = false,
   }) {
     var first = -1;
@@ -219,7 +219,7 @@ class TaskReorderEngine {
     required Task draggedTask,
     required TaskReorderSlot slot,
     Set<String>? selectedTaskIds,
-    SettingsState? settings,
+    TaskPrefs? settings,
     bool isPlanView = false,
   }) {
     if (!slot.isValid || slot.isUnchanged) return null;

@@ -7,6 +7,7 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_reorder_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -160,7 +161,7 @@ PopupMenuItem<void> buildTopRow(
   final taskPosition = TaskReorderUtils.getTaskPosition(
     task: task,
     tasks: tasks,
-    settings: settings,
+    settings: settings.taskPrefs,
   );
 
   return PopupMenuItem<void>(
@@ -180,7 +181,12 @@ PopupMenuItem<void> buildTopRow(
                 ? null
                 : () {
                     Navigator.of(context).pop();
-                    TaskReorderUtils.moveToTop(provider, task, tasks, settings);
+                    TaskReorderActions.moveToTop(
+                      provider,
+                      task,
+                      tasks,
+                      settings.taskPrefs,
+                    );
                   },
           ),
           IconButton(
@@ -190,11 +196,11 @@ PopupMenuItem<void> buildTopRow(
                 ? null
                 : () {
                     Navigator.of(context).pop();
-                    TaskReorderUtils.moveToBottom(
+                    TaskReorderActions.moveToBottom(
                       provider,
                       task,
                       tasks,
-                      settings,
+                      settings.taskPrefs,
                     );
                   },
           ),

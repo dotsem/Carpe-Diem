@@ -52,7 +52,7 @@ void main() {
           nodes: nodes,
           draggedTask: dragged,
           newIndex: 2,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(newSortOrder, isNotNull);
@@ -109,7 +109,7 @@ void main() {
           nodes: nodes,
           draggedTask: dragged,
           newIndex: 3,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(newSortOrder, isNotNull);
@@ -152,7 +152,7 @@ void main() {
           nodes: nodes,
           draggedTask: sub2,
           newIndex: 1,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(newSortOrder, isNotNull);

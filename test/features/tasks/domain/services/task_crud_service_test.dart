@@ -1,9 +1,9 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_crud_service.dart';
+import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -13,10 +13,18 @@ import '../../../../helpers/task_test_helpers.dart';
 void main() {
   group('TaskCrudService', () {
     late MockTaskRepository mockRepo;
-    const defaultSettings = SettingsState({});
+    late TaskCrudService service;
 
     setUp(() {
       mockRepo = MockTaskRepository();
+      service = TaskCrudService(
+        mockRepo,
+        () => (
+          prioritizeDeadlines: false,
+          prioritizeOverdue: false,
+          inheritParentDeadline: true,
+        ),
+      );
       when(
         () => mockRepo.getUnscheduled(
           prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
@@ -27,13 +35,13 @@ void main() {
 
     group('buildNewTask', () {
       test('builds independent task with default placement', () async {
-        final task = await TaskCrudService.buildNewTask(
-          repo: mockRepo,
-          settings: defaultSettings,
-          title: 'My Task',
-          description: 'A description',
-          labelIds: ['lbl1'],
-          tagIds: ['tag1'],
+        final task = await service.buildNewTask(
+          const TaskDraft(
+            title: 'My Task',
+            description: 'A description',
+            labelIds: ['lbl1'],
+            tagIds: ['tag1'],
+          ),
         );
 
         expect(task.id, isNotEmpty);
@@ -56,11 +64,8 @@ void main() {
           when(() => mockRepo.getById('p1')).thenAnswer((_) async => parent);
           when(() => mockRepo.getByParent('p1')).thenAnswer((_) async => []);
 
-          final task = await TaskCrudService.buildNewTask(
-            repo: mockRepo,
-            settings: defaultSettings,
-            title: 'Child Task',
-            parentId: 'p1',
+          final task = await service.buildNewTask(
+            const TaskDraft(title: 'Child Task', parentId: 'p1'),
           );
 
           expect(task.parentId, equals('p1'));
@@ -79,13 +84,13 @@ void main() {
         when(() => mockRepo.getByParent('p1')).thenAnswer((_) async => []);
 
         final explicitDate = DateTime(2026, 7);
-        final task = await TaskCrudService.buildNewTask(
-          repo: mockRepo,
-          settings: defaultSettings,
-          title: 'Explicit Child Task',
-          parentId: 'p1',
-          scheduledDate: explicitDate,
-          projectId: 'proj2',
+        final task = await service.buildNewTask(
+          TaskDraft(
+            title: 'Explicit Child Task',
+            parentId: 'p1',
+            scheduledDate: explicitDate,
+            projectId: 'proj2',
+          ),
         );
 
         expect(task.scheduledDate, equals(explicitDate.normalize));
@@ -93,11 +98,11 @@ void main() {
       });
 
       test('placement urgent marks isUrgent true', () async {
-        final task = await TaskCrudService.buildNewTask(
-          repo: mockRepo,
-          settings: defaultSettings,
-          title: 'Urgent Task',
-          placement: TaskPlacement.urgent,
+        final task = await service.buildNewTask(
+          const TaskDraft(
+            title: 'Urgent Task',
+            placement: TaskPlacement.urgent,
+          ),
         );
 
         expect(task.isUrgent, isTrue);
@@ -106,11 +111,8 @@ void main() {
 
     group('buildNewTask deadlines', () {
       test('strips the time of day from the deadline', () async {
-        final task = await TaskCrudService.buildNewTask(
-          repo: mockRepo,
-          settings: defaultSettings,
-          title: 'Dated',
-          deadline: DateTime(2026, 3, 5, 14, 30),
+        final task = await service.buildNewTask(
+          TaskDraft(title: 'Dated', deadline: DateTime(2026, 3, 5, 14, 30)),
         );
 
         expect(task.deadline, DateTime(2026, 3, 5));
@@ -120,11 +122,7 @@ void main() {
     group('resolveUpdatedTask', () {
       test('returns unchanged task when placement is null', () async {
         final task = createTestTask(title: 'Task 1');
-        final resolved = await TaskCrudService.resolveUpdatedTask(
-          repo: mockRepo,
-          settings: defaultSettings,
-          task: task,
-        );
+        final resolved = await service.resolveUpdatedTask(task: task);
         expect(resolved, equals(task));
       });
 
@@ -140,9 +138,7 @@ void main() {
         final updatedTask = createTestTask(
           id: 't2',
         ).copyWith(sortOrder: '0|i00000:');
-        final resolved = await TaskCrudService.resolveUpdatedTask(
-          repo: mockRepo,
-          settings: defaultSettings,
+        final resolved = await service.resolveUpdatedTask(
           task: updatedTask,
           placement: TaskPlacement.bottom,
         );
@@ -156,10 +152,8 @@ void main() {
         'returns single CreateCommand without deadline propagation',
         () async {
           final task = createTestTask(title: 'Task');
-          final cmd = await TaskCrudService.buildCreateWithPropagationCommand(
-            repo: mockRepo,
+          final cmd = await service.buildCreateWithPropagationCommand(
             task: task,
-            inheritParentDeadline: true,
           );
           expect(cmd, isA<CreateCommand<Task>>());
           expect((cmd as CreateCommand<Task>).id, equals('t1'));
@@ -177,10 +171,8 @@ void main() {
           final blocker = createTestTask(id: 'b1', deadline: DateTime(2026, 5));
           when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
-          final cmd = await TaskCrudService.buildCreateWithPropagationCommand(
-            repo: mockRepo,
+          final cmd = await service.buildCreateWithPropagationCommand(
             task: task,
-            inheritParentDeadline: true,
           );
           expect(cmd, isA<CompoundCommand>());
           final compound = cmd as CompoundCommand;
@@ -195,11 +187,9 @@ void main() {
       test('returns single UpdateCommand without propagation', () async {
         final previous = createTestTask(title: 'Prev');
         final next = createTestTask(title: 'Next');
-        final cmd = await TaskCrudService.buildUpdateWithPropagationCommand(
-          repo: mockRepo,
+        final cmd = await service.buildUpdateWithPropagationCommand(
           previous: previous,
           next: next,
-          inheritParentDeadline: false,
         );
         expect(cmd, isA<UpdateCommand<Task>>());
         expect((cmd as UpdateCommand<Task>).next.title, equals('Next'));
@@ -214,11 +204,9 @@ void main() {
         final blocker = createTestTask(id: 'b1', deadline: DateTime(2026, 6));
         when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
-        final cmd = await TaskCrudService.buildUpdateWithPropagationCommand(
-          repo: mockRepo,
+        final cmd = await service.buildUpdateWithPropagationCommand(
           previous: previous,
           next: next,
-          inheritParentDeadline: true,
         );
         expect(cmd, isA<CompoundCommand>());
         expect((cmd as CompoundCommand).commands.length, equals(2));
@@ -229,8 +217,7 @@ void main() {
       test('returns single DeleteCommand when task has no subtasks', () async {
         final task = createTestTask(title: 'Task');
         when(() => mockRepo.getByParent('t1')).thenAnswer((_) async => []);
-        final cmd = await TaskCrudService.buildDeleteCommand(
-          repo: mockRepo,
+        final cmd = await service.buildDeleteCommand(
           task: task,
           deleteSubtasks: true,
         );
@@ -246,8 +233,7 @@ void main() {
           when(() => mockRepo.getByParent('p1')).thenAnswer((_) async => [sub]);
           when(() => mockRepo.getByParent('s1')).thenAnswer((_) async => []);
 
-          final cmd = await TaskCrudService.buildDeleteCommand(
-            repo: mockRepo,
+          final cmd = await service.buildDeleteCommand(
             task: parent,
             deleteSubtasks: true,
           );
@@ -273,8 +259,7 @@ void main() {
           when(() => mockRepo.getByParent('p1')).thenAnswer((_) async => [sub]);
           when(() => mockRepo.getByParent('s1')).thenAnswer((_) async => []);
 
-          final cmd = await TaskCrudService.buildDeleteCommand(
-            repo: mockRepo,
+          final cmd = await service.buildDeleteCommand(
             task: parent,
             deleteSubtasks: false,
           );

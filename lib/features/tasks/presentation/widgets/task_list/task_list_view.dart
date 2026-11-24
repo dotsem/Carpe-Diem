@@ -120,7 +120,7 @@ class _TaskListViewState extends ConsumerState<TaskListView> {
     } else {
       TaskSortUtils.sortTasks(
         allTasks,
-        ref.read(settingsProvider),
+        ref.read(settingsProvider).taskPrefs,
         isPlanView: widget.isPlanView,
       );
     }

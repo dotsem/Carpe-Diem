@@ -8,6 +8,8 @@ import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../helpers/mock_repositories.dart';
+
 void main() {
   group('TaskReorderEngine bottom placement and sole-task tests', () {
     final now = DateTime(2026);
@@ -45,7 +47,7 @@ void main() {
           nodes: nodes,
           draggedTask: t1,
           rawIndex: 3,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(slot.isValid, isTrue);
@@ -54,7 +56,7 @@ void main() {
           nodes: nodes,
           draggedTask: t1,
           slot: slot,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(ranks, isNotNull);
@@ -72,7 +74,7 @@ void main() {
         nodes: nodes,
         draggedTask: sole,
         rawIndex: 1,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(slot.isValid, isTrue);
@@ -81,7 +83,7 @@ void main() {
         nodes: nodes,
         draggedTask: sole,
         slot: slot,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(ranks, isNull);
@@ -102,7 +104,7 @@ void main() {
         nodes: nodes,
         draggedTask: parent,
         rawIndex: 3,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(slot.isValid, isTrue);
@@ -111,7 +113,7 @@ void main() {
         nodes: nodes,
         draggedTask: parent,
         slot: slot,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(ranks, isNull);
@@ -123,10 +125,14 @@ void main() {
         final t1 = makeTask('t1', 'a2');
         final t2 = makeTask('t2', '');
 
-        final sortOrder = TaskReorderService.computeSortOrder(
-          placement: TaskPlacement.bottom,
-          activeList: [t1, t2],
-        );
+        final sortOrder =
+            TaskReorderService(
+              MockTaskRepository(),
+              () => settings.taskPrefs,
+            ).computeSortOrder(
+              placement: TaskPlacement.bottom,
+              activeList: [t1, t2],
+            );
 
         expect(sortOrder.compareTo('a2'), greaterThan(0));
       },
@@ -154,7 +160,7 @@ void main() {
         nodes: nodes,
         draggedTask: t3,
         newIndex: 3,
-        settings: deadlineSettings,
+        settings: deadlineSettings.taskPrefs,
       );
 
       expect(newRank, isNull);

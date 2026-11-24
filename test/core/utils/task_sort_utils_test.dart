@@ -17,7 +17,7 @@ void main() {
       );
 
       final tasks = [normal, urgent];
-      TaskSortUtils.sortTasks(tasks, const SettingsState({}));
+      TaskSortUtils.sortTasks(tasks, const SettingsState({}).taskPrefs);
 
       expect(tasks.first.id, '2');
       expect(tasks.last.id, '1');
@@ -38,7 +38,7 @@ void main() {
       );
 
       final tasks = [taskA, taskB];
-      TaskSortUtils.sortTasks(tasks, const SettingsState({}));
+      TaskSortUtils.sortTasks(tasks, const SettingsState({}).taskPrefs);
 
       expect(tasks.first.id, '2');
       expect(tasks.last.id, '1');
@@ -61,7 +61,11 @@ void main() {
       );
 
       final tasks = [taskA, taskB];
-      TaskSortUtils.sortTasks(tasks, const SettingsState({}), isPlanView: true);
+      TaskSortUtils.sortTasks(
+        tasks,
+        const SettingsState({}).taskPrefs,
+        isPlanView: true,
+      );
 
       expect(tasks.first.id, '2');
       expect(tasks.last.id, '1');
@@ -86,7 +90,11 @@ void main() {
       );
 
       final tasks = [subA, subB];
-      TaskSortUtils.sortTasks(tasks, const SettingsState({}), isPlanView: true);
+      TaskSortUtils.sortTasks(
+        tasks,
+        const SettingsState({}).taskPrefs,
+        isPlanView: true,
+      );
 
       expect(tasks.first.id, 'sub1');
       expect(tasks.last.id, 'sub2');
@@ -109,7 +117,7 @@ void main() {
       );
 
       final tasks = [taskA, taskB];
-      TaskSortUtils.sortTasks(tasks, const SettingsState({}));
+      TaskSortUtils.sortTasks(tasks, const SettingsState({}).taskPrefs);
 
       expect(tasks.first.id, '1');
       expect(tasks.last.id, '2');
@@ -132,7 +140,7 @@ void main() {
         TaskSortUtils.compareTasks(
           old,
           recent,
-          const SettingsState({'prioritize_deadlines': 'false'}),
+          const SettingsState({'prioritize_deadlines': 'false'}).taskPrefs,
         ),
         greaterThan(0),
       );
@@ -140,7 +148,7 @@ void main() {
         TaskSortUtils.compareTasks(
           old.copyWith(createdAt: recent.createdAt),
           recent,
-          const SettingsState({'prioritize_deadlines': 'false'}),
+          const SettingsState({'prioritize_deadlines': 'false'}).taskPrefs,
         ),
         greaterThan(0),
       );

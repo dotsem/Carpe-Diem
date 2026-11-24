@@ -28,7 +28,7 @@ void main() {
         nodes: listNodes,
         draggedTask: n2,
         newIndex: 3,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
       expect(resSame, isNull);
 
@@ -36,7 +36,7 @@ void main() {
         nodes: listNodes,
         draggedTask: n2,
         newIndex: 4,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
       expect(resNext, isNull);
     });
@@ -48,7 +48,7 @@ void main() {
           nodes: listNodes,
           draggedTask: n2,
           newIndex: 2,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(resMoved, isNotNull);
         expect(resMoved!.compareTo(n1.sortOrder), lessThan(0));
@@ -57,7 +57,7 @@ void main() {
           nodes: listNodes,
           draggedTask: n2,
           newIndex: 5,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(resMovedDown, isNotNull);
         expect(resMovedDown!.compareTo(n3.sortOrder), greaterThan(0));
@@ -69,7 +69,7 @@ void main() {
         nodes: listNodes,
         draggedTask: u2,
         newIndex: 3,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
       expect(resClamped, isNull);
     });
@@ -82,7 +82,7 @@ void main() {
           draggedTask: n1,
           newIndex: 2,
           selectedTaskIds: {'n1', 'n2'},
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(resSameSlot2, isNull);
 
@@ -91,7 +91,7 @@ void main() {
           draggedTask: n1,
           newIndex: 3,
           selectedTaskIds: {'n1', 'n2'},
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(resSameSlot3, isNull);
       },
@@ -103,7 +103,7 @@ void main() {
         draggedTask: n1,
         newIndex: 5,
         selectedTaskIds: {'n1', 'n2'},
-        settings: settings,
+        settings: settings.taskPrefs,
       );
       expect(resMoved, isNotNull);
       expect(resMoved!.length, 2);

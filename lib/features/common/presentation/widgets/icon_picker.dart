@@ -1,4 +1,4 @@
-import 'package:carpe_diem/features/tags/presentation/constants/tag_icon_constants.dart';
+import 'package:carpe_diem/core/constants/tag_icon_constants.dart';
 import 'package:flutter/material.dart';
 
 class IconPicker extends StatelessWidget {

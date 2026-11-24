@@ -2,11 +2,8 @@ import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
-import 'package:carpe_diem/features/tasks/domain/services/deadline_propagation_service.dart';
-import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_markdown_parser.dart';
-import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 
 extension TaskBulkActions on TaskNotifier {
@@ -71,12 +68,8 @@ extension TaskBulkActions on TaskNotifier {
           ),
         );
         if (settings.inheritParentDeadline && updated.deadline != null) {
-          final propCmds =
-              await DeadlinePropagationService.buildPropagationCommands(
-                repo: repo,
-                task: updated,
-                inheritParentDeadline: settings.inheritParentDeadline,
-              );
+          final propCmds = await deadlinePropagationService
+              .buildPropagationCommands(updated);
           commands.addAll(propCmds);
         }
       }
@@ -94,10 +87,7 @@ extension TaskBulkActions on TaskNotifier {
   Future<void> bulkDeleteTasks({required List<String> taskIds}) async {
     final allIdsToDelete = <String>{...taskIds};
     for (final id in taskIds) {
-      final subtasks = await SubtaskService.getAllSubtasksFromRepo(
-        repo: repo,
-        parentId: id,
-      );
+      final subtasks = await subtaskService.getAllSubtasksFromRepo(id);
       for (final s in subtasks) {
         allIdsToDelete.add(s.id);
       }
@@ -140,13 +130,10 @@ extension TaskBulkActions on TaskNotifier {
       projectDeadline = project?.deadline;
     }
 
-    final existing = await TaskReorderService.getRelevantTasksList(
-      repo: repo,
+    final existing = await reorderService.getRelevantTasksList(
       parentId: null,
       projectId: projectId,
       scheduledDate: null,
-      prioritizeDeadlines: settings.prioritizeDeadlines,
-      prioritizeOverdue: settings.prioritizeOverdue,
     );
 
     final dummy = Task(
@@ -158,12 +145,14 @@ extension TaskBulkActions on TaskNotifier {
     );
 
     final activeList = existing
-        .where((t) => TaskReorderUtils.inSameGroup(t, dummy, settings))
+        .where(
+          (t) => TaskReorderEngine.inSameGroup(t, dummy, settings.taskPrefs),
+        )
         .toList();
 
     String? currentRank;
     for (var i = activeList.length - 1; i >= 0 && currentRank == null; i--) {
-      currentRank = TaskReorderUtils.getEffectiveRank(activeList, i);
+      currentRank = TaskReorderEngine.getEffectiveRank(activeList, i);
     }
 
     final commands = <Command>[];

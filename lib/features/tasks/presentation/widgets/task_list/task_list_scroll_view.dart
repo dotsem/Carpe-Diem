@@ -1,7 +1,7 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_reorder_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/active_task_reorderable_list.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_empty_space_drop_zone.dart';
@@ -67,13 +67,13 @@ class _TaskListScrollViewState extends ConsumerState<TaskListScrollView> {
   }
 
   void _handleDrop(Task task, int newIndex) {
-    TaskReorderUtils.dispatchReorder(
+    TaskReorderActions.dispatchReorder(
       notifier: ref.read(taskProvider.notifier),
       nodes: widget.activeNodes,
       draggedTask: task,
       newIndex: newIndex,
       selectedTaskIds: widget.selectedTaskIds.toSet(),
-      settings: ref.read(settingsProvider),
+      prefs: ref.read(settingsProvider).taskPrefs,
       isPlanView: widget.isPlanView,
     );
   }

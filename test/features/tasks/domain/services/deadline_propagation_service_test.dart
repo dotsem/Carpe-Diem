@@ -9,6 +9,16 @@ void main() {
   group('DeadlinePropagationService', () {
     late MockTaskRepository mockRepo;
 
+    DeadlinePropagationService service(bool inherit) =>
+        DeadlinePropagationService(
+          mockRepo,
+          () => (
+            prioritizeDeadlines: false,
+            prioritizeOverdue: false,
+            inheritParentDeadline: inherit,
+          ),
+        );
+
     setUp(() {
       mockRepo = MockTaskRepository();
     });
@@ -19,12 +29,7 @@ void main() {
         blockedById: 'b1',
       );
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: false,
-          );
+      final commands = await service(false).buildPropagationCommands(task);
 
       expect(commands, isEmpty);
       verifyZeroInteractions(mockRepo);
@@ -33,12 +38,7 @@ void main() {
     test('returns empty list when task deadline is null', () async {
       final task = createTestTask(blockedById: 'b1');
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: true,
-          );
+      final commands = await service(true).buildPropagationCommands(task);
 
       expect(commands, isEmpty);
       verifyZeroInteractions(mockRepo);
@@ -47,12 +47,7 @@ void main() {
     test('returns empty list when blockedById is null', () async {
       final task = createTestTask(deadline: DateTime(2026, 5));
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: true,
-          );
+      final commands = await service(true).buildPropagationCommands(task);
 
       expect(commands, isEmpty);
       verifyZeroInteractions(mockRepo);
@@ -65,12 +60,7 @@ void main() {
       );
       when(() => mockRepo.getById('nonexistent')).thenAnswer((_) async => null);
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: true,
-          );
+      final commands = await service(true).buildPropagationCommands(task);
 
       expect(commands, isEmpty);
       verify(() => mockRepo.getById('nonexistent')).called(1);
@@ -84,12 +74,7 @@ void main() {
       final blocker = createTestTask(id: 'b1', deadline: DateTime(2026, 5, 5));
       when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: true,
-          );
+      final commands = await service(true).buildPropagationCommands(task);
 
       expect(commands, isEmpty);
     });
@@ -100,12 +85,7 @@ void main() {
       final blocker = createTestTask(id: 'b1', deadline: deadline);
       when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: true,
-          );
+      final commands = await service(true).buildPropagationCommands(task);
 
       expect(commands, isEmpty);
     });
@@ -122,12 +102,7 @@ void main() {
       );
       when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: true,
-          );
+      final commands = await service(true).buildPropagationCommands(task);
 
       expect(commands.length, equals(1));
       expect(commands.first.previous, equals(blocker));
@@ -143,12 +118,7 @@ void main() {
       final blocker = createTestTask(id: 'b1');
       when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker);
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: true,
-          );
+      final commands = await service(true).buildPropagationCommands(task);
 
       expect(commands.length, equals(1));
       expect(commands.first.next.deadline, equals(DateTime(2026, 5)));
@@ -172,12 +142,7 @@ void main() {
       when(() => mockRepo.getById('b1')).thenAnswer((_) async => blocker1);
       when(() => mockRepo.getById('b2')).thenAnswer((_) async => blocker2);
 
-      final commands =
-          await DeadlinePropagationService.buildPropagationCommands(
-            repo: mockRepo,
-            task: task,
-            inheritParentDeadline: true,
-          );
+      final commands = await service(true).buildPropagationCommands(task);
 
       expect(commands.length, equals(2));
       expect(commands[0].next.id, equals('b1'));
@@ -203,12 +168,7 @@ void main() {
         when(() => mockRepo.getById('b')).thenAnswer((_) async => taskB);
         when(() => mockRepo.getById('a')).thenAnswer((_) async => taskA);
 
-        final commands =
-            await DeadlinePropagationService.buildPropagationCommands(
-              repo: mockRepo,
-              task: taskA,
-              inheritParentDeadline: true,
-            );
+        final commands = await service(true).buildPropagationCommands(taskA);
 
         expect(commands.length, equals(1));
         expect(commands.first.next.id, equals('b'));

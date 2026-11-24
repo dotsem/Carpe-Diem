@@ -261,7 +261,7 @@ void main() {
         nodes: nodes,
         draggedTask: t2,
         rawIndex: 0,
-        settings: deadlineSettings,
+        settings: deadlineSettings.taskPrefs,
       );
       expect(dailySlot.isValid, isFalse);
 
@@ -270,7 +270,7 @@ void main() {
         nodes: nodes,
         draggedTask: t2,
         rawIndex: 0,
-        settings: deadlineSettings,
+        settings: deadlineSettings.taskPrefs,
         isPlanView: true,
       );
       expect(planSlot.isValid, isTrue);
@@ -355,7 +355,7 @@ void main() {
         )!;
 
         final updated = [a, b, c.copyWith(sortOrder: ranks['c'] ?? '')];
-        TaskSortUtils.sortTasks(updated, defaultSettings);
+        TaskSortUtils.sortTasks(updated, defaultSettings.taskPrefs);
 
         expect(updated.map((t) => t.id).toList(), equals(['c', 'a', 'b']));
       },

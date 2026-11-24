@@ -3,6 +3,7 @@ import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_slot.dart';
+import 'package:carpe_diem/features/tasks/domain/task_prefs.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +39,7 @@ class TaskReorderActiveDrop {
 class TaskReorderScope extends ConsumerStatefulWidget {
   final List<TaskHierarchyNode> nodes;
   final bool isPlanView;
-  final SettingsState? settings;
+  final TaskPrefs? settings;
   final void Function(Task task, int targetIndex) onDrop;
   final Widget child;
 
@@ -77,7 +78,7 @@ class _TaskReorderScopeState extends ConsumerState<TaskReorderScope> {
     var settings = widget.settings;
     if (settings == null) {
       try {
-        settings = ref.read(settingsProvider);
+        settings = ref.read(settingsProvider).taskPrefs;
       } on Object catch (_) {
         // fallback for isolated widget tests without settings provider overrides
       }

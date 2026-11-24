@@ -43,7 +43,7 @@ void main() {
           nodes: nodes,
           draggedTask: dragged,
           targetIndex: 4,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(inGroup, isTrue);
@@ -69,7 +69,7 @@ void main() {
           nodes: nodes,
           draggedTask: dragged,
           targetIndex: 4,
-          settings: settings,
+          settings: settings.taskPrefs,
           isPlanView: true,
         );
 
@@ -96,7 +96,7 @@ void main() {
           nodes: nodes,
           draggedTask: dragged,
           newIndex: 4,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(newSortOrder, isNotNull);
@@ -123,7 +123,7 @@ void main() {
           nodes: nodes,
           draggedTask: dragged,
           newIndex: 4,
-          settings: settings,
+          settings: settings.taskPrefs,
           isPlanView: true,
         );
 
@@ -149,7 +149,7 @@ void main() {
           nodes: nodes,
           draggedTask: dragged,
           rawIndex: 3,
-          settings: settings,
+          settings: settings.taskPrefs,
           isPlanView: true,
         );
 
@@ -177,7 +177,7 @@ void main() {
           nodes: nodes,
           draggedTask: dragged,
           rawIndex: 3,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(slot.isValid, isTrue);

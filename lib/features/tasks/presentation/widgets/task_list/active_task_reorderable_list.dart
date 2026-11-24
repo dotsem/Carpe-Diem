@@ -1,7 +1,7 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_reorder_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_platform_draggable.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
@@ -114,12 +114,12 @@ class ActiveTaskReorderableList extends ConsumerWidget {
   }
 
   void _handleDrop(WidgetRef ref, Task task, int newIndex) {
-    TaskReorderUtils.dispatchReorder(
+    TaskReorderActions.dispatchReorder(
       nodes: nodes,
       draggedTask: task,
       newIndex: newIndex,
       selectedTaskIds: selectedTaskIds,
-      settings: ref.read(settingsProvider),
+      prefs: ref.read(settingsProvider).taskPrefs,
       isPlanView: isPlanView,
       onReorder: onReorder,
       onMultiReorder: onMultiReorder,

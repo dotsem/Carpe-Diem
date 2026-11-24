@@ -1,217 +1,173 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/services/deadline_propagation_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
+import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
+import 'package:carpe_diem/features/tasks/domain/task_prefs.dart';
 import 'package:uuid/uuid.dart';
 
 class TaskCrudService {
   static const _uuid = Uuid();
+  final ITaskRepository _repo;
+  final TaskPrefs Function() _prefs;
 
-  static Future<Task> buildNewTask({
-    required ITaskRepository repo,
-    required SettingsState settings,
-    required String title,
-    String? description,
-    DateTime? scheduledDate,
-    String? projectId,
-    bool isUrgent = false,
-    DateTime? deadline,
-    String? blockedById,
-    String? parentId,
-    TaskPlacement placement = TaskPlacement.bottom,
-    List<String> labelIds = const [],
-    List<String> tagIds = const [],
-  }) async {
-    var effectiveScheduledDate = scheduledDate;
-    var effectiveProjectId = projectId;
-    if (parentId != null) {
-      final parentTask = await repo.getById(parentId);
-      if (parentTask != null) {
-        effectiveScheduledDate ??= parentTask.scheduledDate;
-        effectiveProjectId ??= parentTask.projectId;
+  const TaskCrudService(this._repo, this._prefs);
+
+  TaskReorderService get _reorder => TaskReorderService(_repo, _prefs);
+  DeadlinePropagationService get _propagation =>
+      DeadlinePropagationService(_repo, _prefs);
+  SubtaskService get _subtasks => SubtaskService(_repo);
+
+  Future<Task> buildNewTask(TaskDraft draft) async {
+    var scheduledDate = draft.scheduledDate;
+    var projectId = draft.projectId;
+    if (draft.parentId != null) {
+      final parent = await _repo.getById(draft.parentId!);
+      if (parent != null) {
+        scheduledDate ??= parent.scheduledDate;
+        projectId ??= parent.projectId;
       }
     }
-
-    final rawList = await TaskReorderService.getRelevantTasksList(
-      repo: repo,
-      parentId: parentId,
-      projectId: effectiveProjectId,
-      scheduledDate: effectiveScheduledDate,
-      prioritizeDeadlines: settings.prioritizeDeadlines,
-      prioritizeOverdue: settings.prioritizeOverdue,
+    final rawList = await _reorder.getRelevantTasksList(
+      parentId: draft.parentId,
+      projectId: projectId,
+      scheduledDate: scheduledDate,
     );
-
-    final resolvedIsUrgent = isUrgent || placement == TaskPlacement.urgent;
-    final dummyTask = Task(
+    final isUrgent = draft.isUrgent || draft.placement == TaskPlacement.urgent;
+    final dummy = Task(
       id: '',
       title: '',
-      parentId: parentId,
-      projectId: effectiveProjectId,
-      isUrgent: resolvedIsUrgent,
-      deadline: deadline?.normalize,
-      scheduledDate: effectiveScheduledDate?.normalize,
+      parentId: draft.parentId,
+      projectId: projectId,
+      isUrgent: isUrgent,
+      deadline: draft.deadline?.normalize,
+      scheduledDate: scheduledDate?.normalize,
       createdAt: DateTime.now(),
     );
-
-    final activeList = rawList
-        .where((t) => TaskReorderUtils.inSameGroup(t, dummyTask, settings))
+    final prefs = _prefs();
+    final active = rawList
+        .where((task) => TaskReorderEngine.inSameGroup(task, dummy, prefs))
         .toList();
-    final computedSortOrder = TaskReorderService.computeSortOrder(
-      placement: placement,
-      activeList: activeList,
-    );
-
     return Task(
       id: _uuid.v4(),
-      title: title,
-      description: description,
-      scheduledDate: effectiveScheduledDate?.normalize,
-      projectId: effectiveProjectId,
-      isUrgent: resolvedIsUrgent,
-      deadline: deadline?.normalize,
+      title: draft.title,
+      description: draft.description,
+      scheduledDate: scheduledDate?.normalize,
+      projectId: projectId,
+      isUrgent: isUrgent,
+      deadline: draft.deadline?.normalize,
       createdAt: DateTime.now(),
-      blockedById: blockedById,
-      parentId: parentId,
-      sortOrder: computedSortOrder,
-      labelIds: labelIds,
-      tagIds: tagIds,
+      blockedById: draft.blockedById,
+      parentId: draft.parentId,
+      sortOrder: _reorder.computeSortOrder(
+        placement: draft.placement,
+        activeList: active,
+      ),
+      labelIds: draft.labelIds,
+      tagIds: draft.tagIds,
     );
   }
 
-  static Future<Task> resolveUpdatedTask({
-    required ITaskRepository repo,
-    required SettingsState settings,
+  Future<Task> resolveUpdatedTask({
     required Task task,
     TaskPlacement? placement,
   }) async {
     if (placement == null) return task;
-
-    final rawList = await TaskReorderService.getRelevantTasksList(
-      repo: repo,
+    final rawList = await _reorder.getRelevantTasksList(
       parentId: task.parentId,
       projectId: task.projectId,
       scheduledDate: task.scheduledDate,
-      prioritizeDeadlines: settings.prioritizeDeadlines,
-      prioritizeOverdue: settings.prioritizeOverdue,
     );
-    final resolvedIsUrgent = task.isUrgent || placement == TaskPlacement.urgent;
-    final targetTask = task.copyWith(isUrgent: resolvedIsUrgent);
-
-    final activeList = rawList
-        .where((t) => t.id != task.id)
-        .where((t) => TaskReorderUtils.inSameGroup(t, targetTask, settings))
+    final target = task.copyWith(
+      isUrgent: task.isUrgent || placement == TaskPlacement.urgent,
+    );
+    final prefs = _prefs();
+    final active = rawList
+        .where((candidate) => candidate.id != task.id)
+        .where(
+          (candidate) =>
+              TaskReorderEngine.inSameGroup(candidate, target, prefs),
+        )
         .toList();
-    final computedSortOrder = TaskReorderService.computeSortOrder(
-      placement: placement,
-      activeList: activeList,
+    return target.copyWith(
+      sortOrder: _reorder.computeSortOrder(
+        placement: placement,
+        activeList: active,
+      ),
     );
-    return targetTask.copyWith(sortOrder: computedSortOrder);
   }
 
-  static Future<Command> buildCreateWithPropagationCommand({
-    required ITaskRepository repo,
+  Future<Command> buildCreateWithPropagationCommand({
     required Task task,
-    required bool inheritParentDeadline,
   }) async {
-    final createCmd = CreateCommand(
-      repo: repo,
+    final create = CreateCommand(
+      repo: _repo,
       item: task,
       id: task.id,
       displayName: task.title,
     );
-    final propCmds = await DeadlinePropagationService.buildPropagationCommands(
-      repo: repo,
-      task: task,
-      inheritParentDeadline: inheritParentDeadline,
-    );
-    if (propCmds.isEmpty) return createCmd;
+    final propagation = await _propagation.buildPropagationCommands(task);
+    if (propagation.isEmpty) return create;
     return CompoundCommand([
-      createCmd,
-      ...propCmds,
+      create,
+      ...propagation,
     ], 'Create "${task.title}" with propagated deadline');
   }
 
-  static Future<Command> buildUpdateWithPropagationCommand({
-    required ITaskRepository repo,
+  Future<Command> buildUpdateWithPropagationCommand({
     required Task previous,
     required Task next,
-    required bool inheritParentDeadline,
   }) async {
-    final updateCmd = UpdateCommand(
-      repo: repo,
+    final update = UpdateCommand(
+      repo: _repo,
       previous: previous,
       next: next,
       displayName: next.title,
     );
-    final propCmds = await DeadlinePropagationService.buildPropagationCommands(
-      repo: repo,
-      task: next,
-      inheritParentDeadline: inheritParentDeadline,
-    );
-    if (propCmds.isEmpty) return updateCmd;
+    final propagation = await _propagation.buildPropagationCommands(next);
+    if (propagation.isEmpty) return update;
     return CompoundCommand([
-      updateCmd,
-      ...propCmds,
+      update,
+      ...propagation,
     ], 'Update "${next.title}" with propagated deadline');
   }
 
-  static Future<Command> buildDeleteCommand({
-    required ITaskRepository repo,
+  Future<Command> buildDeleteCommand({
     required Task task,
     required bool deleteSubtasks,
   }) async {
-    final subtasks = await SubtaskService.getAllSubtasksFromRepo(
-      repo: repo,
-      parentId: task.id,
-    );
-
+    final subtasks = await _subtasks.getAllSubtasksFromRepo(task.id);
     if (subtasks.isEmpty) {
       return DeleteCommand(
-        repo: repo,
+        repo: _repo,
         item: task,
         id: task.id,
         displayName: task.title,
       );
     }
-
-    if (deleteSubtasks) {
-      final commands = <Command>[
-        for (final subtask in subtasks)
+    final commands = <Command>[
+      for (final subtask in subtasks)
+        if (deleteSubtasks)
           DeleteCommand(
-            repo: repo,
+            repo: _repo,
             item: subtask,
             id: subtask.id,
             displayName: subtask.title,
+          )
+        else
+          UpdateCommand(
+            repo: _repo,
+            previous: subtask,
+            next: subtask.copyWith(parentId: null),
+            displayName: subtask.title,
           ),
-        DeleteCommand(
-          repo: repo,
-          item: task,
-          id: task.id,
-          displayName: task.title,
-        ),
-      ];
-      return CompoundCommand(
-        commands,
-        'Delete "${task.title}" and ${subtasks.length} subtask(s)',
-      );
-    }
-
-    final commands = <Command>[
-      for (final subtask in subtasks)
-        UpdateCommand(
-          repo: repo,
-          previous: subtask,
-          next: subtask.copyWith(parentId: null),
-          displayName: subtask.title,
-        ),
       DeleteCommand(
-        repo: repo,
+        repo: _repo,
         item: task,
         id: task.id,
         displayName: task.title,
@@ -219,7 +175,9 @@ class TaskCrudService {
     ];
     return CompoundCommand(
       commands,
-      'Delete parent "${task.title}" (preserve subtasks)',
+      deleteSubtasks
+          ? 'Delete "${task.title}" and ${subtasks.length} subtask(s)'
+          : 'Delete parent "${task.title}" (preserve subtasks)',
     );
   }
 }

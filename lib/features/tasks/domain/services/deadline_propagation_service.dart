@@ -1,45 +1,40 @@
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/domain/task_prefs.dart';
 
 class DeadlinePropagationService {
-  static Future<List<UpdateCommand<Task>>> buildPropagationCommands({
-    required ITaskRepository repo,
-    required Task task,
-    required bool inheritParentDeadline,
+  final ITaskRepository _repo;
+  final TaskPrefs Function() _prefs;
+  const DeadlinePropagationService(this._repo, this._prefs);
+
+  Future<List<UpdateCommand<Task>>> buildPropagationCommands(
+    Task task, {
     Set<String>? visited,
   }) async {
-    if (!inheritParentDeadline ||
+    if (!_prefs().inheritParentDeadline ||
         task.deadline == null ||
         task.blockedById == null) {
       return const [];
     }
-
     final localVisited = visited ?? <String>{};
-    if (localVisited.contains(task.id)) return const [];
-    localVisited.add(task.id);
-
-    final blocker = await repo.getById(task.blockedById!);
+    if (!localVisited.add(task.id)) return const [];
+    final blocker = await _repo.getById(task.blockedById!);
     if (blocker == null) return const [];
-
     final commands = <UpdateCommand<Task>>[];
     if (blocker.deadline == null || blocker.deadline!.isAfter(task.deadline!)) {
-      final updatedBlocker = blocker.copyWith(deadline: task.deadline);
+      final updated = blocker.copyWith(deadline: task.deadline);
       commands.add(
         UpdateCommand(
-          repo: repo,
+          repo: _repo,
           previous: blocker,
-          next: updatedBlocker,
+          next: updated,
           displayName: blocker.title,
         ),
       );
-      final recursiveCommands = await buildPropagationCommands(
-        repo: repo,
-        task: updatedBlocker,
-        inheritParentDeadline: inheritParentDeadline,
-        visited: localVisited,
+      commands.addAll(
+        await buildPropagationCommands(updated, visited: localVisited),
       );
-      commands.addAll(recursiveCommands);
     }
     return commands;
   }

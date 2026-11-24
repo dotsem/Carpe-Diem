@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
+import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,11 +73,35 @@ void main() {
       expect(state.unscheduledTasks.first.id, equals('u1'));
     });
 
+    test(
+      'changing task preferences does not reset loaded task state',
+      () async {
+        final date = DateTime(2026, 6);
+        final loaded = createTestTask(id: 'kept', scheduledDate: date);
+        when(
+          () => mockTaskRepo.getByDate(
+            any(),
+            prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+            prioritizeOverdue: any(named: 'prioritizeOverdue'),
+          ),
+        ).thenAnswer((_) async => [loaded]);
+
+        await container.read(taskProvider.notifier).loadTasksForDate(date);
+        await container
+            .read(settingsProvider.notifier)
+            .setPrioritizeDeadlines(false);
+
+        expect(container.read(taskProvider).tasks.single.id, 'kept');
+      },
+    );
+
     test('addTask creates task and refreshes state', () async {
       when(() => mockTaskRepo.insert(any())).thenAnswer((_) async => {});
 
       final notifier = container.read(taskProvider.notifier);
-      await notifier.addTask(title: 'New Task', isUrgent: true);
+      await notifier.addTask(
+        const TaskDraft(title: 'New Task', isUrgent: true),
+      );
 
       verify(() => mockTaskRepo.insert(any())).called(1);
     });

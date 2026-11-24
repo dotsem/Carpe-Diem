@@ -7,6 +7,7 @@ import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/create_tags_prompt_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
+import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -99,16 +100,18 @@ abstract final class TaskFormSubmitHandler {
         ref
             .read(taskProvider.notifier)
             .addTask(
-              title: titleToSave,
-              description: trimmedDesc,
-              scheduledDate: scheduledDate,
-              projectId: selectedProjectId,
-              placement: placement ?? TaskPlacement.bottom,
-              deadline: deadline,
-              blockedById: blockedById,
-              parentId: parentId,
-              labelIds: selectedLabelIds,
-              tagIds: finalTagIds,
+              TaskDraft(
+                title: titleToSave,
+                description: trimmedDesc,
+                scheduledDate: scheduledDate,
+                projectId: selectedProjectId,
+                placement: placement ?? TaskPlacement.bottom,
+                deadline: deadline,
+                blockedById: blockedById,
+                parentId: parentId,
+                labelIds: selectedLabelIds,
+                tagIds: finalTagIds,
+              ),
             ),
       );
     }
