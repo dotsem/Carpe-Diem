@@ -278,7 +278,7 @@ packages:
     source: hosted
     version: "3.1.0"
   fuzzy:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: fuzzy
       sha256: "5ab35514199b09662dd73fdec5f3f446dcae88c51fdab1aa24bb29adc30f0847"

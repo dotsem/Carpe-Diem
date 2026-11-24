@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provide
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/add_tag_dialog.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_context_menu.dart';
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -3,7 +3,7 @@ import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/dialogs/add_label_dialog.dart';
 import 'package:carpe_diem/features/labels/presentation/widgets/label_context_menu.dart';
-import 'package:carpe_diem/flutter_ext/searchable_dropdown/multi_select_searchable_dropdown.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

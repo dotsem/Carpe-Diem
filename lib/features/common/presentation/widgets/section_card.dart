@@ -1,4 +1,4 @@
-import 'package:carpe_diem/flutter_ext/shortcut_hint_badge.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 
 class SectionItem {

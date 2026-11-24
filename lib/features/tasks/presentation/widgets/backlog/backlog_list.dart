@@ -16,7 +16,7 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_em
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_reorder_corridor.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_item.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_reorder_scope.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

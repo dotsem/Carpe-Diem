@@ -5,7 +5,7 @@ import 'package:carpe_diem/features/labels/presentation/providers/label_provider
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/flutter_ext/horizontal_tab.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,4 +1,4 @@
-import 'package:carpe_diem/flutter_ext/dialogs/sized_dialog.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 
 class CustomDatePickerDialog extends StatefulWidget {

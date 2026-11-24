@@ -1,5 +1,5 @@
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
-import 'package:carpe_diem/flutter_ext/hardware_shortcuts.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

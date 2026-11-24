@@ -4,8 +4,8 @@ import 'package:carpe_diem/features/command_palette/presentation/widgets/command
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette_footer.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette_results_list.dart';
 import 'package:carpe_diem/features/command_palette/presentation/widgets/command_palette_search_bar.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_utils.dart';
 import 'package:carpe_diem/routes/keys.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -9,7 +9,7 @@ import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.da
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/projects_shortcuts.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
-import 'package:carpe_diem/flutter_ext/fuzzy_search/fuzzy_search_bar.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
