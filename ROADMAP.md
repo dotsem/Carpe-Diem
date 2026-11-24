@@ -4,32 +4,48 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 ---
 
-
-
 ## Current Scope: v0.8.0
 
-- [ ] **Markdown Import Preview:** Live preview before importing markdown files.
-- [ ] **Advanced Filtering:** Filter tasks by priority and date range.
-- [ ] **Continuous Saving:** Remove the need for manual save button.
+- [ ] **Continuous Saving:** Remove the need for manual save button. Edits to the same field coalesce into one undo step.
+- [ ] **Advanced Filtering:** Filter tasks by priority and date range, as part of filter modes.
+- [ ] **Add & Create More:** Easily create more tasks with the same metadata.
+- [ ] **Command Queue:** Queue commands instead of dropping them while another one is processing.
+- [ ] **Transactional Commands:** Run compound commands inside a single database transaction.
+- [ ] **Soft Deletes:** Tombstone rows (`deleted_at`) instead of hard deletes, preparing for sync.
 
 ---
 
-## Planned: v0.9.0 (Cross Platform)
+## Planned: v0.9.0 (MCP)
 
-- [ ] **Mobile Support:** Optimized layouts for Android and iOS form factors.
+- [ ] **MCP Server:** In-app local HTTP MCP server, secured with a token and Host/Origin checks.
+- [ ] **Domain-Level Tools:** Task-oriented tools (e.g. get today, plan task, add tasks) that respect planning rules.
+- [ ] **Undoable Agent Actions:** Each MCP call is a single undo step.
+- [ ] **Approval Mode:** Settings toggle between auto-apply and approving pending changes in the right sidebar.
 
 ---
 
-## Future: v0.10.0 (Cloud & Local Sync)
+## Planned: v0.10.0 (Project Notes)
 
-- [ ] **CRDT:** Conflict-free Replicated Data Types for state reconciliation.
-- [ ] **Cloud Sync:** Cross-device synchronization via cloud providers.
-- [ ] **Self-Hosted Sync:** Option to synchronize with self-hosted servers.
+- [ ] **Project Notes:** One markdown document per project.
+- [ ] **Extract Tasks:** Highlight text in a note to extract it as a task. Replaces markdown import preview.
 
+---
+
+## Planned: v0.11.0 (Sync)
+
+- [ ] **Hybrid Logical Clocks:** Clock-skew-safe change ordering across devices.
+- [ ] **Last-Write-Wins Sync:** Per-row reconciliation, the app stays fully functional offline without setup.
+- [ ] **Self-Hosted Sync Server:** Tiny single-user Go relay binary for homelabs.
+- [ ] **Cloud Sync:** Hosted instance of the same server (multi-user later).
+
+---
+
+## Planned: v0.12.0 (Cross Platform)
+
+- [ ] **Mobile Support:** Full replica on Android and iOS with an adaptive shell (swipeable kanban columns, sheets instead of sidebar, long-press instead of hover and context menus).
+
+---
 
 ## Future plans (no fixed release)
 
 - [ ] **Project Versions:** Assign tasks to specific project versions and track version progress.
-- [ ] **File Watcher:** Watch markdown files (like Roadmap.md) for live sync.
-- [ ] **TODO tracker:** Scan codebases for //TODO comments and add them as tasks.
-- [ ] **Project Notes:** A centralized way to store notes about a project.
