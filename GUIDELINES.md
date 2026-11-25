@@ -81,6 +81,7 @@ This document defines the coding standards, architectural decisions, and practic
 ### 2.6 Specs
 - **Location**: `docs/specs/NNNN-slug.md`, one flat file per spec. No folders, so numbering sorts correctly. Put a multi-step rollout in the spec's `## Plan` section.
 - **Outline**: `Status`, `## Why`, `## Scope / Non-goals`, `## Design`, `## Risks`, `## Plan`, `## Verification`, `## Assumptions`. Drop sections that don't apply.
+- **Status**: `draft` → `approved` → `done (#<PR>)`. Use the merge PR number, never a release version: the version is unknown at merge time.
 
 ---
 

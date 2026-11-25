@@ -1,6 +1,6 @@
 # 0005: Refresh and async correctness
 
-Status: done (v0.7.1)
+Status: done (#152)
 
 ## Why
 

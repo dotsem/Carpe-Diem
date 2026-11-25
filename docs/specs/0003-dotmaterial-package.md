@@ -1,6 +1,6 @@
 # 0003: Extract flutter_ext into the dotmaterial package
 
-Status: done
+Status: done (#150)
 
 > **Deviation (#150):** CI uses a separate `.github/workflows/dotmaterial.yml` with `coverage-report: false` instead of the `test-paths` input. Package coverage is not in the app's coverage report until dotactions supports a configurable coverage `comment-key`.
 

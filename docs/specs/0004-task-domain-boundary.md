@@ -1,6 +1,6 @@
 # 0004: Task domain boundary
 
-Status: done (v0.7.1)
+Status: done (#151)
 
 ## Why
 

@@ -1,6 +1,6 @@
 # 0001: Freezed for data models
 
-Status: approved
+Status: done (#145)
 
 ## Why
 
