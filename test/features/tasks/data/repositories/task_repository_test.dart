@@ -101,6 +101,40 @@ void main() {
       expect(fetched.tagIds, contains('tag-2'));
     });
 
+    test('updateAll rolls back all updates when one fails', () async {
+      final first = Task(
+        id: 'batch-1',
+        title: 'First',
+        createdAt: DateTime.now(),
+      );
+      final second = Task(
+        id: 'batch-2',
+        title: 'Second',
+        createdAt: DateTime.now(),
+      );
+      await repository.insert(first);
+      await repository.insert(second);
+      await db.execute('''
+        CREATE TRIGGER fail_second_update
+        BEFORE UPDATE ON tasks
+        WHEN NEW.id = 'batch-2'
+        BEGIN
+          SELECT RAISE(ABORT, 'second update failed');
+        END
+      ''');
+
+      await expectLater(
+        repository.updateAll([
+          first.copyWith(title: 'Updated first'),
+          second.copyWith(title: 'Updated second'),
+        ]),
+        throwsA(isA<DatabaseException>()),
+      );
+
+      expect((await repository.getById(first.id))?.title, 'First');
+      expect((await repository.getById(second.id))?.title, 'Second');
+    });
+
     test(
       'should retrieve tasks by scheduled date or completion date range',
       () async {

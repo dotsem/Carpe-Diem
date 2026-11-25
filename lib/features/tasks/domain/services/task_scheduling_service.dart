@@ -13,6 +13,7 @@ class TaskSchedulingService {
   Future<void> autoScheduleDeadlines({required DateTime today}) async {
     final backlog = await _repo.getUnscheduled();
     final normalizedToday = today.normalize;
+    final updates = <Task>[];
 
     for (final task in backlog) {
       if (task.deadline != null) {
@@ -20,11 +21,11 @@ class TaskSchedulingService {
         if (normalizedDeadline.isBefore(
           normalizedToday.add(const Duration(days: 1)),
         )) {
-          final updated = task.copyWith(scheduledDate: normalizedDeadline);
-          await _repo.update(updated);
+          updates.add(task.copyWith(scheduledDate: normalizedDeadline));
         }
       }
     }
+    await _repo.updateAll(updates);
   }
 
   String _formatDateLabel(DateTime date) {
