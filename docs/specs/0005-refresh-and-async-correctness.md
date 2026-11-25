@@ -1,6 +1,6 @@
 # 0005: Refresh and async correctness
 
-Status: draft
+Status: done (v0.7.1)
 
 ## Why
 
@@ -56,16 +56,6 @@ Non-goals:
 - **The guard drops a valid result.** It could discard a result the screen needed, for example a same-date refresh racing a mutation. A dropped result also leaves `isLoading` as it was; the newer load that caused the drop clears it.
 - **The batch write fails part-way.** The transaction must roll back the whole batch.
 - **Startup flicker.** Tests or screens that assume `isLoading` starts `false` break, or the screen flickers on startup.
-
-## Plan
-
-One PR:
-
-- `task_provider.dart`: add `_init()`, parallelise and guard `loadTasksForDate` and `refreshAll`, and start with `isLoading: true`.
-- `task_scheduling_service.dart`: collect the updates into one batch write. Add `updateAll(List<Task>)` to `ITaskRepository` and `TaskRepository`, using `_db.transaction`.
-  - `task_repository.dart` is already 426 lines and stays over the 300-line limit in this PR. [0006](0006-file-size-and-module-boundaries.md) owns the split; don't split it here.
-- `main.dart`: add the two error handlers, and delete the eager `taskProvider` `loadTasksForDate` and `loadUnscheduledTasks` calls.
-- `toast_utils.dart`: add `showError`.
 
 ## Verification
 
