@@ -1,6 +1,6 @@
-import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/domain/task_hierarchy_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

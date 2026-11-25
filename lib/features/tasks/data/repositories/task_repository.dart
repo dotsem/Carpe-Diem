@@ -2,6 +2,9 @@ import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/data/repositories/task_event_logger.dart';
+import 'package:carpe_diem/features/tasks/data/repositories/task_order_sql.dart';
+import 'package:carpe_diem/features/tasks/data/repositories/task_relations_loader.dart';
+import 'package:carpe_diem/features/tasks/data/repositories/task_relations_writer.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class TaskRepository extends ITaskRepository {
@@ -15,49 +18,6 @@ class TaskRepository extends ITaskRepository {
 
   TaskRepository(this._db);
 
-  Future<List<Task>> _loadTasksWithRelations(
-    List<Map<String, dynamic>> maps,
-  ) async {
-    if (maps.isEmpty) return [];
-
-    final taskIds = maps.map((m) => m['id'] as String).toList();
-    final placeholders = taskIds.map((_) => '?').join(',');
-
-    final labelsData = await _db.rawQuery(
-      'SELECT taskId, labelId FROM task_labels WHERE taskId IN ($placeholders)',
-      taskIds,
-    );
-
-    final labelMap = <String, List<String>>{};
-    for (final row in labelsData) {
-      final tId = row['taskId']! as String;
-      final lId = row['labelId']! as String;
-      labelMap.putIfAbsent(tId, () => []).add(lId);
-    }
-
-    final tagsData = await _db.rawQuery(
-      'SELECT taskId, tagId FROM task_tags WHERE taskId IN ($placeholders)',
-      taskIds,
-    );
-
-    final tagMap = <String, List<String>>{};
-    for (final row in tagsData) {
-      final tId = row['taskId']! as String;
-      final tgId = row['tagId']! as String;
-      tagMap.putIfAbsent(tId, () => []).add(tgId);
-    }
-
-    return maps
-        .map(
-          (m) => Task.fromMap(
-            m,
-            labelIds: labelMap[m['id']] ?? const [],
-            tagIds: tagMap[m['id']] ?? const [],
-          ),
-        )
-        .toList();
-  }
-
   @override
   Future<List<Task>> getAll({
     bool prioritizeDeadlines = true,
@@ -67,9 +27,9 @@ class TaskRepository extends ITaskRepository {
       $_baseSelect
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE p.isActive IS NULL OR p.isActive = 1
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
+      ORDER BY ${taskOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''');
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
@@ -77,9 +37,7 @@ class TaskRepository extends ITaskRepository {
     final maps = await _db.rawQuery('$_baseSelect WHERE t.id = ?', [id]);
     if (maps.isEmpty) return null;
 
-    final labelIds = await _getLabelIds(id);
-    final tagIds = await _getTagIds(id);
-    return Task.fromMap(maps.first, labelIds: labelIds, tagIds: tagIds);
+    return (await loadTasksWithRelations(_db, maps)).first;
   }
 
   @override
@@ -87,16 +45,16 @@ class TaskRepository extends ITaskRepository {
     final maps = await _db.rawQuery('$_baseSelect WHERE t.blockedById = ?', [
       taskId,
     ]);
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
   Future<List<Task>> getByParent(String parentId) async {
     final maps = await _db.rawQuery(
-      '$_baseSelect WHERE t.parentId = ? ORDER BY ${_getOrderBy(tableAlias: 't')}',
+      '$_baseSelect WHERE t.parentId = ? ORDER BY ${taskOrderBy(tableAlias: 't')}',
       [parentId],
     );
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
@@ -115,7 +73,7 @@ class TaskRepository extends ITaskRepository {
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE ((date(t.scheduledDate) = date(?)) OR (t.completedAt >= ? AND t.completedAt < ?))
       AND (p.isActive IS NULL OR p.isActive = 1)
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue, today: startOfDay, isPlanOrder: true)}
+      ORDER BY ${taskOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue, today: startOfDay, isPlanOrder: true)}
     ''',
       [
         scheduledDateStr,
@@ -124,7 +82,7 @@ class TaskRepository extends ITaskRepository {
       ],
     );
 
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
@@ -145,7 +103,7 @@ class TaskRepository extends ITaskRepository {
       [dateStr, TaskStatus.done.index],
     );
 
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
@@ -158,10 +116,10 @@ class TaskRepository extends ITaskRepository {
       LEFT JOIN projects p ON t.projectId = p.id
       WHERE t.scheduledDate IS NULL
       AND (p.isActive IS NULL OR p.isActive = 1)
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
+      ORDER BY ${taskOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''');
 
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
@@ -174,12 +132,12 @@ class TaskRepository extends ITaskRepository {
       '''
       $_baseSelect
       WHERE t.projectId = ?
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
+      ORDER BY ${taskOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''',
       [projectId],
     );
 
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
@@ -192,12 +150,12 @@ class TaskRepository extends ITaskRepository {
       '''
       $_baseSelect
       WHERE t.projectId = ? AND t.scheduledDate IS NULL
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
+      ORDER BY ${taskOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''',
       [projectId],
     );
 
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
@@ -214,12 +172,12 @@ class TaskRepository extends ITaskRepository {
       LEFT JOIN task_labels tl ON t.id = tl.taskId
       WHERE (pl.labelId = ? OR tl.labelId = ?)
       AND (p.isActive IS NULL OR p.isActive = 1)
-      ORDER BY ${_getOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
+      ORDER BY ${taskOrderBy(tableAlias: 't', prioritizeDeadlines: prioritizeDeadlines, prioritizeOverdue: prioritizeOverdue)}
     ''',
       [labelId, labelId],
     );
 
-    return await _loadTasksWithRelations(maps);
+    return await loadTasksWithRelations(_db, maps);
   }
 
   @override
@@ -227,56 +185,10 @@ class TaskRepository extends ITaskRepository {
     await _db.transaction((txn) async {
       final map = task.toMap();
       map['updatedAt'] ??= task.createdAt.toIso8601String();
-      if (task.projectId != null) {
-        final projectExists = (await txn.rawQuery(
-          'SELECT 1 FROM projects WHERE id = ?',
-          [task.projectId],
-        )).isNotEmpty;
-        if (!projectExists) {
-          map['projectId'] = null;
-        }
-      }
-      if (task.blockedById != null) {
-        final taskExists = (await txn.rawQuery(
-          'SELECT 1 FROM tasks WHERE id = ?',
-          [task.blockedById],
-        )).isNotEmpty;
-        if (!taskExists) {
-          map['blockedById'] = null;
-        }
-      }
-      if (task.parentId != null) {
-        final parentExists = (await txn.rawQuery(
-          'SELECT 1 FROM tasks WHERE id = ?',
-          [task.parentId],
-        )).isNotEmpty;
-        if (!parentExists || task.parentId == task.id) {
-          map['parentId'] = null;
-        }
-      }
+      await nullMissingRefs(txn, task, map);
       await txn.insert('tasks', map);
       await TaskEventLogger.logInsert(txn, task.id, map);
-      for (final labelId in task.labelIds) {
-        final labelExists = (await txn.rawQuery(
-          'SELECT 1 FROM labels WHERE id = ?',
-          [labelId],
-        )).isNotEmpty;
-        if (labelExists) {
-          await txn.insert('task_labels', {
-            'taskId': task.id,
-            'labelId': labelId,
-          });
-        }
-      }
-      for (final tagId in task.tagIds) {
-        final tagExists = (await txn.rawQuery(
-          'SELECT 1 FROM tags WHERE id = ?',
-          [tagId],
-        )).isNotEmpty;
-        if (tagExists) {
-          await txn.insert('task_tags', {'taskId': task.id, 'tagId': tagId});
-        }
-      }
+      await replaceTaskRelations(txn, task);
     });
   }
 
@@ -300,27 +212,7 @@ class TaskRepository extends ITaskRepository {
     final map = task.toMap();
     map.remove('id');
     map['updatedAt'] = DateTime.now().toIso8601String();
-    if (task.projectId != null) {
-      final projectExists = (await txn.rawQuery(
-        'SELECT 1 FROM projects WHERE id = ?',
-        [task.projectId],
-      )).isNotEmpty;
-      if (!projectExists) map['projectId'] = null;
-    }
-    if (task.blockedById != null) {
-      final taskExists = (await txn.rawQuery(
-        'SELECT 1 FROM tasks WHERE id = ?',
-        [task.blockedById],
-      )).isNotEmpty;
-      if (!taskExists) map['blockedById'] = null;
-    }
-    if (task.parentId != null) {
-      final parentExists = (await txn.rawQuery(
-        'SELECT 1 FROM tasks WHERE id = ?',
-        [task.parentId],
-      )).isNotEmpty;
-      if (!parentExists || task.parentId == task.id) map['parentId'] = null;
-    }
+    await nullMissingRefs(txn, task, map);
     final oldRow = (await txn.query(
       'tasks',
       where: 'id = ?',
@@ -329,30 +221,7 @@ class TaskRepository extends ITaskRepository {
     if (oldRow == null) return;
     await txn.update('tasks', map, where: 'id = ?', whereArgs: [task.id]);
     await TaskEventLogger.logUpdate(txn, task.id, oldRow, map);
-
-    await txn.delete('task_labels', where: 'taskId = ?', whereArgs: [task.id]);
-    for (final labelId in task.labelIds) {
-      final labelExists = (await txn.rawQuery(
-        'SELECT 1 FROM labels WHERE id = ?',
-        [labelId],
-      )).isNotEmpty;
-      if (labelExists) {
-        await txn.insert('task_labels', {
-          'taskId': task.id,
-          'labelId': labelId,
-        });
-      }
-    }
-
-    await txn.delete('task_tags', where: 'taskId = ?', whereArgs: [task.id]);
-    for (final tagId in task.tagIds) {
-      final tagExists = (await txn.rawQuery('SELECT 1 FROM tags WHERE id = ?', [
-        tagId,
-      ])).isNotEmpty;
-      if (tagExists) {
-        await txn.insert('task_tags', {'taskId': task.id, 'tagId': tagId});
-      }
-    }
+    await replaceTaskRelations(txn, task);
   }
 
   @override
@@ -370,59 +239,5 @@ class TaskRepository extends ITaskRepository {
       where: 'status = ? AND completedAt < ?',
       whereArgs: [TaskStatus.done.index, threshold],
     );
-  }
-
-  Future<List<String>> _getLabelIds(String taskId) async {
-    final maps = await _db.query(
-      'task_labels',
-      where: 'taskId = ?',
-      columns: ['labelId'],
-      whereArgs: [taskId],
-    );
-    return maps.map((m) => m['labelId']! as String).toList();
-  }
-
-  Future<List<String>> _getTagIds(String taskId) async {
-    final maps = await _db.query(
-      'task_tags',
-      where: 'taskId = ?',
-      columns: ['tagId'],
-      whereArgs: [taskId],
-    );
-    return maps.map((m) => m['tagId']! as String).toList();
-  }
-
-  String _getOrderBy({
-    String? tableAlias,
-    bool prioritizeDeadlines = true,
-    bool prioritizeOverdue = false,
-    DateTime? today,
-    bool isPlanOrder = false,
-  }) {
-    final prefix = tableAlias != null ? '$tableAlias.' : '';
-    final urgentPart = '(${prefix}isUrgent = 1) DESC';
-    final sortCol = isPlanOrder
-        ? "COALESCE(NULLIF(${prefix}planSortOrder, ''), NULLIF(${prefix}sortOrder, ''), '~')"
-        : "CASE WHEN ${prefix}sortOrder = '' THEN '~' ELSE ${prefix}sortOrder END";
-    final sortOrderPart = '$sortCol ASC, ${prefix}createdAt DESC';
-    final deadlinePart = '(${prefix}deadline IS NULL), ${prefix}deadline ASC';
-
-    final t = today ?? DateTime.now();
-    final todayStr = DateTime(t.year, t.month, t.day).toIso8601String();
-    final overduePart =
-        "(CASE WHEN ${prefix}status != ${TaskStatus.done.index} AND ((${prefix}scheduledDate IS NOT NULL AND ${prefix}scheduledDate < '$todayStr' AND (${prefix}deadline IS NULL OR ${prefix}deadline < '$todayStr')) OR (${prefix}deadline IS NOT NULL AND ${prefix}deadline < '$todayStr')) THEN 1 ELSE 0 END) DESC";
-
-    final parts = <String>[urgentPart];
-    if (prioritizeOverdue) {
-      parts.add(overduePart);
-    }
-    if (prioritizeDeadlines && !isPlanOrder) {
-      parts.add(deadlinePart);
-    }
-    parts.add(sortOrderPart);
-    if (!prioritizeDeadlines || isPlanOrder) {
-      parts.add(deadlinePart);
-    }
-    return parts.join(', ');
   }
 }

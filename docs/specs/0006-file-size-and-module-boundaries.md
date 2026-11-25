@@ -1,6 +1,6 @@
 # 0006: File size and module boundaries
 
-Status: draft
+Status: approved
 
 ## Why
 
@@ -44,7 +44,7 @@ Non-goals:
 | `project_detail_screen.dart` | The `build` body goes into a header widget and a body widget under `widgets/project_detail/`. Focus and search wiring stay in the state class. |
 | `backlog_screen.dart` | `build` (lines 131–368) and `_buildHeaderActions` go into `widgets/backlog/` widgets. Same pattern as the project detail screen. |
 | `task_form_panel.dart` | `_CoordinatedMenuController` goes to its own file. The form body sections go into `form/sections/`, which already exists. |
-| `task_repository.dart` | `_getOrderBy` becomes a pure top-level function in `task_order_sql.dart`, and the relation loading goes into `task_relations_loader.dart`. Both can then be tested on their own. |
+| `task_repository.dart` | `_getOrderBy` becomes a pure top-level `taskOrderBy` in `task_order_sql.dart`, relation loading goes into `task_relations_loader.dart`, and the reference checks and label/tag writes that `insert` and `_update` duplicated become one `task_relations_writer.dart`. |
 | `shortcut_intents.dart` | One file per area: `navigation_intents.dart`, `task_intents.dart` and `selection_intents.dart`. The original file re-exports all three, so imports don't change. |
 | `app_shortcuts.dart` | `isTypingInTextField`/`NonTypingAction` and `AppShortcutRegistrar` move to their own files. |
 | `settings_components.dart` | One file per tile type group: section and base tiles in one, input tiles (switch, dropdown, slider) in another. |
@@ -67,7 +67,7 @@ Non-goals:
 
 **Feature utils move out of `core`:**
 
-- The `task_*_utils` files go to `features/tasks/domain/`.
+- The `task_*_utils` files and `deadline_urgency.dart` go to `features/tasks/domain/`.
 - `project_reorder_utils` goes to `features/projects/domain/`.
 - `history_stats_utils` goes to `features/history/domain/`.
 - `core/utils` keeps the generic helpers: date/time, color, focus, key-value map, midnight timer and search navigation.

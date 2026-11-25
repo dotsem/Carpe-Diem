@@ -319,6 +319,14 @@ void main() {
       expect(fetched.parentId, isNull);
     });
 
+    test('nulls a parent reference that points at the task itself', () async {
+      await repository.insert(createTestTask(id: 'self', title: 'Self'));
+      await repository.update(
+        (await repository.getById('self'))!.copyWith(parentId: 'self'),
+      );
+      expect((await repository.getById('self'))!.parentId, isNull);
+    });
+
     test('queries by project, project backlog, and inherited label', () async {
       await db.insert('projects', {
         'id': 'project',

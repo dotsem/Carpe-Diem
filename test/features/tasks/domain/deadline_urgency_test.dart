@@ -1,4 +1,4 @@
-import 'package:carpe_diem/core/utils/deadline_urgency.dart';
+import 'package:carpe_diem/features/tasks/domain/deadline_urgency.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

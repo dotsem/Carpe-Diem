@@ -1,5 +1,5 @@
-import 'package:carpe_diem/core/utils/project_reorder_utils.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
+import 'package:carpe_diem/features/projects/domain/project_reorder_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
