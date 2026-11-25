@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:carpe_diem/core/constants/app_constants.dart';
 import 'package:carpe_diem/core/theme/app_theme.dart';
+import 'package:carpe_diem/core/toast/toast_utils.dart';
 import 'package:carpe_diem/features/common/data/database/database_helper.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/app_shortcuts.dart';
@@ -12,7 +15,6 @@ import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provide
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_layout_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -22,6 +24,7 @@ import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  installErrorHandlers();
   try {
     await windowManager.ensureInitialized();
   } on Object catch (e) {
@@ -47,8 +50,6 @@ void main() async {
   await container.read(tagProvider.notifier).loadTags();
   await container.read(tagIconProvider.notifier).loadIcons();
   await container.read(projectProvider.notifier).loadProjects();
-  await container.read(taskProvider.notifier).loadTasksForDate(DateTime.now());
-  await container.read(taskProvider.notifier).loadUnscheduledTasks();
 
   runApp(
     UncontrolledProviderScope(
@@ -56,6 +57,19 @@ void main() async {
       child: const CarpeDiemApp(),
     ),
   );
+}
+
+void installErrorHandlers() {
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    ToastUtils.showError(details.exceptionAsString());
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('Unhandled asynchronous error: $error');
+    debugPrintStack(stackTrace: stack);
+    ToastUtils.showError(error.toString());
+    return true;
+  };
 }
 
 class CarpeDiemApp extends ConsumerWidget {

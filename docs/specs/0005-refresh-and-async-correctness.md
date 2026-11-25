@@ -40,6 +40,8 @@ Non-goals:
 - When the queries return, it drops the result if `state.currentDate` no longer equals the date it requested.
 - `refreshAll` runs the date load and the unscheduled load with `Future.wait`. They write different state fields, so they can't clobber each other.
 - Rejected: a generation counter. The date check is enough, because the date is the only argument that changes.
+- Silent loads (`silent: true`, used by `refreshAll`) leave `isLoading` as they found it. Only a non-silent load or the end of `_init()` clears it, so a refresh that runs during startup can't end the loading state before auto-schedule has finished.
+- `_init()` and both loads check `ref.mounted` after each `await`, so a notifier that was disposed mid-load (for example when a test tears down its container) never writes state.
 
 **One global error sink instead of a `try/catch` at each call site.**
 
@@ -70,6 +72,6 @@ One PR:
 - Stale first load: a provider test with a backlog task whose deadline is today asserts that `taskProvider.tasks` contains it once `_init` completes, without any further mutation.
 - Out-of-order responses: a provider test with a mock repository that delays `getByDate(A)` past `getByDate(B)` asserts that the state shows B's tasks.
 - Partial batch: a repository test makes the second update in `updateAll` throw and asserts that the first one rolled back.
-- Swallowed errors: a widget test makes `updateTask` throw from an unawaited call and asserts that a toast appears.
-- Toast storm: `showError` dismisses the previous error toast before showing the next, so repeated errors replace each other instead of stacking. Check this manually by forcing a repository exception.
+- Swallowed errors: a widget test makes `updateTask` throw from an unawaited call and asserts that a toast appears. The call starts in `Zone.root`, because the zone of `testWidgets` would otherwise catch the error before it reaches `PlatformDispatcher.onError`. That makes the error take the same route as a real engine event, with no forwarding in the test. An `integration_test` wouldn't help: it runs in the same test zone.
+- Toast storm: `showError` dismisses the previous error toast before showing the next, so repeated errors replace each other instead of stacking. A widget test shows two errors in a row and asserts that only one toast remains.
 - Startup flicker: covered by the existing `task_provider_test`, after updating its expectation for the initial `isLoading`.

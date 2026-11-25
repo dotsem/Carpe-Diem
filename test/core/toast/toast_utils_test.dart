@@ -11,6 +11,7 @@ void main() {
     ToastUtils.showSuccess('No context yet');
     ToastUtils.showInfo('No context yet');
     ToastUtils.showWarning('No context yet');
+    ToastUtils.showError('No context yet');
     ToastUtils.showUndoable('No context yet', () {});
     late BuildContext context;
     await tester.pumpWidget(
@@ -35,6 +36,7 @@ void main() {
       iconColor: Colors.purple,
     );
     ToastUtils.showWarning('Warning', context: context);
+    ToastUtils.showError('Error', context: context);
     var undone = false;
     ToastUtils.showUndoable(
       'Deleted',
@@ -62,10 +64,41 @@ void main() {
 
     ToastUtils.showInfo('Root info');
     ToastUtils.showWarning('Root warning');
+    ToastUtils.showError('Root error');
     ToastUtils.showUndoable('Root undo', () {}, iconColor: Colors.green);
     await tester.pump();
 
     expect(tester.takeException(), isNull);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('showError replaces the previous error toast', (tester) async {
+    toastification.dismissAll(delayForAnimation: false);
+    late BuildContext context;
+    await tester.pumpWidget(
+      ToastificationWrapper(
+        child: MaterialApp(
+          home: Builder(
+            builder: (value) {
+              context = value;
+              return const Scaffold(body: Text('Home'));
+            },
+          ),
+        ),
+      ),
+    );
+
+    ToastUtils.showError('First', context: context);
+    await tester.pump();
+    final manager = toastification.managers[ToastUtils.alignment];
+    expect(manager?.notifications, hasLength(1));
+    final first = manager?.notifications.single;
+
+    ToastUtils.showError('Second', context: context);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(manager?.notifications, hasLength(1));
+    expect(manager?.notifications.single, isNot(same(first)));
     await tester.pump(const Duration(seconds: 4));
   });
 }

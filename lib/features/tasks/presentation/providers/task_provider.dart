@@ -57,7 +57,9 @@ class TaskNotifier extends Notifier<TaskState> {
 
   Future<void> _init() async {
     await schedulingService.autoScheduleDeadlines(today: DateTime.now());
+    if (!ref.mounted) return;
     await refreshAll();
+    if (!ref.mounted) return;
     state = state.copyWith(isLoading: false);
   }
 
@@ -79,7 +81,7 @@ class TaskNotifier extends Notifier<TaskState> {
       ),
       repo.getOverdue(normalized),
     ]);
-    if (state.currentDate != normalized) return;
+    if (!ref.mounted || state.currentDate != normalized) return;
     state = state.copyWith(
       tasks: results[0],
       overdueTasks: results[1],
@@ -94,6 +96,7 @@ class TaskNotifier extends Notifier<TaskState> {
       prioritizeDeadlines: s.prioritizeDeadlines,
       prioritizeOverdue: s.prioritizeOverdue,
     );
+    if (!ref.mounted) return;
     state = state.copyWith(
       unscheduledTasks: unscheduled,
       isLoading: silent && state.isLoading,
