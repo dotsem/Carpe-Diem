@@ -34,7 +34,7 @@ void main() {
         nodes: nodes,
         draggedTask: child,
         rawIndex: 0,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
       expect(slotAt0.isValid, isTrue);
       expect(slotAt0.index, 1);
@@ -44,7 +44,7 @@ void main() {
         nodes: nodes,
         draggedTask: child,
         rawIndex: 2,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
       expect(slotAt2.isValid, isTrue);
       expect(slotAt2.index, 1);
@@ -65,14 +65,14 @@ void main() {
         nodes: nodes,
         draggedTask: child,
         rawIndex: 1,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       final ranks = TaskReorderEngine.computeRanks(
         nodes: nodes,
         draggedTask: child,
         slot: slot,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(ranks, isNotNull);
@@ -93,7 +93,7 @@ void main() {
         nodes: nodes,
         draggedTask: child,
         newIndex: 1,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(newOrder, equals(LexoRank.defaultRank));

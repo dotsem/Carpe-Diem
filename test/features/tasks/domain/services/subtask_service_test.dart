@@ -9,9 +9,11 @@ import '../../../../helpers/task_test_helpers.dart';
 void main() {
   group('SubtaskService', () {
     late MockTaskRepository mockRepo;
+    late SubtaskService service;
 
     setUp(() {
       mockRepo = MockTaskRepository();
+      service = SubtaskService(mockRepo);
     });
 
     group('checkSubtaskConflict', () {
@@ -19,10 +21,7 @@ void main() {
         final parent = createTestTask(id: 'p1');
         when(() => mockRepo.getByParent('p1')).thenAnswer((_) async => []);
 
-        final conflict = await SubtaskService.checkSubtaskConflict(
-          repo: mockRepo,
-          task: parent,
-        );
+        final conflict = await service.checkSubtaskConflict(parent);
 
         expect(conflict, isNull);
       });
@@ -43,10 +42,7 @@ void main() {
           () => mockRepo.getByParent('p1'),
         ).thenAnswer((_) async => [sub1, sub2]);
 
-        final conflict = await SubtaskService.checkSubtaskConflict(
-          repo: mockRepo,
-          task: parent,
-        );
+        final conflict = await service.checkSubtaskConflict(parent);
 
         expect(conflict, isNull);
       });
@@ -68,10 +64,7 @@ void main() {
           () => mockRepo.getByParent('p1'),
         ).thenAnswer((_) async => [sub1, sub2, sub3]);
 
-        final conflict = await SubtaskService.checkSubtaskConflict(
-          repo: mockRepo,
-          task: parent,
-        );
+        final conflict = await service.checkSubtaskConflict(parent);
 
         expect(conflict, isNotNull);
         expect(conflict!.parentTask, equals(parent));
@@ -87,10 +80,7 @@ void main() {
       test('returns null when task has no parentId', () async {
         final task = createTestTask();
 
-        final parent = await SubtaskService.findCompletableParent(
-          repo: mockRepo,
-          task: task,
-        );
+        final parent = await service.findCompletableParent(task);
 
         expect(parent, isNull);
         verifyZeroInteractions(mockRepo);
@@ -103,10 +93,7 @@ void main() {
           () => mockRepo.getByParent('p1'),
         ).thenAnswer((_) async => [subtask, sibling]);
 
-        final parent = await SubtaskService.findCompletableParent(
-          repo: mockRepo,
-          task: subtask,
-        );
+        final parent = await service.findCompletableParent(subtask);
 
         expect(parent, isNull);
         verifyNever(() => mockRepo.getById('p1'));
@@ -129,10 +116,7 @@ void main() {
         ).thenAnswer((_) async => [subtask, sibling]);
         when(() => mockRepo.getById('p1')).thenAnswer((_) async => parentTask);
 
-        final parent = await SubtaskService.findCompletableParent(
-          repo: mockRepo,
-          task: subtask,
-        );
+        final parent = await service.findCompletableParent(subtask);
 
         expect(parent?.id, equals('p1'));
       });
@@ -145,10 +129,7 @@ void main() {
         ).thenAnswer((_) async => [subtask]);
         when(() => mockRepo.getById('p1')).thenAnswer((_) async => parentTask);
 
-        final parent = await SubtaskService.findCompletableParent(
-          repo: mockRepo,
-          task: subtask,
-        );
+        final parent = await service.findCompletableParent(subtask);
 
         expect(parent, isNull);
       });
@@ -160,10 +141,7 @@ void main() {
         ).thenAnswer((_) async => [subtask]);
         when(() => mockRepo.getById('p_missing')).thenAnswer((_) async => null);
 
-        final parent = await SubtaskService.findCompletableParent(
-          repo: mockRepo,
-          task: subtask,
-        );
+        final parent = await service.findCompletableParent(subtask);
 
         expect(parent, isNull);
       });
@@ -176,10 +154,7 @@ void main() {
           createTestTask(id: 't2', parentId: 'other'),
         ];
 
-        final result = SubtaskService.getAllSubtasks(
-          parentId: 'p1',
-          allTasks: tasks,
-        );
+        final result = service.getAllSubtasks(parentId: 'p1', allTasks: tasks);
 
         expect(result, isEmpty);
       });
@@ -193,10 +168,7 @@ void main() {
         final other = createTestTask(id: 'other', parentId: 'someone_else');
 
         final all = [root, child1, child2, grandChild1, greatGrandChild, other];
-        final result = SubtaskService.getAllSubtasks(
-          parentId: 'root',
-          allTasks: all,
-        );
+        final result = service.getAllSubtasks(parentId: 'root', allTasks: all);
 
         expect(result.length, equals(4));
         expect(
@@ -222,10 +194,7 @@ void main() {
         when(() => mockRepo.getByParent('c2')).thenAnswer((_) async => []);
         when(() => mockRepo.getByParent('gc1')).thenAnswer((_) async => []);
 
-        final result = await SubtaskService.getAllSubtasksFromRepo(
-          repo: mockRepo,
-          parentId: 'p1',
-        );
+        final result = await service.getAllSubtasksFromRepo('p1');
 
         expect(result.length, equals(3));
         expect(result.map((t) => t.id), containsAll(['c1', 'c2', 'gc1']));

@@ -1,232 +1,108 @@
 import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
-import 'package:carpe_diem/core/utils/task_sort_utils.dart';
 import 'package:carpe_diem/features/common/data/repositories/interfaces.dart';
-import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_state.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
+import 'package:carpe_diem/features/tasks/domain/task_prefs.dart';
 
 class TaskReorderService {
-  static String computeSortOrder({
+  final ITaskRepository _repo;
+  final TaskPrefs Function() _prefs;
+
+  const TaskReorderService(this._repo, this._prefs);
+
+  String computeSortOrder({
     required TaskPlacement placement,
     required List<Task> activeList,
   }) {
-    if (activeList.isEmpty) {
-      return LexoRank.defaultRank;
-    }
-
+    if (activeList.isEmpty) return LexoRank.defaultRank;
     switch (placement) {
       case TaskPlacement.top || TaskPlacement.urgent:
-        final topRank = TaskReorderUtils.getEffectiveRank(activeList, 0);
-        return LexoRank.generateTop(topRank);
-
+        return LexoRank.generateTop(
+          TaskReorderEngine.getEffectiveRank(activeList, 0),
+        );
       case TaskPlacement.middle:
         if (activeList.length == 1) {
-          final singleRank = TaskReorderUtils.getEffectiveRank(activeList, 0);
-          return LexoRank.generateBetween(null, singleRank);
+          return LexoRank.generateBetween(
+            null,
+            TaskReorderEngine.getEffectiveRank(activeList, 0),
+          );
         }
-        final midIndex = activeList.length ~/ 2;
-        final prevRank = TaskReorderUtils.getEffectiveRank(
-          activeList,
-          midIndex - 1,
+        final mid = activeList.length ~/ 2;
+        return LexoRank.generateBetween(
+          TaskReorderEngine.getEffectiveRank(activeList, mid - 1),
+          TaskReorderEngine.getEffectiveRank(activeList, mid),
         );
-        final nextRank = TaskReorderUtils.getEffectiveRank(
-          activeList,
-          midIndex,
-        );
-        return LexoRank.generateBetween(prevRank, nextRank);
-
       case TaskPlacement.bottom:
-        String? bottomRank;
-        for (var i = activeList.length - 1; i >= 0 && bottomRank == null; i--) {
-          bottomRank = TaskReorderUtils.getEffectiveRank(activeList, i);
+        String? bottom;
+        for (var i = activeList.length - 1; i >= 0 && bottom == null; i--) {
+          bottom = TaskReorderEngine.getEffectiveRank(activeList, i);
         }
-        return LexoRank.generateBottom(bottomRank);
+        return LexoRank.generateBottom(bottom);
     }
   }
 
-  static TaskState applyOptimisticTask({
-    required TaskState state,
-    required Task task,
-    required SettingsState settings,
-    bool isPlanOrder = false,
-  }) {
-    return state.copyWith(
-      tasks: optimisticallyReorder(
-        currentList: state.tasks,
-        updatedTask: task,
-        prioritizeOverdue: settings.prioritizeOverdue,
-        prioritizeDeadlines: settings.prioritizeDeadlines,
-        isPlanView: isPlanOrder,
-      ),
-      overdueTasks: optimisticallyReorder(
-        currentList: state.overdueTasks,
-        updatedTask: task,
-        prioritizeOverdue: settings.prioritizeOverdue,
-        prioritizeDeadlines: settings.prioritizeDeadlines,
-        isPlanView: isPlanOrder,
-      ),
-      unscheduledTasks: optimisticallyReorder(
-        currentList: state.unscheduledTasks,
-        updatedTask: task,
-        prioritizeOverdue: settings.prioritizeOverdue,
-        prioritizeDeadlines: settings.prioritizeDeadlines,
-      ),
-    );
-  }
-
-  static TaskState applyBulkOptimisticReorder({
-    required TaskState state,
-    required Map<String, String> updates,
-    required SettingsState settings,
-    bool isPlanOrder = false,
-  }) {
-    return state.copyWith(
-      tasks: applyBulkOptimisticReorderList(
-        list: state.tasks,
-        updates: updates,
-        prioritizeOverdue: settings.prioritizeOverdue,
-        prioritizeDeadlines: settings.prioritizeDeadlines,
-        isPlanOrder: isPlanOrder,
-      ),
-      overdueTasks: applyBulkOptimisticReorderList(
-        list: state.overdueTasks,
-        updates: updates,
-        prioritizeOverdue: settings.prioritizeOverdue,
-        prioritizeDeadlines: settings.prioritizeDeadlines,
-        isPlanOrder: isPlanOrder,
-      ),
-      unscheduledTasks: applyBulkOptimisticReorderList(
-        list: state.unscheduledTasks,
-        updates: updates,
-        prioritizeOverdue: settings.prioritizeOverdue,
-        prioritizeDeadlines: settings.prioritizeDeadlines,
-      ),
-    );
-  }
-
-  static List<Task> optimisticallyReorder({
-    required List<Task> currentList,
-    required Task updatedTask,
-    required bool prioritizeOverdue,
-    required bool prioritizeDeadlines,
-    bool isPlanView = false,
-  }) {
-    if (!currentList.any((t) => t.id == updatedTask.id)) return currentList;
-
-    final settings = SettingsState({
-      SettingsConstants.keyPrioritizeDeadlines: prioritizeDeadlines.toString(),
-      SettingsConstants.keyPrioritizeOverdue: prioritizeOverdue.toString(),
-    });
-
-    final updatedList = currentList
-        .map((t) => t.id == updatedTask.id ? updatedTask : t)
-        .toList();
-
-    TaskSortUtils.sortTasks(updatedList, settings, isPlanView: isPlanView);
-    return updatedList;
-  }
-
-  static Future<List<Task>> getRelevantTasksList({
-    required ITaskRepository repo,
+  Future<List<Task>> getRelevantTasksList({
     required String? parentId,
     required String? projectId,
     required DateTime? scheduledDate,
-    required bool prioritizeDeadlines,
-    required bool prioritizeOverdue,
-  }) async {
-    if (parentId != null) {
-      return await repo.getByParent(parentId);
-    }
+  }) {
+    final prefs = _prefs();
+    if (parentId != null) return _repo.getByParent(parentId);
     if (projectId != null && scheduledDate == null) {
-      return await repo.getByProjectUnscheduled(
+      return _repo.getByProjectUnscheduled(
         projectId,
-        prioritizeDeadlines: prioritizeDeadlines,
-        prioritizeOverdue: prioritizeOverdue,
+        prioritizeDeadlines: prefs.prioritizeDeadlines,
+        prioritizeOverdue: prefs.prioritizeOverdue,
       );
     }
     if (scheduledDate == null) {
-      return await repo.getUnscheduled(
-        prioritizeDeadlines: prioritizeDeadlines,
-        prioritizeOverdue: prioritizeOverdue,
+      return _repo.getUnscheduled(
+        prioritizeDeadlines: prefs.prioritizeDeadlines,
+        prioritizeOverdue: prefs.prioritizeOverdue,
       );
     }
-    return await repo.getByDate(
+    return _repo.getByDate(
       scheduledDate,
-      prioritizeDeadlines: prioritizeDeadlines,
-      prioritizeOverdue: prioritizeOverdue,
+      prioritizeDeadlines: prefs.prioritizeDeadlines,
+      prioritizeOverdue: prefs.prioritizeOverdue,
     );
   }
 
-  static Command buildReorderCommand({
-    required ITaskRepository repo,
-    required Task previous,
-    required Task next,
-  }) {
-    return UpdateCommand(
-      repo: repo,
-      previous: previous,
-      next: next,
-      displayName: next.title,
-      customDescription: 'Reorder ${repo.repositoryName}: "${next.title}"',
-    );
-  }
+  Command buildReorderCommand({required Task previous, required Task next}) =>
+      UpdateCommand(
+        repo: _repo,
+        previous: previous,
+        next: next,
+        displayName: next.title,
+        customDescription: 'Reorder ${_repo.repositoryName}: "${next.title}"',
+      );
 
-  static Future<Command?> buildBulkReorderCommand({
-    required ITaskRepository repo,
+  Future<Command?> buildBulkReorderCommand({
     required Map<String, String> updates,
     bool isPlanOrder = false,
   }) async {
     final commands = <Command>[];
     for (final entry in updates.entries) {
-      final oldTask = await repo.getById(entry.key);
-      if (oldTask != null) {
-        final updated = isPlanOrder
-            ? oldTask.copyWith(planSortOrder: entry.value)
-            : oldTask.copyWith(sortOrder: entry.value);
-        commands.add(
-          UpdateCommand(
-            repo: repo,
-            previous: oldTask,
-            next: updated,
-            displayName: oldTask.title,
-            customDescription:
-                'Reorder ${repo.repositoryName}: "${oldTask.title}"',
-          ),
-        );
-      }
+      final oldTask = await _repo.getById(entry.key);
+      if (oldTask == null) continue;
+      final updated = isPlanOrder
+          ? oldTask.copyWith(planSortOrder: entry.value)
+          : oldTask.copyWith(sortOrder: entry.value);
+      commands.add(
+        UpdateCommand(
+          repo: _repo,
+          previous: oldTask,
+          next: updated,
+          displayName: oldTask.title,
+          customDescription:
+              'Reorder ${_repo.repositoryName}: "${oldTask.title}"',
+        ),
+      );
     }
     if (commands.isEmpty) return null;
     if (commands.length == 1) return commands.first;
     return CompoundCommand(commands, 'Reorder ${commands.length} tasks');
-  }
-
-  static List<Task> applyBulkOptimisticReorderList({
-    required List<Task> list,
-    required Map<String, String> updates,
-    required bool prioritizeOverdue,
-    required bool prioritizeDeadlines,
-    bool isPlanOrder = false,
-  }) {
-    var current = List<Task>.from(list);
-    for (final entry in updates.entries) {
-      final idx = current.indexWhere((t) => t.id == entry.key);
-      if (idx != -1) {
-        final updated = isPlanOrder
-            ? current[idx].copyWith(planSortOrder: entry.value)
-            : current[idx].copyWith(sortOrder: entry.value);
-        current = optimisticallyReorder(
-          currentList: current,
-          updatedTask: updated,
-          prioritizeOverdue: prioritizeOverdue,
-          prioritizeDeadlines: prioritizeDeadlines,
-          isPlanView: isPlanOrder,
-        );
-      }
-    }
-    return current;
   }
 }

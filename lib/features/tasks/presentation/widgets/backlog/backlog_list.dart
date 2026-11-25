@@ -5,7 +5,7 @@ import 'package:carpe_diem/features/projects/presentation/providers/project_prov
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_reorder_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
@@ -61,13 +61,13 @@ class _BacklogListState extends ConsumerState<BacklogList> {
       labelTab.scope != BacklogLabelTabScope.all;
 
   void _handleDrop(Task task, int newIndex, List<TaskHierarchyNode> nodes) {
-    TaskReorderUtils.dispatchReorder(
+    TaskReorderActions.dispatchReorder(
       notifier: ref.read(taskProvider.notifier),
       nodes: nodes,
       draggedTask: task,
       newIndex: newIndex,
       selectedTaskIds: widget.selectedTaskIds.toSet(),
-      settings: ref.read(settingsProvider),
+      prefs: ref.read(settingsProvider).taskPrefs,
     );
   }
 

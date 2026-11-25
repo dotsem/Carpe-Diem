@@ -1,10 +1,10 @@
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/domain/task_prefs.dart';
 
 class TaskSortUtils {
   static void sortTasks(
     List<Task> tasks,
-    SettingsState settings, {
+    TaskPrefs settings, {
     bool isPlanView = false,
   }) {
     tasks.sort((a, b) => compareTasks(a, b, settings, isPlanView: isPlanView));
@@ -13,7 +13,7 @@ class TaskSortUtils {
   static int compareTasks(
     Task a,
     Task b,
-    SettingsState settings, {
+    TaskPrefs settings, {
     bool isPlanView = false,
   }) {
     if (a.isUrgent && !b.isUrgent) return -1;

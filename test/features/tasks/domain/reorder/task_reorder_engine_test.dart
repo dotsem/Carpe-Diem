@@ -31,7 +31,7 @@ void main() {
         nodes: [TaskNode(only, 0)],
         draggedTask: only,
         slot: slot,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(ranks, {'only': LexoRank.defaultRank});
@@ -44,7 +44,7 @@ void main() {
         nodes: [TaskNode(only, 0)],
         draggedTask: only,
         slot: slot,
-        settings: settings,
+        settings: settings.taskPrefs,
         isPlanView: true,
       );
 

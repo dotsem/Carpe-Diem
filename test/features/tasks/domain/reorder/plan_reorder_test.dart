@@ -35,13 +35,13 @@ void main() {
         nodes: nodes,
         draggedTask: child2,
         newIndex: 0,
-        settings: settings,
+        settings: settings.taskPrefs,
         isPlanView: true,
       );
       expect(newRank, isNotNull);
 
       final list = [child1, child2.copyWith(planSortOrder: newRank)];
-      TaskSortUtils.sortTasks(list, settings, isPlanView: true);
+      TaskSortUtils.sortTasks(list, settings.taskPrefs, isPlanView: true);
       expect(list.first.id, equals('c2'));
     });
 
@@ -68,13 +68,13 @@ void main() {
         nodes: nodes,
         draggedTask: root1,
         newIndex: 0,
-        settings: settings,
+        settings: settings.taskPrefs,
         isPlanView: true,
       );
       expect(newRank, isNotNull);
 
       final list = [child1, root1.copyWith(planSortOrder: newRank)];
-      TaskSortUtils.sortTasks(list, settings, isPlanView: true);
+      TaskSortUtils.sortTasks(list, settings.taskPrefs, isPlanView: true);
       expect(list.first.id, equals('r1'));
     });
 
@@ -101,7 +101,7 @@ void main() {
         nodes: nodes,
         draggedTask: root1,
         rawIndex: 0,
-        settings: deadlineSettings,
+        settings: deadlineSettings.taskPrefs,
         isPlanView: true,
       );
       expect(slot.isValid, isTrue);
@@ -110,13 +110,17 @@ void main() {
         nodes: nodes,
         draggedTask: root1,
         newIndex: 0,
-        settings: deadlineSettings,
+        settings: deadlineSettings.taskPrefs,
         isPlanView: true,
       );
       expect(newRank, isNotNull);
 
       final list = [child1, root1.copyWith(planSortOrder: newRank)];
-      TaskSortUtils.sortTasks(list, deadlineSettings, isPlanView: true);
+      TaskSortUtils.sortTasks(
+        list,
+        deadlineSettings.taskPrefs,
+        isPlanView: true,
+      );
       expect(list.first.id, equals('r1'));
     });
 
@@ -146,13 +150,13 @@ void main() {
         nodes: nodes,
         draggedTask: root1,
         newIndex: 1, // above child1 (index 1)
-        settings: settings,
+        settings: settings.taskPrefs,
         isPlanView: true,
       );
       expect(newRank, isNotNull);
 
       final list = [taskX, child1, root1.copyWith(planSortOrder: newRank)];
-      TaskSortUtils.sortTasks(list, settings, isPlanView: true);
+      TaskSortUtils.sortTasks(list, settings.taskPrefs, isPlanView: true);
       expect(list[0].id, equals('tx'));
       expect(list[1].id, equals('r1'));
       expect(list[2].id, equals('c1'));

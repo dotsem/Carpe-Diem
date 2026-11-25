@@ -1,6 +1,7 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -43,13 +44,13 @@ void main() {
         TaskNode(normal1, 0),
         TaskNode(normal2, 0),
       ];
-      expect(TaskReorderUtils.getUrgentSectionEndIndex(mixedNodes), 2);
+      expect(TaskReorderEngine.getUrgentSectionEndIndex(mixedNodes), 2);
 
       final allUrgent = [TaskNode(urgent1, 0), TaskNode(urgent2, 0)];
-      expect(TaskReorderUtils.getUrgentSectionEndIndex(allUrgent), 2);
+      expect(TaskReorderEngine.getUrgentSectionEndIndex(allUrgent), 2);
 
       final noUrgent = [TaskNode(normal1, 0), TaskNode(normal2, 0)];
-      expect(TaskReorderUtils.getUrgentSectionEndIndex(noUrgent), 0);
+      expect(TaskReorderEngine.getUrgentSectionEndIndex(noUrgent), 0);
     });
 
     test('getUrgentSectionEndIndex accounts for bundled subtasks', () {
@@ -65,7 +66,7 @@ void main() {
         TaskNode(subtask, 1, isBundledUnderParent: true),
         TaskNode(normal1, 0),
       ];
-      expect(TaskReorderUtils.getUrgentSectionEndIndex(nodes), 2);
+      expect(TaskReorderEngine.getUrgentSectionEndIndex(nodes), 2);
     });
 
     test(
@@ -83,7 +84,7 @@ void main() {
           nodes: nodes,
           draggedTask: normal2,
           newIndex: 0,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         // Clamped to index 2 (top of non-urgent section, before normal1)
@@ -95,7 +96,7 @@ void main() {
           nodes: nodes,
           draggedTask: normal2,
           newIndex: 1,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         // Clamped to index 2 (top of non-urgent section, before normal1)
@@ -117,7 +118,7 @@ void main() {
         nodes: nodes,
         draggedTask: urgent1,
         newIndex: 3,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       // Clamped to urgent section boundary (bottom of urgent section, after urgent2)
@@ -140,7 +141,7 @@ void main() {
           nodes: nodes,
           draggedTask: urgent2,
           newIndex: 0,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(urgentToTop, isNotNull);
         expect(urgentToTop!.compareTo(urgent1.sortOrder), lessThan(0));
@@ -150,7 +151,7 @@ void main() {
           nodes: nodes,
           draggedTask: normal1,
           newIndex: 4,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(normalToBottom, isNotNull);
         expect(normalToBottom!.compareTo(normal2.sortOrder), greaterThan(0));
@@ -174,7 +175,7 @@ void main() {
         nodes: listNodes,
         draggedTask: n2,
         newIndex: 1,
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(res, isNotNull);
@@ -205,7 +206,7 @@ void main() {
           nodes: listNodes,
           draggedTask: n2,
           newIndex: 1,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
 
         expect(res, isNotNull);

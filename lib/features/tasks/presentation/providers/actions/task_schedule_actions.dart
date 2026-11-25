@@ -1,13 +1,10 @@
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
-import 'package:carpe_diem/features/tasks/domain/services/task_scheduling_service.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 
 extension TaskScheduleActions on TaskNotifier {
   Future<void> rescheduleOverdue(Task task, DateTime newDate) async {
-    final cmd = TaskSchedulingService.buildScheduleCascadeCommand(
-      repo: repo,
+    final cmd = schedulingService.buildScheduleCascadeCommand(
       task: task,
       date: newDate,
       cascadeChildren: false,
@@ -22,13 +19,9 @@ extension TaskScheduleActions on TaskNotifier {
     bool unscheduleChildren = false,
   }) async {
     final subtasks = unscheduleChildren
-        ? await SubtaskService.getAllSubtasksFromRepo(
-            repo: repo,
-            parentId: task.id,
-          )
+        ? await subtaskService.getAllSubtasksFromRepo(task.id)
         : <Task>[];
-    final cmd = TaskSchedulingService.buildUnscheduleCascadeCommand(
-      repo: repo,
+    final cmd = schedulingService.buildUnscheduleCascadeCommand(
       task: task,
       resetStatus: resetStatus,
       unscheduleChildren: unscheduleChildren,
@@ -43,13 +36,9 @@ extension TaskScheduleActions on TaskNotifier {
     required bool cascadeChildren,
   }) async {
     final subtasks = cascadeChildren
-        ? await SubtaskService.getAllSubtasksFromRepo(
-            repo: repo,
-            parentId: task.id,
-          )
+        ? await subtaskService.getAllSubtasksFromRepo(task.id)
         : <Task>[];
-    final cmd = TaskSchedulingService.buildScheduleCascadeCommand(
-      repo: repo,
+    final cmd = schedulingService.buildScheduleCascadeCommand(
       task: task,
       date: date,
       cascadeChildren: cascadeChildren,
@@ -59,8 +48,7 @@ extension TaskScheduleActions on TaskNotifier {
   }
 
   Future<void> scheduleTasksForDate(List<String> taskIds, DateTime date) async {
-    final cmd = await TaskSchedulingService.buildBulkScheduleCommand(
-      repo: repo,
+    final cmd = await schedulingService.buildBulkScheduleCommand(
       taskIds: taskIds,
       date: date,
       getTaskById: (id) async =>
@@ -101,7 +89,7 @@ extension TaskScheduleActions on TaskNotifier {
   }
 
   Future<Task?> pickAndScheduleRandomTask(List<Task> availableTasks) async {
-    final task = TaskSchedulingService.pickRandomTask(availableTasks);
+    final task = schedulingService.pickRandomTask(availableTasks);
     if (task != null) await scheduleTasksForToday([task.id]);
     return task;
   }

@@ -47,7 +47,11 @@ void main() {
       'TaskSortUtils places overdue tasks above today tasks in plan view when enabled',
       () {
         final tasks = [todayTask, overdueTask];
-        TaskSortUtils.sortTasks(tasks, settingsOverdueOn, isPlanView: true);
+        TaskSortUtils.sortTasks(
+          tasks,
+          settingsOverdueOn.taskPrefs,
+          isPlanView: true,
+        );
         expect(tasks.first.id, 'o1');
         expect(tasks.last.id, 't1');
       },
@@ -60,7 +64,11 @@ void main() {
           todayTask.copyWith(planSortOrder: 'a0'),
           overdueTask.copyWith(planSortOrder: 'a1'),
         ];
-        TaskSortUtils.sortTasks(tasks, settingsOverdueOff, isPlanView: true);
+        TaskSortUtils.sortTasks(
+          tasks,
+          settingsOverdueOff.taskPrefs,
+          isPlanView: true,
+        );
         expect(tasks.first.id, 't1');
         expect(tasks.last.id, 'o1');
       },
@@ -76,7 +84,7 @@ void main() {
         final sameWhenOn = TaskReorderEngine.inSameGroup(
           overdueTask,
           todayTask,
-          settingsOverdueOn,
+          settingsOverdueOn.taskPrefs,
           isPlanView: true,
           nodes: nodes,
         );
@@ -85,7 +93,7 @@ void main() {
         final sameWhenOff = TaskReorderEngine.inSameGroup(
           overdueTask,
           todayTask,
-          settingsOverdueOff,
+          settingsOverdueOff.taskPrefs,
           isPlanView: true,
           nodes: nodes,
         );
@@ -107,7 +115,7 @@ void main() {
           nodes: nodes,
           draggedTask: todayTask,
           rawIndex: 0,
-          settings: settingsOverdueOn,
+          settings: settingsOverdueOn.taskPrefs,
           isPlanView: true,
         );
         // urgentTask is at 0, overdueTask is at 1 -> overdueEnd is 2
@@ -119,7 +127,7 @@ void main() {
           nodes: nodes,
           draggedTask: todayTask,
           rawIndex: 0,
-          settings: settingsOverdueOff,
+          settings: settingsOverdueOff.taskPrefs,
           isPlanView: true,
         );
         expect(slotOff.index, 1);
@@ -141,7 +149,7 @@ void main() {
           nodes: nodes,
           draggedTask: overdueTask,
           rawIndex: 0,
-          settings: settingsOverdueOn,
+          settings: settingsOverdueOn.taskPrefs,
           isPlanView: true,
         );
         expect(slotAbove.index, 1);
@@ -151,7 +159,7 @@ void main() {
           nodes: nodes,
           draggedTask: overdueTask,
           rawIndex: 3,
-          settings: settingsOverdueOn,
+          settings: settingsOverdueOn.taskPrefs,
           isPlanView: true,
         );
         // Clamped to overdueEnd which is 2
@@ -180,7 +188,7 @@ void main() {
           nodes: nodes,
           draggedTask: overdueTask2,
           newIndex: 0,
-          settings: settingsOverdueOn,
+          settings: settingsOverdueOn.taskPrefs,
           isPlanView: true,
         );
         expect(newRank, isNotNull);

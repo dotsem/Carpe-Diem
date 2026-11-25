@@ -62,7 +62,11 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   Widget build(BuildContext context) {
     final tasks = List<Task>.from(widget.tasks);
     final settings = ref.watch(settingsProvider);
-    TaskSortUtils.sortTasks(tasks, settings, isPlanView: widget.isPlanView);
+    TaskSortUtils.sortTasks(
+      tasks,
+      settings.taskPrefs,
+      isPlanView: widget.isPlanView,
+    );
 
     final todo = tasks.where((t) => t.status.isTodo).toList();
     final inProgress = tasks

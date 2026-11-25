@@ -2,6 +2,7 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_reorder_actions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -55,11 +56,11 @@ void main() {
       Task? reorderedTask;
       String? newOrder;
 
-      final dispatched = TaskReorderUtils.dispatchReorder(
+      final dispatched = TaskReorderActions.dispatchReorder(
         nodes: nodes,
         draggedTask: normal2,
         newIndex: 0,
-        settings: settings,
+        prefs: settings.taskPrefs,
         onReorder: (task, order) {
           reorderedTask = task;
           newOrder = order;
@@ -79,12 +80,12 @@ void main() {
       ];
       Map<String, String>? multiOrders;
 
-      final dispatched = TaskReorderUtils.dispatchReorder(
+      final dispatched = TaskReorderActions.dispatchReorder(
         nodes: nodes,
         draggedTask: normal2,
         newIndex: 0,
         selectedTaskIds: {'n2', 'n3'},
-        settings: settings,
+        prefs: settings.taskPrefs,
         onMultiReorder: (orders) => multiOrders = orders,
       );
 
@@ -105,7 +106,7 @@ void main() {
         draggedTask: normal1,
         newIndex: 0,
         selectedTaskIds: {'u1', 'n1'},
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(result, isNull);
@@ -119,7 +120,7 @@ void main() {
         draggedTask: subtask1,
         newIndex: 1,
         selectedTaskIds: {'s1', 's2'},
-        settings: settings,
+        settings: settings.taskPrefs,
       );
 
       expect(result, isNull);

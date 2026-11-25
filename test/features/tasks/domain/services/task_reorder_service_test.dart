@@ -4,7 +4,6 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
-import 'package:carpe_diem/features/tasks/presentation/providers/task_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -15,14 +14,16 @@ void main() {
   group('TaskReorderService', () {
     late MockTaskRepository mockRepo;
     const defaultSettings = SettingsState({});
+    late TaskReorderService service;
 
     setUp(() {
       mockRepo = MockTaskRepository();
+      service = TaskReorderService(mockRepo, () => defaultSettings.taskPrefs);
     });
 
     group('computeSortOrder', () {
       test('returns default rank when activeList is empty', () {
-        final rank = TaskReorderService.computeSortOrder(
+        final rank = service.computeSortOrder(
           placement: TaskPlacement.bottom,
           activeList: [],
         );
@@ -31,7 +32,7 @@ void main() {
 
       test('computes top rank on non-empty list', () {
         final t1 = createTestTask().copyWith(sortOrder: 'a5');
-        final rank = TaskReorderService.computeSortOrder(
+        final rank = service.computeSortOrder(
           placement: TaskPlacement.top,
           activeList: [t1],
         );
@@ -40,7 +41,7 @@ void main() {
 
       test('computes middle rank for single item list', () {
         final t1 = createTestTask().copyWith(sortOrder: 'a5');
-        final rank = TaskReorderService.computeSortOrder(
+        final rank = service.computeSortOrder(
           placement: TaskPlacement.middle,
           activeList: [t1],
         );
@@ -50,7 +51,7 @@ void main() {
       test('computes middle rank for multiple items list', () {
         final t1 = createTestTask().copyWith(sortOrder: 'a1');
         final t2 = createTestTask(id: 't2').copyWith(sortOrder: 'a9');
-        final rank = TaskReorderService.computeSortOrder(
+        final rank = service.computeSortOrder(
           placement: TaskPlacement.middle,
           activeList: [t1, t2],
         );
@@ -60,89 +61,11 @@ void main() {
 
       test('computes bottom rank on non-empty list', () {
         final t1 = createTestTask().copyWith(sortOrder: 'a5');
-        final rank = TaskReorderService.computeSortOrder(
+        final rank = service.computeSortOrder(
           placement: TaskPlacement.bottom,
           activeList: [t1],
         );
         expect(rank.compareTo(t1.sortOrder), greaterThan(0));
-      });
-    });
-
-    group('optimisticallyReorder', () {
-      test('returns currentList untouched when task is not present', () {
-        final list = [createTestTask()];
-        final notInList = createTestTask(id: 't2');
-        final result = TaskReorderService.optimisticallyReorder(
-          currentList: list,
-          updatedTask: notInList,
-          prioritizeOverdue: true,
-          prioritizeDeadlines: true,
-        );
-        expect(result, equals(list));
-      });
-
-      test('sorts urgent tasks to the front', () {
-        final normal = createTestTask();
-        final urgent = createTestTask(id: 't2');
-        final updatedUrgent = urgent.copyWith(isUrgent: true);
-        final result = TaskReorderService.optimisticallyReorder(
-          currentList: [normal, urgent],
-          updatedTask: updatedUrgent,
-          prioritizeOverdue: false,
-          prioritizeDeadlines: false,
-        );
-
-        expect(result.first.id, equals('t2'));
-      });
-
-      test('respects sortOrder string lexicographical order', () {
-        final t1 = createTestTask().copyWith(sortOrder: '0|i00005:');
-        final t2 = createTestTask(id: 't2').copyWith(sortOrder: '0|i00010:');
-        final updatedT2 = t2.copyWith(sortOrder: '0|i00001:');
-        final result = TaskReorderService.optimisticallyReorder(
-          currentList: [t1, t2],
-          updatedTask: updatedT2,
-          prioritizeOverdue: false,
-          prioritizeDeadlines: false,
-        );
-
-        expect(result.map((t) => t.id), equals(['t2', 't1']));
-      });
-    });
-
-    group('applyOptimisticTask and applyBulkOptimisticReorder', () {
-      test('updates matching task in TaskState collections', () {
-        final t1 = createTestTask().copyWith(sortOrder: '0|i00010:');
-        final state = TaskState(
-          currentDate: DateTime(2026),
-          tasks: [t1],
-          overdueTasks: [t1],
-          unscheduledTasks: [t1],
-        );
-        final updatedT1 = t1.copyWith(sortOrder: '0|i00001:');
-        final newState = TaskReorderService.applyOptimisticTask(
-          state: state,
-          task: updatedT1,
-          settings: defaultSettings,
-        );
-
-        expect(newState.tasks.first.sortOrder, equals('0|i00001:'));
-        expect(newState.overdueTasks.first.sortOrder, equals('0|i00001:'));
-        expect(newState.unscheduledTasks.first.sortOrder, equals('0|i00001:'));
-      });
-
-      test('applies bulk optimistic reorders across state collections', () {
-        final t1 = createTestTask().copyWith(sortOrder: '0|i00010:');
-        final t2 = createTestTask(id: 't2').copyWith(sortOrder: '0|i00020:');
-        final state = TaskState(currentDate: DateTime(2026), tasks: [t1, t2]);
-
-        final newState = TaskReorderService.applyBulkOptimisticReorder(
-          state: state,
-          updates: {'t1': '0|i00030:'},
-          settings: defaultSettings,
-        );
-
-        expect(newState.tasks.map((t) => t.id), equals(['t2', 't1']));
       });
     });
 
@@ -152,11 +75,7 @@ void main() {
         () {
           final prev = createTestTask(title: 'Task 1');
           final next = prev.copyWith(sortOrder: '0|i00050:');
-          final cmd = TaskReorderService.buildReorderCommand(
-            repo: mockRepo,
-            previous: prev,
-            next: next,
-          );
+          final cmd = service.buildReorderCommand(previous: prev, next: next);
 
           expect(cmd, isA<UpdateCommand<Task>>());
           expect(cmd.description, contains('Reorder task: "Task 1"'));
@@ -166,15 +85,11 @@ void main() {
       test(
         'buildBulkReorderCommand handles empty and missing updates',
         () async {
-          final cmdEmpty = await TaskReorderService.buildBulkReorderCommand(
-            repo: mockRepo,
-            updates: {},
-          );
+          final cmdEmpty = await service.buildBulkReorderCommand(updates: {});
           expect(cmdEmpty, isNull);
 
           when(() => mockRepo.getById('missing')).thenAnswer((_) async => null);
-          final cmdMissing = await TaskReorderService.buildBulkReorderCommand(
-            repo: mockRepo,
+          final cmdMissing = await service.buildBulkReorderCommand(
             updates: {'missing': '0|i00010:'},
           );
           expect(cmdMissing, isNull);
@@ -187,8 +102,7 @@ void main() {
           final t1 = createTestTask(title: 'T1');
           when(() => mockRepo.getById('t1')).thenAnswer((_) async => t1);
 
-          final cmd = await TaskReorderService.buildBulkReorderCommand(
-            repo: mockRepo,
+          final cmd = await service.buildBulkReorderCommand(
             updates: {'t1': '0|i00010:'},
           );
           expect(cmd, isA<UpdateCommand<Task>>());
@@ -203,8 +117,7 @@ void main() {
           when(() => mockRepo.getById('t1')).thenAnswer((_) async => t1);
           when(() => mockRepo.getById('t2')).thenAnswer((_) async => t2);
 
-          final cmd = await TaskReorderService.buildBulkReorderCommand(
-            repo: mockRepo,
+          final cmd = await service.buildBulkReorderCommand(
             updates: {'t1': '0|i00010:', 't2': '0|i00020:'},
           );
           expect(cmd, isA<CompoundCommand>());
@@ -218,51 +131,30 @@ void main() {
         'queries appropriate repository methods based on parameters',
         () async {
           when(() => mockRepo.getByParent('p1')).thenAnswer((_) async => []);
-          await TaskReorderService.getRelevantTasksList(
-            repo: mockRepo,
+          await service.getRelevantTasksList(
             parentId: 'p1',
             projectId: 'proj1',
             scheduledDate: DateTime.now(),
-            prioritizeDeadlines: false,
-            prioritizeOverdue: false,
           );
           verify(() => mockRepo.getByParent('p1')).called(1);
 
           when(
-            () => mockRepo.getByProjectUnscheduled(
-              'proj1',
-              prioritizeOverdue: true,
-            ),
+            () => mockRepo.getByProjectUnscheduled('proj1'),
           ).thenAnswer((_) async => []);
-          await TaskReorderService.getRelevantTasksList(
-            repo: mockRepo,
+          await service.getRelevantTasksList(
             parentId: null,
             projectId: 'proj1',
             scheduledDate: null,
-            prioritizeDeadlines: true,
-            prioritizeOverdue: true,
           );
-          verify(
-            () => mockRepo.getByProjectUnscheduled(
-              'proj1',
-              prioritizeOverdue: true,
-            ),
-          ).called(1);
+          verify(() => mockRepo.getByProjectUnscheduled('proj1')).called(1);
 
-          when(
-            () => mockRepo.getUnscheduled(prioritizeDeadlines: false),
-          ).thenAnswer((_) async => []);
-          await TaskReorderService.getRelevantTasksList(
-            repo: mockRepo,
+          when(() => mockRepo.getUnscheduled()).thenAnswer((_) async => []);
+          await service.getRelevantTasksList(
             parentId: null,
             projectId: null,
             scheduledDate: null,
-            prioritizeDeadlines: false,
-            prioritizeOverdue: false,
           );
-          verify(
-            () => mockRepo.getUnscheduled(prioritizeDeadlines: false),
-          ).called(1);
+          verify(() => mockRepo.getUnscheduled()).called(1);
         },
       );
     });
@@ -280,13 +172,10 @@ void main() {
             ),
           ).thenAnswer((_) async => [createTestTask()]);
 
-          final tasks = await TaskReorderService.getRelevantTasksList(
-            repo: mockRepo,
+          final tasks = await service.getRelevantTasksList(
             parentId: null,
             projectId: null,
             scheduledDate: date,
-            prioritizeDeadlines: true,
-            prioritizeOverdue: false,
           );
 
           expect(tasks.map((t) => t.id), ['t1']);
@@ -299,8 +188,7 @@ void main() {
           final task = createTestTask().copyWith(sortOrder: 'keep');
           when(() => mockRepo.getById('t1')).thenAnswer((_) async => task);
 
-          final cmd = await TaskReorderService.buildBulkReorderCommand(
-            repo: mockRepo,
+          final cmd = await service.buildBulkReorderCommand(
             updates: {'t1': 'plan'},
             isPlanOrder: true,
           );
@@ -310,22 +198,6 @@ void main() {
           expect(next.sortOrder, 'keep');
         },
       );
-
-      test('applyBulkOptimisticReorderList reorders by planSortOrder', () {
-        final first = createTestTask().copyWith(planSortOrder: 'a');
-        final second = createTestTask(id: 't2').copyWith(planSortOrder: 'b');
-
-        final result = TaskReorderService.applyBulkOptimisticReorderList(
-          list: [first, second],
-          updates: {'t1': 'c'},
-          prioritizeOverdue: false,
-          prioritizeDeadlines: false,
-          isPlanOrder: true,
-        );
-
-        expect(result.map((t) => t.id), ['t2', 't1']);
-        expect(result.last.sortOrder, first.sortOrder);
-      });
     });
   });
 }

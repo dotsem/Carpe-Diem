@@ -1,9 +1,8 @@
 import 'package:carpe_diem/core/reorder/lexorank.dart';
 import 'package:carpe_diem/core/undo_redo/command.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
-import 'package:carpe_diem/features/tasks/domain/services/task_crud_service.dart';
-import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
+import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 
 extension TaskHierarchyActions on TaskNotifier {
@@ -20,13 +19,10 @@ extension TaskHierarchyActions on TaskNotifier {
 
     final existingSiblings = newParentId != null
         ? await repo.getByParent(newParentId)
-        : await TaskReorderService.getRelevantTasksList(
-            repo: repo,
+        : await reorderService.getRelevantTasksList(
             parentId: null,
             projectId: null,
             scheduledDate: null,
-            prioritizeDeadlines: settings.prioritizeDeadlines,
-            prioritizeOverdue: settings.prioritizeOverdue,
           );
 
     String? currentRank;
@@ -35,7 +31,7 @@ extension TaskHierarchyActions on TaskNotifier {
       i >= 0 && currentRank == null;
       i--
     ) {
-      currentRank = TaskReorderUtils.getEffectiveRank(existingSiblings, i);
+      currentRank = TaskReorderEngine.getEffectiveRank(existingSiblings, i);
     }
 
     final commands = <Command>[];
@@ -94,13 +90,13 @@ extension TaskHierarchyActions on TaskNotifier {
       }
     }
 
-    final parentTask = await TaskCrudService.buildNewTask(
-      repo: repo,
-      settings: settings,
-      title: title,
-      description: description,
-      projectId: effectiveProjectId,
-      scheduledDate: scheduledDate,
+    final parentTask = await crudService.buildNewTask(
+      TaskDraft(
+        title: title,
+        description: description,
+        projectId: effectiveProjectId,
+        scheduledDate: scheduledDate,
+      ),
     );
 
     final commands = <Command>[

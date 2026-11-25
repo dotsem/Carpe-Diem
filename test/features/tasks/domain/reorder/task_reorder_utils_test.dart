@@ -3,11 +3,15 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/services/task_reorder_service.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_reorder_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../../../helpers/mock_repositories.dart';
 
 class MockTaskNotifier extends Mock implements TaskNotifier {}
 
@@ -16,6 +20,10 @@ void main() {
   group('core', () {
     final now = DateTime.now();
     const settings = SettingsState({});
+    final reorderService = TaskReorderService(
+      MockTaskRepository(),
+      () => settings.taskPrefs,
+    );
 
     Task t(
       String id,
@@ -45,7 +53,7 @@ void main() {
         final posSub1 = TaskReorderUtils.getTaskPosition(
           task: sub1,
           tasks: allTasks,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(posSub1.isFirstInGroup, isTrue);
         expect(posSub1.isLastInGroup, isFalse);
@@ -53,7 +61,7 @@ void main() {
         final posSub2 = TaskReorderUtils.getTaskPosition(
           task: sub2,
           tasks: allTasks,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(posSub2.isFirstInGroup, isFalse);
         expect(posSub2.isLastInGroup, isFalse);
@@ -61,7 +69,7 @@ void main() {
         final posSub3 = TaskReorderUtils.getTaskPosition(
           task: sub3,
           tasks: allTasks,
-          settings: settings,
+          settings: settings.taskPrefs,
         );
         expect(posSub3.isFirstInGroup, isFalse);
         expect(posSub3.isLastInGroup, isTrue);
@@ -69,9 +77,18 @@ void main() {
     );
 
     test('inSameGroup isolates subtasks by parentId', () {
-      expect(TaskReorderUtils.inSameGroup(sub1, sub2, settings), isTrue);
-      expect(TaskReorderUtils.inSameGroup(sub1, parent1, settings), isFalse);
-      expect(TaskReorderUtils.inSameGroup(sub1, sub21, settings), isFalse);
+      expect(
+        TaskReorderEngine.inSameGroup(sub1, sub2, settings.taskPrefs),
+        isTrue,
+      );
+      expect(
+        TaskReorderEngine.inSameGroup(sub1, parent1, settings.taskPrefs),
+        isFalse,
+      );
+      expect(
+        TaskReorderEngine.inSameGroup(sub1, sub21, settings.taskPrefs),
+        isFalse,
+      );
     });
 
     test(
@@ -87,17 +104,22 @@ void main() {
         final nodes = [TaskNode(orphan, 0), TaskNode(root, 0)];
 
         expect(
-          TaskReorderUtils.inSameGroup(
+          TaskReorderEngine.inSameGroup(
             orphan,
             root,
-            settings,
+            settings.taskPrefs,
             nodes: nodes,
             isPlanView: true,
           ),
           isTrue,
         );
         expect(
-          TaskReorderUtils.inSameGroup(orphan, root, settings, nodes: nodes),
+          TaskReorderEngine.inSameGroup(
+            orphan,
+            root,
+            settings.taskPrefs,
+            nodes: nodes,
+          ),
           isFalse,
         );
       },
@@ -123,18 +145,18 @@ void main() {
       });
 
       expect(
-        TaskReorderUtils.inSameGroup(
+        TaskReorderEngine.inSameGroup(
           taskWithDeadline,
           taskWithoutDeadline,
-          withDeadlines,
+          withDeadlines.taskPrefs,
         ),
         isFalse,
       );
       expect(
-        TaskReorderUtils.inSameGroup(
+        TaskReorderEngine.inSameGroup(
           taskWithDeadline,
           taskWithoutDeadline,
-          withoutDeadlines,
+          withoutDeadlines.taskPrefs,
         ),
         isTrue,
       );
@@ -148,19 +170,19 @@ void main() {
         final t3 = Task(id: '3', title: 'T3', createdAt: now, sortOrder: 'a4');
         final list = [t1, t2, t3];
 
-        final topRank = TaskReorderService.computeSortOrder(
+        final topRank = reorderService.computeSortOrder(
           placement: TaskPlacement.top,
           activeList: list,
         );
         expect(topRank.compareTo('a0'), lessThan(0));
 
-        final bottomRank = TaskReorderService.computeSortOrder(
+        final bottomRank = reorderService.computeSortOrder(
           placement: TaskPlacement.bottom,
           activeList: list,
         );
         expect(bottomRank.compareTo('a4'), greaterThan(0));
 
-        final midRank = TaskReorderService.computeSortOrder(
+        final midRank = reorderService.computeSortOrder(
           placement: TaskPlacement.middle,
           activeList: list,
         );
@@ -196,12 +218,15 @@ void main() {
         final newTask = Task(id: 'new', title: 'New', createdAt: now);
 
         final normalGroup = rawList
-            .where((t) => TaskReorderUtils.inSameGroup(t, newTask, settings))
+            .where(
+              (t) =>
+                  TaskReorderEngine.inSameGroup(t, newTask, settings.taskPrefs),
+            )
             .toList();
 
         expect(normalGroup.map((t) => t.id), equals(['n1', 'n2']));
 
-        final topRank = TaskReorderService.computeSortOrder(
+        final topRank = reorderService.computeSortOrder(
           placement: TaskPlacement.top,
           activeList: normalGroup,
         );
@@ -240,9 +265,18 @@ void main() {
           createdAt: now,
         );
 
-        expect(TaskReorderUtils.inSameGroup(taskA, taskB, settings), isTrue);
-        expect(TaskReorderUtils.inSameGroup(taskA, taskC, settings), isTrue);
-        expect(TaskReorderUtils.inSameGroup(taskA, taskD, settings), isTrue);
+        expect(
+          TaskReorderEngine.inSameGroup(taskA, taskB, settings.taskPrefs),
+          isTrue,
+        );
+        expect(
+          TaskReorderEngine.inSameGroup(taskA, taskC, settings.taskPrefs),
+          isTrue,
+        );
+        expect(
+          TaskReorderEngine.inSameGroup(taskA, taskD, settings.taskPrefs),
+          isTrue,
+        );
       },
     );
 
@@ -250,7 +284,7 @@ void main() {
       'computeSortOrder middle on single item list generates rank before item',
       () {
         final t1 = Task(id: '1', title: 'T1', createdAt: now, sortOrder: 'a0');
-        final midRank = TaskReorderService.computeSortOrder(
+        final midRank = reorderService.computeSortOrder(
           placement: TaskPlacement.middle,
           activeList: [t1],
         );
@@ -260,11 +294,11 @@ void main() {
 
     test('computeSortOrder handles fallback for empty sortOrder tasks', () {
       final emptyTask = Task(id: 'e', title: 'Empty', createdAt: now);
-      final topRank = TaskReorderService.computeSortOrder(
+      final topRank = reorderService.computeSortOrder(
         placement: TaskPlacement.top,
         activeList: [emptyTask],
       );
-      final bottomRank = TaskReorderService.computeSortOrder(
+      final bottomRank = reorderService.computeSortOrder(
         placement: TaskPlacement.bottom,
         activeList: [emptyTask],
       );
@@ -298,11 +332,11 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      TaskReorderUtils.moveToTop(notifier, middle, [
+      TaskReorderActions.moveToTop(notifier, middle, [
         first,
         middle,
         last,
-      ], settings);
+      ], settings.taskPrefs);
       final topRank =
           verify(
                 () => notifier.reorderTask(middle, captureAny()),
@@ -310,11 +344,11 @@ void main() {
               as String;
       expect(topRank.compareTo(first.sortOrder), lessThan(0));
 
-      TaskReorderUtils.moveToBottom(
+      TaskReorderActions.moveToBottom(
         notifier,
         middle,
         [first, middle, last],
-        settings,
+        settings.taskPrefs,
         isPlanView: true,
       );
       final bottomRank =
@@ -334,8 +368,14 @@ void main() {
       final first = t('first', 'First', sortOrder: 'a0');
       final last = t('last', 'Last', sortOrder: 'a1');
 
-      TaskReorderUtils.moveToTop(notifier, first, [first, last], settings);
-      TaskReorderUtils.moveToBottom(notifier, last, [first, last], settings);
+      TaskReorderActions.moveToTop(notifier, first, [
+        first,
+        last,
+      ], settings.taskPrefs);
+      TaskReorderActions.moveToBottom(notifier, last, [
+        first,
+        last,
+      ], settings.taskPrefs);
 
       verifyNoMoreInteractions(notifier);
     });
@@ -349,11 +389,11 @@ void main() {
         final last = t('last', 'Last', sortOrder: 'a2');
         when(() => notifier.bulkReorderTasks(any())).thenAnswer((_) async {});
 
-        final result = TaskReorderUtils.dispatchReorder(
+        final result = TaskReorderActions.dispatchReorder(
           nodes: [TaskNode(first, 0), TaskNode(middle, 0), TaskNode(last, 0)],
           draggedTask: middle,
           newIndex: 0,
-          settings: settings,
+          prefs: settings.taskPrefs,
           selectedTaskIds: const {'middle', 'last'},
           notifier: notifier,
         );

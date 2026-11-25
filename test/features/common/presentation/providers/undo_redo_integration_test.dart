@@ -5,6 +5,7 @@ import 'package:carpe_diem/features/labels/presentation/providers/label_provider
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -77,7 +78,7 @@ void main() {
       final taskNotifier = container.read(taskProvider.notifier);
       final undoRedo = container.read(undoRedoProvider.notifier);
 
-      await taskNotifier.addTask(title: 'Integrated Task');
+      await taskNotifier.addTask(const TaskDraft(title: 'Integrated Task'));
       verify(() => mockTaskRepo.insert(any())).called(1);
 
       await undoRedo.undo();

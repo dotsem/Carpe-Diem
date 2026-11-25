@@ -1,11 +1,11 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
-import 'package:carpe_diem/features/tasks/domain/reorder/task_hierarchy_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('TaskHierarchyReorderUtils', () {
+  group('TaskReorderEngine hierarchy', () {
     final now = DateTime.now();
     final urgentA = Task(
       id: 'u1',
@@ -32,29 +32,29 @@ void main() {
 
     test('isPositionInGroup validates urgency boundaries', () {
       expect(
-        TaskHierarchyReorderUtils.isPositionInGroup(
+        TaskReorderEngine.isPositionInGroup(
           draggedTask: urgentA,
           targetIndex: 0,
           nodes: nodes,
-          settings: defaultSettings,
+          settings: defaultSettings.taskPrefs,
         ),
         isTrue,
       );
       expect(
-        TaskHierarchyReorderUtils.isPositionInGroup(
+        TaskReorderEngine.isPositionInGroup(
           draggedTask: urgentA,
           targetIndex: 1,
           nodes: nodes,
-          settings: defaultSettings,
+          settings: defaultSettings.taskPrefs,
         ),
         isTrue,
       );
       expect(
-        TaskHierarchyReorderUtils.isPositionInGroup(
+        TaskReorderEngine.isPositionInGroup(
           draggedTask: urgentA,
           targetIndex: 2,
           nodes: nodes,
-          settings: defaultSettings,
+          settings: defaultSettings.taskPrefs,
         ),
         isFalse,
       );
@@ -62,20 +62,20 @@ void main() {
 
     test('isPositionInGroup respects plan view deadline bypass', () {
       expect(
-        TaskHierarchyReorderUtils.isPositionInGroup(
+        TaskReorderEngine.isPositionInGroup(
           draggedTask: normalB,
           targetIndex: 3,
           nodes: nodes,
-          settings: deadlineSettings,
+          settings: deadlineSettings.taskPrefs,
         ),
         isFalse,
       );
       expect(
-        TaskHierarchyReorderUtils.isPositionInGroup(
+        TaskReorderEngine.isPositionInGroup(
           draggedTask: normalB,
           targetIndex: 3,
           nodes: nodes,
-          settings: deadlineSettings,
+          settings: deadlineSettings.taskPrefs,
           isPlanView: true,
         ),
         isTrue,

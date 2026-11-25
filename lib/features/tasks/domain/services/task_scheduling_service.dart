@@ -6,11 +6,12 @@ import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:intl/intl.dart';
 
 class TaskSchedulingService {
-  static Future<void> autoScheduleDeadlines({
-    required ITaskRepository repo,
-    required DateTime today,
-  }) async {
-    final backlog = await repo.getUnscheduled();
+  final ITaskRepository _repo;
+
+  const TaskSchedulingService(this._repo);
+
+  Future<void> autoScheduleDeadlines({required DateTime today}) async {
+    final backlog = await _repo.getUnscheduled();
     final normalizedToday = today.normalize;
 
     for (final task in backlog) {
@@ -20,20 +21,19 @@ class TaskSchedulingService {
           normalizedToday.add(const Duration(days: 1)),
         )) {
           final updated = task.copyWith(scheduledDate: normalizedDeadline);
-          await repo.update(updated);
+          await _repo.update(updated);
         }
       }
     }
   }
 
-  static String _formatDateLabel(DateTime date) {
+  String _formatDateLabel(DateTime date) {
     if (date.isToday) return 'today';
     if (date.isTomorrow) return 'tomorrow';
     return DateFormat('MMM d').format(date);
   }
 
-  static Command buildScheduleCascadeCommand({
-    required ITaskRepository repo,
+  Command buildScheduleCascadeCommand({
     required Task task,
     required DateTime date,
     required bool cascadeChildren,
@@ -52,7 +52,7 @@ class TaskSchedulingService {
       if (incompleteSubtasks.isNotEmpty) {
         final commands = <Command>[
           UpdateCommand(
-            repo: repo,
+            repo: _repo,
             previous: task,
             next: updatedParent,
             displayName: task.title,
@@ -67,7 +67,7 @@ class TaskSchedulingService {
           );
           commands.add(
             UpdateCommand(
-              repo: repo,
+              repo: _repo,
               previous: subtask,
               next: updatedSubtask,
               displayName: subtask.title,
@@ -87,7 +87,7 @@ class TaskSchedulingService {
     }
 
     return UpdateCommand(
-      repo: repo,
+      repo: _repo,
       previous: task,
       next: updatedParent,
       displayName: task.title,
@@ -95,8 +95,7 @@ class TaskSchedulingService {
     );
   }
 
-  static Command buildUnscheduleCascadeCommand({
-    required ITaskRepository repo,
+  Command buildUnscheduleCascadeCommand({
     required Task task,
     required bool resetStatus,
     required bool unscheduleChildren,
@@ -113,7 +112,7 @@ class TaskSchedulingService {
       if (scheduledSubtasks.isNotEmpty) {
         final commands = <Command>[
           UpdateCommand(
-            repo: repo,
+            repo: _repo,
             previous: task,
             next: updatedParent,
             displayName: task.title,
@@ -126,7 +125,7 @@ class TaskSchedulingService {
               .withStatus(resetStatus ? TaskStatus.todo : subtask.status);
           commands.add(
             UpdateCommand(
-              repo: repo,
+              repo: _repo,
               previous: subtask,
               next: updatedSubtask,
               displayName: subtask.title,
@@ -142,7 +141,7 @@ class TaskSchedulingService {
     }
 
     return UpdateCommand(
-      repo: repo,
+      repo: _repo,
       previous: task,
       next: updatedParent,
       displayName: task.title,
@@ -150,8 +149,7 @@ class TaskSchedulingService {
     );
   }
 
-  static Future<Command?> buildBulkScheduleCommand({
-    required ITaskRepository repo,
+  Future<Command?> buildBulkScheduleCommand({
     required List<String> taskIds,
     required DateTime date,
     required Future<Task?> Function(String id) getTaskById,
@@ -170,7 +168,7 @@ class TaskSchedulingService {
         );
         commands.add(
           UpdateCommand(
-            repo: repo,
+            repo: _repo,
             previous: task,
             next: updated,
             displayName: task.title,
@@ -178,14 +176,14 @@ class TaskSchedulingService {
           ),
         );
 
-        final subtasks = await repo.getByParent(task.id);
+        final subtasks = await _repo.getByParent(task.id);
         for (final subtask in subtasks) {
           if (subtask.scheduledDate == null &&
               !subtask.isCompleted &&
               !taskIds.contains(subtask.id)) {
             commands.add(
               UpdateCommand(
-                repo: repo,
+                repo: _repo,
                 previous: subtask,
                 next: subtask.copyWith(
                   scheduledDate: normalizedDate,
@@ -209,7 +207,7 @@ class TaskSchedulingService {
     );
   }
 
-  static Task? pickRandomTask(List<Task> availableTasks) {
+  Task? pickRandomTask(List<Task> availableTasks) {
     final unblocked = availableTasks
         .where((t) => t.blockedById == null && !t.isCompleted)
         .toList();

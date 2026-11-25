@@ -4,6 +4,7 @@ import 'package:carpe_diem/features/common/presentation/providers/repository_pro
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart'
     show FilterInteractionMethod;
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
+import 'package:carpe_diem/features/tasks/domain/task_prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +12,12 @@ class SettingsState {
   final Map<String, String> _map;
 
   const SettingsState(this._map);
+
+  TaskPrefs get taskPrefs => (
+    prioritizeDeadlines: prioritizeDeadlines,
+    prioritizeOverdue: prioritizeOverdue,
+    inheritParentDeadline: inheritParentDeadline,
+  );
 
   int get maxPlanningDays => _map.getInt(
     SettingsConstants.keyMaxPlanningDays,

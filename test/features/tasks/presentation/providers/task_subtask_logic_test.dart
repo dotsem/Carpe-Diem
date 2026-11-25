@@ -2,6 +2,7 @@ import 'package:carpe_diem/features/tasks/data/models/subtask_completion_conflic
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
+import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_bulk_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/parent_completion_prompt_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
@@ -48,7 +49,9 @@ void main() {
         when(() => mockTaskRepo.insert(any())).thenAnswer((_) async => {});
 
         final notifier = container.read(taskProvider.notifier);
-        await notifier.addTask(title: 'Subtask', parentId: 'p1');
+        await notifier.addTask(
+          const TaskDraft(title: 'Subtask', parentId: 'p1'),
+        );
 
         verify(
           () => mockTaskRepo.insert(
@@ -251,10 +254,9 @@ void main() {
         ).thenAnswer((_) async => [grandChild]);
         when(() => mockTaskRepo.getByParent('gc1')).thenAnswer((_) async => []);
 
-        final subtasks = await SubtaskService.getAllSubtasksFromRepo(
-          repo: mockTaskRepo,
-          parentId: 'p1',
-        );
+        final subtasks = await SubtaskService(
+          mockTaskRepo,
+        ).getAllSubtasksFromRepo('p1');
 
         expect(subtasks.length, equals(2));
         expect(subtasks.map((t) => t.id), containsAll(['c1', 'gc1']));

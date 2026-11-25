@@ -1,6 +1,6 @@
 # 0004: Task domain boundary
 
-Status: draft
+Status: done (v0.7.1)
 
 ## Why
 
@@ -85,24 +85,6 @@ final taskCrudServiceProvider = Provider<TaskCrudService>(
 - **The swap from static to instance services breaks tests.** Existing service tests call static methods with a mocked `repo:`.
 - **Ordering behaves differently after the `TaskPrefs` swap,** for example if a call site maps `prioritizeOverdue` and `prioritizeDeadlines` the wrong way round.
 - **Something lingers in the moved code.** The optimistic-state and dispatch code could keep a hidden import of `presentation`.
-
-## Plan
-
-PR 1, layering:
-
-- Add `features/tasks/domain/task_prefs.dart` and `SettingsState.taskPrefs`.
-- Swap `SettingsState` for `TaskPrefs` in `task_reorder_engine.dart`, `task_reorder_utils.dart`, `task_sort_utils.dart`, `task_crud_service.dart` and `task_reorder_service.dart`.
-- Move the optimistic `TaskState` helpers and the `dispatchReorder`/`moveTo*` code into presentation, and update their 7 call sites.
-- Delete the forwarding wrappers and `task_hierarchy_reorder_utils.dart`, and point their 11 callers at `TaskReorderEngine`.
-- Move `tag_icon_constants.dart` to `lib/core/constants/`.
-
-PR 2, services:
-
-- Turn the five services into instances and add their providers next to `repository_providers.dart`.
-- `TaskNotifier` and the actions mixins read services from those providers.
-- Add `TaskDraft`, change `addTask` and `buildNewTask`, and update the single caller, `task_form_submit_handler.dart`.
-- Add `TaskNotifier.findById` and use it in `task_form_details_loader.dart`.
-- Update the tests under `test/features/tasks/domain/services/` and `test/features/tasks/presentation/providers/`.
 
 ## Verification
 
