@@ -4,7 +4,7 @@ Status: approved
 
 ## Why
 
-- 8 files in `lib` break the 300-line limit in `CLAUDE.md`:
+- 8 files in `lib` broke the 300-line limit in `CLAUDE.md`. `shortcut_intents.dart` (414) and `app_shortcuts.dart` (324) are left to [0007](0007-shortcut-definitions.md), which replaces how shortcuts are defined:
 
   | File | Lines |
   | --- | --- |
@@ -45,8 +45,7 @@ Non-goals:
 | `backlog_screen.dart` | `build` (lines 131–368) and `_buildHeaderActions` go into `widgets/backlog/` widgets. Same pattern as the project detail screen. |
 | `task_form_panel.dart` | `_CoordinatedMenuController` goes to its own file. The form body sections go into `form/sections/`, which already exists. |
 | `task_repository.dart` | `_getOrderBy` becomes a pure top-level `taskOrderBy` in `task_order_sql.dart`, relation loading goes into `task_relations_loader.dart`, and the reference checks and label/tag writes that `insert` and `_update` duplicated become one `task_relations_writer.dart`. |
-| `shortcut_intents.dart` | One file per area: `navigation_intents.dart`, `task_intents.dart` and `selection_intents.dart`. The original file re-exports all three, so imports don't change. |
-| `app_shortcuts.dart` | `isTypingInTextField`/`NonTypingAction` and `AppShortcutRegistrar` move to their own files. |
+| `shortcut_intents.dart`, `app_shortcuts.dart` | Out of scope. 0007 replaces how shortcuts are defined, so splitting them first would be rewritten. |
 | `settings_components.dart` | One file per tile type group: section and base tiles in one, input tiles (switch, dropdown, slider) in another. |
 | `range_date_picker.dart` | `_CalendarDay` and the header move to private files under a `range_date_picker/` folder. |
 
@@ -83,11 +82,10 @@ Non-goals:
 Run this after 0004 and 0005, because both change sizes in `tasks`. Use one PR per row group so diffs stay reviewable:
 
 1. Data and logic: `task_repository.dart` and the `core/utils` moves.
-2. Shortcuts: `shortcut_intents.dart` and `app_shortcuts.dart`.
-3. Screens: `project_detail_screen.dart`, `backlog_screen.dart` and `task_form_panel.dart`.
-4. Components: `settings_components.dart` and `range_date_picker.dart`, unless 0003 has already moved the picker.
-5. Shared helpers in the 270–300 band: the dropdown and autocomplete keyboard/scroll helper, `pickNeighbour`, and the label/tag resolution.
-6. Ownership: `task_completion_actions.dart` and `historyListProvider`.
+2. Screens: `project_detail_screen.dart`, `backlog_screen.dart` and `task_form_panel.dart`.
+3. Components: `settings_components.dart` and `range_date_picker.dart`, unless 0003 has already moved the picker.
+4. Shared helpers in the 270–300 band: the dropdown and autocomplete keyboard/scroll helper, `pickNeighbour`, and the label/tag resolution.
+5. Ownership: `task_completion_actions.dart` and `historyListProvider`.
 
 Move the matching tests under `test/` to mirror the new paths.
 
