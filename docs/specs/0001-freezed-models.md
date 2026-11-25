@@ -2,7 +2,7 @@
 
 Status: approved
 
-## why
+## Why
 
 - `Task.copyWith` needs 8 `clearX` flags to set a nullable field to null. `Project.copyWith` can't clear `description` or `deadline` at all.
 - `Task`, `Project`, `Label` and `Tag` have no `==`, so they compare by identity. `TaskFilter` and `FilterMode` maintain `==`/`hashCode` by hand.

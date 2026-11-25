@@ -78,6 +78,10 @@ This document defines the coding standards, architectural decisions, and practic
 - **Testing**: Use standard `flutter_test` with `mocktail` for mocking dependencies. Group test cases cleanly using `group('feature_name', () { ... })` blocks.
 - **Navigation**: Use `go_router` for type-safe routing.
 
+### 2.6 Specs
+- **Location**: `docs/specs/NNNN-slug.md`, one flat file per spec. No folders, so numbering sorts correctly. Put a multi-step rollout in the spec's `## Plan` section.
+- **Outline**: `Status`, `## Why`, `## Scope / Non-goals`, `## Design`, `## Risks`, `## Plan`, `## Verification`, `## Assumptions`. Drop sections that don't apply.
+
 ---
 
 ## 3. Verification Commands Reference

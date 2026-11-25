@@ -4,7 +4,7 @@ Status: done
 
 > **Deviation (#150):** CI uses a separate `.github/workflows/dotmaterial.yml` with `coverage-report: false` instead of the `test-paths` input. Package coverage is not in the app's coverage report until dotactions supports a configurable coverage `comment-key`.
 
-## why
+## Why
 
 - `lib/flutter_ext/README.md` says everything in the folder must be usable in other apps as-is, and may import only `dart:*`, Flutter, `package:fuzzy` and its own files through relative imports. Nothing enforces that. Five files already import `package:carpe_diem/flutter_ext/...`.
 - Inside the app, `flutter_ext` coverage gets mixed with app coverage, and app tests can cover it by accident.
@@ -38,7 +38,7 @@ Status: done
 - `analyze` and `verify-generated` already cover `packages/` from the root.
 - Rejected: a separate job in this repo. Its coverage would stay out of the report.
 
-**Order:** best done after step 7 of [0002](0002-test-coverage/plan.md), so the tests move together with the code. Doing it first also works; it just means rewriting the imports in 3 test files instead of about 10.
+**Order:** best done after step 7 of [0002](0002-test-coverage.md), so the tests move together with the code. Doing it first also works; it just means rewriting the imports in 3 test files instead of about 10.
 
 ## Risks
 
