@@ -7,13 +7,14 @@ import 'package:toastification/toastification.dart';
 class ToastUtils {
   static const Alignment alignment = Alignment.bottomRight;
   static const autoCloseDuration = Duration(seconds: 3);
+  static ToastificationItem? _errorToast;
 
   static BuildContext? _getEffectiveContext(BuildContext? context) {
     if (context != null) return context;
     return rootNavigatorKey.currentContext;
   }
 
-  static void _showToast({
+  static ToastificationItem _showToast({
     required BuildContext context,
     required String message,
     required IconData icon,
@@ -21,7 +22,7 @@ class ToastUtils {
     String? subtitle,
     VoidCallback? onUndo,
   }) {
-    toastification.showCustom(
+    return toastification.showCustom(
       context: context,
       alignment: alignment,
       autoCloseDuration: autoCloseDuration,
@@ -90,6 +91,27 @@ class ToastUtils {
       message: message,
       icon: icon ?? Icons.warning_amber_rounded,
       color: iconColor ?? AppColors.warning,
+      subtitle: subtitle,
+    );
+  }
+
+  /// Shows an error toast, replacing the previous error toast if present.
+  static void showError(
+    String message, {
+    BuildContext? context,
+    IconData? icon,
+    Color? iconColor,
+    String? subtitle,
+  }) {
+    final effectiveContext = _getEffectiveContext(context);
+    if (effectiveContext == null) return;
+    final previous = _errorToast;
+    if (previous != null) toastification.dismiss(previous);
+    _errorToast = _showToast(
+      context: effectiveContext,
+      message: message,
+      icon: icon ?? Icons.error_outline,
+      color: iconColor ?? AppColors.error,
       subtitle: subtitle,
     );
   }

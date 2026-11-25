@@ -59,6 +59,8 @@ abstract class ITaskRepository implements ICrudRepository<Task> {
   Future<void> insert(Task task);
   @override
   Future<void> update(Task task);
+
+  Future<void> updateAll(List<Task> tasks);
   @override
   Future<void> delete(String id);
   Future<int> cleanupHistory(int days);

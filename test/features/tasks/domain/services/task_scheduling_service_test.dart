@@ -38,33 +38,16 @@ void main() {
           when(
             () => mockRepo.getUnscheduled(),
           ).thenAnswer((_) async => [task1, task2, task3]);
-          when(() => mockRepo.update(any())).thenAnswer((_) async => {});
+          when(() => mockRepo.updateAll(any())).thenAnswer((_) async {});
 
           await service.autoScheduleDeadlines(today: today);
 
-          verify(
-            () => mockRepo.update(
-              any(
-                that: isA<Task>()
-                    .having((t) => t.id, 'id', 't1')
-                    .having(
-                      (t) => t.scheduledDate,
-                      'scheduledDate',
-                      overdueDeadline.normalize,
-                    ),
-              ),
-            ),
-          ).called(1);
-          verifyNever(
-            () => mockRepo.update(
-              any(that: isA<Task>().having((t) => t.id, 'id', 't2')),
-            ),
-          );
-          verifyNever(
-            () => mockRepo.update(
-              any(that: isA<Task>().having((t) => t.id, 'id', 't3')),
-            ),
-          );
+          final updates =
+              verify(() => mockRepo.updateAll(captureAny())).captured.single
+                  as List<Task>;
+          expect(updates, hasLength(1));
+          expect(updates.single.id, 't1');
+          expect(updates.single.scheduledDate, overdueDeadline.normalize);
         },
       );
     });

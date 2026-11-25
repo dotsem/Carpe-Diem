@@ -83,14 +83,18 @@ class TestTaskRepositories {
       () => mockTaskRepo.getByDate(
         any(),
         prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+        prioritizeOverdue: any(named: 'prioritizeOverdue'),
       ),
     ).thenAnswer((_) async => []);
     when(() => mockTaskRepo.getOverdue(any())).thenAnswer((_) async => []);
     when(
       () => mockTaskRepo.getUnscheduled(
         prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+        prioritizeOverdue: any(named: 'prioritizeOverdue'),
       ),
     ).thenAnswer((_) async => []);
+    when(mockTaskRepo.getUnscheduled).thenAnswer((_) async => []);
+    when(() => mockTaskRepo.updateAll(any())).thenAnswer((_) async {});
     when(() => mockTaskRepo.getByParent(any())).thenAnswer((_) async => []);
     when(() => mockTaskRepo.getByProject(any())).thenAnswer((_) async => []);
     when(
