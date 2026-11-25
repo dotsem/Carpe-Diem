@@ -21,6 +21,7 @@ A document outlining the current & future development milestones for Carpe Diem.
 - [ ] **Domain-Level Tools:** Task-oriented tools (e.g. get today, plan task, add tasks) that respect planning rules.
 - [ ] **Undoable Agent Actions:** Each MCP call is a single undo step.
 - [ ] **Approval Mode:** Settings toggle between auto-apply and approving pending changes in the right sidebar.
+- [ ] **Change Origin:** Record `user` / `agent` / `system` origin on task events.
 
 ---
 
@@ -33,10 +34,10 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 ## Planned: v0.11.0 (Sync)
 
-- [ ] **Hybrid Logical Clocks:** Clock-skew-safe change ordering across devices.
+- [ ] **Hybrid Logical Clocks:** Clock-skew-safe change ordering across devices, with a device id per change.
 - [ ] **Last-Write-Wins Sync:** Per-row reconciliation, the app stays fully functional offline without setup.
 - [ ] **Self-Hosted Sync Server:** Tiny single-user Go relay binary for homelabs.
-- [ ] **Cloud Sync:** Hosted instance of the same server (multi-user later).
+- [ ] **Cloud Sync:** Hosted instance of the same server.
 
 ---
 
@@ -48,4 +49,9 @@ A document outlining the current & future development milestones for Carpe Diem.
 
 ## Future plans (no fixed release)
 
+- [ ] **Recurring Tasks:** Repeating tasks live in the backlog and land on a day once they fall inside the planning window.
 - [ ] **Project Versions:** Assign tasks to specific project versions and track version progress.
+
+## Out of scope
+
+- **Shared Spaces / Multi-User:** Carpe Diem stays single-user. Shared household chores are better served by tools like Donetick, bridged through MCP.
