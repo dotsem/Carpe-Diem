@@ -1,6 +1,6 @@
 # 0002: Full, useful coverage for the non-screen layers
 
-Status: approved
+Status: done (#153)
 
 ## Why
 
