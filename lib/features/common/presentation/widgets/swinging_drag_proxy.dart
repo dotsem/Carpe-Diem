@@ -9,10 +9,15 @@ class SwingingDragProxy extends ConsumerStatefulWidget {
   final Widget child;
   final double width;
 
+  /// Source of wall-clock time for pointer velocity; injected so tests can
+  /// control it, because widget tests only fake the ticker's time.
+  final DateTime Function() clock;
+
   const SwingingDragProxy({
     required this.child,
     required this.width,
     super.key,
+    this.clock = DateTime.now,
   });
 
   @override
@@ -67,7 +72,7 @@ class _SwingingDragProxyState extends ConsumerState<SwingingDragProxy>
       }
     }
 
-    final now = DateTime.now();
+    final now = widget.clock();
     if (_lastPointerMoveTime != null && _lastPointerX != null) {
       final elapsedMs =
           now.difference(_lastPointerMoveTime!).inMicroseconds / 1000.0;
@@ -99,7 +104,7 @@ class _SwingingDragProxyState extends ConsumerState<SwingingDragProxy>
     if (dt <= 0 || dt > 0.1) return;
 
     if (_lastPointerMoveTime != null &&
-        DateTime.now().difference(_lastPointerMoveTime!).inMilliseconds > 40) {
+        widget.clock().difference(_lastPointerMoveTime!).inMilliseconds > 40) {
       _targetAngle = 0.0;
     }
 

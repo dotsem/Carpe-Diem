@@ -14,8 +14,17 @@ class _AnimationsOffSettings extends SettingsNotifier {
   SettingsState build() => const SettingsState({'animations_enabled': 'false'});
 }
 
+class _FakeClock {
+  DateTime _now = DateTime(2026);
+
+  DateTime read() => _now;
+
+  void advance(Duration by) => _now = _now.add(by);
+}
+
 Future<void> _pump(
-  WidgetTester tester, {
+  WidgetTester tester,
+  _FakeClock clock, {
   double width = 200,
   SettingsNotifier Function()? settings,
 }) => tester.pumpWidget(
@@ -28,6 +37,7 @@ Future<void> _pump(
         body: Center(
           child: SwingingDragProxy(
             width: width,
+            clock: clock.read,
             child: SizedBox(width: width, height: 80),
           ),
         ),
@@ -55,16 +65,9 @@ Future<TestGesture> _mouse(WidgetTester tester) async {
   return gesture;
 }
 
-// Why: the proxy derives velocity from DateTime.now(), which fake time skips.
-Future<void> _swipe(
-  WidgetTester tester,
-  TestGesture gesture,
-  double toX,
-) async {
+Future<void> _swipe(TestGesture gesture, _FakeClock clock, double toX) async {
   await gesture.moveTo(const Offset(330, 300));
-  await tester.runAsync(
-    () => Future<void>.delayed(const Duration(milliseconds: 5)),
-  );
+  clock.advance(const Duration(milliseconds: 5));
   await gesture.moveTo(Offset(toX, 300));
 }
 
@@ -72,18 +75,17 @@ void main() {
   testWidgets('swings against the pointer direction and settles back', (
     tester,
   ) async {
-    await _pump(tester);
+    final clock = _FakeClock();
+    await _pump(tester, clock);
     final gesture = await _mouse(tester);
 
-    await _swipe(tester, gesture, 900);
+    await _swipe(gesture, clock, 900);
     await tester.pump(const Duration(milliseconds: 16));
     await tester.pump(const Duration(milliseconds: 16));
     await tester.pump(const Duration(milliseconds: 16));
     expect(_angle(tester), isNegative);
 
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 60)),
-    );
+    clock.advance(const Duration(milliseconds: 60));
     for (var i = 0; i < 120; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
@@ -91,10 +93,11 @@ void main() {
   });
 
   testWidgets('stays still when animations are disabled', (tester) async {
-    await _pump(tester, settings: _AnimationsOffSettings.new);
+    final clock = _FakeClock();
+    await _pump(tester, clock, settings: _AnimationsOffSettings.new);
     final gesture = await _mouse(tester);
 
-    await _swipe(tester, gesture, 900);
+    await _swipe(gesture, clock, 900);
     await tester.pump(const Duration(milliseconds: 16));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -103,9 +106,10 @@ void main() {
 
   testWidgets('wider proxies swing less than narrow ones', (tester) async {
     Future<double> maxAngle(double width) async {
-      await _pump(tester, width: width);
+      final clock = _FakeClock();
+      await _pump(tester, clock, width: width);
       final gesture = await _mouse(tester);
-      await _swipe(tester, gesture, 900);
+      await _swipe(gesture, clock, 900);
       var peak = 0.0;
       for (var i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 16));
@@ -123,11 +127,12 @@ void main() {
   });
 
   testWidgets('ignores pointer events after it is removed', (tester) async {
-    await _pump(tester);
+    final clock = _FakeClock();
+    await _pump(tester, clock);
     final gesture = await _mouse(tester);
     await tester.pumpWidget(const SizedBox());
 
-    await _swipe(tester, gesture, 900);
+    await _swipe(gesture, clock, 900);
 
     expect(tester.takeException(), isNull);
   });

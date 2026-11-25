@@ -40,4 +40,20 @@ void main() {
     expect(find.byIcon(Icons.history), findsOneWidget);
     expect(find.text('No accent'), findsOneWidget);
   });
+
+  testWidgets('builds from a non-const constructor call', (tester) async {
+    final label = ['Dyn2'].first;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: DefaultTabController(
+          length: 1,
+          child: TabBar(
+            tabs: [HorizontalTab(label: label, icon: const Icon(Icons.task))],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Dyn2'), findsOneWidget);
+  });
 }
