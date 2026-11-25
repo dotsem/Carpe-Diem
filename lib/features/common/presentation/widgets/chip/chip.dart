@@ -1,11 +1,11 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/color_utils.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
-import 'package:carpe_diem/core/utils/deadline_urgency.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/domain/deadline_urgency.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

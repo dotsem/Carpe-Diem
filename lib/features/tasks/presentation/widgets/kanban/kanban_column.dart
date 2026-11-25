@@ -1,5 +1,4 @@
 import 'package:carpe_diem/core/theme/animation_context.dart';
-import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/task_service_providers.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
@@ -9,6 +8,7 @@ import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_engine.dart';
 import 'package:carpe_diem/features/tasks/domain/reorder/task_reorder_utils.dart';
+import 'package:carpe_diem/features/tasks/domain/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_drag_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';

@@ -1,10 +1,10 @@
-import 'package:carpe_diem/core/utils/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/domain/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_reorder_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';

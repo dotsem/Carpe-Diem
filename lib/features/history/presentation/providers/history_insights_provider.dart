@@ -1,6 +1,6 @@
-import 'package:carpe_diem/core/utils/history_stats_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/history/data/models/history_insights.dart';
+import 'package:carpe_diem/features/history/domain/history_stats_utils.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:flutter_riverpod/flutter_riverpod.dart';

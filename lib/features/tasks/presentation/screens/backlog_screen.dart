@@ -1,6 +1,5 @@
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
-import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
@@ -9,6 +8,7 @@ import 'package:carpe_diem/features/filter/presentation/providers/filter_provide
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
+import 'package:carpe_diem/features/tasks/domain/task_selection_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';

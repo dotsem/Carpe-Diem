@@ -1,5 +1,5 @@
-import 'package:carpe_diem/core/utils/history_stats_utils.dart';
 import 'package:carpe_diem/features/history/data/models/history_insights.dart';
+import 'package:carpe_diem/features/history/domain/history_stats_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

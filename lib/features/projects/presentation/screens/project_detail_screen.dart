@@ -1,6 +1,5 @@
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
-import 'package:carpe_diem/core/utils/task_selection_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
@@ -15,6 +14,7 @@ import 'package:carpe_diem/features/projects/presentation/shortcuts/project_deta
 import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/delete_project_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_header.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/domain/task_selection_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
