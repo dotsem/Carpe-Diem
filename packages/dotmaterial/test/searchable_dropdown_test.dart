@@ -115,4 +115,20 @@ void main() {
 
     expect(find.byIcon(Icons.search), findsOneWidget);
   });
+
+  testWidgets('Ctrl+Enter is left to the surrounding dialog', (tester) async {
+    final selected = await _pump(tester);
+    await tester.tap(find.text('One'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'T');
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pumpAndSettle();
+
+    expect(selected(), 'One');
+  });
 }
