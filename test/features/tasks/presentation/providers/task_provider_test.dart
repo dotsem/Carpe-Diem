@@ -1,8 +1,12 @@
+import 'dart:async';
+
+import 'package:carpe_diem/core/utils/date_time_utils.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/task_state.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +14,18 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/mock_repositories.dart';
 import '../../../../helpers/task_test_helpers.dart';
+
+Future<void> _waitForTaskState(
+  ProviderContainer container,
+  bool Function(TaskState state) predicate,
+) async {
+  final completer = Completer<void>();
+  final subscription = container.listen(taskProvider, (_, next) {
+    if (predicate(next) && !completer.isCompleted) completer.complete();
+  }, fireImmediately: true);
+  await completer.future;
+  subscription.close();
+}
 
 void main() {
   setUpAll(() {
@@ -21,11 +37,93 @@ void main() {
     late MockTaskRepository mockTaskRepo;
     late ProviderContainer container;
 
-    setUp(() {
+    setUp(() async {
       repos = TestTaskRepositories();
       repos.setupDefaultStubs();
       mockTaskRepo = repos.mockTaskRepo;
       container = repos.createContainer();
+      await _waitForTaskState(container, (state) => !state.isLoading);
+    });
+
+    test('starts loading until initialization completes', () async {
+      final initRepos = TestTaskRepositories();
+      initRepos.setupDefaultStubs();
+      final backlog = Completer<List<Task>>();
+      when(
+        initRepos.mockTaskRepo.getUnscheduled,
+      ).thenAnswer((_) => backlog.future);
+      final initContainer = initRepos.createContainer();
+      addTearDown(initContainer.dispose);
+
+      expect(initContainer.read(taskProvider).isLoading, isTrue);
+
+      backlog.complete([]);
+      await _waitForTaskState(initContainer, (state) => !state.isLoading);
+    });
+
+    test('initialization schedules deadlines before the first load', () async {
+      final initRepos = TestTaskRepositories();
+      initRepos.setupDefaultStubs();
+      final today = DateTime.now().normalize;
+      final backlogTask = createTestTask(id: 'due', deadline: today);
+      var scheduled = false;
+      when(
+        initRepos.mockTaskRepo.getUnscheduled,
+      ).thenAnswer((_) async => scheduled ? [] : [backlogTask]);
+      when(() => initRepos.mockTaskRepo.updateAll(any())).thenAnswer((
+        call,
+      ) async {
+        final updates = call.positionalArguments.single as List<Task>;
+        scheduled = updates.single.scheduledDate == today;
+      });
+      when(
+        () => initRepos.mockTaskRepo.getByDate(
+          any(),
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          prioritizeOverdue: any(named: 'prioritizeOverdue'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            scheduled ? [backlogTask.copyWith(scheduledDate: today)] : [],
+      );
+      final initContainer = initRepos.createContainer();
+      addTearDown(initContainer.dispose);
+
+      await _waitForTaskState(
+        initContainer,
+        (state) => !state.isLoading && state.tasks.isNotEmpty,
+      );
+
+      expect(initContainer.read(taskProvider).tasks.single.id, 'due');
+    });
+
+    test('a stale date response cannot replace the current date', () async {
+      final dateA = DateTime(2026, 6);
+      final dateB = DateTime(2026, 6, 2);
+      final responseA = Completer<List<Task>>();
+      final responseB = Completer<List<Task>>();
+      when(
+        () => mockTaskRepo.getByDate(
+          any(),
+          prioritizeDeadlines: any(named: 'prioritizeDeadlines'),
+          prioritizeOverdue: any(named: 'prioritizeOverdue'),
+        ),
+      ).thenAnswer((call) {
+        final date = call.positionalArguments.single as DateTime;
+        return date == dateA ? responseA.future : responseB.future;
+      });
+
+      final notifier = container.read(taskProvider.notifier);
+      final loadA = notifier.loadTasksForDate(dateA);
+      final loadB = notifier.loadTasksForDate(dateB);
+      responseB.complete([createTestTask(id: 'b', scheduledDate: dateB)]);
+      await loadB;
+      responseA.complete([createTestTask(id: 'a', scheduledDate: dateA)]);
+      await loadA;
+
+      final state = container.read(taskProvider);
+      expect(state.currentDate, dateB);
+      expect(state.tasks.single.id, 'b');
     });
 
     tearDown(() {

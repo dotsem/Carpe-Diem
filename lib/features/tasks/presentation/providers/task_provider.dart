@@ -51,12 +51,14 @@ class TaskNotifier extends Notifier<TaskState> {
         refreshAll();
       }
     });
-    unawaited(
-      ref
-          .read(taskSchedulingServiceProvider)
-          .autoScheduleDeadlines(today: DateTime.now()),
-    );
-    return TaskState(currentDate: DateTime.now().normalize);
+    unawaited(_init());
+    return TaskState(currentDate: DateTime.now().normalize, isLoading: true);
+  }
+
+  Future<void> _init() async {
+    await schedulingService.autoScheduleDeadlines(today: DateTime.now());
+    await refreshAll();
+    state = state.copyWith(isLoading: false);
   }
 
   Future<void> executeCommand(Command cmd) async {
@@ -69,16 +71,19 @@ class TaskNotifier extends Notifier<TaskState> {
     final normalized = date.normalize;
     state = state.copyWith(currentDate: normalized);
     final s = settings;
-    final tasks = await repo.getByDate(
-      normalized,
-      prioritizeDeadlines: s.prioritizeDeadlines,
-      prioritizeOverdue: s.prioritizeOverdue,
-    );
-    final overdue = await repo.getOverdue(normalized);
+    final results = await Future.wait([
+      repo.getByDate(
+        normalized,
+        prioritizeDeadlines: s.prioritizeDeadlines,
+        prioritizeOverdue: s.prioritizeOverdue,
+      ),
+      repo.getOverdue(normalized),
+    ]);
+    if (state.currentDate != normalized) return;
     state = state.copyWith(
-      tasks: tasks,
-      overdueTasks: overdue,
-      isLoading: false,
+      tasks: results[0],
+      overdueTasks: results[1],
+      isLoading: silent && state.isLoading,
     );
   }
 
@@ -89,7 +94,10 @@ class TaskNotifier extends Notifier<TaskState> {
       prioritizeDeadlines: s.prioritizeDeadlines,
       prioritizeOverdue: s.prioritizeOverdue,
     );
-    state = state.copyWith(unscheduledTasks: unscheduled, isLoading: false);
+    state = state.copyWith(
+      unscheduledTasks: unscheduled,
+      isLoading: silent && state.isLoading,
+    );
   }
 
   Future<void> addTask(TaskDraft draft) async {
@@ -262,8 +270,10 @@ class TaskNotifier extends Notifier<TaskState> {
   Future<void> refreshTasks() => refreshAll();
 
   Future<void> refreshAll() async {
-    await loadTasksForDate(state.currentDate, silent: true);
-    await loadUnscheduledTasks(silent: true);
+    await Future.wait([
+      loadTasksForDate(state.currentDate, silent: true),
+      loadUnscheduledTasks(silent: true),
+    ]);
   }
 }
 
