@@ -1,6 +1,6 @@
 import 'package:carpe_diem/features/history/presentation/providers/activity_provider.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/activity_heatmap.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/section_header.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/activity_heatmap.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/section_header.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

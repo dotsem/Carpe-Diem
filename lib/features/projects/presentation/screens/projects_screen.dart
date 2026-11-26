@@ -1,11 +1,10 @@
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/projects_shortcuts.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_grid.dart';
@@ -124,18 +123,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
   }
 
-  Future<void> _showFilterDialog(BuildContext context) async {
-    final filterNotifier = ref.read(filterProvider.notifier);
-    final result = await showDialog<TaskFilter>(
-      context: context,
-      builder: (_) => FilterDialog(
-        initialFilter: ref.read(filterProvider).filter,
-        showProjectFilter: false,
-        showTagFilter: false,
-      ),
-    );
-    if (result != null) {
-      filterNotifier.setFilter(result);
-    }
-  }
+  Future<void> _showFilterDialog(BuildContext context) => showFilterDialog(
+    context,
+    ref,
+    showProjectFilter: false,
+    showTagFilter: false,
+  );
 }

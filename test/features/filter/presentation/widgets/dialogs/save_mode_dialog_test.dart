@@ -2,13 +2,13 @@ import 'package:carpe_diem/features/common/presentation/providers/repository_pro
 import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/save_mode_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/save_mode_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../../../../helpers/mock_repositories.dart';
+import '../../../../../helpers/mock_repositories.dart';
 
 void main() {
   setUpAll(() {

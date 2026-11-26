@@ -1,21 +1,19 @@
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/domain/task_selection_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/backlog_label_tab_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/shortcuts/backlog_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_dialog_handlers.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_header.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_label_tab_bar.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/backlog/backlog_list.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_bulk_actions_bar.dart';
 import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -68,15 +66,7 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
             }
           }
         },
-        onEscape: () {
-          _searchFocusNode.unfocus();
-          setState(() => _highlightedTaskId = null);
-          if (_orderedItemIds.isNotEmpty) {
-            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-          } else {
-            _mainFocusNode.requestFocus();
-          }
-        },
+        onEscape: _leaveSearch,
       );
     };
   }
@@ -95,6 +85,16 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
       node.dispose();
     }
     super.dispose();
+  }
+
+  void _leaveSearch() {
+    _searchFocusNode.unfocus();
+    setState(() => _highlightedTaskId = null);
+    if (_orderedItemIds.isNotEmpty) {
+      _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+    } else {
+      _mainFocusNode.requestFocus();
+    }
   }
 
   void _moveFocus(int delta) => FocusUtils.moveFocus(
@@ -129,18 +129,13 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
     final provider = ref.watch(taskProvider);
 
-    final isSearching = _searchFocusNode.hasFocus;
-    if (isSearching && _orderedItemIds.isNotEmpty) {
-      if (_highlightedTaskId == null ||
-          !_orderedItemIds.contains(_highlightedTaskId)) {
-        _highlightedTaskId = _orderedItemIds.first;
-      }
-    } else if (!isSearching) {
-      _highlightedTaskId = null;
-    }
+    _highlightedTaskId = SearchNavigationUtils.syncHighlight(
+      isSearching: _searchFocusNode.hasFocus,
+      orderedIds: _orderedItemIds,
+      current: _highlightedTaskId,
+    );
     ref.listen(backlogLabelTabProvider, (previous, next) {
       setState(
         _selectedTaskIds.clear,
@@ -152,18 +147,10 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
       onMovePrev: () => _moveFocus(-1),
       onPrevTab: () => ref.read(backlogLabelTabProvider.notifier).prevTab(),
       onNextTab: () => ref.read(backlogLabelTabProvider.notifier).nextTab(),
-      onShowFilter: () => BacklogDialogHandlers.showFilterDialog(context, ref),
+      onShowFilter: () => showFilterDialog(context, ref),
       onFocusSearch: _searchFocusNode.requestFocus,
       onUnfocusSearch: () {
-        if (_searchFocusNode.hasFocus) {
-          _searchFocusNode.unfocus();
-          setState(() => _highlightedTaskId = null);
-          if (_orderedItemIds.isNotEmpty) {
-            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-          } else {
-            _mainFocusNode.requestFocus();
-          }
-        }
+        if (_searchFocusNode.hasFocus) _leaveSearch();
       },
       onNewTask: () => BacklogDialogHandlers.showAddTask(context, ref: ref),
       onPlanTask: () =>
@@ -180,40 +167,14 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ScreenHeader(
-                  title: 'Backlog',
-                  subtitle: 'Tasks without a scheduled date',
-                  actions: [
-                    if (settings.enableRandomTask) ...[
-                      IconButton(
-                        onPressed: () => BacklogDialogHandlers.pickRandomTask(
-                          context,
-                          ref,
-                          _searchQuery,
-                        ),
-                        icon: const Icon(Icons.casino_rounded),
-                        tooltip: 'Give me a random task!',
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    _buildHeaderActions(context),
-                    const SizedBox(width: 8),
-                    FilledButton.icon(
-                      onPressed: () =>
-                          BacklogDialogHandlers.showAddTask(context, ref: ref),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add Task'),
-                    ),
-                  ],
-                ),
+                BacklogHeader(searchQuery: _searchQuery),
                 const BacklogLabelTabBar(),
                 FilterBar(
                   filter: ref.watch(filterProvider).filter,
                   isBypassed: ref.watch(filterProvider).isBypassed,
                   hiddenCount: ref.watch(hiddenUnscheduledTasksCountProvider),
                   hiddenItemType: 'tasks',
-                  onFilterTap: () =>
-                      BacklogDialogHandlers.showFilterDialog(context, ref),
+                  onFilterTap: () => showFilterDialog(context, ref),
                   onClearFilter: () =>
                       ref.read(filterProvider.notifier).clearFilter(),
                 ),
@@ -271,14 +232,13 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
                     onOrderedIdsChanged: (ids) {
                       _orderedItemIds.clear();
                       _orderedItemIds.addAll(ids);
-                      final isSearching = _searchFocusNode.hasFocus;
-                      if (isSearching && ids.isNotEmpty) {
-                        if (_highlightedTaskId == null ||
-                            !ids.contains(_highlightedTaskId)) {
-                          setState(() => _highlightedTaskId = ids.first);
-                        }
-                      } else if (!isSearching && _highlightedTaskId != null) {
-                        setState(() => _highlightedTaskId = null);
+                      final next = SearchNavigationUtils.syncHighlight(
+                        isSearching: _searchFocusNode.hasFocus,
+                        orderedIds: ids,
+                        current: _highlightedTaskId,
+                      );
+                      if (next != _highlightedTaskId) {
+                        setState(() => _highlightedTaskId = next);
                       }
                     },
                   ),
@@ -289,98 +249,25 @@ class _BacklogScreenState extends ConsumerState<BacklogScreen> {
               left: 0,
               right: 0,
               bottom: 16,
-              child: BulkPlanningBar(
+              child: TaskBulkActionsBar(
                 selectedTaskIds: _selectedTaskIds,
+                tasks: provider.unscheduledTasks,
                 onClearSelection: () => setState(() {
                   _selectedTaskIds.clear();
                   _lastSelectedTaskId = null;
                 }),
+                onActionCompleted: () => setState(_selectedTaskIds.clear),
                 onScheduleToday: () => _scheduleTasks(
                   ref.read(taskProvider.notifier).scheduleTasksForToday,
                 ),
                 onScheduleTomorrow: () => _scheduleTasks(
                   ref.read(taskProvider.notifier).scheduleTasksForTomorrow,
                 ),
-                onBulkEdit: () {
-                  if (_selectedTaskIds.length == 1) {
-                    final task = provider.unscheduledTasks.firstWhere(
-                      (t) => t.id == _selectedTaskIds.first,
-                    );
-                    BacklogDialogHandlers.showEditTask(context, task);
-                  } else {
-                    BacklogDialogHandlers.showBulkEdit(
-                      context,
-                      ref,
-                      _selectedTaskIds,
-                      () => setState(_selectedTaskIds.clear),
-                    );
-                  }
-                },
-                onGroupTasks: () {
-                  BacklogDialogHandlers.showGroupTasks(
-                    context: context,
-                    ref: ref,
-                    selectedTaskIds: _selectedTaskIds,
-                    onCompleted: () => setState(_selectedTaskIds.clear),
-                  );
-                },
-                onBulkDelete: () {
-                  if (_selectedTaskIds.length == 1) {
-                    final task = provider.unscheduledTasks.firstWhere(
-                      (t) => t.id == _selectedTaskIds.first,
-                    );
-                    final subtasks = ref
-                        .read(taskProvider.notifier)
-                        .getAllSubtasks(task.id);
-                    final message = subtasks.isEmpty
-                        ? 'Are you sure you want to delete this task?'
-                        : "Are you sure you want to delete this task and its ${subtasks.length} subtask${subtasks.length > 1 ? 's' : ''}?";
-
-                    showDialog<void>(
-                      context: context,
-                      builder: (ctx) => DeleteDialog(
-                        title: 'Delete Task',
-                        message: message,
-                        onConfirm: () {
-                          ref.read(taskProvider.notifier).deleteTask(task);
-                          setState(_selectedTaskIds.clear);
-                        },
-                      ),
-                    );
-                  } else {
-                    BacklogDialogHandlers.showBulkDeleteConfirm(
-                      context: context,
-                      ref: ref,
-                      selectedTaskIds: _selectedTaskIds,
-                      onCompleted: () {
-                        setState(_selectedTaskIds.clear);
-                      },
-                    );
-                  }
-                },
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeaderActions(BuildContext context) {
-    return BulkActionMenu(
-      options: const [
-        BulkActionOption(
-          value: 'import',
-          icon: Icons.download_rounded,
-          label: 'Import from MD',
-          enabled: true,
-        ),
-      ],
-      onOptionSelected: (value) {
-        if (value == 'import') {
-          BacklogDialogHandlers.showImportFromMD(context);
-        }
-      },
     );
   }
 }

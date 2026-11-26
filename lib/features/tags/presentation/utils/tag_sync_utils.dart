@@ -3,6 +3,15 @@ import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 
 class TagSyncUtils {
+  /// IDs of the tags in [allTags] that are mentioned as `#tag` in [text].
+  static List<String> parsedTagIds(String text, List<Tag> allTags) {
+    final parsedNames = TagParser.parseTags(text);
+    return allTags
+        .where((t) => parsedNames.contains(t.name.toLowerCase()))
+        .map((t) => t.id)
+        .toList();
+  }
+
   /// Syncs title text changes to the selected tag IDs.
   /// If a new tag is detected in [text] (i.e., parsed tags has an ID not in [currentSelectedIds]):
   ///   - `TagSyncMode.replace`: replaces all selected tags with the newly parsed ones.
@@ -16,11 +25,7 @@ class TagSyncUtils {
     required List<String> previousParsedIds,
     required Absorption mode,
   }) {
-    final parsedNames = TagParser.parseTags(text);
-    final parsedTagIds = allTags
-        .where((t) => parsedNames.contains(t.name.toLowerCase()))
-        .map((t) => t.id)
-        .toList();
+    final parsedTagIds = TagSyncUtils.parsedTagIds(text, allTags);
 
     final addedIds = parsedTagIds
         .where((id) => !currentSelectedIds.contains(id))

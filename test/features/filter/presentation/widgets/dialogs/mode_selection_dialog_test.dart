@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/mode_selection_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/mode_selection_dialog.dart';
 import 'package:carpe_diem/routes/keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../../../../helpers/mock_repositories.dart';
+import '../../../../../helpers/mock_repositories.dart';
 
 void main() {
   setUpAll(() {

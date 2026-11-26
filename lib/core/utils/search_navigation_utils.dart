@@ -2,6 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class SearchNavigationUtils {
+  /// The id to highlight: the first result while searching, null otherwise.
+  /// A still-valid [current] is kept so typing does not reset the cursor.
+  static String? syncHighlight({
+    required bool isSearching,
+    required List<String> orderedIds,
+    required String? current,
+  }) {
+    if (!isSearching) return null;
+    if (orderedIds.isEmpty) return current;
+    return orderedIds.contains(current) ? current : orderedIds.first;
+  }
+
   static KeyEventResult handleSearchKeyEvent({
     required KeyEvent event,
     required List<String> orderedIds,

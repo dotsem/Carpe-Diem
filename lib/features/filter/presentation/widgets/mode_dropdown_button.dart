@@ -1,7 +1,7 @@
 import 'package:carpe_diem/features/filter/data/models/filter_mode.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_modes_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/save_mode_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/save_mode_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

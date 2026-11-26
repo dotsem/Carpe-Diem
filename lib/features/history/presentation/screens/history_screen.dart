@@ -1,16 +1,15 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/history/presentation/providers/activity_provider.dart';
 import 'package:carpe_diem/features/history/presentation/providers/history_insights_provider.dart';
-import 'package:carpe_diem/features/history/presentation/screens/tab_history_dashboard.dart';
-import 'package:carpe_diem/features/history/presentation/screens/tab_history_insights.dart';
-import 'package:carpe_diem/features/history/presentation/screens/tab_history_list.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/date_range_button.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/date_range_button.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/tabs/history_dashboard_tab.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/tabs/history_insights_tab.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/tabs/history_list_tab.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_history_provider.dart';
@@ -171,17 +170,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   Future<void> _showFilterDialog() async {
-    final filterProviderVal = ref.read(filterProvider);
-    final result = await showDialog<TaskFilter>(
-      context: context,
-      builder: (context) =>
-          FilterDialog(initialFilter: filterProviderVal.filter),
-    );
-
-    if (result != null) {
-      ref.read(filterProvider.notifier).setFilter(result);
-      await _loadData();
-    }
+    if (await showFilterDialog(context, ref)) await _loadData();
   }
 
   void _clearFilter() {
@@ -250,17 +239,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   ? const Center(child: CircularProgressIndicator())
                   : TabBarView(
                       children: [
-                        TabHistoryDashboard(
+                        HistoryDashboardTab(
                           overview: _overview,
                           range: _dateRange,
                         ),
-                        TabHistoryList(
+                        HistoryListTab(
                           tasks: _completedTasks,
                           hasMore: _hasMore,
                           isLoadingMore: _isLoadingMore,
                           onLoadMore: _loadMoreData,
                         ),
-                        TabHistoryInsights(range: _dateRange),
+                        HistoryInsightsTab(range: _dateRange),
                       ],
                     ),
             ),

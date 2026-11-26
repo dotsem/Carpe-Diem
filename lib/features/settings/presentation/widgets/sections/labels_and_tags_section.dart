@@ -7,8 +7,8 @@ import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LabelsSection extends ConsumerWidget {
-  const LabelsSection({super.key});
+class LabelsAndTagsSection extends ConsumerWidget {
+  const LabelsAndTagsSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

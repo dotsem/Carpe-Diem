@@ -67,6 +67,30 @@ This document defines the coding standards, architectural decisions, and practic
 - **Theming**: Use standard context themes (`Theme.of(context)`) exclusively for layout, typography, and standard UI colors. Do not hardcode spacing or styles. Hardcoded hex colors are allowed only for custom user-configurable colors (e.g., project/label color selection).
 - **Localization (i18n)**: Use `flutter_localizations` and `intl`. Never hardcode user-facing strings in presentation files.
 
+### 2.2.1 Screen & Widget Naming
+
+A widget's suffix says what part of the screen it is. Use these terms with only these meanings:
+
+| Suffix | Meaning | Example |
+| --- | --- | --- |
+| `Screen` | A routed page. The only widgets in `presentation/screens/`. | `BacklogScreen` |
+| `Tab` | The body of one tab inside a screen, named `<Screen><Name>Tab`. | `HistoryInsightsTab` |
+| `Header` | The title row at the top of a screen, built on `ScreenHeader`. Exception: `ProjectDetailHeader` has its own layout (urgency stripe, project color, labels, description). | `BacklogHeader` |
+| `Toolbar` | Controls under the header that search, filter or switch the body. It never contains the header. | `ProjectDetailToolbar` |
+| `Bar` | One pinned or floating strip with a single job. | `FilterBar`, `BulkPlanningBar` |
+| `Row` | An inline horizontal group inside a card or tile. | `TaskChipsRow` |
+| `Section` | A titled group of content inside a screen, form, settings page or list. A screen with several keeps them in `sections/`. | `SchedulingSection` |
+| `Panel` | Content shown in the right sidebar. | `TaskFormPanel` |
+| `Pane` | A fixed region of a split screen. | `HomePlannerPane` |
+| `Card` | A standalone surface for one entity. | `TaskCard` |
+| `Tile` | A list-tile style row in a settings or picker list. | `SettingsSwitchTile` |
+| `Item` | One element built by a list or grid, usually wrapping a card with drag or hierarchy behaviour. | `BacklogHierarchyItem` |
+| `Dialog` | A modal. Its opener is a top-level `show<Name>Dialog` function. | `DeleteDialog` |
+
+- **File names**: a file is named after its main public class in snake_case (`TaskChipsRow` → `task_chips_row.dart`). Two exceptions: `x_provider.dart` holds `XNotifier` and `xProvider`, and a file of small sibling widgets is named for the group (`chip/chip.dart` holds `DeadlineChip`, `StatusChip` and the others).
+- **Unique class names**: a widget class name is unique across `lib/`. Prefix with the feature or screen when a plain name is taken.
+- **Folders**: widgets used by one screen go in `presentation/widgets/<screen>/`, widgets shared inside a feature in `presentation/widgets/`, and widgets used by several features in `features/common/presentation/widgets/`. A feature with a single screen (history, settings) may put that screen's widgets straight in `presentation/widgets/`. Dialogs and their `show…Dialog` openers go in `presentation/widgets/dialogs/`.
+
 ### 2.3 Models & Serialization
 - **Generated Models**: Use `freezed` for data models when specified. Keep `toMap()`/`fromMap()` hand-written; do not use `json_serializable`. Do not use Riverpod generator.
 

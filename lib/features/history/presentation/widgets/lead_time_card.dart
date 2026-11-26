@@ -1,7 +1,7 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/history/data/models/history_insights.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/overview_stat_card.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/section_header.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/overview_stat_card.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/section_header.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

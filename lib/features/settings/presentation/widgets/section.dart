@@ -31,7 +31,7 @@ class SectionContent extends StatelessWidget {
       case Section.appearance:
         return const AppearanceSection();
       case Section.labelsAndTags:
-        return const LabelsSection();
+        return const LabelsAndTagsSection();
       case Section.planning:
         return const PlanningSection();
       case Section.tasks:

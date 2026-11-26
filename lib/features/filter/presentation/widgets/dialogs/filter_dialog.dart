@@ -1,5 +1,6 @@
 import 'package:carpe_diem/features/common/presentation/widgets/urgency_selector.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/common/filter_accordion_section.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/label_filter_picker.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/project_filter_picker.dart';
@@ -164,4 +165,26 @@ class _FilterDialogState extends ConsumerState<FilterDialog> {
       ),
     );
   }
+}
+
+/// Opens [FilterDialog] on the current filter and saves the result.
+/// Returns true when the user applied a filter.
+Future<bool> showFilterDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  bool showProjectFilter = true,
+  bool showTagFilter = true,
+}) async {
+  final filterNotifier = ref.read(filterProvider.notifier);
+  final result = await showDialog<TaskFilter>(
+    context: context,
+    builder: (_) => FilterDialog(
+      initialFilter: ref.read(filterProvider).filter,
+      showProjectFilter: showProjectFilter,
+      showTagFilter: showTagFilter,
+    ),
+  );
+  if (result == null) return false;
+  filterNotifier.setFilter(result);
+  return true;
 }
