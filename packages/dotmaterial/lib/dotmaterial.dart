@@ -7,6 +7,7 @@ export 'horizontal_tab.dart';
 export 'keyboard.dart';
 export 'platform_draggable.dart';
 export 'progress_border_painter.dart';
+export 'searchable_dropdown/ensure_index_visible.dart';
 export 'searchable_dropdown/multi_select_searchable_dropdown.dart';
 export 'searchable_dropdown/searchable_dropdown.dart';
 export 'shortcut_hint_badge.dart';
