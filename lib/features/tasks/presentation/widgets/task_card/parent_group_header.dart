@@ -5,13 +5,12 @@ import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/small_chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/tag_chip.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_hierarchy_node.dart';
+import 'package:carpe_diem/features/tasks/domain/task_chip_resolution.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_task_hover_actions.dart';
 import 'package:flutter/material.dart';
@@ -72,16 +71,14 @@ class _ParentGroupHeaderState extends ConsumerState<ParentGroupHeader> {
     final labelNotifier = ref.read(labelProvider.notifier);
     final tagNotifier = ref.read(tagProvider.notifier);
 
-    final allLabelIds = <String>{...task.labelIds};
-    if (widget.project != null) {
-      allLabelIds.addAll(widget.project!.labelIds);
-    }
-    final labels = allLabelIds
-        .map(labelNotifier.getById)
-        .whereType<Label>()
-        .toList();
-
-    final tags = task.tagIds.map(tagNotifier.getById).whereType<Tag>().toList();
+    final chips = resolveTaskChips(
+      task: task,
+      project: widget.project,
+      labelLookup: labelNotifier.getById,
+      tagLookup: tagNotifier.getById,
+    );
+    final labels = chips.labels;
+    final tags = chips.tags;
 
     final customTrailing =
         widget.trailingBuilder?.call(context, isHoveredOrFocused) ??
