@@ -1,3 +1,4 @@
+import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
@@ -108,41 +109,17 @@ class ProjectGridState extends ConsumerState<ProjectGrid> {
       currentBox.size.center(Offset.zero),
     );
 
-    String? bestId;
-    var bestScore = double.infinity;
-
+    final candidates = <String, Offset>{};
     for (final id in _orderedItemIds) {
       if (id == currentId) continue;
       final node = _itemFocusNodes[id];
       if (node == null || node.context == null) continue;
 
       final box = node.context!.findRenderObject()! as RenderBox;
-      final center = box.localToGlobal(box.size.center(Offset.zero));
-      final diff = center - currentCenter;
-
-      var inDirection = false;
-      if (dx > 0) {
-        inDirection = diff.dx > 20;
-      } else if (dx < 0) {
-        inDirection = diff.dx < -20;
-      } else if (dy > 0) {
-        inDirection = diff.dy > 20;
-      } else if (dy < 0) {
-        inDirection = diff.dy < -20;
-      }
-
-      if (inDirection) {
-        var score = diff.distanceSquared;
-        if (dx != 0) score += diff.dy.abs() * 5000;
-        if (dy != 0) score += diff.dx.abs() * 5000;
-
-        if (score < bestScore) {
-          bestScore = score;
-          bestId = id;
-        }
-      }
+      candidates[id] = box.localToGlobal(box.size.center(Offset.zero));
     }
 
+    final bestId = FocusUtils.pickNeighbour(currentCenter, candidates, dx, dy);
     if (bestId != null) {
       _itemFocusNodes[bestId]?.requestFocus();
     }

@@ -1,6 +1,7 @@
 import 'package:dotmaterial/fuzzy_search/fuzzy_search_bar.dart';
 import 'package:dotmaterial/fuzzy_search/fuzzy_search_utils.dart';
 import 'package:dotmaterial/keyboard.dart';
+import 'package:dotmaterial/searchable_dropdown/ensure_index_visible.dart';
 import 'package:dotmaterial/src/searchable_dropdown/searchable_dropdown_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,13 +72,13 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
           setState(() {
             _selectedIndex = (_selectedIndex + 1) % items.length;
           });
-          _scrollToIndex(_selectedIndex);
+          ensureIndexVisible(_scrollController, _selectedIndex, 40);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
           setState(() {
             _selectedIndex = (_selectedIndex - 1 + items.length) % items.length;
           });
-          _scrollToIndex(_selectedIndex);
+          ensureIndexVisible(_scrollController, _selectedIndex, 40);
           return KeyEventResult.handled;
         } else if (event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.numpadEnter) {
@@ -90,18 +91,6 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       }
       return KeyEventResult.ignored;
     };
-  }
-
-  void _scrollToIndex(int index) {
-    if (!_scrollController.hasClients || index < 0) return;
-    const itemHeight = 40.0;
-    final targetOffset = index * itemHeight;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    _scrollController.animateTo(
-      targetOffset.clamp(0.0, maxScroll),
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeOut,
-    );
   }
 
   @override

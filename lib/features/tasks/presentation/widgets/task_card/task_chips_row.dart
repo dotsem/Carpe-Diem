@@ -1,12 +1,11 @@
 import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/tag_chip.dart';
-import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
-import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/domain/task_chip_resolution.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/subtask_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_board.dart';
@@ -41,17 +40,14 @@ class TaskChipsRow extends ConsumerWidget {
     final labelNotifier = ref.read(labelProvider.notifier);
     final tagNotifier = ref.read(tagProvider.notifier);
 
-    // Labels
-    final allLabelIds = <String>{...task.labelIds};
-    if (project != null) {
-      allLabelIds.addAll(project!.labelIds);
-    }
-    final labels = allLabelIds
-        .map(labelNotifier.getById)
-        .whereType<Label>()
-        .toList();
-
-    final tags = task.tagIds.map(tagNotifier.getById).whereType<Tag>().toList();
+    final chips = resolveTaskChips(
+      task: task,
+      project: project,
+      labelLookup: labelNotifier.getById,
+      tagLookup: tagNotifier.getById,
+    );
+    final labels = chips.labels;
+    final tags = chips.tags;
 
     final subtasksAsync = ref.watch(subtasksProvider(task.id));
     final subtasks = subtasksAsync.value ?? [];

@@ -1,10 +1,10 @@
-import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tags/data/models/tag.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_icon_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_suggestion_item.dart';
+import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -85,33 +85,7 @@ class _TagAutocompleteTextFieldState
 
   void _updateSelectedIndex(int index) {
     setState(() => _selectedIndex = index);
-    _scrollToIndex(index);
-  }
-
-  void _scrollToIndex(int index) {
-    if (!_scrollController.hasClients || index < 0) return;
-    const itemHeight = 36.0;
-    final itemTop = index * itemHeight;
-    final itemBottom = itemTop + itemHeight;
-    final scrollOffset = _scrollController.offset;
-    final viewport = _scrollController.position.viewportDimension;
-
-    if (itemBottom > scrollOffset + viewport) {
-      _scrollController.animateTo(
-        (itemBottom - viewport).clamp(
-          0.0,
-          _scrollController.position.maxScrollExtent,
-        ),
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-      );
-    } else if (itemTop < scrollOffset) {
-      _scrollController.animateTo(
-        itemTop.clamp(0.0, _scrollController.position.maxScrollExtent),
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-      );
-    }
+    ensureIndexVisible(_scrollController, index, 36);
   }
 
   @override
