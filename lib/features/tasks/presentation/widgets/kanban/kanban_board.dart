@@ -6,8 +6,8 @@ import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/task_hierarchy_utils.dart';
 import 'package:carpe_diem/features/tasks/domain/task_sort_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/item_size_transition_builder.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_column.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/kanban/kanban_transition_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

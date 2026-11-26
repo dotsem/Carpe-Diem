@@ -4,11 +4,10 @@ import 'package:carpe_diem/core/utils/midnight_timer.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/screen_header.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/hidden_counts_provider.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_layout.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/clock_provider.dart';
@@ -207,14 +206,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     context.openRightSidebar(EditTaskPanel(task.id));
   }
 
-  Future<void> _showFilterDialog(BuildContext context) async {
-    final filterProviderVal = ref.read(filterProvider);
-    final result = await showDialog<TaskFilter>(
-      context: context,
-      builder: (_) => FilterDialog(initialFilter: filterProviderVal.filter),
-    );
-    if (result != null) {
-      ref.read(filterProvider.notifier).setFilter(result);
-    }
-  }
+  Future<void> _showFilterDialog(BuildContext context) =>
+      showFilterDialog(context, ref);
 }

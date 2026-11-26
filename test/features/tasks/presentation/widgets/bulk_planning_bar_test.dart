@@ -1,7 +1,7 @@
-import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_state.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/bulk_planning_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

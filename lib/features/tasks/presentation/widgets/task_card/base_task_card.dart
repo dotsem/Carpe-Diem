@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/parent_breadcrumb_header.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_chips_bar.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/task_chips_row.dart';
 import 'package:flutter/material.dart';
 
 class BaseTaskCard extends StatefulWidget {
@@ -212,7 +212,7 @@ class _BaseTaskCardState extends State<BaseTaskCard> {
                                     ),
                                   ),
                                 ),
-                              TaskChipsBar(
+                              TaskChipsRow(
                                 task: widget.task,
                                 project: widget.hideProjectInfo
                                     ? null

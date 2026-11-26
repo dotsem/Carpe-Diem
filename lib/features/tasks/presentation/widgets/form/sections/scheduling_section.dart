@@ -2,14 +2,14 @@ import 'package:carpe_diem/features/common/presentation/widgets/date_picker_butt
 import 'package:carpe_diem/features/common/presentation/widgets/section_card.dart';
 import 'package:flutter/material.dart';
 
-class PlanningSection extends StatelessWidget {
+class SchedulingSection extends StatelessWidget {
   final DateTime? scheduledDate;
   final ValueChanged<DateTime?> onScheduledChanged;
   final DateTime? deadline;
   final ValueChanged<DateTime?> onDeadlineChanged;
   final int maxPlanningDays;
 
-  const PlanningSection({
+  const SchedulingSection({
     required this.scheduledDate,
     required this.onScheduledChanged,
     required this.deadline,

@@ -14,13 +14,13 @@ import 'package:carpe_diem/features/tasks/presentation/widgets/task_card/subtask
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TaskChipsBar extends ConsumerWidget {
+class TaskChipsRow extends ConsumerWidget {
   final Task task;
   final Project? project;
   final bool isOverdue;
   final bool showScheduleDate;
 
-  const TaskChipsBar({
+  const TaskChipsRow({
     required this.task,
     required this.isOverdue,
     required this.showScheduleDate,

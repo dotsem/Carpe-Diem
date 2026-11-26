@@ -1,17 +1,17 @@
 import 'package:carpe_diem/core/theme/app_breakpoints.dart';
 import 'package:carpe_diem/features/history/data/models/history_insights.dart';
 import 'package:carpe_diem/features/history/presentation/providers/history_insights_provider.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/lead_time_card.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/plan_accuracy_card.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/section_header.dart';
-import 'package:carpe_diem/features/history/presentation/screens/widgets/velocity_list.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/lead_time_card.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/plan_accuracy_card.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/section_header.dart';
+import 'package:carpe_diem/features/history/presentation/widgets/velocity_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TabHistoryInsights extends ConsumerWidget {
+class HistoryInsightsTab extends ConsumerWidget {
   final DateTimeRange range;
 
-  const TabHistoryInsights({required this.range, super.key});
+  const HistoryInsightsTab({required this.range, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -4,7 +4,7 @@ import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_inten
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcut_keys.dart';
 import 'package:carpe_diem/features/common/presentation/shortcuts/shortcuts_help_overlay.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/mode_selection_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/mode_selection_dialog.dart';
 import 'package:carpe_diem/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

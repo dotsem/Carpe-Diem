@@ -1,4 +1,3 @@
-import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/sticky_footer_layout.dart';
@@ -6,18 +5,18 @@ import 'package:carpe_diem/features/common/presentation/widgets/entity_timestamp
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tags/presentation/providers/tag_provider.dart';
-import 'package:carpe_diem/features/tags/presentation/utils/tag_parser.dart';
 import 'package:carpe_diem/features/tags/presentation/utils/tag_sync_utils.dart';
-import 'package:carpe_diem/features/tags/presentation/widgets/tag_autocomplete_text_field.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_highlighting_controller.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_placement.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/widgets/parent_task_link.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/labels_and_tags_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/coordinated_menu_controller.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/categorization_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/placement_section.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/planning_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/projects_and_blockers_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/scheduling_section.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/subtasks_list_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/task_basics_section.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/form/sections/task_form_footer.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/task_form_shortcuts.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_delete_handler.dart';
 import 'package:carpe_diem/features/tasks/presentation/widgets/form/utils/task_form_details_loader.dart';
@@ -60,35 +59,19 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
   List<String> _inheritedLabelIds = [];
   List<String> _selectedTagIds = [];
   List<String> _previousParsedIds = [];
-  late final List<MenuController> _menuControllers;
-  late final MenuController _projectMenuController = _menuController();
-  late final MenuController _blockerMenuController = _menuController();
-  late final MenuController _labelMenuController = _menuController();
-  late final MenuController _tagMenuController = _menuController();
-
-  MenuController _menuController() {
-    late final _CoordinatedMenuController c;
-    return c = _CoordinatedMenuController(
-      onWillOpen: () {
-        for (final other in _menuControllers) {
-          if (!identical(other, c) && other.isOpen) other.close();
-        }
-      },
-    );
-  }
+  final _menus = TaskFormMenuControllers();
 
   bool get isEditing => widget.initialTask != null;
 
   @override
   void initState() {
     super.initState();
-    _menuControllers = [
-      _projectMenuController,
-      _blockerMenuController,
-      _labelMenuController,
-      _tagMenuController,
-    ];
     final task = widget.initialTask;
+    _titleController = TagHighlightingController(
+      text: task?.title,
+      getExistingTagNames: () =>
+          ref.read(tagProvider).tags.map((t) => t.name).toList(),
+    );
 
     if (task != null) {
       _descController.text = task.description ?? '';
@@ -101,18 +84,9 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       _selectedLabelIds = List.from(task.labelIds);
       _selectedTagIds = List.from(task.tagIds);
 
-      final initialTags = TagParser.parseTags(task.title);
-      _previousParsedIds = ref
-          .read(tagProvider)
-          .tags
-          .where((t) => initialTags.contains(t.name.toLowerCase()))
-          .map((t) => t.id)
-          .toList();
-
-      _titleController = TagHighlightingController(
-        text: task.title,
-        getExistingTagNames: () =>
-            ref.read(tagProvider).tags.map((t) => t.name).toList(),
+      _previousParsedIds = TagSyncUtils.parsedTagIds(
+        task.title,
+        ref.read(tagProvider).tags,
       );
     } else {
       _scheduledDate = widget.initialDate;
@@ -122,11 +96,6 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       _selectedLabelIds = widget.initialLabelIds != null
           ? List.from(widget.initialLabelIds!)
           : [];
-
-      _titleController = TagHighlightingController(
-        getExistingTagNames: () =>
-            ref.read(tagProvider).tags.map((t) => t.name).toList(),
-      );
     }
 
     _titleController.addListener(_onTitleChanged);
@@ -146,13 +115,10 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       mode: ref.read(settingsProvider).tagAbsorption,
     );
 
-    final parsedNames = TagParser.parseTags(_titleController.text);
-    _previousParsedIds = ref
-        .read(tagProvider)
-        .tags
-        .where((t) => parsedNames.contains(t.name.toLowerCase()))
-        .map((t) => t.id)
-        .toList();
+    _previousParsedIds = TagSyncUtils.parsedTagIds(
+      _titleController.text,
+      ref.read(tagProvider).tags,
+    );
 
     final set1 = Set<String>.from(_selectedTagIds);
     final set2 = Set<String>.from(newTagIds);
@@ -202,68 +168,34 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
         .toList();
 
     return StickyFooterLayout(
-      footer: Row(
-        children: [
-          if (isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded),
-              tooltip: 'Delete Task',
-              style: IconButton.styleFrom(foregroundColor: AppColors.error),
-              onPressed: _onDelete,
-            ),
-          const Spacer(),
-          TextButton(
-            onPressed: () => ref.read(rightSidebarProvider.notifier).pop(),
-            child: const Text('Cancel'),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: _submit,
-            child: Text(isEditing ? 'Save Changes' : 'Create Task'),
-          ),
-        ],
+      footer: TaskFormFooter(
+        isEditing: isEditing,
+        onDelete: _onDelete,
+        onSubmit: _submit,
       ),
       child: TaskFormShortcuts(
         onPlacementChanged: (p) => setState(() => _placement = p),
-        projectMenuController: _projectMenuController,
-        blockerMenuController: _blockerMenuController,
-        labelMenuController: _labelMenuController,
-        tagMenuController: _tagMenuController,
+        projectMenuController: _menus.project,
+        blockerMenuController: _menus.blocker,
+        labelMenuController: _menus.label,
+        tagMenuController: _menus.tag,
         onAddSubtask: widget.initialTask != null ? _onAddSubtask : null,
         onSubmit: _submit,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_parentId != null) ...[
-              ParentTaskLink(
-                parentId: _parentId!,
-                onClear: () => setState(() => _parentId = null),
-              ),
-              const SizedBox(height: 8),
-            ],
-            TagAutocompleteTextField(
-              controller: _titleController,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'Task name',
-                errorText: _titleError,
-              ),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            TaskBasicsSection(
+              parentId: _parentId,
+              onClearParent: () => setState(() => _parentId = null),
+              titleController: _titleController,
+              descController: _descController,
+              titleError: _titleError,
               onTagSelected: (tag) {
                 if (!ref.read(settingsProvider).keepTagsInTitle &&
                     !_selectedTagIds.contains(tag.id)) {
                   setState(() => _selectedTagIds.add(tag.id));
                 }
               },
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descController,
-              decoration: const InputDecoration(
-                hintText: 'Description (optional)',
-              ),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              maxLines: 2,
             ),
             const SizedBox(height: 8),
             PlacementSection(
@@ -276,15 +208,15 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
               currentTaskId: widget.initialTask?.id,
               selectedBlockerId: _blockedById,
               selectedProjectId: _selectedProjectId,
-              projectMenuController: _projectMenuController,
-              blockerMenuController: _blockerMenuController,
+              projectMenuController: _menus.project,
+              blockerMenuController: _menus.blocker,
               onChangedProject: (id) {
                 setState(() => _selectedProjectId = id);
                 _loadProjectDetails();
               },
               onChangedBlockers: (id) => setState(() => _blockedById = id),
             ),
-            PlanningSection(
+            SchedulingSection(
               scheduledDate: _scheduledDate,
               onScheduledChanged: (d) => setState(() => _scheduledDate = d),
               deadline: _deadline,
@@ -298,8 +230,8 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
                   setState(() => _selectedLabelIds = ids),
               selectedTagIds: _selectedTagIds,
               onTagsSelected: (ids) => setState(() => _selectedTagIds = ids),
-              labelMenuController: _labelMenuController,
-              tagMenuController: _tagMenuController,
+              labelMenuController: _menus.label,
+              tagMenuController: _menus.tag,
             ),
             if (isEditing && _parentId == null) ...[
               const SizedBox(height: 16),
@@ -358,17 +290,5 @@ class _TaskFormPanelState extends ConsumerState<TaskFormPanel> {
       placement: _placement,
       initialTask: widget.initialTask,
     );
-  }
-}
-
-class _CoordinatedMenuController extends MenuController {
-  final VoidCallback onWillOpen;
-
-  _CoordinatedMenuController({required this.onWillOpen});
-
-  @override
-  void open({Offset? position}) {
-    onWillOpen();
-    super.open(position: position);
   }
 }

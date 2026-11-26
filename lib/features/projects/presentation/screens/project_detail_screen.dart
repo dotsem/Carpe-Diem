@@ -1,31 +1,25 @@
+import 'dart:async';
+
 import 'package:carpe_diem/core/utils/focus_utils.dart';
 import 'package:carpe_diem/core/utils/search_navigation_utils.dart';
 import 'package:carpe_diem/features/common/presentation/providers/window_title_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
 import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/bulk_planning_bar.dart';
-import 'package:carpe_diem/features/common/presentation/widgets/dialogs/delete_dialog.dart';
-import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart';
-import 'package:carpe_diem/features/filter/presentation/widgets/filter_dialog.dart';
+import 'package:carpe_diem/features/filter/presentation/widgets/dialogs/filter_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/shortcuts/project_detail_shortcuts.dart';
-import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/delete_project_dialog.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_header.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_task_list.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/project_detail/project_detail_toolbar.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/domain/task_selection_utils.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_schedule_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/context_menu/task_card_context_menu.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/bulk_tasks_actions.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
-import 'package:carpe_diem/features/tasks/presentation/widgets/task_list/task_list_view.dart';
-import 'package:dotmaterial/dotmaterial.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/task_bulk_actions_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class ProjectDetailScreen extends ConsumerStatefulWidget {
   final String projectId;
@@ -65,24 +59,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         onHighlightChanged: (newId) =>
             setState(() => _highlightedTaskId = newId),
         onSelect: () {
-          if (_highlightedTaskId != null) {
-            final task = _tasks
-                .where((t) => t.id == _highlightedTaskId)
-                .firstOrNull;
-            if (task != null) {
-              context.openRightSidebar(EditTaskPanel(task.id));
-            }
-          }
+          if (_highlightedTaskId != null) _openHighlightedTask();
         },
-        onEscape: () {
-          _searchFocusNode.unfocus();
-          setState(() => _highlightedTaskId = null);
-          if (_orderedItemIds.isNotEmpty) {
-            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-          } else {
-            _mainFocusNode.requestFocus();
-          }
-        },
+        onEscape: _leaveSearch,
       );
     };
   }
@@ -126,6 +105,16 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     }
   }
 
+  void _leaveSearch() {
+    _searchFocusNode.unfocus();
+    setState(() => _highlightedTaskId = null);
+    if (_orderedItemIds.isNotEmpty) {
+      _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
+    } else {
+      _mainFocusNode.requestFocus();
+    }
+  }
+
   void _moveFocus(int delta) => FocusUtils.moveFocus(
     orderedItemIds: _orderedItemIds,
     itemFocusNodes: _itemFocusNodes,
@@ -133,19 +122,62 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     debugLabelPrefix: 'ProjectTask',
   );
 
-  Future<void> _showFilterDialog() async {
-    final filterNotifier = ref.read(filterProvider.notifier);
-    final result = await showDialog<TaskFilter>(
-      context: context,
-      builder: (_) => FilterDialog(
-        initialFilter: ref.read(filterProvider).filter,
-        showProjectFilter: false,
-      ),
-    );
-    if (result != null) {
-      filterNotifier.setFilter(result);
+  void _openHighlightedTask() {
+    final task = _tasks.where((t) => t.id == _highlightedTaskId).firstOrNull;
+    if (task != null) context.openRightSidebar(EditTaskPanel(task.id));
+  }
+
+  Future<void> _scheduleSelected(
+    Future<void> Function(List<String>) action,
+  ) async {
+    await action(List<String>.of(_selectedTaskIds));
+    if (mounted) setState(_selectedTaskIds.clear);
+  }
+
+  void _clearSelection() => setState(() {
+    _selectedTaskIds.clear();
+    _lastSelectedTaskId = null;
+  });
+
+  void _showFilter() =>
+      unawaited(showFilterDialog(context, ref, showProjectFilter: false));
+
+  void _onSearchSubmitted(String _) {
+    if (_highlightedTaskId != null) {
+      _openHighlightedTask();
+    } else if (_orderedItemIds.isNotEmpty) {
+      _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
     }
   }
+
+  void _onOrderedIdsChanged(List<String> ids) {
+    _orderedItemIds.clear();
+    _orderedItemIds.addAll(ids);
+    final next = SearchNavigationUtils.syncHighlight(
+      isSearching: _searchFocusNode.hasFocus,
+      orderedIds: ids,
+      current: _highlightedTaskId,
+    );
+    if (next != _highlightedTaskId) setState(() => _highlightedTaskId = next);
+  }
+
+  void _onSelectedChanged(Task task) => setState(() {
+    final isShift = HardwareKeyboard.instance.isShiftPressed;
+    final updated = TaskSelectionUtils.handleSelection(
+      task: task,
+      lastSelectedTaskId: _lastSelectedTaskId,
+      orderedIds: _orderedItemIds,
+      currentSelectedIds: _selectedTaskIds.toSet(),
+      allTasks: _tasks,
+      isShiftPressed: isShift,
+    );
+    if (!isShift || _lastSelectedTaskId == null) {
+      _lastSelectedTaskId = task.id;
+    }
+    _selectedTaskIds
+      ..clear()
+      ..addAll(updated);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -153,15 +185,11 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       _loadTasks(showLoading: false);
     });
 
-    final isSearching = _searchFocusNode.hasFocus;
-    if (isSearching && _orderedItemIds.isNotEmpty) {
-      if (_highlightedTaskId == null ||
-          !_orderedItemIds.contains(_highlightedTaskId)) {
-        _highlightedTaskId = _orderedItemIds.first;
-      }
-    } else if (!isSearching) {
-      _highlightedTaskId = null;
-    }
+    _highlightedTaskId = SearchNavigationUtils.syncHighlight(
+      isSearching: _searchFocusNode.hasFocus,
+      orderedIds: _orderedItemIds,
+      current: _highlightedTaskId,
+    );
 
     final project = ref.watch(projectProvider).getById(widget.projectId);
 
@@ -175,11 +203,6 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         ),
       );
     }
-
-    final selectedTasksAlreadyScheduled = _selectedTaskIds
-        .map((id) => _tasks.where((t) => t.id == id).firstOrNull)
-        .whereType<Task>()
-        .every((task) => task.scheduledDate != null);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
@@ -200,26 +223,20 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
         .where((t) => !filteredTasks.contains(t))
         .length;
 
+    void clearSelection() => setState(_selectedTaskIds.clear);
+
     return ProjectDetailShortcuts(
       project: project,
       onMoveNext: () => _moveFocus(1),
       onMovePrev: () => _moveFocus(-1),
       onFocusSearch: _searchFocusNode.requestFocus,
       onUnfocusSearch: () {
-        if (_searchFocusNode.hasFocus) {
-          _searchFocusNode.unfocus();
-          setState(() => _highlightedTaskId = null);
-          if (_orderedItemIds.isNotEmpty) {
-            _itemFocusNodes[_orderedItemIds.first]?.requestFocus();
-          } else {
-            _mainFocusNode.requestFocus();
-          }
-        }
+        if (_searchFocusNode.hasFocus) _leaveSearch();
       },
       onNewTask: () => context.openRightSidebar(
         AddTaskPanel(initialProjectId: widget.projectId),
       ),
-      onShowFilter: _showFilterDialog,
+      onShowFilter: _showFilter,
       child: Focus(
         focusNode: _mainFocusNode,
         autofocus: true,
@@ -231,172 +248,30 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ProjectDetailHeader(
-                    project: project,
-                    onEdit: () =>
-                        context.openRightSidebar(EditProjectPanel(project.id)),
-                    onDelete: () => showDeleteProjectDialog(
-                      context,
-                      ref,
-                      project,
-                      onDeleted: () {
-                        if (context.mounted) {
-                          GoRouter.of(context).go('/projects');
-                        }
-                      },
-                    ),
-                    onImportMd: () {
-                      showDialog<void>(
-                        context: context,
-                        builder: (_) => ImportFromMDDialog(project: project),
-                      ).then((_) => setState(() {}));
-                    },
-                    onAddTask: () => context.openRightSidebar(
-                      AddTaskPanel(initialProjectId: widget.projectId),
-                    ),
-                  ),
-                  Divider(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    height: 1,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: FuzzySearchBar(
-                      controller: _searchController,
-                      focusNode: _searchFocusNode,
-                      hintText: 'Search backlog tasks... (Press / to focus)',
-                      onChanged: (value) => setState(() {
-                        _searchQuery = value;
-                      }),
-                      onSubmitted: (_) {
-                        if (_highlightedTaskId != null) {
-                          final task = _tasks
-                              .where((t) => t.id == _highlightedTaskId)
-                              .firstOrNull;
-                          if (task != null) {
-                            context.openRightSidebar(EditTaskPanel(task.id));
-                          }
-                        } else if (_orderedItemIds.isNotEmpty) {
-                          _itemFocusNodes[_orderedItemIds.first]
-                              ?.requestFocus();
-                        }
-                      },
-                    ),
-                  ),
-                  FilterBar(
-                    filter: ref.watch(filterProvider).filter,
-                    isBypassed: ref.watch(filterProvider).isBypassed,
-                    ignoreProjects: true,
+                  ProjectDetailHeader(project: project),
+                  ProjectDetailToolbar(
+                    searchController: _searchController,
+                    searchFocusNode: _searchFocusNode,
                     hiddenCount: hiddenCount,
-                    hiddenItemType: 'tasks',
-                    onFilterTap: _showFilterDialog,
-                    onClearFilter: () =>
-                        ref.read(filterProvider.notifier).clearFilter(),
-                  ),
-                  Divider(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    height: 1,
+                    onSearchChanged: (value) =>
+                        setState(() => _searchQuery = value),
+                    onSearchSubmitted: _onSearchSubmitted,
+                    onShowFilter: _showFilter,
                   ),
                   Expanded(
-                    child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : TaskListView(
-                            tasks: filteredTasks,
-                            asParentContainers: true,
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            onContextMenu: (ctx, task, pos, box) =>
-                                showTaskCardContextMenu(
-                                  ctx,
-                                  ref,
-                                  task,
-                                  filteredTasks,
-                                  pos,
-                                  box,
-                                ),
-                            emptyPlaceholder: Center(
-                              child: _tasks.isEmpty
-                                  ? Text(
-                                      'No tasks in this project',
-                                      style: TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                    )
-                                  : Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'All tasks hidden by filters',
-                                          style: TextStyle(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        TextButton(
-                                          onPressed: () => ref
-                                              .read(filterProvider.notifier)
-                                              .clearFilter(),
-                                          child: const Text('Clear Filters'),
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                            onOrderedIdsChanged: (ids) {
-                              _orderedItemIds.clear();
-                              _orderedItemIds.addAll(ids);
-                              final isSearching = _searchFocusNode.hasFocus;
-                              if (isSearching && ids.isNotEmpty) {
-                                if (_highlightedTaskId == null ||
-                                    !ids.contains(_highlightedTaskId)) {
-                                  setState(
-                                    () => _highlightedTaskId = ids.first,
-                                  );
-                                }
-                              } else if (!isSearching &&
-                                  _highlightedTaskId != null) {
-                                setState(() => _highlightedTaskId = null);
-                              }
-                            },
-                            highlightedTaskId: _highlightedTaskId,
-                            itemFocusNodes: _itemFocusNodes,
-                            searchQuery: _searchQuery,
-                            enablePlanShortcut: true,
-                            showScheduleDate: true,
-                            selectionMode: true,
-                            selectedTaskIds: _selectedTaskIds.toSet(),
-                            onClearSelection: () => setState(() {
-                              _selectedTaskIds.clear();
-                              _lastSelectedTaskId = null;
-                            }),
-                            onSelectedChanged: (task) => setState(() {
-                              final isShift =
-                                  HardwareKeyboard.instance.isShiftPressed;
-                              final updated =
-                                  TaskSelectionUtils.handleSelection(
-                                    task: task,
-                                    lastSelectedTaskId: _lastSelectedTaskId,
-                                    orderedIds: _orderedItemIds,
-                                    currentSelectedIds: _selectedTaskIds
-                                        .toSet(),
-                                    allTasks: _tasks,
-                                    isShiftPressed: isShift,
-                                  );
-                              if (!isShift || _lastSelectedTaskId == null) {
-                                _lastSelectedTaskId = task.id;
-                              }
-                              _selectedTaskIds
-                                ..clear()
-                                ..addAll(updated);
-                            }),
-                            onEdit: (task) => context.openRightSidebar(
-                              EditTaskPanel(task.id),
-                            ),
-                            isReadOnly: !project.isActive,
-                            initialDoneExpanded: !project.isActive,
-                          ),
+                    child: ProjectDetailTaskList(
+                      project: project,
+                      allTasks: _tasks,
+                      filteredTasks: filteredTasks,
+                      isLoading: _isLoading,
+                      searchQuery: _searchQuery,
+                      highlightedTaskId: _highlightedTaskId,
+                      itemFocusNodes: _itemFocusNodes,
+                      selectedTaskIds: _selectedTaskIds.toSet(),
+                      onOrderedIdsChanged: _onOrderedIdsChanged,
+                      onClearSelection: _clearSelection,
+                      onSelectedChanged: _onSelectedChanged,
+                    ),
                   ),
                 ],
               ),
@@ -404,77 +279,17 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 left: 0,
                 right: 0,
                 bottom: 16,
-                child: BulkPlanningBar(
+                child: TaskBulkActionsBar(
                   selectedTaskIds: _selectedTaskIds,
-                  onClearSelection: () => setState(_selectedTaskIds.clear),
-                  disableScheduling: selectedTasksAlreadyScheduled,
-                  onScheduleToday: () {
-                    ref
-                        .read(taskProvider.notifier)
-                        .scheduleTasksForToday(_selectedTaskIds)
-                        .then((_) {
-                          setState(_selectedTaskIds.clear);
-                        });
-                  },
-                  onScheduleTomorrow: () {
-                    ref
-                        .read(taskProvider.notifier)
-                        .scheduleTasksForTomorrow(_selectedTaskIds)
-                        .then((_) {
-                          setState(_selectedTaskIds.clear);
-                        });
-                  },
-                  onBulkEdit: () {
-                    if (_selectedTaskIds.length == 1) {
-                      final task = _tasks
-                          .where((t) => t.id == _selectedTaskIds.first)
-                          .firstOrNull;
-                      if (task != null) {
-                        context.openRightSidebar(EditTaskPanel(task.id));
-                      }
-                    } else {
-                      showBulkEditTasksDialog(
-                        context: context,
-                        ref: ref,
-                        selectedTaskIds: _selectedTaskIds,
-                        onCompleted: () => setState(_selectedTaskIds.clear),
-                      );
-                    }
-                  },
-                  onGroupTasks: () {
-                    showGroupTasksDialog(
-                      context: context,
-                      ref: ref,
-                      selectedTaskIds: _selectedTaskIds,
-                      onCompleted: () => setState(_selectedTaskIds.clear),
-                    );
-                  },
-                  onBulkDelete: () {
-                    if (_selectedTaskIds.length == 1) {
-                      final task = _tasks
-                          .where((t) => t.id == _selectedTaskIds.first)
-                          .firstOrNull;
-                      if (task == null) return;
-                      showDialog<void>(
-                        context: context,
-                        builder: (ctx) => DeleteDialog(
-                          title: 'Delete Task',
-                          message: 'Are you sure you want to delete this task?',
-                          onConfirm: () {
-                            ref.read(taskProvider.notifier).deleteTask(task);
-                            setState(_selectedTaskIds.clear);
-                          },
-                        ),
-                      );
-                    } else {
-                      showBulkDeleteTasksConfirmDialog(
-                        context: context,
-                        ref: ref,
-                        selectedTaskIds: _selectedTaskIds,
-                        onCompleted: () => setState(_selectedTaskIds.clear),
-                      );
-                    }
-                  },
+                  tasks: _tasks,
+                  onClearSelection: _clearSelection,
+                  onActionCompleted: clearSelection,
+                  onScheduleToday: () => _scheduleSelected(
+                    ref.read(taskProvider.notifier).scheduleTasksForToday,
+                  ),
+                  onScheduleTomorrow: () => _scheduleSelected(
+                    ref.read(taskProvider.notifier).scheduleTasksForTomorrow,
+                  ),
                 ),
               ),
             ],

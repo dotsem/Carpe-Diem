@@ -261,5 +261,55 @@ void main() {
 
       expect(result, KeyEventResult.ignored);
     });
+
+    group('syncHighlight', () {
+      const ids = ['a', 'b'];
+
+      test('clears the highlight when not searching', () {
+        expect(
+          SearchNavigationUtils.syncHighlight(
+            isSearching: false,
+            orderedIds: ids,
+            current: 'b',
+          ),
+          isNull,
+        );
+      });
+
+      test('keeps a valid highlight while searching', () {
+        expect(
+          SearchNavigationUtils.syncHighlight(
+            isSearching: true,
+            orderedIds: ids,
+            current: 'b',
+          ),
+          'b',
+        );
+      });
+
+      test('falls back to the first result when unset or stale', () {
+        for (final current in [null, 'gone']) {
+          expect(
+            SearchNavigationUtils.syncHighlight(
+              isSearching: true,
+              orderedIds: ids,
+              current: current,
+            ),
+            'a',
+          );
+        }
+      });
+
+      test('leaves the highlight alone when there are no results', () {
+        expect(
+          SearchNavigationUtils.syncHighlight(
+            isSearching: true,
+            orderedIds: const [],
+            current: 'x',
+          ),
+          'x',
+        );
+      });
+    });
   });
 }

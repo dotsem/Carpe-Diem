@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/core/utils/date_time_utils.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_provider.dart';
+import 'package:carpe_diem/features/common/presentation/shell/right_sidebar/right_sidebar_state.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/bulk_action_menu.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/chip.dart';
 import 'package:carpe_diem/features/common/presentation/widgets/chip/label_chip.dart';
@@ -7,24 +11,31 @@ import 'package:carpe_diem/features/labels/data/models/label.dart';
 import 'package:carpe_diem/features/labels/presentation/providers/label_provider.dart';
 import 'package:carpe_diem/features/projects/data/models/project.dart';
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
+import 'package:carpe_diem/features/projects/presentation/widgets/dialogs/delete_project_dialog.dart';
+import 'package:carpe_diem/features/tasks/presentation/widgets/dialogs/import_from_md_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+/// Title row of the project detail screen with the project's edit, import,
+/// archive, delete and add-task actions.
 class ProjectDetailHeader extends ConsumerWidget {
   final Project project;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-  final VoidCallback onImportMd;
-  final VoidCallback onAddTask;
 
-  const ProjectDetailHeader({
-    required this.project,
-    required this.onEdit,
-    required this.onDelete,
-    required this.onImportMd,
-    required this.onAddTask,
-    super.key,
-  });
+  const ProjectDetailHeader({required this.project, super.key});
+
+  void _delete(BuildContext context, WidgetRef ref) => unawaited(
+    showDeleteProjectDialog(
+      context,
+      ref,
+      project,
+      onDeleted: () {
+        if (context.mounted) {
+          GoRouter.of(context).go('/projects');
+        }
+      },
+    ),
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -84,7 +95,9 @@ class ProjectDetailHeader extends ConsumerWidget {
                           Icons.edit_outlined,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
-                        onPressed: onEdit,
+                        onPressed: () => context.openRightSidebar(
+                          EditProjectPanel(project.id),
+                        ),
                         tooltip: 'Edit Project',
                       ),
 
@@ -118,20 +131,28 @@ class ProjectDetailHeader extends ConsumerWidget {
                         onOptionSelected: (value) {
                           switch (value) {
                             case 'import':
-                              onImportMd();
+                              unawaited(
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (_) =>
+                                      ImportFromMDDialog(project: project),
+                                ),
+                              );
                             case 'archive':
                               ref
                                   .read(projectProvider.notifier)
                                   .toggleProjectActive(project);
                             case 'delete':
-                              onDelete();
+                              _delete(context, ref);
                           }
                         },
                       ),
                       if (project.isActive) ...[
                         const SizedBox(width: 8),
                         FilledButton.icon(
-                          onPressed: onAddTask,
+                          onPressed: () => context.openRightSidebar(
+                            AddTaskPanel(initialProjectId: project.id),
+                          ),
                           icon: const Icon(Icons.add),
                           label: const Text('Add Task'),
                         ),

@@ -51,6 +51,25 @@ Non-goals:
 
 - Rejected: `part`/`part of` files. They hide the size, not the coupling.
 
+**New widgets follow one naming standard.** Splitting screens adds widgets, and names had already drifted: "header" and "toolbar" meant different things on different screens, two features each had a `PlanningSection`, and history kept widgets under `screens/`. `GUIDELINES.md` §2.2.1 now defines each widget suffix (Screen, Tab, Header, Toolbar, Bar, Row, Section, Panel, Pane, Card, Tile, Item, Dialog), the file-name rule and the folder rule. Step 2 renames what breaks it:
+
+| Before | After |
+| --- | --- |
+| `ProjectDetailToolbar` contained the header | `ProjectDetailHeader` owns its own actions, and `ProjectDetailToolbar` holds only search and filter |
+| `TaskChipsBar` (`task_chips_bar.dart`) | `TaskChipsRow` (`task_chips_row.dart`) |
+| form `PlanningSection` (`planning_section.dart`) | `SchedulingSection` (`scheduling_section.dart`) |
+| form `CategorizationSection` in `labels_and_tags_section.dart` | `categorization_section.dart` |
+| settings `LabelsSection` | `LabelsAndTagsSection` |
+| `ProjectColorPicker` in `color_picker.dart` | `project_color_picker.dart` |
+| `ItemSizeTransitionBuilder` in `kanban_transition_builder.dart` | `item_size_transition_builder.dart` |
+| `history/presentation/screens/widgets/` | `history/presentation/widgets/` |
+| `TabHistoryDashboard`, `TabHistoryList`, `TabHistoryInsights` in `screens/` | `HistoryDashboardTab`, `HistoryListTab`, `HistoryInsightsTab` in `widgets/tabs/` |
+| `filter_dialog.dart`, `mode_selection_dialog.dart`, `save_mode_dialog.dart` in `filter/presentation/widgets/` | the same files in `filter/presentation/widgets/dialogs/` |
+| five private `_showFilterDialog` copies (home, backlog, projects, project detail, history) | one `showFilterDialog(context, ref, {showProjectFilter, showTagFilter})` next to `FilterDialog` |
+
+- `ProjectDetailHeader` keeps its own layout rather than `ScreenHeader`, on purpose. The guideline names it as the exception.
+- Rejected: a shared `ScreenLayout` widget with header, toolbar, body and bulk-bar slots. Revisit it when the Today view gets the bulk bar, which makes three screens with the same layout.
+
 **Files in the 270–300 band: split only where a file has more than one responsibility or duplicates logic.**
 
 | File | Finding | Action |
@@ -82,7 +101,7 @@ Non-goals:
 Run this after 0004 and 0005, because both change sizes in `tasks`. Use one PR per row group so diffs stay reviewable:
 
 1. Data and logic: `task_repository.dart` and the `core/utils` moves.
-2. Screens: `project_detail_screen.dart`, `backlog_screen.dart` and `task_form_panel.dart`.
+2. Screens: `project_detail_screen.dart`, `backlog_screen.dart` and `task_form_panel.dart`, the naming standard in `GUIDELINES.md` §2.2.1, and the renames listed under Design.
 3. Components: `settings_components.dart` and `range_date_picker.dart`, unless 0003 has already moved the picker.
 4. Shared helpers in the 270–300 band: the dropdown and autocomplete keyboard/scroll helper, `pickNeighbour`, and the label/tag resolution.
 5. Ownership: `task_completion_actions.dart` and `historyListProvider`.
@@ -100,3 +119,4 @@ Move the matching tests under `test/` to mirror the new paths.
 - `historyListProvider`: provider tests for the first page, `loadMore` appending, `hasMore` turning false on a short page, and a date-range change resetting the offset.
 - Label/tag resolution: covered by the existing `task_chips_bar` and parent header tests, plus one unit test for merging project and task labels without duplicates.
 - Coverage: compare the 0002 coverage scopes before and after each PR.
+- Naming: every file under `presentation/widgets` and `presentation/screens` contains a class named after the file, apart from these known exceptions: `chip/chip.dart` and `task_list/task_list_components.dart` (several small classes), `settings/.../section.dart` (its main type is the `Section` enum), `import_from_md_dialog.dart` (`MD` acronym) and `settings_components.dart` (split in step 3). Also, `grep -rhoE "^class [A-Z]\w*" lib/features/*/presentation/widgets | sort | uniq -d` prints nothing.
