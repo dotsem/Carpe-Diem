@@ -1,6 +1,48 @@
 import 'package:flutter/widgets.dart';
 
 class FocusUtils {
+  static const _directionThreshold = 20.0;
+  static const _offAxisWeight = 5000.0;
+
+  /// Picks the closest candidate in the requested direction from [from].
+  static String? pickNeighbour(
+    Offset from,
+    Map<String, Offset> candidates,
+    int dx,
+    int dy,
+  ) {
+    String? bestId;
+    var bestScore = double.infinity;
+
+    for (final entry in candidates.entries) {
+      final diff = entry.value - from;
+
+      var inDirection = false;
+      if (dx > 0) {
+        inDirection = diff.dx > _directionThreshold;
+      } else if (dx < 0) {
+        inDirection = diff.dx < -_directionThreshold;
+      } else if (dy > 0) {
+        inDirection = diff.dy > _directionThreshold;
+      } else if (dy < 0) {
+        inDirection = diff.dy < -_directionThreshold;
+      }
+
+      if (inDirection) {
+        var score = diff.distanceSquared;
+        if (dx != 0) score += diff.dy.abs() * _offAxisWeight;
+        if (dy != 0) score += diff.dx.abs() * _offAxisWeight;
+
+        if (score < bestScore) {
+          bestScore = score;
+          bestId = entry.key;
+        }
+      }
+    }
+
+    return bestId;
+  }
+
   static void moveFocus({
     required List<String> orderedItemIds,
     required Map<String, FocusNode> itemFocusNodes,

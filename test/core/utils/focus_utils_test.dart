@@ -3,6 +3,47 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('pickNeighbour', () {
+    const origin = Offset.zero;
+    const candidates = {
+      'left': Offset(-30, 0),
+      'right': Offset(30, 0),
+      'up': Offset(0, -30),
+      'down': Offset(0, 30),
+    };
+
+    test('picks a candidate in each direction', () {
+      expect(FocusUtils.pickNeighbour(origin, candidates, -1, 0), 'left');
+      expect(FocusUtils.pickNeighbour(origin, candidates, 1, 0), 'right');
+      expect(FocusUtils.pickNeighbour(origin, candidates, 0, -1), 'up');
+      expect(FocusUtils.pickNeighbour(origin, candidates, 0, 1), 'down');
+    });
+
+    test('returns null when no candidate is in the direction', () {
+      expect(
+        FocusUtils.pickNeighbour(
+          origin,
+          const {'near': Offset(20, 0), 'left': Offset(-30, 0)},
+          1,
+          0,
+        ),
+        isNull,
+      );
+    });
+
+    test('biases against off-axis neighbours', () {
+      expect(
+        FocusUtils.pickNeighbour(
+          origin,
+          const {'nearOffAxis': Offset(30, 50), 'aligned': Offset(100, 0)},
+          1,
+          0,
+        ),
+        'aligned',
+      );
+    });
+  });
+
   testWidgets('moves focus forward, backward, and reports focused id', (
     tester,
   ) async {
