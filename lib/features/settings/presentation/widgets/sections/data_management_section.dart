@@ -1,5 +1,6 @@
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/settings_input_tiles.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/settings_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

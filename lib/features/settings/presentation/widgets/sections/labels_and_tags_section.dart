@@ -1,7 +1,8 @@
 import 'package:carpe_diem/features/labels/presentation/widgets/label_picker.dart';
 import 'package:carpe_diem/features/settings/presentation/constants/settings_constants.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/settings_input_tiles.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/settings_section.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/dialogs/tag_profile_selection_dialog.dart';
 import 'package:carpe_diem/features/tags/presentation/widgets/tag_picker.dart';
 import 'package:flutter/material.dart';

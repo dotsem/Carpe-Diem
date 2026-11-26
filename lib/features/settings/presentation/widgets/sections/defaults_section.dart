@@ -1,7 +1,7 @@
 import 'package:carpe_diem/features/projects/presentation/providers/project_provider.dart';
 import 'package:carpe_diem/features/projects/presentation/widgets/project_picker.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/settings/presentation/widgets/settings_components.dart';
+import 'package:carpe_diem/features/settings/presentation/widgets/settings_section.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
