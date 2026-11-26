@@ -47,7 +47,7 @@ Non-goals:
 | `task_repository.dart` | `_getOrderBy` becomes a pure top-level `taskOrderBy` in `task_order_sql.dart`, relation loading goes into `task_relations_loader.dart`, and the reference checks and label/tag writes that `insert` and `_update` duplicated become one `task_relations_writer.dart`. |
 | `shortcut_intents.dart`, `app_shortcuts.dart` | Out of scope. 0007 replaces how shortcuts are defined, so splitting them first would be rewritten. |
 | `settings_components.dart` | One file per tile type group: section and base tiles in `settings_section.dart`, input tiles (switch, dropdown, slider) in `settings_input_tiles.dart`. `SettingsTile.wrap` exposes the private tile wrapper to the input tiles. |
-| `range_date_picker.dart` | Done by 0003, which moved the picker into the `dotmaterial` package. |
+| `range_date_picker.dart` | Moved by 0003 into `packages/dotmaterial/lib/src/range_date_picker.dart`, still 319 lines. Per the non-goal, it is split inside the package, outside this spec. |
 
 - Rejected: `part`/`part of` files. They hide the size, not the coupling.
 
@@ -76,9 +76,12 @@ Non-goals:
 | --- | --- | --- |
 | `task_provider.dart` (300) | It does loading, CRUD, reorder, status and completion, and the parent-completion prompt. The other action groups already live in `actions/` mixins. | Move `updateTaskStatus` through `completeParentOnly` into a `task_completion_actions.dart` mixin, the same pattern as `task_bulk_actions`. |
 | `history_screen.dart` (272) | The widget state owns pagination (`_offset`, `_hasMore`, `_completedTasks`), and `_loadData` and `_loadMoreData` each build the same start/end-of-day range. | Add a manual `historyListProvider` `Notifier` that owns paging and the date range. The screen only renders. |
-| `searchable_dropdown.dart` (274), `multi_select_searchable_dropdown.dart` (299), `tag_autocomplete_text_field.dart` (293) | Three copies of the arrow-key selection and scroll-to-index code, with hard-coded item heights of 40, 44 and 36. | Write one `ensureIndexVisible(ScrollController, int index, double itemExtent)` and one keyboard-selection helper in `flutter_ext/searchable_dropdown/`, and use them in all three. The `tag_autocomplete` scroll keeps its "scroll only when out of view" behaviour, which becomes the shared behaviour. |
-| `project_grid.dart` (293) | `moveFocus` (about 70 lines) is a geometric nearest-neighbour search living inside widget state, and it has no tests. | Extract a pure `pickNeighbour(Offset from, Map<String, Offset> candidates, int dx, int dy)` into `core/utils/focus_utils.dart`. The widget only collects the item centres. |
-| `parent_group_header.dart` (292) | It resolves labels and tags (task labels plus project labels) with the same code as `task_chips_bar.dart`. | Extract that resolution into one shared function used by both, or render `TaskChipsBar` inside the header if the layouts match. |
+| `dotmaterial` `searchable_dropdown.dart` (274) and `multi_select_searchable_dropdown.dart` (299), app `tag_autocomplete_text_field.dart` (293) | Three copies of `_scrollToIndex`, with hard-coded item heights of 40, 44 and 36. The two dropdowns scroll the item to the top even when it is already visible. | Write one `ensureIndexVisible(ScrollController, int index, double itemExtent)` in `packages/dotmaterial/lib/searchable_dropdown/`, export it from `dotmaterial.dart`, and use it in all three. The `tag_autocomplete` "scroll only when out of view" behaviour becomes the shared behaviour, a deliberate change for the dropdowns. |
+| `project_grid.dart` (293) | `moveFocus` (about 70 lines) is a geometric nearest-neighbour search living inside widget state, and it has no tests. | Extract a pure static `FocusUtils.pickNeighbour(Offset from, Map<String, Offset> candidates, int dx, int dy)` into `core/utils/focus_utils.dart`, with the 20px threshold and 5000 off-axis weight as named constants. The widget only collects the item centres. |
+| `parent_group_header.dart` (292) | It resolves labels and tags (task labels plus project labels) with the same code as `task_chips_row.dart`. | Extract that resolution into one pure function in `features/tasks/domain/task_chip_resolution.dart`, taking the task, the optional project and the label and tag lookups, and use it in both widgets. |
+
+- Rejected: a shared arrow-key selection helper. The shared part is `(i ± 1) % n`, and the three widgets differ in start index (-1 or 0) and in what Enter does (pick or toggle).
+- Rejected: rendering `TaskChipsRow` inside the header. The header pads each chip separately, so the layouts differ.
 | `kanban_column.dart` (290) | The widget calls domain reorder helpers directly. | Covered by 0004, which changes those calls. No separate split. |
 | `task_reorder_engine.dart` (300) | Pure and cohesive: one job, slot and rank resolution. | Keep. 0004 removes the wrappers that call it, not its own code. |
 | `group_tasks_dialog.dart`, `project_form_panel.dart`, `shortcuts_help_overlay.dart` | View code plus form validation, delegating to notifiers. | Keep. |
@@ -103,20 +106,20 @@ Run this after 0004 and 0005, because both change sizes in `tasks`. Use one PR p
 1. Data and logic: `task_repository.dart` and the `core/utils` moves.
 2. Screens: `project_detail_screen.dart`, `backlog_screen.dart` and `task_form_panel.dart`, the naming standard in `GUIDELINES.md` §2.2.1, and the renames listed under Design.
 3. Components: `settings_components.dart`. 0003 already moved `range_date_picker.dart`.
-4. Shared helpers in the 270–300 band: the dropdown and autocomplete keyboard/scroll helper, `pickNeighbour`, and the label/tag resolution.
+4. Shared helpers in the 270–300 band: `ensureIndexVisible`, `FocusUtils.pickNeighbour`, and the label/tag resolution.
 5. Ownership: `task_completion_actions.dart` and `historyListProvider`.
 
 Move the matching tests under `test/` to mirror the new paths.
 
 ## Verification
 
-- Line limit: `find lib -name '*.dart' ! -name '*.freezed.dart' -exec wc -l {} + | awk '$1>300 && $2!="total"'` prints nothing.
+- Line limit: `find lib packages/*/lib -name '*.dart' ! -name '*.freezed.dart' -exec wc -l {} + | awk '$1>300 && $2!="total"'` prints only the files left to other specs: `shortcut_intents.dart` and `app_shortcuts.dart` (0007) and `range_date_picker.dart` (the package split).
 - Behaviour: existing widget and provider tests pass unchanged apart from import paths. Manual pass on the project detail, backlog and task form screens: keyboard focus, search and drag-reorder.
 - Imports: `flutter analyze` is clean, and `grep -rn "core/utils/task_" lib test` returns nothing.
 - New tests: `task_order_sql.dart` gets a unit test that pins the `ORDER BY` output for the plan, deadline and overdue combinations.
 - `pickNeighbour`: unit tests for each direction, for no candidate in that direction, and for the bias against off-axis neighbours.
-- `ensureIndexVisible`: widget tests for an item above the viewport, below it, and already visible, which means no scroll. The existing dropdown and autocomplete tests pass unchanged.
+- `ensureIndexVisible`: widget tests in `packages/dotmaterial/test/` for an item above the viewport, below it, and already visible, which means no scroll. The existing dropdown and autocomplete tests pass unchanged.
 - `historyListProvider`: provider tests for the first page, `loadMore` appending, `hasMore` turning false on a short page, and a date-range change resetting the offset.
-- Label/tag resolution: covered by the existing `task_chips_bar` and parent header tests, plus one unit test for merging project and task labels without duplicates.
+- Label/tag resolution: neither widget has tests, so unit tests in `test/features/tasks/domain/task_chip_resolution_test.dart` cover merging project and task labels without duplicates, a task without a project, and dropping label and tag IDs the lookups don't find.
 - Coverage: compare the 0002 coverage scopes before and after each PR.
 - Naming: every file under `presentation/widgets` and `presentation/screens` contains a class named after the file, apart from these known exceptions: `chip/chip.dart`, `task_list/task_list_components.dart` and `settings_input_tiles.dart` (several small classes), `settings/.../section.dart` (its main type is the `Section` enum), and `import_from_md_dialog.dart` (`MD` acronym). Also, `grep -rhoE "^class [A-Z]\w*" lib/features/*/presentation/widgets | sort | uniq -d` prints nothing.
