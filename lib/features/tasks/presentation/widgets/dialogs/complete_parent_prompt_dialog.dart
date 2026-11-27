@@ -1,5 +1,6 @@
 import 'package:carpe_diem/core/theme/app_theme.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_completion_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';

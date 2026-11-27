@@ -5,6 +5,7 @@ import 'package:carpe_diem/features/settings/presentation/providers/settings_pro
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_completion_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_state.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_timer_provider.dart';
