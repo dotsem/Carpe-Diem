@@ -1,6 +1,8 @@
 import 'package:carpe_diem/features/common/presentation/providers/repository_providers.dart';
 import 'package:carpe_diem/features/filter/data/models/task_filter.dart';
+import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/history/presentation/providers/history_list_provider.dart';
+import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,10 +17,20 @@ void main() {
     late MockHistoryRepository history;
     late MockKeyValueRepository settings;
     late ProviderContainer container;
+    final overview = HistoryOverview.empty();
+
+    setUpAll(() => registerFallbackValue(DateTime(2026)));
 
     setUp(() {
       history = MockHistoryRepository();
       settings = MockKeyValueRepository();
+      when(
+        () => history.getHistoryOverview(
+          any(),
+          any(),
+          filter: any(named: 'filter'),
+        ),
+      ).thenAnswer((_) async => overview);
       container = ProviderContainer(
         overrides: [
           historyRepositoryProvider.overrideWithValue(history),
@@ -38,8 +50,23 @@ void main() {
 
       final state = container.read(historyListProvider);
       expect(state.completedTasks, tasks);
+      expect(state.overview, overview);
       expect(state.hasMore, isTrue);
+      expect(state.isLoading, isFalse);
       expect(state.isLoadingMore, isFalse);
+    });
+
+    test('a settings change keeps the picked date range', () async {
+      final picked = DateTimeRange(
+        start: DateTime(2026, 3, 4),
+        end: DateTime(2026, 3, 8),
+      );
+      when(() => settings.set(any(), any())).thenAnswer((_) async {});
+
+      container.read(historyListProvider.notifier).setDateRange(picked);
+      await container.read(settingsProvider.notifier).setCompactMode(true);
+
+      expect(container.read(historyListProvider).dateRange, picked);
     });
 
     test('loadMore appends the next page', () async {

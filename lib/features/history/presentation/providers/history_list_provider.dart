@@ -1,4 +1,7 @@
 import 'package:carpe_diem/features/filter/presentation/providers/filter_provider.dart';
+import 'package:carpe_diem/features/history/data/models/history_overview.dart';
+import 'package:carpe_diem/features/history/presentation/providers/activity_provider.dart';
+import 'package:carpe_diem/features/history/presentation/providers/history_insights_provider.dart';
 import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
 import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_history_provider.dart';
@@ -9,14 +12,18 @@ class HistoryListState {
   final DateTimeRange dateRange;
   final DateTimeRange queryRange;
   final List<Task> completedTasks;
+  final HistoryOverview? overview;
   final bool hasMore;
+  final bool isLoading;
   final bool isLoadingMore;
 
   const HistoryListState({
     required this.dateRange,
     required this.queryRange,
     required this.completedTasks,
+    required this.overview,
     required this.hasMore,
+    required this.isLoading,
     required this.isLoadingMore,
   });
 }
@@ -27,12 +34,14 @@ class HistoryListNotifier extends Notifier<HistoryListState> {
   int _offset = 0;
   bool _hasMore = true;
   List<Task> _completedTasks = [];
+  HistoryOverview? _overview;
+  bool _isLoading = false;
   bool _isLoadingMore = false;
   final int _limit = 25;
 
   @override
   HistoryListState build() {
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.read(settingsProvider);
     final now = DateTime.now();
 
     switch (settings.defaultStatsPeriod) {
@@ -67,21 +76,35 @@ class HistoryListNotifier extends Notifier<HistoryListState> {
   }
 
   Future<void> load() async {
+    ref
+      ..invalidate(historyInsightsProvider)
+      ..invalidate(activityProvider)
+      ..invalidate(activityYearsProvider);
     _resetPaging();
+    _isLoading = true;
     state = _currentState;
     final historyNotifier = ref.read(taskHistoryProvider.notifier);
     final filter = ref.read(filterProvider).activeFilter;
 
-    final tasks = await historyNotifier.getCompletedTasks(
-      _queryRange.start,
-      _queryRange.end,
-      limit: _limit,
-      offset: _offset,
-      filter: filter,
-    );
+    final (tasks, overview) = await (
+      historyNotifier.getCompletedTasks(
+        _queryRange.start,
+        _queryRange.end,
+        limit: _limit,
+        offset: _offset,
+        filter: filter,
+      ),
+      historyNotifier.getHistoryOverview(
+        _queryRange.start,
+        _queryRange.end,
+        filter: filter,
+      ),
+    ).wait;
 
     if (!ref.mounted) return;
     _completedTasks = tasks;
+    _overview = overview;
+    _isLoading = false;
     _offset = tasks.length;
     _hasMore = tasks.length == _limit;
     state = _currentState;
@@ -121,7 +144,9 @@ class HistoryListNotifier extends Notifier<HistoryListState> {
     dateRange: _dateRange,
     queryRange: _queryRange,
     completedTasks: _completedTasks,
+    overview: _overview,
     hasMore: _hasMore,
+    isLoading: _isLoading,
     isLoadingMore: _isLoadingMore,
   );
 
