@@ -6,12 +6,11 @@ import 'package:carpe_diem/features/filter/presentation/widgets/filter_bar.dart'
 import 'package:carpe_diem/features/history/data/models/history_overview.dart';
 import 'package:carpe_diem/features/history/presentation/providers/activity_provider.dart';
 import 'package:carpe_diem/features/history/presentation/providers/history_insights_provider.dart';
+import 'package:carpe_diem/features/history/presentation/providers/history_list_provider.dart';
 import 'package:carpe_diem/features/history/presentation/widgets/date_range_button.dart';
 import 'package:carpe_diem/features/history/presentation/widgets/tabs/history_dashboard_tab.dart';
 import 'package:carpe_diem/features/history/presentation/widgets/tabs/history_insights_tab.dart';
 import 'package:carpe_diem/features/history/presentation/widgets/tabs/history_list_tab.dart';
-import 'package:carpe_diem/features/settings/presentation/providers/settings_provider.dart';
-import 'package:carpe_diem/features/tasks/data/models/task.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_history_provider.dart';
 import 'package:dotmaterial/dotmaterial.dart';
 import 'package:flutter/material.dart';
@@ -25,51 +24,12 @@ class HistoryScreen extends ConsumerStatefulWidget {
 }
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
-  DateTimeRange _dateRange = DateTimeRange(
-    start: DateTime.now().subtract(const Duration(days: 6)),
-    end: DateTime.now(),
-  );
   bool _isLoading = false;
-  bool _isLoadingMore = false;
-  List<Task> _completedTasks = [];
   HistoryOverview? _overview;
-  int _offset = 0;
-  bool _hasMore = true;
-  final int _limit = 25;
 
   @override
   void initState() {
     super.initState();
-    final settings = ref.read(settingsProvider);
-    final now = DateTime.now();
-
-    switch (settings.defaultStatsPeriod) {
-      case 'daily':
-        _dateRange = DateTimeRange(
-          start: DateTime(now.year, now.month, now.day),
-          end: DateTime(now.year, now.month, now.day),
-        );
-      case 'monthly':
-        _dateRange = DateTimeRange(
-          start: DateTime(
-            now.year,
-            now.month,
-            now.day,
-          ).subtract(const Duration(days: 30)),
-          end: now,
-        );
-      case 'weekly':
-      default:
-        _dateRange = DateTimeRange(
-          start: DateTime(
-            now.year,
-            now.month,
-            now.day,
-          ).subtract(const Duration(days: 6)),
-          end: now,
-        );
-    }
-
     _loadData();
   }
 
@@ -79,92 +39,25 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       ..invalidate(historyInsightsProvider)
       ..invalidate(activityProvider)
       ..invalidate(activityYearsProvider);
-    setState(() {
-      _isLoading = true;
-      _offset = 0;
-      _hasMore = true;
-      _completedTasks = [];
-    });
+    setState(() => _isLoading = true);
     final historyNotifier = ref.read(taskHistoryProvider.notifier);
-
-    final start = DateTime(
-      _dateRange.start.year,
-      _dateRange.start.month,
-      _dateRange.start.day,
-    );
-    final end = DateTime(
-      _dateRange.end.year,
-      _dateRange.end.month,
-      _dateRange.end.day,
-      23,
-      59,
-      59,
-    );
+    final historyListNotifier = ref.read(historyListProvider.notifier);
+    final queryRange = ref.read(historyListProvider).queryRange;
     if (!mounted) return;
     final filter = ref.read(filterProvider).activeFilter;
 
-    final tasksFuture = historyNotifier.getCompletedTasks(
-      start,
-      end,
-      limit: _limit,
-      offset: _offset,
-      filter: filter,
-    );
     final overviewFuture = historyNotifier.getHistoryOverview(
-      start,
-      end,
+      queryRange.start,
+      queryRange.end,
       filter: filter,
     );
-
-    final results = await Future.wait([tasksFuture, overviewFuture]);
-    final tasks = results[0] as List<Task>;
-    final overview = results[1] as HistoryOverview;
+    await historyListNotifier.load();
+    final overview = await overviewFuture;
 
     if (mounted) {
       setState(() {
-        _completedTasks = tasks;
         _overview = overview;
         _isLoading = false;
-        _offset = tasks.length;
-        _hasMore = tasks.length == _limit;
-      });
-    }
-  }
-
-  Future<void> _loadMoreData() async {
-    if (_isLoadingMore) return;
-    setState(() => _isLoadingMore = true);
-    final historyNotifier = ref.read(taskHistoryProvider.notifier);
-
-    final start = DateTime(
-      _dateRange.start.year,
-      _dateRange.start.month,
-      _dateRange.start.day,
-    );
-    final end = DateTime(
-      _dateRange.end.year,
-      _dateRange.end.month,
-      _dateRange.end.day,
-      23,
-      59,
-      59,
-    );
-    final filter = ref.read(filterProvider).activeFilter;
-
-    final tasks = await historyNotifier.getCompletedTasks(
-      start,
-      end,
-      limit: _limit,
-      offset: _offset,
-      filter: filter,
-    );
-
-    if (mounted) {
-      setState(() {
-        _completedTasks.addAll(tasks);
-        _isLoadingMore = false;
-        _offset += tasks.length;
-        _hasMore = tasks.length == _limit;
       });
     }
   }
@@ -185,6 +78,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     });
 
     final filterState = ref.watch(filterProvider);
+    final historyList = ref.watch(historyListProvider);
 
     return DefaultTabController(
       length: 3,
@@ -197,9 +91,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               title: 'History',
               actions: [
                 DateRangeButton(
-                  dateRange: _dateRange,
+                  dateRange: historyList.dateRange,
                   onDatePicked: (picked) {
-                    setState(() => _dateRange = picked);
+                    ref.read(historyListProvider.notifier).setDateRange(picked);
                     _loadData();
                   },
                 ),
@@ -241,15 +135,16 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       children: [
                         HistoryDashboardTab(
                           overview: _overview,
-                          range: _dateRange,
+                          range: historyList.dateRange,
                         ),
                         HistoryListTab(
-                          tasks: _completedTasks,
-                          hasMore: _hasMore,
-                          isLoadingMore: _isLoadingMore,
-                          onLoadMore: _loadMoreData,
+                          tasks: historyList.completedTasks,
+                          hasMore: historyList.hasMore,
+                          isLoadingMore: historyList.isLoadingMore,
+                          onLoadMore: () =>
+                              ref.read(historyListProvider.notifier).loadMore(),
                         ),
-                        HistoryInsightsTab(range: _dateRange),
+                        HistoryInsightsTab(range: historyList.dateRange),
                       ],
                     ),
             ),
