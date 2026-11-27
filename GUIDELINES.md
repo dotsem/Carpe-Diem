@@ -87,7 +87,7 @@ A widget's suffix says what part of the screen it is. Use these terms with only 
 | `Item` | One element built by a list or grid, usually wrapping a card with drag or hierarchy behaviour. | `BacklogHierarchyItem` |
 | `Dialog` | A modal. Its opener is a top-level `show<Name>Dialog` function. | `DeleteDialog` |
 
-- **File names**: a file is named after its main public class in snake_case (`TaskChipsRow` → `task_chips_row.dart`). Two exceptions: `x_provider.dart` holds `XNotifier` and `xProvider`, and a file of small sibling widgets is named for the group (`chip/chip.dart` holds `DeadlineChip`, `StatusChip` and the others).
+- **File names**: a file is named after its main public class in snake_case (`TaskChipsRow` → `task_chips_row.dart`). Three exceptions: `x_provider.dart` holds `XNotifier` and `xProvider`; a file of small sibling widgets is named for the group (`chip/chip.dart` holds `DeadlineChip`, `StatusChip` and the others); and a file with no class, only top-level `show…`/`build…` functions, is named for what they open or build (`task_card_context_menu.dart` holds `showTaskCardContextMenu`, `context_menu_helpers.dart` holds the `build…Items` menu builders).
 - **Unique class names**: a widget class name is unique across `lib/`. Prefix with the feature or screen when a plain name is taken.
 - **Folders**: widgets used by one screen go in `presentation/widgets/<screen>/`, widgets shared inside a feature in `presentation/widgets/`, and widgets used by several features in `features/common/presentation/widgets/`. A feature with a single screen (history, settings) may put that screen's widgets straight in `presentation/widgets/`. Dialogs and their `show…Dialog` openers go in `presentation/widgets/dialogs/`.
 
