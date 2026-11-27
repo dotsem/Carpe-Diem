@@ -1,6 +1,6 @@
 # 0006: File size and module boundaries
 
-Status: approved
+Status: done (#154, #155, #157, #158, #159, #160)
 
 ## Why
 
@@ -51,7 +51,7 @@ Non-goals:
 
 - Rejected: `part`/`part of` files. They hide the size, not the coupling.
 
-**New widgets follow one naming standard.** Splitting screens adds widgets, and names had already drifted: "header" and "toolbar" meant different things on different screens, two features each had a `PlanningSection`, and history kept widgets under `screens/`. `GUIDELINES.md` §2.2.1 now defines each widget suffix (Screen, Tab, Header, Toolbar, Bar, Row, Section, Panel, Pane, Card, Tile, Item, Dialog), the file-name rule and the folder rule. Step 2 renames what breaks it:
+**New widgets follow one naming standard.** Splitting screens adds widgets, and names had already drifted: "header" and "toolbar" meant different things on different screens, two features each had a `PlanningSection`, and history kept widgets under `screens/`. `GUIDELINES.md` §2.2.1 now defines each widget suffix (Screen, Tab, Header, Toolbar, Bar, Row, Section, Panel, Pane, Card, Tile, Item, Dialog), the file-name rule and the folder rule. These renames fix what broke it:
 
 | Before | After |
 | --- | --- |
@@ -79,12 +79,12 @@ Non-goals:
 | `dotmaterial` `searchable_dropdown.dart` (274) and `multi_select_searchable_dropdown.dart` (299), app `tag_autocomplete_text_field.dart` (293) | Three copies of `_scrollToIndex`, with hard-coded item heights of 40, 44 and 36. The two dropdowns scroll the item to the top even when it is already visible. | Write one `ensureIndexVisible(ScrollController, int index, double itemExtent)` in `packages/dotmaterial/lib/searchable_dropdown/`, export it from `dotmaterial.dart`, and use it in all three. The `tag_autocomplete` "scroll only when out of view" behaviour becomes the shared behaviour, a deliberate change for the dropdowns. |
 | `project_grid.dart` (293) | `moveFocus` (about 70 lines) is a geometric nearest-neighbour search living inside widget state, and it has no tests. | Extract a pure static `FocusUtils.pickNeighbour(Offset from, Map<String, Offset> candidates, int dx, int dy)` into `core/utils/focus_utils.dart`, with the 20px threshold and 5000 off-axis weight as named constants. The widget only collects the item centres. |
 | `parent_group_header.dart` (292) | It resolves labels and tags (task labels plus project labels) with the same code as `task_chips_row.dart`. | Extract that resolution into one pure function in `features/tasks/domain/task_chip_resolution.dart`, taking the task, the optional project and the label and tag lookups, and use it in both widgets. |
-
-- Rejected: a shared arrow-key selection helper. The shared part is `(i ± 1) % n`, and the three widgets differ in start index (-1 or 0) and in what Enter does (pick or toggle).
-- Rejected: rendering `TaskChipsRow` inside the header. The header pads each chip separately, so the layouts differ.
 | `kanban_column.dart` (290) | The widget calls domain reorder helpers directly. | Covered by 0004, which changes those calls. No separate split. |
 | `task_reorder_engine.dart` (300) | Pure and cohesive: one job, slot and rank resolution. | Keep. 0004 removes the wrappers that call it, not its own code. |
 | `group_tasks_dialog.dart`, `project_form_panel.dart`, `shortcuts_help_overlay.dart` | View code plus form validation, delegating to notifiers. | Keep. |
+
+- Rejected: a shared arrow-key selection helper. The shared part is `(i ± 1) % n`, and the three widgets differ in start index (-1 or 0) and in what Enter does (pick or toggle).
+- Rejected: rendering `TaskChipsRow` inside the header. The header pads each chip separately, so the layouts differ.
 
 **Feature utils move out of `core`:**
 
@@ -99,21 +99,9 @@ Non-goals:
 - **Import churn.** Moving the utils and intents leaves broken or circular imports.
 - **Coverage shifts.** Moved code changes which test file covers it, which matters for 0002's coverage scopes.
 
-## Plan
-
-Run this after 0004 and 0005, because both change sizes in `tasks`. Use one PR per row group so diffs stay reviewable:
-
-1. Data and logic: `task_repository.dart` and the `core/utils` moves.
-2. Screens: `project_detail_screen.dart`, `backlog_screen.dart` and `task_form_panel.dart`, the naming standard in `GUIDELINES.md` §2.2.1, and the renames listed under Design.
-3. Components: `settings_components.dart`. 0003 already moved `range_date_picker.dart`.
-4. Shared helpers in the 270–300 band: `ensureIndexVisible`, `FocusUtils.pickNeighbour`, and the label/tag resolution.
-5. Ownership: `task_completion_actions.dart` and `historyListProvider`.
-
-Move the matching tests under `test/` to mirror the new paths.
-
 ## Verification
 
-- Line limit: `find lib packages/*/lib -name '*.dart' ! -name '*.freezed.dart' -exec wc -l {} + | awk '$1>300 && $2!="total"'` prints only the files left to other specs: `shortcut_intents.dart` and `app_shortcuts.dart` (0007) and `range_date_picker.dart` (the package split).
+- Line limit: `find lib packages/*/lib -name '*.dart' ! -name '*.freezed.dart' -exec wc -l {} + | awk '$1>300 && $2!="total"'` prints only the files left to other specs: `shortcut_intents.dart` and `app_shortcuts.dart` (0007), `range_date_picker.dart` (the package split), and `project_detail_screen.dart` at 301 lines, accepted because one more split would only exist to get under the limit.
 - Behaviour: existing widget and provider tests pass unchanged apart from import paths. Manual pass on the project detail, backlog and task form screens: keyboard focus, search and drag-reorder.
 - Imports: `flutter analyze` is clean, and `grep -rn "core/utils/task_" lib test` returns nothing.
 - New tests: `task_order_sql.dart` gets a unit test that pins the `ORDER BY` output for the plan, deadline and overdue combinations.
@@ -122,4 +110,4 @@ Move the matching tests under `test/` to mirror the new paths.
 - `historyListProvider`: provider tests for the first page, `loadMore` appending, `hasMore` turning false on a short page, and a date-range change resetting the offset.
 - Label/tag resolution: neither widget has tests, so unit tests in `test/features/tasks/domain/task_chip_resolution_test.dart` cover merging project and task labels without duplicates, a task without a project, and dropping label and tag IDs the lookups don't find.
 - Coverage: compare the 0002 coverage scopes before and after each PR.
-- Naming: every file under `presentation/widgets` and `presentation/screens` contains a class named after the file, apart from these known exceptions: `chip/chip.dart`, `task_list/task_list_components.dart` and `settings_input_tiles.dart` (several small classes), `settings/.../section.dart` (its main type is the `Section` enum), and `import_from_md_dialog.dart` (`MD` acronym). Also, `grep -rhoE "^class [A-Z]\w*" lib/features/*/presentation/widgets | sort | uniq -d` prints nothing.
+- Naming: every file under `presentation/widgets` and `presentation/screens` contains a class named after the file, apart from these known exceptions: `chip/chip.dart`, `task_list/task_list_components.dart` and `settings_input_tiles.dart` (several small classes), `settings/.../section.dart` (its main type is the `Section` enum), `import_from_md_dialog.dart` (`MD` acronym), and files with only top-level `show…`/`build…` functions, which `GUIDELINES.md` §2.2.1 names after what they open or build. Also, `grep -rhoE "^class [A-Z]\w*" lib/features/*/presentation/widgets | sort | uniq -d` prints nothing.
