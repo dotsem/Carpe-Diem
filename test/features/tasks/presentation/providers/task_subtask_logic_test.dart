@@ -4,6 +4,7 @@ import 'package:carpe_diem/features/tasks/data/models/task_status.dart';
 import 'package:carpe_diem/features/tasks/domain/services/subtask_service.dart';
 import 'package:carpe_diem/features/tasks/domain/task_draft.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_bulk_actions.dart';
+import 'package:carpe_diem/features/tasks/presentation/providers/actions/task_completion_actions.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/parent_completion_prompt_provider.dart';
 import 'package:carpe_diem/features/tasks/presentation/providers/task_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
